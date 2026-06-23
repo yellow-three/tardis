@@ -1,0 +1,28 @@
+<?php
+
+namespace {{NAMESPACE}};
+
+use Illuminate\Support\ServiceProvider;
+use Livewire\Livewire;
+use Tardis\Core\Manager\PluginManager;
+
+class Tardis{{STUDLY_NAME}}ServiceProvider extends ServiceProvider
+{
+    public function register(): void
+    {
+        $this->mergeConfigFrom(__DIR__.'/../config/tardis-{{LOWERCASE_NAME}}.php', 'tardis-{{LOWERCASE_NAME}}');
+    }
+
+    public function boot(PluginManager $plugins): void
+    {
+        $this->loadViewsFrom(__DIR__.'/../resources/views', 'tardis-{{LOWERCASE_NAME}}');
+        Livewire::addNamespace('tardis-{{LOWERCASE_NAME}}', __DIR__.'/../resources/views');
+        $plugins->register('tardis-{{LOWERCASE_NAME}}', Tardis{{STUDLY_NAME}}Plugin::class);
+
+        if ($this->app->runningInConsole()) {
+            $this->publishes([
+                __DIR__.'/../config/tardis-{{LOWERCASE_NAME}}.php' => config_path('tardis-{{LOWERCASE_NAME}}.php'),
+            ], 'tardis-{{LOWERCASE_NAME}}-config');
+        }
+    }
+}

@@ -1,0 +1,11 @@
+<?php
+
+use Illuminate\Support\Facades\Route;
+use Livewire\Livewire;
+
+Route::middleware(config('tardis.admin.middleware', ['web', 'auth']))
+    ->prefix(config('tardis.admin.prefix', 'admin'))
+    ->group(function () {
+    // Route::livewire('/{{LOWERCASE_NAME}}', 'tardis-{{LOWERCASE_NAME}}::pages.admin.⚡{{LOWERCASE_NAME}}')
+    //     ->name('tardis.{{LOWERCASE_NAME}}');
+});

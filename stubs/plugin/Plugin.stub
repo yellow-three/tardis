@@ -1,0 +1,24 @@
+<?php
+
+namespace {{NAMESPACE}};
+
+use Tardis\Core\Contracts\Plugins\GenericPlugin;
+{{MENU_IMPORT}}
+{{WIDGET_IMPORT}}
+{{SETTINGS_IMPORT}}
+
+class Tardis{{STUDLY_NAME}}Plugin implements GenericPlugin{{MENU_INTERFACE}}{{WIDGET_INTERFACE}}{{SETTINGS_INTERFACE}}
+{
+    public function name(): string
+    {
+        return 'tardis-{{LOWERCASE_NAME}}';
+    }
+
+    public function description(): string
+    {
+        return '{{STUDLY_NAME}} plugin for TARDIS';
+    }
+{{MENU_METHOD}}
+{{WIDGET_METHOD}}
+{{SETTINGS_METHOD}}
+}

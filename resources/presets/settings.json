@@ -1,0 +1,96 @@
+[
+    {
+        "type": "text",
+        "group": "admin",
+        "key": "title",
+        "name": "Title",
+        "value": "TARDIS Admin",
+        "info": "The title shown in your browser",
+        "translatable": false,
+        "canBeTranslated": true,
+        "options": {
+            "placeholder": null,
+            "default_value": null,
+            "rows": 1,
+            "title": null,
+            "description": null
+        },
+        "validation": []
+    },
+    {
+        "type": "text",
+        "group": "admin",
+        "key": "sidebar-title",
+        "name": "Sidebar title",
+        "value": "TARDIS",
+        "info": "The title shown in the sidebar",
+        "translatable": false,
+        "canBeTranslated": true,
+        "options": {
+            "placeholder": null,
+            "default_value": null,
+            "rows": 1,
+            "title": null,
+            "description": null
+        },
+        "validation": []
+    },
+    {
+        "type": "number",
+        "group": "admin",
+        "key": "icon-size",
+        "name": "Icon size",
+        "value": 6,
+        "info": "The size of the sidebar icons",
+        "translatable": false,
+        "options": {
+            "min": 4,
+            "max": 8
+        },
+        "validation": []
+    },
+    {
+        "type": "select",
+        "group": "admin",
+        "key": "ui-components",
+        "name": "UI components",
+        "value": true,
+        "info": "Show or hide the UI components page",
+        "translatable": false,
+        "canBeTranslated": false,
+        "options": {
+            "multiple": false,
+            "options": [
+                {
+                    "key": true,
+                    "value": "Show"
+                },
+                {
+                    "key": false,
+                    "value": "Hide"
+                }
+            ],
+            "title": null,
+            "description": null
+        },
+        "validation": []
+    },
+    {
+        "type": "text",
+        "group": "media",
+        "key": "path",
+        "name": "Path",
+        "value": "/",
+        "info": "Starting path for the media manager",
+        "translatable": false,
+        "canBeTranslated": true,
+        "options": {
+            "placeholder": null,
+            "default_value": null,
+            "rows": 1,
+            "title": null,
+            "description": null
+        },
+        "validation": []
+    }
+]

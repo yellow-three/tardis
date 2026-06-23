@@ -1,0 +1,24 @@
+{
+    "name": "tardis/{{LOWERCASE_NAME}}",
+    "description": "TARDIS {{STUDLY_NAME}} Plugin",
+    "type": "library",
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "{{NAMESPACE}}\\": "src/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "{{NAMESPACE}}\\Tardis{{STUDLY_NAME}}ServiceProvider"
+            ]
+        }
+    },
+    "require": {
+        "php": "^8.3",
+        "laravel/framework": "^13.0",
+        "livewire/livewire": "^4.0",
+        "tardis/core": "@dev"
+    }
+}
