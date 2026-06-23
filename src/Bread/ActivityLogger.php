@@ -1,8 +1,8 @@
 <?php
 
-namespace Tardis\Core\Bread;
+namespace Tardis\Bread;
 
-use Tardis\Core\Models\ActivityLog;
+use Tardis\Models\ActivityLog;
 
 class ActivityLogger
 {

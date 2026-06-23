@@ -1,11 +1,11 @@
 <?php
 
-namespace Tardis\Core\Manager;
+namespace Tardis\Manager;
 
 use Illuminate\Support\Collection;
-use Tardis\Core\Classes\Widget;
-use Tardis\Core\Contracts\Plugins\Features\Filter\FilterWidgets;
-use Tardis\Core\Contracts\Plugins\Features\Provider\Widgets;
+use Tardis\Classes\Widget;
+use Tardis\Contracts\Plugins\Features\Filter\FilterWidgets;
+use Tardis\Contracts\Plugins\Features\Provider\Widgets;
 
 class WidgetManager
 {

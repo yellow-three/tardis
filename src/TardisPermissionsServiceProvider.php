@@ -8,7 +8,7 @@ use Livewire\Livewire;
 use Spatie\Permission\Middleware\PermissionMiddleware;
 use Spatie\Permission\Middleware\RoleMiddleware;
 use Spatie\Permission\Middleware\RoleOrPermissionMiddleware;
-use Tardis\Core\Manager\PluginManager;
+use Tardis\Manager\PluginManager;
 
 class TardisPermissionsServiceProvider extends ServiceProvider
 {

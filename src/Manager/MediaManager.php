@@ -1,11 +1,11 @@
 <?php
 
-namespace Tardis\Media\Manager;
+namespace Tardis\Manager;
 
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
-use Tardis\Media\Models\Media;
+use Tardis\Models\Media;
 
 class MediaManager
 {

@@ -3,7 +3,7 @@
 namespace Tardis\Auth;
 
 use Illuminate\Support\ServiceProvider;
-use Tardis\Core\Manager\PluginManager;
+use Tardis\Manager\PluginManager;
 
 class TardisAuthServiceProvider extends ServiceProvider
 {

@@ -12,9 +12,7 @@
     ],
     "autoload": {
         "psr-4": {
-            "Tardis\\": "src/",
-            "Tardis\\Core\\": "src/",
-            "Tardis\\Media\\": "src/"
+            "Tardis\\": "src/"
         }
     },
     "autoload-dev": {

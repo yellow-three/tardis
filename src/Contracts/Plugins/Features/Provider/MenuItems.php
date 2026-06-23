@@ -1,8 +1,8 @@
 <?php
 
-namespace Tardis\Core\Contracts\Plugins\Features\Provider;
+namespace Tardis\Contracts\Plugins\Features\Provider;
 
-use Tardis\Core\Classes\MenuItem;
+use Tardis\Classes\MenuItem;
 
 interface MenuItems
 {

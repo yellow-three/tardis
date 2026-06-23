@@ -1,10 +1,10 @@
 <?php
 
-namespace Tardis\Core\Manager;
+namespace Tardis\Manager;
 
 use Illuminate\Support\Collection;
-use Tardis\Core\Contracts\Plugins\AuthorizationPlugin;
-use Tardis\Core\Contracts\Plugins\GenericPlugin;
+use Tardis\Contracts\Plugins\AuthorizationPlugin;
+use Tardis\Contracts\Plugins\GenericPlugin;
 
 class PluginManager
 {

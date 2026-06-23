@@ -1,6 +1,6 @@
 <?php
 
-namespace Tardis\Media\Models;
+namespace Tardis\Models;
 
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
-use Tardis\Media\Database\Factories\MediaFactory;
+use Tardis\Database\Factories\MediaFactory;
 
 class Media extends Model
 {

@@ -6,9 +6,9 @@ use Closure;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Tardis\Core\Classes\Widget;
-use Tardis\Core\Contracts\Plugins\AuthenticationPlugin;
-use Tardis\Core\Contracts\Plugins\Features\Provider\Widgets;
+use Tardis\Classes\Widget;
+use Tardis\Contracts\Plugins\AuthenticationPlugin;
+use Tardis\Contracts\Plugins\Features\Provider\Widgets;
 
 class TardisAuthPlugin implements AuthenticationPlugin, Widgets
 {

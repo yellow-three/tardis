@@ -1,6 +1,6 @@
 <?php
 
-namespace Tardis\Core\Contracts\Plugins\Features\Filter;
+namespace Tardis\Contracts\Plugins\Features\Filter;
 
 use Illuminate\Support\Collection;
 

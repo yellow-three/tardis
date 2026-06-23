@@ -1,11 +1,11 @@
 <?php
 
-namespace Tardis\Core\Manager;
+namespace Tardis\Manager;
 
 use Illuminate\Support\Collection;
-use Tardis\Core\Classes\MenuItem;
-use Tardis\Core\Contracts\Plugins\Features\Filter\FilterMenuItems;
-use Tardis\Core\Contracts\Plugins\Features\Provider\MenuItems;
+use Tardis\Classes\MenuItem;
+use Tardis\Contracts\Plugins\Features\Filter\FilterMenuItems;
+use Tardis\Contracts\Plugins\Features\Provider\MenuItems;
 
 class MenuManager
 {

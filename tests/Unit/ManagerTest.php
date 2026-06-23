@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-use Tardis\Core\Bread\BreadManager;
-use Tardis\Core\Manager\FormfieldManager;
-use Tardis\Core\Manager\MenuManager;
-use Tardis\Core\Manager\PluginManager;
-use Tardis\Core\Manager\SettingsManager;
-use Tardis\Core\Manager\WidgetManager;
+use Tardis\Bread\BreadManager;
+use Tardis\Manager\FormfieldManager;
+use Tardis\Manager\MenuManager;
+use Tardis\Manager\PluginManager;
+use Tardis\Manager\SettingsManager;
+use Tardis\Manager\WidgetManager;
 
 test('PluginManager can be instantiated', function () {
     $manager = new PluginManager;

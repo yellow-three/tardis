@@ -1,6 +1,6 @@
 <?php
 
-namespace Tardis\Core\Models;
+namespace Tardis\Models;
 
 use Database\Factories\DataTypeFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;

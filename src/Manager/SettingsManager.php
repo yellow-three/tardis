@@ -1,11 +1,11 @@
 <?php
 
-namespace Tardis\Core\Manager;
+namespace Tardis\Manager;
 
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
-use Tardis\Core\Classes\Setting;
+use Tardis\Classes\Setting;
 
 class SettingsManager
 {

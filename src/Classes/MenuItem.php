@@ -1,6 +1,6 @@
 <?php
 
-namespace Tardis\Core\Classes;
+namespace Tardis\Classes;
 
 class MenuItem
 {

@@ -1,9 +1,9 @@
 <?php
 
-namespace Tardis\Media\Livewire;
+namespace Tardis\Livewire;
 
 use Livewire\Component;
-use Tardis\Media\Models\Media;
+use Tardis\Models\Media;
 
 class StatsMedia extends Component
 {

@@ -1,16 +1,16 @@
 <?php
 
-namespace Tardis\Core\Manager;
+namespace Tardis\Manager;
 
-use Tardis\Core\Formfields\Formfield;
-use Tardis\Core\Formfields\Types\DateField;
-use Tardis\Core\Formfields\Types\FileField;
-use Tardis\Core\Formfields\Types\NumberField;
-use Tardis\Core\Formfields\Types\PasswordField;
-use Tardis\Core\Formfields\Types\SelectField;
-use Tardis\Core\Formfields\Types\TextareaField;
-use Tardis\Core\Formfields\Types\TextField;
-use Tardis\Core\Formfields\Types\ToggleField;
+use Tardis\Formfields\Formfield;
+use Tardis\Formfields\Types\DateField;
+use Tardis\Formfields\Types\FileField;
+use Tardis\Formfields\Types\NumberField;
+use Tardis\Formfields\Types\PasswordField;
+use Tardis\Formfields\Types\SelectField;
+use Tardis\Formfields\Types\TextareaField;
+use Tardis\Formfields\Types\TextField;
+use Tardis\Formfields\Types\ToggleField;
 
 class FormfieldManager
 {

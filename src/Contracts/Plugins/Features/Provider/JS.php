@@ -1,6 +1,6 @@
 <?php
 
-namespace Tardis\Core\Contracts\Plugins\Features\Provider;
+namespace Tardis\Contracts\Plugins\Features\Provider;
 
 interface JS
 {

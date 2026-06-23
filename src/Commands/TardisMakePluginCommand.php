@@ -1,6 +1,6 @@
 <?php
 
-namespace Tardis\Core\Commands;
+namespace Tardis\Commands;
 
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\File;
@@ -101,19 +101,19 @@ class TardisMakePluginCommand extends Command
         ];
 
         if ($this->option('with-menu')) {
-            $replacements['{{MENU_IMPORT}}'] = 'use Tardis\Core\Contracts\Plugins\Features\Provider\MenuItems;';
+            $replacements['{{MENU_IMPORT}}'] = 'use Tardis\Contracts\Plugins\Features\Provider\MenuItems;';
             $replacements['{{MENU_INTERFACE}}'] = ', MenuItems';
             $replacements['{{MENU_METHOD}}'] = $this->getMenuMethod();
         }
 
         if ($this->option('with-widgets')) {
-            $replacements['{{WIDGET_IMPORT}}'] = 'use Tardis\Core\Contracts\Plugins\Features\Provider\Widgets;';
+            $replacements['{{WIDGET_IMPORT}}'] = 'use Tardis\Contracts\Plugins\Features\Provider\Widgets;';
             $replacements['{{WIDGET_INTERFACE}}'] = ', Widgets';
             $replacements['{{WIDGET_METHOD}}'] = $this->getWidgetMethod();
         }
 
         if ($this->option('with-settings')) {
-            $replacements['{{SETTINGS_IMPORT}}'] = 'use Tardis\Core\Contracts\Plugins\Features\Provider\Settings;';
+            $replacements['{{SETTINGS_IMPORT}}'] = 'use Tardis\Contracts\Plugins\Features\Provider\Settings;';
             $replacements['{{SETTINGS_INTERFACE}}'] = ', Settings';
             $replacements['{{SETTINGS_METHOD}}'] = $this->getSettingsMethod();
         }

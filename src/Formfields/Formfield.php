@@ -1,6 +1,6 @@
 <?php
 
-namespace Tardis\Core\Formfields;
+namespace Tardis\Formfields;
 
 abstract class Formfield
 {

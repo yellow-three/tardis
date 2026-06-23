@@ -5,9 +5,9 @@ namespace Tardis\Media;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
 use Livewire\Livewire;
-use Tardis\Core\Manager\PluginManager;
-use Tardis\Media\Livewire\StatsMedia;
-use Tardis\Media\Manager\MediaManager;
+use Tardis\Manager\PluginManager;
+use Tardis\Livewire\StatsMedia;
+use Tardis\Manager\MediaManager;
 
 class TardisMediaServiceProvider extends ServiceProvider
 {

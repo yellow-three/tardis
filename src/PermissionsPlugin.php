@@ -3,9 +3,9 @@
 namespace Tardis\Permissions;
 
 use Illuminate\Support\Facades\Gate;
-use Tardis\Core\Classes\MenuItem;
-use Tardis\Core\Contracts\Plugins\AuthorizationPlugin;
-use Tardis\Core\Contracts\Plugins\Features\Provider\MenuItems;
+use Tardis\Classes\MenuItem;
+use Tardis\Contracts\Plugins\AuthorizationPlugin;
+use Tardis\Contracts\Plugins\Features\Provider\MenuItems;
 
 class PermissionsPlugin implements AuthorizationPlugin, MenuItems
 {

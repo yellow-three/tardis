@@ -1,6 +1,6 @@
 <?php
 
-namespace Tardis\Core\Bread;
+namespace Tardis\Bread;
 
 class BreadLayout
 {

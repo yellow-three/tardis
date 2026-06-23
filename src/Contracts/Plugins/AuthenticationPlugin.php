@@ -1,6 +1,6 @@
 <?php
 
-namespace Tardis\Core\Contracts\Plugins;
+namespace Tardis\Contracts\Plugins;
 
 use Closure;
 use Illuminate\Contracts\Auth\Authenticatable;

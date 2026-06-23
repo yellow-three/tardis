@@ -1,8 +1,8 @@
 <?php
 
-namespace Tardis\Core\Formfields\Types;
+namespace Tardis\Formfields\Types;
 
-use Tardis\Core\Formfields\Formfield;
+use Tardis\Formfields\Formfield;
 
 class SelectField extends Formfield
 {

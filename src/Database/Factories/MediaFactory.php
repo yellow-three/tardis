@@ -1,9 +1,9 @@
 <?php
 
-namespace Tardis\Media\Database\Factories;
+namespace Tardis\Database\Factories;
 
 use Illuminate\Database\Eloquent\Factories\Factory;
-use Tardis\Media\Models\Media;
+use Tardis\Models\Media;
 
 class MediaFactory extends Factory
 {

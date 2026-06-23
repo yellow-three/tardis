@@ -2,7 +2,7 @@
 
 namespace Tardis\Media;
 
-use Tardis\Core\Contracts\Plugins\GenericPlugin;
+use Tardis\Contracts\Plugins\GenericPlugin;
 
 class MediaPlugin implements GenericPlugin
 {

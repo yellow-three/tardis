@@ -1,12 +1,12 @@
 <?php
 
-namespace Tardis\Media\Livewire;
+namespace Tardis\Livewire;
 
 use Livewire\Component;
 use Livewire\WithFileUploads;
 use Livewire\WithPagination;
-use Tardis\Media\Manager\MediaManager;
-use Tardis\Media\Models\Media;
+use Tardis\Manager\MediaManager;
+use Tardis\Models\Media;
 
 class MediaIndex extends Component
 {

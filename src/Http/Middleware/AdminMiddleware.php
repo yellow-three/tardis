@@ -1,6 +1,6 @@
 <?php
 
-namespace Tardis\Core\Http\Middleware;
+namespace Tardis\Http\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;

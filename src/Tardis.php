@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace Tardis;
 
-use Tardis\Core\Manager\BreadManager;
-use Tardis\Core\Manager\FormfieldManager;
-use Tardis\Core\Manager\MenuManager;
-use Tardis\Core\Manager\PluginManager;
-use Tardis\Core\Manager\SettingsManager;
-use Tardis\Core\Manager\WidgetManager;
+use Tardis\Manager\BreadManager;
+use Tardis\Manager\FormfieldManager;
+use Tardis\Manager\MenuManager;
+use Tardis\Manager\PluginManager;
+use Tardis\Manager\SettingsManager;
+use Tardis\Manager\WidgetManager;
 
 class Tardis
 {

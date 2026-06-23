@@ -1,6 +1,6 @@
 <?php
 
-namespace Tardis\Core\Models;
+namespace Tardis\Models;
 
 use App\Models\User;
 use Database\Factories\ActivityLogFactory;

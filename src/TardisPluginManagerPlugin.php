@@ -2,11 +2,11 @@
 
 namespace Tardis\PluginManager;
 
-use Tardis\Core\Classes\MenuItem;
-use Tardis\Core\Classes\Widget;
-use Tardis\Core\Contracts\Plugins\Features\Provider\MenuItems;
-use Tardis\Core\Contracts\Plugins\Features\Provider\Widgets;
-use Tardis\Core\Contracts\Plugins\GenericPlugin;
+use Tardis\Classes\MenuItem;
+use Tardis\Classes\Widget;
+use Tardis\Contracts\Plugins\Features\Provider\MenuItems;
+use Tardis\Contracts\Plugins\Features\Provider\Widgets;
+use Tardis\Contracts\Plugins\GenericPlugin;
 
 class TardisPluginManagerPlugin implements GenericPlugin, MenuItems, Widgets
 {

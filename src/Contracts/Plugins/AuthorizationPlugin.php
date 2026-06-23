@@ -1,6 +1,6 @@
 <?php
 
-namespace Tardis\Core\Contracts\Plugins;
+namespace Tardis\Contracts\Plugins;
 
 interface AuthorizationPlugin
 {

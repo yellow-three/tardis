@@ -1,9 +1,9 @@
 <?php
 
-namespace Tardis\Core\Bread\Sources;
+namespace Tardis\Bread\Sources;
 
 use Illuminate\Support\Collection;
-use Tardis\Core\Models\DataType;
+use Tardis\Models\DataType;
 
 class DatabaseBreadSource implements BreadSource
 {

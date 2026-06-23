@@ -1,6 +1,6 @@
 <?php
 
-namespace Tardis\Core\Bread\Sources;
+namespace Tardis\Bread\Sources;
 
 use Illuminate\Support\Collection;
 

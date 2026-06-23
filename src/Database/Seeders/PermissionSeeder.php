@@ -1,6 +1,6 @@
 <?php
 
-namespace Tardis\Permissions\Database\Seeders;
+namespace Tardis\Database\Seeders;
 
 use Illuminate\Database\Seeder;
 use Spatie\Permission\Models\Permission;

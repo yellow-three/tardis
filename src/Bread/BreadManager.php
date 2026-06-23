@@ -1,11 +1,11 @@
 <?php
 
-namespace Tardis\Core\Bread;
+namespace Tardis\Bread;
 
 use Illuminate\Support\Collection;
-use Tardis\Core\Bread\Sources\BreadSource;
-use Tardis\Core\Bread\Sources\DatabaseBreadSource;
-use Tardis\Core\Bread\Sources\JsonBreadSource;
+use Tardis\Bread\Sources\BreadSource;
+use Tardis\Bread\Sources\DatabaseBreadSource;
+use Tardis\Bread\Sources\JsonBreadSource;
 
 class BreadManager
 {

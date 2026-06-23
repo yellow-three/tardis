@@ -1,9 +1,9 @@
 <?php
 
-namespace Tardis\Core\Commands;
+namespace Tardis\Commands;
 
 use Illuminate\Console\Command;
-use Tardis\Core\Bread\BreadManager;
+use Tardis\Bread\BreadManager;
 
 class TardisExportBreadsCommand extends Command
 {

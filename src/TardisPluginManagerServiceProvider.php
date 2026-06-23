@@ -5,7 +5,7 @@ namespace Tardis\PluginManager;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
 use Livewire\Livewire;
-use Tardis\Core\Manager\PluginManager;
+use Tardis\Manager\PluginManager;
 
 class TardisPluginManagerServiceProvider extends ServiceProvider
 {
