@@ -23,6 +23,8 @@ Route::middleware(['web', 'tardis.admin', 'verified'])
 
         Route::livewire('/ui-components', 'tardis::pages.ui-components')->name('ui-components');
 
+        Route::livewire('/bread', 'tardis::pages.bread.manage')->name('bread.manage');
+
         Route::livewire('/{slug}/create', 'tardis::pages.bread.create')->name('bread.create');
         Route::livewire('/{slug}/{id}/read', 'tardis::pages.bread.read')->name('bread.read');
         Route::livewire('/{slug}/{id}/edit', 'tardis::pages.bread.edit')->name('bread.edit');
