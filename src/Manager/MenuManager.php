@@ -42,6 +42,9 @@ class MenuManager
             (new MenuItem('Settings', 'heroicon-o-cog-6-tooth'))
                 ->route('tardis.settings.index')
                 ->order(30),
+            (new MenuItem('Plugins', 'heroicon-o-puzzle-piece'))
+                ->route('tardis.plugins.index')
+                ->order(40),
         );
 
         foreach ($plugins->enabled() as $name => $plugin) {
