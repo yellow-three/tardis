@@ -2,6 +2,13 @@
 
 use Illuminate\Support\Facades\Route;
 
+Route::middleware(['web'])
+    ->prefix(config('tardis.admin.prefix', 'admin'))
+    ->name('tardis.')
+    ->group(function () {
+        Route::livewire('/login', 'tardis::pages.login')->name('login');
+    });
+
 Route::middleware(['web', 'tardis.admin', 'verified'])
     ->prefix(config('tardis.admin.prefix', 'admin'))
     ->name('tardis.')
