@@ -100,7 +100,6 @@ class TardisServiceProvider extends ServiceProvider
     {
         $this->app->register(TardisPluginManagerServiceProvider::class);
         $this->app->register(TardisMediaServiceProvider::class);
-        $this->app->register(TardisAuthServiceProvider::class);
         $this->app->register(TardisPermissionsServiceProvider::class);
     }
 }
