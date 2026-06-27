@@ -7,7 +7,7 @@
 
     <title>{{ ($title ?? 'TARDIS Admin') }} - TARDIS</title>
 
-    @vite(['packages/Tardis/Core/resources/css/app.css', 'packages/Tardis/Core/resources/js/app.js'])
+    <link rel="stylesheet" href="{{ asset('vendor/tardis/assets/app.css') }}">
     @livewireStyles
 
     @foreach(app(\Tardis\Manager\PluginManager::class)->enabledWith(\Tardis\Contracts\Plugins\Features\Provider\CSS::class) as $plugin)

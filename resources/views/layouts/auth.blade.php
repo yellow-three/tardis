@@ -7,7 +7,7 @@
 
     <title>{{ $title ?? 'Login' }} - TARDIS</title>
 
-    @vite(['packages/Tardis/Core/resources/css/app.css', 'packages/Tardis/Core/resources/js/app.js'])
+    <link rel="stylesheet" href="{{ asset('vendor/tardis/assets/app.css') }}">
     @livewireStyles
 </head>
 <body class="min-h-screen bg-base-200 flex items-center justify-center p-4">
