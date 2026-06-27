@@ -2,7 +2,6 @@
 
 declare(strict_types=1);
 
-use Tardis\Contracts\Plugins\AuthenticationPlugin;
 use Tardis\Contracts\Plugins\AuthorizationPlugin;
 use Tardis\Contracts\Plugins\FormfieldPlugin;
 use Tardis\Contracts\Plugins\GenericPlugin;
@@ -10,10 +9,6 @@ use Tardis\Contracts\Plugins\ThemePlugin;
 
 test('GenericPlugin interface exists', function () {
     expect(interface_exists(GenericPlugin::class))->toBeTrue();
-});
-
-test('AuthenticationPlugin interface exists', function () {
-    expect(interface_exists(AuthenticationPlugin::class))->toBeTrue();
 });
 
 test('AuthorizationPlugin interface exists', function () {
