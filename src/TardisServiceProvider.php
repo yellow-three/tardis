@@ -20,6 +20,7 @@ class TardisServiceProvider extends ServiceProvider
         );
 
         $this->registerAliases();
+        $this->registerPluginServiceProviders();
     }
 
     public function boot(): void
@@ -93,5 +94,13 @@ class TardisServiceProvider extends ServiceProvider
     {
         $router = $this->app['router'];
         $router->aliasMiddleware('tardis.admin', AdminMiddleware::class);
+    }
+
+    protected function registerPluginServiceProviders(): void
+    {
+        $this->app->register(TardisPluginManagerServiceProvider::class);
+        $this->app->register(TardisMediaServiceProvider::class);
+        $this->app->register(TardisAuthServiceProvider::class);
+        $this->app->register(TardisPermissionsServiceProvider::class);
     }
 }
