@@ -6,14 +6,18 @@ Route::middleware(['web', 'tardis.admin', 'verified'])
     ->prefix(config('tardis.admin.prefix', 'admin'))
     ->name('tardis.')
     ->group(function () {
-        Route::view('dashboard', 'dashboard')->name('dashboard');
+        Route::livewire('/dashboard', 'tardis::pages.dashboard')->name('dashboard');
 
-        Route::livewire('/plugins', 'tardis::pages.admin.plugins')->name('plugins.index');
+        Route::livewire('/plugins', 'tardis::pages.plugins')->name('plugins.index');
+        Route::livewire('/media', 'tardis::pages.media')->name('media');
+        Route::livewire('/activity-log', 'tardis::pages.activity-log')->name('activity.index');
+        Route::livewire('/database', 'tardis::pages.database')->name('database.index');
+        Route::livewire('/settings', 'tardis::pages.settings')->name('settings.index');
 
-        Route::view('/ui-components', 'tardis::ui-components')->name('ui-components');
+        Route::livewire('/ui-components', 'tardis::pages.ui-components')->name('ui-components');
 
-        Route::livewire('/{slug}/create', 'tardis::bread-form')->name('bread.create');
-        Route::livewire('/{slug}/{id}/read', 'tardis::bread-read')->name('bread.read');
-        Route::livewire('/{slug}/{id}/edit', 'tardis::bread-form')->name('bread.edit');
-        Route::livewire('/{slug}', 'tardis::bread-table')->name('bread.index');
+        Route::livewire('/{slug}/create', 'tardis::pages.bread.create')->name('bread.create');
+        Route::livewire('/{slug}/{id}/read', 'tardis::pages.bread.read')->name('bread.read');
+        Route::livewire('/{slug}/{id}/edit', 'tardis::pages.bread.edit')->name('bread.edit');
+        Route::livewire('/{slug}', 'tardis::pages.bread.index')->name('bread.index');
     });

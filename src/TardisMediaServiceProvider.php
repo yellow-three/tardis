@@ -2,11 +2,7 @@
 
 namespace Tardis;
 
-use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
-use Livewire\Livewire;
-use Tardis\Livewire\StatsMedia;
-use Tardis\Manager\MediaManager;
 use Tardis\Manager\PluginManager;
 
 class TardisMediaServiceProvider extends ServiceProvider
@@ -25,24 +21,8 @@ class TardisMediaServiceProvider extends ServiceProvider
         $this->loadViewsFrom(__DIR__.'/../resources/views', 'tardis-media');
         $this->loadMigrationsFrom(__DIR__.'/../database/migrations');
 
-        Livewire::addNamespace(
-            namespace: 'tardis-media',
-            classNamespace: 'Tardis\\Livewire',
-            classPath: __DIR__.'/Livewire',
-            classViewPath: __DIR__.'/../resources/views/livewire',
-        );
-
-        Livewire::component('widgets.stats-media', StatsMedia::class);
-
         $this->publishes([
             __DIR__.'/../config/tardis-media.php' => config_path('tardis-media.php'),
         ], 'tardis-media-config');
-
-        Route::middleware(config('tardis.admin.middleware', ['web', 'auth']))
-            ->prefix(config('tardis.admin.prefix', 'admin'))
-            ->group(function () {
-                Route::livewire('/media', 'tardis-media::media-index')
-                    ->name('tardis.media');
-            });
     }
 }
