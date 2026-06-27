@@ -10,7 +10,7 @@
     @vite(['packages/Tardis/Core/resources/css/app.css', 'packages/Tardis/Core/resources/js/app.js'])
     @livewireStyles
 
-    @foreach(app(\Tardis\Core\Manager\PluginManager::class)->enabledWith(\Tardis\Core\Contracts\Plugins\Features\Provider\CSS::class) as $plugin)
+    @foreach(app(\Tardis\Manager\PluginManager::class)->enabledWith(\Tardis\Contracts\Plugins\Features\Provider\CSS::class) as $plugin)
         <style>{!! $plugin->provideCSS() !!}</style>
     @endforeach
 </head>
@@ -29,7 +29,7 @@
         <x-tardis::admin-sidebar />
     </div>
 
-    @foreach(app(\Tardis\Core\Manager\PluginManager::class)->enabledWith(\Tardis\Core\Contracts\Plugins\Features\Provider\JS::class) as $plugin)
+    @foreach(app(\Tardis\Manager\PluginManager::class)->enabledWith(\Tardis\Contracts\Plugins\Features\Provider\JS::class) as $plugin)
         <script>{!! $plugin->provideJS() !!}</script>
     @endforeach
 

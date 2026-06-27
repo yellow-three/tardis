@@ -1,5 +1,3 @@
-@props(['title' => 'TARDIS Admin'])
-
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}" data-theme="dark">
 <head>
@@ -7,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <title>{{ $title }} - TARDIS</title>
+    <title>{{ $title ?? 'Login' }} - TARDIS</title>
 
     @vite(['packages/Tardis/Core/resources/css/app.css', 'packages/Tardis/Core/resources/js/app.js'])
     @livewireStyles
@@ -19,7 +17,6 @@
                 <span class="text-primary-content text-2xl font-bold">T</span>
             </div>
             <h1 class="text-2xl font-bold">TARDIS Admin</h1>
-            <p class="text-base-content/60 mt-1">{{ $title }}</p>
         </div>
 
         <div class="card bg-base-100 shadow-xl">
