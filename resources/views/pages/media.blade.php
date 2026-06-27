@@ -1,5 +1,6 @@
 <?php
 
+use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
@@ -29,6 +30,18 @@ new #[Title('Media')] #[Layout('tardis::layouts.admin')] class extends Component
         ];
     }
 
+    #[Computed]
+    public function mediaItems()
+    {
+        return Media::latest()->paginate(24);
+    }
+
+    #[Computed]
+    public function collections()
+    {
+        return Media::distinct()->pluck('collection')->filter();
+    }
+
     public function upload(): void
     {
         $this->validate();
@@ -56,14 +69,6 @@ new #[Title('Media')] #[Layout('tardis::layouts.admin')] class extends Component
     public function cancelDelete(): void
     {
         $this->deleteId = null;
-    }
-
-    public function render()
-    {
-        return view('tardis::pages.media', [
-            'mediaItems' => Media::latest()->paginate(24),
-            'collections' => Media::distinct()->pluck('collection')->filter(),
-        ]);
     }
 }; ?>
 
@@ -102,7 +107,7 @@ new #[Title('Media')] #[Layout('tardis::layouts.admin')] class extends Component
                         </label>
                         <select wire:model="collection" class="select select-bordered w-full">
                             <option value="default">default</option>
-                            @foreach ($collections ?? [] as $col)
+                            @foreach ($this->collections as $col)
                                 <option value="{{ $col }}">{{ $col }}</option>
                             @endforeach
                         </select>
@@ -145,7 +150,7 @@ new #[Title('Media')] #[Layout('tardis::layouts.admin')] class extends Component
 
     @if ($viewMode === 'grid')
         <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
-            @forelse ($mediaItems as $media)
+            @forelse ($this->mediaItems as $media)
                 <div class="card bg-base-100 shadow">
                     <figure class="px-2 pt-2">
                         @if ($media->isImage())
@@ -184,7 +189,7 @@ new #[Title('Media')] #[Layout('tardis::layouts.admin')] class extends Component
                     </tr>
                 </thead>
                 <tbody>
-                    @forelse ($mediaItems as $media)
+                    @forelse ($this->mediaItems as $media)
                         <tr>
                             <td>
                                 @if ($media->isImage())
@@ -216,7 +221,7 @@ new #[Title('Media')] #[Layout('tardis::layouts.admin')] class extends Component
     @endif
 
     <div class="mt-4">
-        {{ $mediaItems->links() }}
+        {{ $this->mediaItems->links() }}
     </div>
 
     @if ($deleteId)

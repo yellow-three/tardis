@@ -12,11 +12,6 @@ new #[Title('Create')] #[Layout('tardis::layouts.admin')] class extends Componen
     {
         $this->slug = $slug;
     }
-
-    public function render()
-    {
-        return view('tardis::pages.bread.form');
-    }
 }; ?>
 
 <div>

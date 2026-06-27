@@ -36,11 +36,6 @@ new #[Title('Login')] #[Layout('tardis::layouts.auth')] class extends Component
 
         $this->error = __('auth.failed');
     }
-
-    public function render()
-    {
-        return view('tardis::pages.login');
-    }
 }; ?>
 
 <div>

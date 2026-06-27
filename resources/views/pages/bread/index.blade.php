@@ -12,11 +12,6 @@ new #[Title('BREAD')] #[Layout('tardis::layouts.admin')] class extends Component
     {
         $this->slug = $slug;
     }
-
-    public function render()
-    {
-        return view('tardis::pages.bread.index');
-    }
 }; ?>
 
 <div>

@@ -6,10 +6,6 @@ use Livewire\Component;
 
 new #[Title('UI Components')] #[Layout('tardis::layouts.admin')] class extends Component
 {
-    public function render()
-    {
-        return view('tardis::pages.ui-components');
-    }
 }; ?>
 
 <div class="mb-8">

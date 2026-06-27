@@ -6,10 +6,6 @@ use Livewire\Component;
 
 new #[Title('Database')] #[Layout('tardis::layouts.admin')] class extends Component
 {
-    public function render()
-    {
-        return view('tardis::pages.database');
-    }
 }; ?>
 
 <div>

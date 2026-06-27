@@ -15,11 +15,6 @@ new #[Title('View')] #[Layout('tardis::layouts.admin')] class extends Component
         $this->slug = $slug;
         $this->id = $id;
     }
-
-    public function render()
-    {
-        return view('tardis::pages.bread.read');
-    }
 }; ?>
 
 <div>

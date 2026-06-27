@@ -34,18 +34,9 @@ class TardisServiceProvider extends ServiceProvider
 
     protected function registerLivewireNamespaces(): void
     {
-        // SFC/MFC components
         Livewire::addNamespace(
             namespace: 'tardis',
-            viewPath: __DIR__.'/../resources/views/livewire',
-        );
-
-        // Class-based components
-        Livewire::addNamespace(
-            namespace: 'tardis',
-            classNamespace: 'Tardis\\Livewire',
-            classPath: __DIR__.'/Livewire',
-            classViewPath: __DIR__.'/../resources/views/livewire',
+            viewPath: __DIR__.'/../resources/views',
         );
     }
 

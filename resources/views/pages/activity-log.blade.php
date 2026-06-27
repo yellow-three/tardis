@@ -6,10 +6,6 @@ use Livewire\Component;
 
 new #[Title('Activity Log')] #[Layout('tardis::layouts.admin')] class extends Component
 {
-    public function render()
-    {
-        return view('tardis::pages.activity-log');
-    }
 }; ?>
 
 <div>
