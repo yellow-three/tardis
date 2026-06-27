@@ -3,14 +3,11 @@
 namespace Tardis;
 
 use Illuminate\Support\ServiceProvider;
-use Tardis\Manager\PluginManager;
 
 class TardisPluginManagerServiceProvider extends ServiceProvider
 {
-    public function boot(PluginManager $plugins): void
+    public function boot(): void
     {
-        $plugins->register('tardis-plugin-manager', TardisPluginManagerPlugin::class);
-
-        $this->loadViewsFrom(__DIR__.'/../resources/views', 'tardis-plugin-manager');
+        $this->loadViewsFrom(__DIR__.'/../resources/views', 'tardis');
     }
 }

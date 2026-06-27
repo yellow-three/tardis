@@ -3,7 +3,6 @@
 namespace Tardis;
 
 use Illuminate\Support\ServiceProvider;
-use Tardis\Manager\PluginManager;
 
 class TardisMediaServiceProvider extends ServiceProvider
 {
@@ -14,11 +13,8 @@ class TardisMediaServiceProvider extends ServiceProvider
         $this->app->singleton(MediaManager::class, fn () => new MediaManager);
     }
 
-    public function boot(PluginManager $plugins): void
+    public function boot(): void
     {
-        $plugins->register('tardis-media', MediaPlugin::class);
-
-        $this->loadViewsFrom(__DIR__.'/../resources/views', 'tardis-media');
         $this->loadMigrationsFrom(__DIR__.'/../database/migrations');
 
         $this->publishes([
