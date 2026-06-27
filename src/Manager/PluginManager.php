@@ -66,11 +66,7 @@ class PluginManager
             return false;
         }
 
-        if (! empty($this->enabled) && ! in_array($name, $this->enabled)) {
-            return false;
-        }
-
-        return $this->plugins->has($name);
+        return in_array($name, $this->enabled) && $this->plugins->has($name);
     }
 
     public function all(): Collection
