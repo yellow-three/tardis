@@ -8,12 +8,13 @@ new #[Title('UI Components')] #[Layout('tardis::layouts.admin')] class extends C
 {
 }; ?>
 
-<div class="mb-8">
-    <h1 class="text-2xl font-bold">UI Components</h1>
-    <p class="text-base-content/60 mt-1">Available UI components for your application</p>
-</div>
+<div>
+    <div class="mb-8">
+        <h1 class="text-2xl font-bold">UI Components</h1>
+        <p class="text-base-content/60 mt-1">Available UI components for your application</p>
+    </div>
 
-<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
     <div class="card bg-base-100 shadow">
         <div class="card-body">
             <h2 class="card-title">Buttons</h2>
@@ -163,4 +164,5 @@ new #[Title('UI Components')] #[Layout('tardis::layouts.admin')] class extends C
             </div>
         </div>
     </div>
+</div>
 </div>
