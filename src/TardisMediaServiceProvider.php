@@ -1,6 +1,6 @@
 <?php
 
-namespace Tardis\Media;
+namespace Tardis;
 
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
@@ -27,7 +27,7 @@ class TardisMediaServiceProvider extends ServiceProvider
 
         Livewire::addNamespace(
             namespace: 'tardis-media',
-            classNamespace: 'Tardis\\Media\\Livewire',
+            classNamespace: 'Tardis\\Livewire',
             classPath: __DIR__.'/Livewire',
             classViewPath: __DIR__.'/../resources/views/livewire',
         );

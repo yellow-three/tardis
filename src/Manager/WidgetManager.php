@@ -31,9 +31,6 @@ class WidgetManager
             (new Widget('widgets.stats-media', 'Media Files'))
                 ->width(3)
                 ->order(30),
-            (new Widget('widgets.stats-plugins', 'Active Plugins'))
-                ->width(3)
-                ->order(40),
         );
 
         foreach ($plugins->enabled() as $name => $plugin) {

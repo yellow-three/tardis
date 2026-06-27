@@ -102,7 +102,7 @@ abstract class Formfield
             'name' => $this->name,
             'label' => $this->label,
             'value' => old($this->name, $this->default),
-            'error' => $this->name,
+            'error' => $errors ?? null,
             'helpText' => $this->helpText,
             'placeholder' => $this->placeholder,
             'disabled' => $this->disabled,

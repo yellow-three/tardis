@@ -1,6 +1,6 @@
 <?php
 
-namespace Tardis\Permissions;
+namespace Tardis;
 
 use Illuminate\Support\Facades\Gate;
 use Tardis\Classes\MenuItem;

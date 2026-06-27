@@ -2,7 +2,7 @@
 
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
-use Tardis\Core\Facades\Tardis;
+use Tardis\Facades\Tardis;
 
 new #[Title('Plugin Manager')] #[Layout('tardis::components.admin-layout')] class extends \Livewire\Component
 {

@@ -68,7 +68,9 @@ class SettingsManager
     public function save(?array $data = null): void
     {
         if ($data !== null) {
-            $this->settings = collect($data);
+            $this->settings = collect($data)->map(
+                fn (array $item) => new Setting($item)
+            );
         }
 
         $content = $this->settings->map(fn (Setting $setting) => $setting->toArray()

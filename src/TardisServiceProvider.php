@@ -6,6 +6,9 @@ namespace Tardis;
 
 use Illuminate\Support\ServiceProvider;
 use Livewire\Livewire;
+use Tardis\Bread\Sources\DatabaseBreadSource;
+use Tardis\Bread\Sources\JsonBreadSource;
+use Tardis\Http\Middleware\AdminMiddleware;
 
 class TardisServiceProvider extends ServiceProvider
 {
@@ -26,6 +29,7 @@ class TardisServiceProvider extends ServiceProvider
         $this->registerRoutes();
         $this->registerMigrations();
         $this->registerPublishing();
+        $this->registerMiddleware();
     }
 
     protected function registerLivewireNamespaces(): void
@@ -77,8 +81,22 @@ class TardisServiceProvider extends ServiceProvider
 
     protected function registerAliases(): void
     {
-        $this->app->bind('tardis', function () {
+        $this->app->singleton('tardis', function () {
             return new Tardis;
         });
+
+        $this->app->singleton(JsonBreadSource::class, function () {
+            return new JsonBreadSource(storage_path('tardis/bread'));
+        });
+
+        $this->app->singleton(DatabaseBreadSource::class, function () {
+            return new DatabaseBreadSource;
+        });
+    }
+
+    protected function registerMiddleware(): void
+    {
+        $router = $this->app['router'];
+        $router->aliasMiddleware('tardis.admin', AdminMiddleware::class);
     }
 }

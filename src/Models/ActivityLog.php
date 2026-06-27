@@ -2,8 +2,6 @@
 
 namespace Tardis\Models;
 
-use App\Models\User;
-use Database\Factories\ActivityLogFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -11,11 +9,6 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class ActivityLog extends Model
 {
     use HasFactory;
-
-    protected static function newFactory(): ActivityLogFactory
-    {
-        return ActivityLogFactory::new();
-    }
 
     protected $fillable = [
         'user_id',
@@ -36,6 +29,6 @@ class ActivityLog extends Model
 
     public function user(): BelongsTo
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(config('auth.providers.users.model', 'App\\Models\\User'));
     }
 }

@@ -1,6 +1,6 @@
 <?php
 
-namespace Tardis\Media;
+namespace Tardis;
 
 use Tardis\Contracts\Plugins\GenericPlugin;
 

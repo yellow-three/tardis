@@ -2,20 +2,13 @@
 
 namespace Tardis\Models;
 
-use Database\Factories\DataTypeFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class DataType extends Model
 {
-    /** @use HasFactory<DataTypeFactory> */
     use HasFactory;
-
-    protected static function newFactory(): DataTypeFactory
-    {
-        return DataTypeFactory::new();
-    }
 
     protected $fillable = [
         'slug',

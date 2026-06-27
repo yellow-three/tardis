@@ -1,6 +1,6 @@
 <?php
 
-namespace Tardis\PluginManager;
+namespace Tardis;
 
 use Tardis\Classes\MenuItem;
 use Tardis\Classes\Widget;

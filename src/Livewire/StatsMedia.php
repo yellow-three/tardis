@@ -26,6 +26,6 @@ class StatsMedia extends Component
 
     public function render()
     {
-        return view('tardis-media::livewire.stats-media');
+        return view('tardis::livewire.stats-media');
     }
 }

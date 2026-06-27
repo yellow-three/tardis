@@ -1,6 +1,6 @@
 <?php
 
-namespace Tardis\PluginManager;
+namespace Tardis;
 
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
@@ -20,7 +20,7 @@ class TardisPluginManagerServiceProvider extends ServiceProvider
         Route::middleware(config('tardis.admin.middleware', ['web', 'auth']))
             ->prefix(config('tardis.admin.prefix', 'admin'))
             ->group(function () {
-                Route::livewire('/plugins', 'tardis-plugin-manager::pages.admin.⚡plugins')
+                Route::livewire('/plugins', 'tardis::pages.admin.plugins')
                     ->name('tardis.plugins');
             });
     }

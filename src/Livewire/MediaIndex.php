@@ -43,7 +43,7 @@ class MediaIndex extends Component
             'mime_type' => $this->mimeType,
         ]);
 
-        return view('tardis-media::livewire.media-index', [
+        return view('tardis::livewire.media-index', [
             'media' => $query->paginate(24),
             'collections' => $manager->getCollections(),
             'mimeTypes' => $manager->getMimeTypes(),

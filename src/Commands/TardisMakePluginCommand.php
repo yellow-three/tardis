@@ -39,7 +39,7 @@ class TardisMakePluginCommand extends Command
         $this->generateFromStub("{$stubPath}/ServiceProvider.stub", "{$pluginDir}/src/Tardis{$studlyName}ServiceProvider.php", $replacements);
         $this->generateFromStub("{$stubPath}/Plugin.stub", "{$pluginDir}/src/Tardis{$studlyName}Plugin.php", $replacements);
         $this->generateFromStub("{$stubPath}/routes.stub", "{$pluginDir}/routes/web.php", $replacements);
-        $this->generateFromStub("{$stubPath}/SFC-page.stub", "{$pluginDir}/resources/views/pages/admin/⚡{$lowercaseName}.blade.php", $replacements);
+        $this->generateFromStub("{$stubPath}/SFC-page.stub", "{$pluginDir}/resources/views/pages/admin/{$lowercaseName}.blade.php", $replacements);
 
         if ($this->option('with-model')) {
             $this->generateFromStub("{$stubPath}/Model.stub", "{$pluginDir}/src/Models/{$studlyName}.php", $replacements);

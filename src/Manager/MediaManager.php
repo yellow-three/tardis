@@ -16,7 +16,7 @@ class MediaManager
         ?string $disk = null,
     ): Media {
         $disk ??= config('tardis-media.disk', 'public');
-        $name = Str::random(40);
+        $name = Str::random(40).'.'.$file->getClientOriginalExtension();
         $path = $file->storeAs($collection, $name, $disk);
 
         return Media::create([

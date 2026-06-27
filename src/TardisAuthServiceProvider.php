@@ -1,6 +1,6 @@
 <?php
 
-namespace Tardis\Auth;
+namespace Tardis;
 
 use Illuminate\Support\ServiceProvider;
 use Tardis\Manager\PluginManager;

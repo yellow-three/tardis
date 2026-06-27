@@ -4,7 +4,7 @@ use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
 use Livewire\WithFileUploads;
-use Tardis\Media\Models\Media;
+use Tardis\Models\Media;
 
 new #[Title('Media')] #[Layout('tardis::components.admin-layout')] class extends Component
 {
@@ -60,7 +60,7 @@ new #[Title('Media')] #[Layout('tardis::components.admin-layout')] class extends
 
     public function render(): mixed
     {
-        return view('tardis-media::pages.admin.⚡media', [
+        return view('tardis::pages.admin.media', [
             'mediaItems' => Media::latest()->paginate(24),
             'collections' => Media::distinct()->pluck('collection')->filter(),
         ]);

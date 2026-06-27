@@ -1,8 +1,7 @@
 <?php
 
-namespace Tardis\Permissions;
+namespace Tardis;
 
-use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
 use Livewire\Livewire;
 use Spatie\Permission\Middleware\PermissionMiddleware;
@@ -35,7 +34,6 @@ class TardisPermissionsServiceProvider extends ServiceProvider
         ], 'tardis-permissions-views');
 
         $this->registerMiddleware();
-        $this->registerRoutes();
     }
 
     protected function registerMiddleware(): void
@@ -45,15 +43,5 @@ class TardisPermissionsServiceProvider extends ServiceProvider
         $router->aliasMiddleware('role', RoleMiddleware::class);
         $router->aliasMiddleware('permission', PermissionMiddleware::class);
         $router->aliasMiddleware('role_or_permission', RoleOrPermissionMiddleware::class);
-    }
-
-    protected function registerRoutes(): void
-    {
-        Route::middleware(config('tardis.admin.middleware', ['web', 'auth']))
-            ->prefix(config('tardis.admin.prefix', 'admin'))
-            ->group(function () {
-                Route::livewire('/permissions', 'tardis-permissions::pages.admin.⚡permissions')
-                    ->name('tardis.permissions');
-            });
     }
 }
