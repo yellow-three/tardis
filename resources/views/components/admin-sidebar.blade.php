@@ -1,15 +1,15 @@
 @php
-    $menuManager = app(\Tardis\Core\Manager\MenuManager::class);
-    $pluginManager = app(\Tardis\Core\Manager\PluginManager::class);
+    $menuManager = app(\Tardis\Manager\MenuManager::class);
+    $pluginManager = app(\Tardis\Manager\PluginManager::class);
     $menuManager->collectFromPlugins($pluginManager);
 
-    $breadManager = app(\Tardis\Core\Bread\BreadManager::class);
+    $breadManager = app(\Tardis\Bread\BreadManager::class);
     $breads = $breadManager->all();
 
     if ($breads->isNotEmpty()) {
         foreach ($breads as $slug => $bread) {
             $menuManager->addItems(
-                (new \Tardis\Core\Classes\MenuItem(
+                (new \Tardis\Classes\MenuItem(
                     $bread['display_name_plural'] ?? $slug,
                     'heroicon-o-table-cells',
                 ))->route('tardis.bread.index', ['slug' => $slug])->group('BREAD')->order(100),
