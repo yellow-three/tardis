@@ -38,6 +38,12 @@ new #[Title('Media')] #[Layout('tardis::layouts.admin')] class extends Component
 
     public string $searchQuery = '';
 
+    public string $dateFilter = '';
+
+    public string $sizeFilter = '';
+
+    public string $sortBy = 'name';
+
     public ?array $infoFile = null;
 
     public bool $showInfoModal = false;
@@ -58,18 +64,86 @@ new #[Title('Media')] #[Layout('tardis::layouts.admin')] class extends Component
             );
         }
 
+        if ($this->dateFilter) {
+            $now = now();
+            $files = $files->filter(function ($f) use ($now) {
+                if ($f['type'] === 'directory' || ! isset($f['last_modified'])) {
+                    return true;
+                }
+                return match ($this->dateFilter) {
+                    'today' => \Carbon\Carbon::createFromTimestamp($f['last_modified'])->isToday(),
+                    'week' => \Carbon\Carbon::createFromTimestamp($f['last_modified'])->isThisWeek(),
+                    'month' => \Carbon\Carbon::createFromTimestamp($f['last_modified'])->isThisMonth(),
+                    'year' => \Carbon\Carbon::createFromTimestamp($f['last_modified'])->isThisYear(),
+                    default => true,
+                };
+            });
+        }
+
+        if ($this->sizeFilter) {
+            $files = $files->filter(function ($f) {
+                if ($f['type'] === 'directory') {
+                    return true;
+                }
+                $sizeKB = $f['size'] / 1024;
+                return match ($this->sizeFilter) {
+                    'small' => $sizeKB < 1024,
+                    'medium' => $sizeKB >= 1024 && $sizeKB < 10240,
+                    'large' => $sizeKB >= 10240 && $sizeKB < 102400,
+                    'xlarge' => $sizeKB >= 102400,
+                    default => true,
+                };
+            });
+        }
+
         if ($this->searchQuery) {
             $files = $files->filter(fn ($f) =>
                 str_contains(strtolower($f['name']), strtolower($this->searchQuery))
             );
         }
 
+        $files = match ($this->sortBy) {
+            'name' => $files->sortBy('name'),
+            'size' => $files->sortBy('size'),
+            'type' => $files->sortBy('type'),
+            'updated' => $files->sortBy('last_modified', SORT_REGULAR, true),
+            default => $files->sortBy('name'),
+        };
+
         $this->files = $files->values()->toArray();
+    }
+
+    public function formatSize(int $bytes): string
+    {
+        if ($bytes > 1048576) {
+            return number_format($bytes / 1048576, 2).' MB';
+        } elseif ($bytes > 1024) {
+            return number_format($bytes / 1024, 1).' KB';
+        }
+
+        return $bytes.' B';
     }
 
     public function updatedMimeTypeFilter(): void
     {
         $this->selectedFiles = [];
+        $this->loadFiles();
+    }
+
+    public function updatedDateFilter(): void
+    {
+        $this->selectedFiles = [];
+        $this->loadFiles();
+    }
+
+    public function updatedSizeFilter(): void
+    {
+        $this->selectedFiles = [];
+        $this->loadFiles();
+    }
+
+    public function updatedSortBy(): void
+    {
         $this->loadFiles();
     }
 
