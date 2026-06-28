@@ -69,6 +69,13 @@ class MenuManager
             (new MenuItem('BREAD', 'heroicon-o-table-cells'))
                 ->route('tardis.bread.manage')
                 ->order(50),
+            MenuItem::makeDivider(),
+            (new MenuItem('Permissions', 'heroicon-o-lock-closed'))
+                ->route('tardis.permissions')
+                ->order(60),
+            (new MenuItem('Roles', 'heroicon-o-user-group'))
+                ->route('tardis.roles')
+                ->order(70),
         );
 
         // Register default user menu items
