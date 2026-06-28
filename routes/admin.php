@@ -29,6 +29,17 @@ Route::middleware(['web', 'tardis.admin'])
         Route::livewire('/ui-components', 'tardis::pages.ui-components')->name('ui-components');
 
         Route::livewire('/bread', 'tardis::pages.bread.manage')->name('bread.manage');
+        Route::livewire('/bread/create', 'tardis::pages.bread-builder')->name('bread.create');
+        Route::livewire('/bread/{slug}/edit', 'tardis::pages.bread-builder')->name('bread.edit');
+
+        // BREAD CRUD Routes
+        Route::get('/{slug}', [\Tardis\Http\Controllers\BreadController::class, 'browse'])->name('bread.index');
+        Route::get('/{slug}/create', [\Tardis\Http\Controllers\BreadController::class, 'add'])->name('bread.add');
+        Route::post('/{slug}', [\Tardis\Http\Controllers\BreadController::class, 'store'])->name('bread.store');
+        Route::get('/{slug}/{id}', [\Tardis\Http\Controllers\BreadController::class, 'read'])->name('bread.read');
+        Route::get('/{slug}/{id}/edit', [\Tardis\Http\Controllers\BreadController::class, 'edit'])->name('bread.edit.item');
+        Route::put('/{slug}/{id}', [\Tardis\Http\Controllers\BreadController::class, 'update'])->name('bread.update');
+        Route::delete('/{slug}/{id}', [\Tardis\Http\Controllers\BreadController::class, 'destroy'])->name('bread.destroy');
 
         Route::livewire('/{slug}/create', 'tardis::pages.bread.create')->name('bread.create');
         Route::livewire('/{slug}/{id}/read', 'tardis::pages.bread.read')->name('bread.read');
