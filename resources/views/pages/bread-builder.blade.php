@@ -251,6 +251,16 @@ new #[Title('BREAD Builder')] #[Layout('tardis::layouts.admin')] class extends C
                                         <td><input type="checkbox" wire:model="fieldConfig.{{ $key }}.read" class="checkbox checkbox-sm" /></td>
                                         <td><input type="checkbox" wire:model="fieldConfig.{{ $key }}.edit" class="checkbox checkbox-sm" /></td>
                                         <td><input type="checkbox" wire:model="fieldConfig.{{ $key }}.add" class="checkbox checkbox-sm" /></td>
+                                        <td>
+                                            <div class="flex flex-wrap gap-1">
+                                                @foreach (['required', 'email', 'string', 'integer', 'numeric', 'unique', 'max'] as $rule)
+                                                    <label class="cursor-pointer">
+                                                        <input type="checkbox" wire:model="fieldConfig.{{ $key }}.validation" value="{{ $rule }}" class="checkbox checkbox-xs" />
+                                                        <span class="text-[10px]">{{ $rule }}</span>
+                                                    </label>
+                                                @endforeach
+                                            </div>
+                                        </td>
                                     </tr>
                                 @endforeach
                             </tbody>
