@@ -37,6 +37,10 @@ new #[Title('BREAD Builder')] #[Layout('tardis::layouts.admin')] class extends C
 
     public ?string $existingSlug = null;
 
+    public bool $showIconPicker = false;
+
+    public string $iconSearch = '';
+
     public function mount(?string $slug = null): void
     {
         if ($slug) {
@@ -253,7 +257,13 @@ new #[Title('BREAD Builder')] #[Layout('tardis::layouts.admin')] class extends C
 
                     <div class="form-control">
                         <label class="label"><span class="label-text">Icon</span></label>
-                        <input type="text" wire:model="icon" class="input input-bordered" placeholder="e.g., document-text" />
+                        <div class="flex gap-2">
+                            <input type="text" wire:model="icon" class="input input-bordered flex-1" placeholder="e.g., document-text" readonly />
+                            <button type="button" wire:click="$set('showIconPicker', true)" class="btn btn-outline">
+                                <x-tardis::icon name="cog-6-tooth" class="w-4 h-4" />
+                                Pick
+                            </button>
+                        </div>
                     </div>
 
                     <div class="form-control md:col-span-2">
@@ -286,5 +296,40 @@ new #[Title('BREAD Builder')] #[Layout('tardis::layouts.admin')] class extends C
                 </div>
             </div>
         </div>
+    @endif
+
+    <!-- Icon Picker Modal -->
+    @if ($showIconPicker)
+        <dialog class="modal modal-open">
+            <div class="modal-box w-full max-w-2xl">
+                <h3 class="font-bold text-lg mb-4">Select Icon</h3>
+
+                <input type="text" wire:model="iconSearch" class="input input-bordered w-full mb-4" placeholder="Search icons..." />
+
+                <div class="grid grid-cols-6 sm:grid-cols-8 gap-2 max-h-96 overflow-y-auto">
+                    @php
+                        $icons = ['bars-3', 'sun', 'moon', 'table-cells', 'document-text', 'pencil-square', 'plus-circle', 'database', 'clock', 'photo', 'puzzle-piece', 'check-circle', 'x-circle', 'power', 'check', 'x-mark', 'plus', 'folder', 'cog-6-tooth', 'lock-closed', 'paper-clip', 'hashtag', 'chevron-up-down', 'calendar-days', 'toggle', 'text', 'user-group'];
+                        $filteredIcons = $iconSearch ? array_filter($icons, fn ($i) => str_contains($i, strtolower($iconSearch))) : $icons;
+                    @endphp
+
+                    @foreach ($filteredIcons as $iconName)
+                        <button type="button"
+                                wire:dblclick="$set('icon', '{{ $iconName }}'); $set('showIconPicker', false)"
+                                class="btn btn-ghost btn-sm flex flex-col items-center gap-1 h-auto py-2 {{ $icon === $iconName ? 'btn-active' : '' }}"
+                                title="{{ $iconName }}">
+                            <x-tardis::icon :name="$iconName" class="w-6 h-6" />
+                            <span class="text-[10px] truncate w-full text-center">{{ $iconName }}</span>
+                        </button>
+                    @endforeach
+                </div>
+
+                <div class="modal-action">
+                    <button wire:click="$set('showIconPicker', false)" class="btn btn-ghost">Close</button>
+                </div>
+            </div>
+            <form method="dialog" class="modal-backdrop">
+                <button wire:click="$set('showIconPicker', false)">close</button>
+            </form>
+        </dialog>
     @endif
 </div>
