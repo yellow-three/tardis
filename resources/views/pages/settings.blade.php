@@ -3,6 +3,7 @@
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
+use Illuminate\Support\Str;
 use Tardis\Classes\Setting;
 use Tardis\Facades\Tardis;
 
@@ -16,7 +17,13 @@ new #[Title('Settings')] #[Layout('tardis::layouts.admin')] class extends Compon
 
     public bool $saved = false;
 
+    public string $search = '';
+
     public bool $showAddModal = false;
+
+    public bool $showAddGroupModal = false;
+
+    public string $newGroupName = '';
 
     public bool $showDeleteModal = false;
 
@@ -43,6 +50,8 @@ new #[Title('Settings')] #[Layout('tardis::layouts.admin')] class extends Compon
     public bool $showImportModal = false;
 
     public bool $showExportModal = false;
+
+    public bool $showJsonPanel = false;
 
     public function mount(): void
     {
@@ -169,6 +178,86 @@ new #[Title('Settings')] #[Layout('tardis::layouts.admin')] class extends Compon
         $this->showDeleteModal = false;
     }
 
+    public function cloneSetting(string $fullKey): void
+    {
+        Tardis::settings()->duplicate($fullKey);
+        $this->loadSettings();
+    }
+
+    public function addGroup(): void
+    {
+        $this->validate([
+            'newGroupName' => 'required|string|max:255',
+        ]);
+
+        $slug = Str::slug($this->newGroupName);
+
+        if (! isset($this->groups[$slug])) {
+            $this->groups[$slug] = [
+                'label' => $this->newGroupName,
+                'icon' => 'cog-6-tooth',
+                'settings' => [],
+            ];
+            $this->values[$slug] = [];
+        }
+
+        $this->activeGroup = $slug;
+        $this->newGroupName = '';
+        $this->showAddGroupModal = false;
+    }
+
+    public function generateKey(string $uuid): void
+    {
+        foreach ($this->groups as $groupKey => $group) {
+            foreach ($group['settings'] as $index => $setting) {
+                if ($setting['uuid'] === $uuid) {
+                    $this->values[$groupKey][$setting['key']] = Str::slug($setting['name']);
+                    break;
+                }
+            }
+        }
+    }
+
+    public function getFilteredGroups(): array
+    {
+        if ($this->search === '') {
+            return $this->groups;
+        }
+
+        $filtered = [];
+        foreach ($this->groups as $groupKey => $group) {
+            $filteredSettings = array_filter($group['settings'], function ($setting) {
+                return str_contains(strtolower($setting['key']), strtolower($this->search))
+                    || str_contains(strtolower($setting['name']), strtolower($this->search));
+            });
+
+            if (! empty($filteredSettings)) {
+                $filtered[$groupKey] = $group;
+                $filtered[$groupKey]['settings'] = array_values($filteredSettings);
+            }
+        }
+
+        return $filtered;
+    }
+
+    public function getJsonOutput(): string
+    {
+        $output = [];
+        foreach ($this->groups as $groupKey => $group) {
+            foreach ($group['settings'] as $setting) {
+                $output[] = [
+                    'key' => $setting['key'],
+                    'group' => $groupKey === '_ungrouped' ? null : $groupKey,
+                    'type' => $setting['type'],
+                    'name' => $setting['name'],
+                    'value' => $this->values[$groupKey][$setting['key']] ?? null,
+                ];
+            }
+        }
+
+        return json_encode($output, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
+    }
+
     public function openImportModal(): void
     {
         $this->importJson = '';
@@ -280,15 +369,23 @@ new #[Title('Settings')] #[Layout('tardis::layouts.admin')] class extends Compon
         </div>
 
         <div class="flex gap-2">
-            <button wire:click="openImportModal" class="btn btn-outline gap-2">
+            <div class="relative">
+                <x-tardis::icon name="magnifying-glass" class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 opacity-50" />
+                <input type="text" wire:model.live.debounce.300ms="search" class="input input-bordered input-sm pl-10 w-64" placeholder="Search settings..." />
+            </div>
+            <button wire:click="$set('showAddGroupModal', true)" class="btn btn-outline btn-sm gap-2">
+                <x-tardis::icon name="plus" class="w-4 h-4" />
+                Add Group
+            </button>
+            <button wire:click="openImportModal" class="btn btn-outline btn-sm gap-2">
                 <x-tardis::icon name="folder" class="w-4 h-4" />
                 Import
             </button>
-            <button wire:click="openExportModal" class="btn btn-outline gap-2">
+            <button wire:click="openExportModal" class="btn btn-outline btn-sm gap-2">
                 <x-tardis::icon name="check" class="w-4 h-4" />
                 Export
             </button>
-            <button wire:click="$set('showAddModal', true)" class="btn btn-primary gap-2">
+            <button wire:click="$set('showAddModal', true)" class="btn btn-primary btn-sm gap-2">
                 <x-tardis::icon name="plus" class="w-4 h-4" />
                 Add Setting
             </button>
@@ -303,9 +400,10 @@ new #[Title('Settings')] #[Layout('tardis::layouts.admin')] class extends Compon
     @endif
 
     <!-- Horizontal Group Tabs (Voyager II style) -->
-    @if (count($groups) > 0)
+    @php $filteredGroups = $this->getFilteredGroups(); @endphp
+    @if (count($filteredGroups) > 0)
         <div class="tabs tabs-box mb-6 bg-base-100 shadow-sm overflow-x-auto">
-            @foreach ($groups as $groupKey => $group)
+            @foreach ($filteredGroups as $groupKey => $group)
                 <button wire:click="setActiveGroup('{{ $groupKey }}')"
                         role="tab"
                         class="tab tab-lg gap-2 {{ $activeGroup === $groupKey ? 'tab-active font-semibold' : '' }}">
@@ -319,21 +417,21 @@ new #[Title('Settings')] #[Layout('tardis::layouts.admin')] class extends Compon
         </div>
 
         <!-- Active Group Settings Card -->
-        @if ($activeGroup && isset($groups[$activeGroup]))
+        @if ($activeGroup && isset($filteredGroups[$activeGroup]))
             <div class="card bg-base-100 shadow-sm">
                 <div class="card-body">
                     <h2 class="card-title text-xl flex items-center gap-2">
-                        @if ($groups[$activeGroup]['icon'])
-                            <x-tardis::icon :name="$groups[$activeGroup]['icon']" class="w-5 h-5" />
+                        @if ($filteredGroups[$activeGroup]['icon'])
+                            <x-tardis::icon :name="$filteredGroups[$activeGroup]['icon']" class="w-5 h-5" />
                         @endif
-                        {{ $groups[$activeGroup]['label'] }}
+                        {{ $filteredGroups[$activeGroup]['label'] }}
                         <span class="text-sm text-base-content/40 font-normal">settings</span>
                     </h2>
 
                     <div class="divider mt-2 mb-0"></div>
 
                     <div class="space-y-1">
-                        @foreach ($groups[$activeGroup]['settings'] as $setting)
+                        @foreach ($filteredGroups[$activeGroup]['settings'] as $setting)
                             <div class="setting-row py-4 {{ !$loop->last ? 'border-b border-base-200' : '' }}">
                                 <!-- Label & Info -->
                                 <div class="mb-2">
@@ -354,8 +452,15 @@ new #[Title('Settings')] #[Layout('tardis::layouts.admin')] class extends Compon
                                             </span>
                                         @endif
                                         <button
+                                            wire:click="cloneSetting('{{ $setting['fullKey'] }}')"
+                                            class="btn btn-ghost btn-xs text-info"
+                                            title="Clone setting"
+                                        >
+                                            <x-tardis::icon name="document-text" class="w-3 h-3" />
+                                        </button>
+                                        <button
                                             wire:click="confirmDelete('{{ $setting['fullKey'] }}')"
-                                            class="btn btn-ghost btn-xs text-error ml-auto"
+                                            class="btn btn-ghost btn-xs text-error"
                                             title="Delete setting"
                                         >
                                             <x-tardis::icon name="x-mark" class="w-3 h-3" />
@@ -792,4 +897,59 @@ new #[Title('Settings')] #[Layout('tardis::layouts.admin')] class extends Compon
             </form>
         </dialog>
     @endif
+
+    <!-- Add Group Modal -->
+    @if ($showAddGroupModal)
+        <dialog class="modal modal-open">
+            <div class="modal-box">
+                <h3 class="font-bold text-lg mb-4">Add Group</h3>
+                <form wire:submit="addGroup" class="space-y-4">
+                    <div class="form-control">
+                        <label class="label">
+                            <span class="label-text">Group Name</span>
+                        </label>
+                        <input type="text" wire:model="newGroupName" class="input input-bordered" placeholder="e.g., General, Media, Auth" autofocus />
+                        @error('newGroupName')
+                            <label class="label">
+                                <span class="label-text-alt text-error">{{ $message }}</span>
+                            </label>
+                        @enderror
+                    </div>
+                </form>
+                <div class="modal-action">
+                    <button wire:click="$set('showAddGroupModal', false)" class="btn btn-ghost">Cancel</button>
+                    <button wire:click="addGroup" class="btn btn-primary">Create Group</button>
+                </div>
+            </div>
+            <form method="dialog" class="modal-backdrop">
+                <button wire:click="$set('showAddGroupModal', false)">close</button>
+            </form>
+        </dialog>
+    @endif
+
+    <!-- JSON Output Panel -->
+    <div class="mt-6">
+        <div x-data="{ open: false }">
+            <button @click="open = !open" class="btn btn-ghost btn-sm gap-2 w-full justify-between">
+                <span class="flex items-center gap-2">
+                    <x-tardis::icon name="document-text" class="w-4 h-4" />
+                    JSON Output
+                </span>
+                <x-tardis::icon name="chevron-up-down" class="w-4 h-4 transition-transform" :class="{ 'rotate-180': open }" />
+            </button>
+            <div x-show="open" x-collapse class="mt-2">
+                <div class="card bg-base-200">
+                    <div class="card-body p-4">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-xs text-base-content/50">Settings JSON</span>
+                            <button onclick="navigator.clipboard.writeText(document.getElementById('json-output').textContent)" class="btn btn-ghost btn-xs">
+                                Copy
+                            </button>
+                        </div>
+                        <pre id="json-output" class="text-xs font-mono overflow-auto max-h-64 p-3 bg-base-300 rounded">{{ $this->getJsonOutput() }}</pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
