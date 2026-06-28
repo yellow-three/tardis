@@ -108,6 +108,7 @@ new #[Title('Settings')] #[Layout('tardis::layouts.admin')] class extends Compon
     public function save(): void
     {
         $data = [];
+        $errors = [];
 
         $settings = Tardis::settings()->all();
         foreach ($settings as $setting) {
@@ -115,8 +116,32 @@ new #[Title('Settings')] #[Layout('tardis::layouts.admin')] class extends Compon
             $key = $setting->key;
 
             if (isset($this->values[$group][$key])) {
-                $data[$setting->getFullKey()] = $this->values[$group][$key];
+                $value = $this->values[$group][$key];
+
+                if (empty($setting->key)) {
+                    $errors[$setting->getFullKey()] = 'Key is required.';
+                    continue;
+                }
+
+                if (! empty($setting->validation)) {
+                    $validator = \Illuminate\Support\Facades\Validator::make(
+                        ['value' => $value],
+                        ['value' => $setting->validation]
+                    );
+
+                    if ($validator->fails()) {
+                        $errors[$setting->getFullKey()] = $validator->errors()->first('value');
+                        continue;
+                    }
+                }
+
+                $data[$setting->getFullKey()] = $value;
             }
+        }
+
+        if (! empty($errors)) {
+            $this->dispatch('settings-errors', errors: $errors);
+            return;
         }
 
         Tardis::settings()->update($data);
@@ -742,14 +767,33 @@ new #[Title('Settings')] #[Layout('tardis::layouts.admin')] class extends Compon
         <div class="card bg-base-100 shadow-sm">
             <div class="card-body text-center py-16">
                 <x-tardis::icon name="cog-6-tooth" class="w-16 h-16 mx-auto opacity-20" />
-                <h3 class="text-lg font-semibold mt-4">No settings configured</h3>
-                <p class="text-base-content/60 mt-1 max-w-md mx-auto">
-                    Publish the default settings preset or add a new setting to get started.
-                </p>
-                <button wire:click="$set('showAddModal', true)" class="btn btn-primary gap-2 mt-4">
-                    <x-tardis::icon name="plus" class="w-4 h-4" />
-                    Add Setting
-                </button>
+                @if ($search)
+                    <h3 class="text-lg font-semibold mt-4">No matching settings</h3>
+                    <p class="text-base-content/60 mt-1 max-w-md mx-auto">
+                        No settings match "{{ $search }}". Try a different search term.
+                    </p>
+                    <button wire:click="$set('search', '')" class="btn btn-ghost btn-sm mt-4">
+                        Clear search
+                    </button>
+                @elseif ($activeGroup && isset($groups[$activeGroup]))
+                    <h3 class="text-lg font-semibold mt-4">No settings in this group</h3>
+                    <p class="text-base-content/60 mt-1 max-w-md mx-auto">
+                        Add a setting to the "{{ $groups[$activeGroup]['label'] }}" group.
+                    </p>
+                    <button wire:click="$set('showAddModal', true)" class="btn btn-primary gap-2 mt-4">
+                        <x-tardis::icon name="plus" class="w-4 h-4" />
+                        Add Setting
+                    </button>
+                @else
+                    <h3 class="text-lg font-semibold mt-4">No settings configured</h3>
+                    <p class="text-base-content/60 mt-1 max-w-md mx-auto">
+                        Publish the default settings preset or add a new setting to get started.
+                    </p>
+                    <button wire:click="$set('showAddModal', true)" class="btn btn-primary gap-2 mt-4">
+                        <x-tardis::icon name="plus" class="w-4 h-4" />
+                        Add Setting
+                    </button>
+                @endif
             </div>
         </div>
     @endif
