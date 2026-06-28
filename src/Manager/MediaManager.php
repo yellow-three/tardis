@@ -50,16 +50,31 @@ class MediaManager
 
         $files = collect($storage->listContents($path))
             ->map(function ($item) use ($storage) {
-                $isDir = $item instanceof \Illuminate\Filesystem\DirectoryAttributes;
+                $isDir = $item instanceof \Illuminate\Filesystem\DirectoryAttributes
+                    || str_ends_with($item['path'], '/');
+
+                $size = 0;
+                $mimeType = 'directory';
+                $lastModified = null;
+
+                if (! $isDir) {
+                    try {
+                        $size = $storage->fileSize($item['path']);
+                        $mimeType = $storage->mimeType($item['path']);
+                        $lastModified = $storage->lastModified($item['path']);
+                    } catch (\Throwable) {
+                        // File might not exist or metadata unavailable
+                    }
+                }
 
                 return [
-                    'type' => $isDir ? 'directory' : $storage->mimeType($item['path']),
+                    'type' => $mimeType,
                     'name' => basename($item['path']),
                     'path' => $item['path'],
                     'relative_path' => Str::after($item['path'], $this->basePath.'/'),
-                    'size' => $isDir ? 0 : $storage->fileSize($item['path']),
+                    'size' => $size,
                     'url' => $storage->url($item['path']),
-                    'last_modified' => $isDir ? null : $storage->lastModified($item['path']),
+                    'last_modified' => $lastModified,
                 ];
             })
             ->sortBy('type')
