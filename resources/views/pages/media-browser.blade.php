@@ -221,7 +221,7 @@ new #[Title('Media')] #[Layout('tardis::layouts.admin')] class extends Component
             <label class="btn btn-primary gap-2 cursor-pointer">
                 <x-tardis::icon name="plus" class="w-4 h-4" />
                 Upload
-                <input type="file" wire:model="uploadFile" class="hidden" multiple />
+                <input type="file" wire:model="uploadFile" wire:change="uploadFile" class="hidden" multiple />
             </label>
         </div>
     </div>
