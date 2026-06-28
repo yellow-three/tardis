@@ -32,6 +32,9 @@ $icons = [
     'magnifying-glass' => '<path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />',
     'information-circle' => '<path stroke-linecap="round" stroke-linejoin="round" d="m11.25 11.25.041-.02a.75.75 0 0 1 1.063.852l-.708 2.836a.75.75 0 0 0 1.063.853l.041-.021M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9-3.75h.008v.008H12V8.25Z" />',
     'arrow-down-tray' => '<path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />',
+    'funnel' => '<path stroke-linecap="round" stroke-linejoin="round" d="M12 3c-.49 0-.97.13-1.41.37-.36.19-.73.43-1.06.7A3.24 3.24 0 0 0 7.5 6.1c-.36.19-.73.43-1.06.7-.44.27-.81.6-1.06.96-.25.36-.41.75-.45 1.16A4.5 4.5 0 0 0 3 9l9 9 9-9a4.5 4.5 0 0 0-2.94-1c-.07-.43-.25-.84-.53-1.18-.28-.34-.6-.61-.95-.8-.44-.19-.92-.32-1.41-.37-.49-.05-.99-.05-1.48 0Z" />',
+    'list-bullet' => '<path stroke-linecap="round" stroke-linejoin="round" d="M3.75 5.25h16.5m-16.5 5.625h16.5m-16.5 5.625h16.5" />',
+    'ellipsis-vertical' => '<path stroke-linecap="round" stroke-linejoin="round" d="M12 6.75v.75m0 3v.75m0 3v.75" />',
 ];
 @endphp
 
