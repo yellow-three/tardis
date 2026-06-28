@@ -4,9 +4,10 @@ namespace Tardis\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
-use Illuminate\Support\Facades\Route;
-use Tardis\Bread\BreadDefinition;
 use Tardis\Bread\Repositories\JsonBreadRepository;
+use Tardis\Events\BreadCreated;
+use Tardis\Events\BreadDeleted;
+use Tardis\Events\BreadUpdated;
 
 class BreadController extends Controller
 {
@@ -82,7 +83,9 @@ class BreadController extends Controller
         $validated = $request->validate($validationRules);
 
         $model = $bread->model;
-        $model::create($validated);
+        $item = $model::create($validated);
+
+        BreadCreated::dispatch($slug, $item, $validated);
 
         return redirect()->route('tardis.bread.index', $slug)
             ->with('message', 'Item created successfully.');
@@ -120,7 +123,11 @@ class BreadController extends Controller
 
         $model = $bread->model;
         $item = $model::findOrFail($id);
+
+        $old = $item->toArray();
         $item->update($validated);
+
+        BreadUpdated::dispatch($slug, $item, $old, $validated);
 
         return redirect()->route('tardis.bread.index', $slug)
             ->with('message', 'Item updated successfully.');
@@ -136,6 +143,8 @@ class BreadController extends Controller
         $model = $bread->model;
         $item = $model::findOrFail($id);
         $item->delete();
+
+        BreadDeleted::dispatch($slug, $item);
 
         return redirect()->route('tardis.bread.index', $slug)
             ->with('message', 'Item deleted successfully.');
