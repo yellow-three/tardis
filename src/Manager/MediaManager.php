@@ -3,56 +3,151 @@
 namespace Tardis\Manager;
 
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Tardis\Models\Media;
 
 class MediaManager
 {
+    protected string $disk;
+
+    protected string $basePath;
+
+    public function __construct()
+    {
+        $this->disk = config('tardis-media.disk', 'public');
+        $this->basePath = config('tardis-media.path', 'media');
+    }
+
     public function upload(
         UploadedFile $file,
-        string $collection = 'default',
+        string $path = '',
         ?string $altText = null,
-        ?string $disk = null,
     ): Media {
-        $disk ??= config('tardis-media.disk', 'public');
-        $name = Str::random(40).'.'.$file->getClientOriginalExtension();
-        $path = $file->storeAs($collection, $name, $disk);
+        $path = Str::finish($this->basePath.'/'.$path, '/');
+
+        $name = $this->getUniqueFileName($file, $path);
+        $storedPath = $file->storeAs($path, $name, $this->disk);
 
         return Media::create([
             'name' => $name,
             'original_name' => $file->getClientOriginalName(),
-            'path' => $collection.'/'.$name,
-            'disk' => $disk,
+            'path' => $storedPath,
+            'disk' => $this->disk,
             'mime_type' => $file->getMimeType(),
             'size' => $file->getSize(),
             'alt_text' => $altText,
-            'collection' => $collection,
+            'collection' => trim($path, '/'),
             'created_by' => auth()->id(),
         ]);
     }
 
-    public function delete(Media $media): bool
+    public function listFiles(string $path = ''): Collection
     {
-        Storage::disk($media->disk)->delete($media->path);
+        $path = Str::finish($this->basePath.'/'.$path, '/');
+        $storage = Storage::disk($this->disk);
 
-        return (bool) $media->delete();
+        $files = collect($storage->listContents($path))
+            ->map(function ($item) use ($storage) {
+                $isDir = $item instanceof \Illuminate\Filesystem\DirectoryAttributes;
+
+                return [
+                    'type' => $isDir ? 'directory' : $storage->mimeType($item['path']),
+                    'name' => basename($item['path']),
+                    'path' => $item['path'],
+                    'relative_path' => Str::after($item['path'], $this->basePath.'/'),
+                    'size' => $isDir ? 0 : $storage->fileSize($item['path']),
+                    'url' => $storage->url($item['path']),
+                    'last_modified' => $isDir ? null : $storage->lastModified($item['path']),
+                ];
+            })
+            ->sortBy('type')
+            ->sortBy('name')
+            ->values();
+
+        return $files;
     }
 
-    public function bulkDelete(array $ids): int
+    public function createDirectory(string $path, string $name): bool
     {
-        $count = 0;
+        $fullPath = Str::finish($this->basePath.'/'.$path, '/').$name;
 
-        foreach (Media::whereIn('id', $ids)->get() as $media) {
-            if ($this->delete($media)) {
-                $count++;
-            }
+        return Storage::disk($this->disk)->makeDirectory($fullPath);
+    }
+
+    public function deleteFile(string $path): bool
+    {
+        return Storage::disk($this->disk)->delete($this->basePath.'/'.$path);
+    }
+
+    public function deleteDirectory(string $path): bool
+    {
+        return Storage::disk($this->disk)->deleteDirectory($this->basePath.'/'.$path);
+    }
+
+    public function rename(string $oldPath, string $newName): bool
+    {
+        $fullOldPath = $this->basePath.'/'.$oldPath;
+        $directory = dirname($fullOldPath);
+        $newPath = $directory.'/'.$newName;
+
+        $content = Storage::disk($this->disk)->get($fullOldPath);
+        if ($content === null) {
+            return false;
         }
 
-        return $count;
+        Storage::disk($this->disk)->put($newPath, $content);
+        Storage::disk($this->disk)->delete($fullOldPath);
+
+        return true;
     }
 
-    public function downloadZip(array $ids, string $filename = 'media-export.zip'): string
+    public function move(string $from, string $toDirectory): bool
+    {
+        $fullFrom = $this->basePath.'/'.$from;
+        $fileName = basename($fullFrom);
+        $fullTo = Str::finish($this->basePath.'/'.$toDirectory, '/').$fileName;
+
+        $content = Storage::disk($this->disk)->get($fullFrom);
+        if ($content === null) {
+            return false;
+        }
+
+        Storage::disk($this->disk)->put($fullTo, $content);
+        Storage::disk($this->disk)->delete($fullFrom);
+
+        return true;
+    }
+
+    public function copy(string $from, string $toDirectory): bool
+    {
+        $fullFrom = $this->basePath.'/'.$from;
+        $fileName = basename($fullFrom);
+        $fullTo = Str::finish($this->basePath.'/'.$toDirectory, '/').$fileName;
+
+        $content = Storage::disk($this->disk)->get($fullFrom);
+        if ($content === null) {
+            return false;
+        }
+
+        Storage::disk($this->disk)->put($fullTo, $content);
+
+        return true;
+    }
+
+    public function download(string $path): ?string
+    {
+        $fullPath = $this->basePath.'/'.$path;
+
+        if (! Storage::disk($this->disk)->exists($fullPath)) {
+            return null;
+        }
+
+        return Storage::disk($this->disk)->get($fullPath);
+    }
+
+    public function downloadZip(array $paths, string $filename = 'media-export.zip'): string
     {
         $zip = new \ZipArchive;
         $zipPath = storage_path('app/temp/'.$filename);
@@ -65,13 +160,15 @@ class MediaManager
             throw new \RuntimeException('Could not create ZIP archive');
         }
 
-        $media = Media::whereIn('id', $ids)->get();
+        foreach ($paths as $path) {
+            $fullPath = $this->basePath.'/'.$path;
+            $fileName = basename($fullPath);
 
-        foreach ($media as $item) {
-            $filePath = Storage::disk($item->disk)->path($item->path);
-
-            if (file_exists($filePath)) {
-                $zip->addFile($filePath, $item->original_name);
+            if (Storage::disk($this->disk)->exists($fullPath)) {
+                $tempFile = tempnam(sys_get_temp_dir(), 'tardis_');
+                file_put_contents($tempFile, Storage::disk($this->disk)->get($fullPath));
+                $zip->addFile($tempFile, $fileName);
+                unlink($tempFile);
             }
         }
 
@@ -80,38 +177,47 @@ class MediaManager
         return $zipPath;
     }
 
-    public function search(array $filters = []): mixed
+    public function getFileInfo(string $path): ?array
     {
-        $query = Media::query();
+        $fullPath = $this->basePath.'/'.$path;
+        $storage = Storage::disk($this->disk);
 
-        if (! empty($filters['search'])) {
-            $query->where('original_name', 'like', '%'.$filters['search'].'%');
+        if (! $storage->exists($fullPath)) {
+            return null;
         }
 
-        if (! empty($filters['collection'])) {
-            $query->collection($filters['collection']);
-        }
-
-        if (! empty($filters['mime_type'])) {
-            $query->where('mime_type', 'like', $filters['mime_type'].'%');
-        }
-
-        return $query->latest();
+        return [
+            'name' => basename($fullPath),
+            'path' => $fullPath,
+            'relative_path' => Str::after($fullPath, $this->basePath.'/'),
+            'size' => $storage->fileSize($fullPath),
+            'mime_type' => $storage->mimeType($fullPath),
+            'url' => $storage->url($fullPath),
+            'last_modified' => $storage->lastModified($fullPath),
+        ];
     }
 
-    public function getCollections(): array
+    public function search(string $query, string $path = ''): Collection
     {
-        return Media::distinct()->pluck('collection')->filter()->values()->toArray();
+        $files = $this->listFiles($path);
+
+        return $files->filter(function ($file) use ($query) {
+            return str_contains(strtolower($file['name']), strtolower($query));
+        })->values();
     }
 
-    public function getMimeTypes(): array
+    protected function getUniqueFileName(UploadedFile $file, string $path): string
     {
-        return Media::distinct()
-            ->pluck('mime_type')
-            ->filter()
-            ->map(fn (string $mime) => explode('/', $mime)[0])
-            ->unique()
-            ->values()
-            ->toArray();
+        $name = $file->getClientOriginalName();
+        $storage = Storage::disk($this->disk);
+        $count = 0;
+
+        while ($storage->exists($path.$name)) {
+            $count++;
+            $pathinfo = pathinfo($file->getClientOriginalName());
+            $name = $pathinfo['filename'].'_'.$count.'.'.$pathinfo['extension'];
+        }
+
+        return $name;
     }
 }
