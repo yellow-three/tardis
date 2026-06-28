@@ -6,7 +6,10 @@ interface ThemePlugin
 {
     public function name(): string;
 
-    public function assets(): array;
+    public function description(): string;
 
-    public function apply(): void;
+    /** @return array<string, string> CSS variable overrides */
+    public function getTheme(): array;
+
+    public function getStyles(): string;
 }

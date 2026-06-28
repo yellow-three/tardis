@@ -13,6 +13,10 @@
     @foreach(app(\Tardis\Manager\PluginManager::class)->enabledWith(\Tardis\Contracts\Plugins\Features\Provider\CSS::class) as $plugin)
         <style>{!! $plugin->provideCSS() !!}</style>
     @endforeach
+
+    @foreach(app(\Tardis\Manager\PluginManager::class)->enabledWith(\Tardis\Contracts\Plugins\ThemePlugin::class) as $theme)
+        <style>{!! $theme->getStyles() !!}</style>
+    @endforeach
 </head>
 <body class="min-h-screen bg-base-200">
     <div class="drawer lg:drawer-open">
