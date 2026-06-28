@@ -16,10 +16,12 @@
     @if ($hasChildren)
         <details {{ $isExpanded ? 'open' : '' }}>
             <summary class="{{ $isActive ? 'active' : '' }}">
-                @if ($item->icon)
-                    <x-dynamic-component :component="$item->icon" class="w-5 h-5" />
-                @endif
-                {{ $item->title }}
+                <span class="flex items-center gap-2">
+                    @if ($item->icon)
+                        <x-dynamic-component :component="$item->icon" class="w-5 h-5 flex-shrink-0" />
+                    @endif
+                    {{ $item->title }}
+                </span>
                 @if ($item->badgeColor)
                     <span class="badge badge-{{ $item->badgeColor }} badge-sm ml-auto">
                         {{ $item->badgeValue ?? '' }}
@@ -34,10 +36,12 @@
         </details>
     @else
         <a href="{{ $item->href() }}" class="{{ $isActive ? 'active' : '' }}">
-            @if ($item->icon)
-                <x-dynamic-component :component="$item->icon" class="w-5 h-5" />
-            @endif
-            {{ $item->title }}
+            <span class="flex items-center gap-2">
+                @if ($item->icon)
+                    <x-dynamic-component :component="$item->icon" class="w-5 h-5 flex-shrink-0" />
+                @endif
+                {{ $item->title }}
+            </span>
             @if ($item->badgeColor)
                 <span class="badge badge-{{ $item->badgeColor }} badge-sm ml-auto">
                     {{ $item->badgeValue ?? '' }}
