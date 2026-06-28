@@ -37,6 +37,12 @@ new #[Title('BREAD Builder')] #[Layout('tardis::layouts.admin')] class extends C
 
     public string $orderDirection = 'asc';
 
+    public ?string $activeTab = 'fields';
+
+    public array $browseColumns = [];
+
+    public array $editTabs = [];
+
     public bool $editMode = false;
 
     public ?string $existingSlug = null;
@@ -138,6 +144,20 @@ new #[Title('BREAD Builder')] #[Layout('tardis::layouts.admin')] class extends C
         }
 
         return $models;
+    }
+
+    public function addEditTab(): void
+    {
+        $this->editTabs[] = [
+            'name' => 'Tab '.(count($this->editTabs) + 1),
+            'fields' => [],
+        ];
+    }
+
+    public function removeEditTab(int $index): void
+    {
+        unset($this->editTabs[$index]);
+        $this->editTabs = array_values($this->editTabs);
     }
 }; ?>
 
@@ -289,7 +309,14 @@ new #[Title('BREAD Builder')] #[Layout('tardis::layouts.admin')] class extends C
     @if ($step === 3)
         <div class="card bg-base-100 shadow-sm">
             <div class="card-body">
-                <h2 class="card-title">Step 3: Configure BREAD</h2>
+                <div class="tabs tabs-box mb-4">
+                    <button wire:click="$set('activeTab', 'general')" role="tab" class="tab {{ ($activeTab ?? 'general') === 'general' ? 'tab-active' : '' }}">General</button>
+                    <button wire:click="$set('activeTab', 'browse-layout')" role="tab" class="tab {{ ($activeTab ?? '') === 'browse-layout' ? 'tab-active' : '' }}">Browse Layout</button>
+                    <button wire:click="$set('activeTab', 'edit-layout')" role="tab" class="tab {{ ($activeTab ?? '') === 'edit-layout' ? 'tab-active' : '' }}">Edit Layout</button>
+                </div>
+
+                @if (($activeTab ?? 'general') === 'general')
+                    <h2 class="card-title">General Settings</h2>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                     <div class="form-control">
@@ -341,11 +368,72 @@ new #[Title('BREAD Builder')] #[Layout('tardis::layouts.admin')] class extends C
                         </select>
                     </div>
                 </div>
+                @endif
 
-                <div class="card-actions justify-end mt-6">
-                    <button wire:click="goToStep(2)" class="btn btn-ghost">Back</button>
-                    <button wire:click="save" class="btn btn-primary">Save BREAD</button>
-                </div>
+                @if (($activeTab ?? '') === 'browse-layout')
+                    <h2 class="card-title">Browse Layout</h2>
+                    <p class="text-base-content/60">Configure which columns appear in the browse table.</p>
+
+                    <div class="overflow-x-auto mt-4">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Field</th>
+                                    <th>Visible</th>
+                                    <th>Sortable</th>
+                                    <th>Searchable</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach ($fieldConfig as $key => $field)
+                                    <tr>
+                                        <td class="font-medium">{{ $field['label'] }}</td>
+                                        <td><input type="checkbox" wire:model="browseColumns.{{ $key }}.visible" class="checkbox checkbox-sm" checked /></td>
+                                        <td><input type="checkbox" wire:model="browseColumns.{{ $key }}.sortable" class="checkbox checkbox-sm" /></td>
+                                        <td><input type="checkbox" wire:model="browseColumns.{{ $key }}.searchable" class="checkbox checkbox-sm" /></td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                @endif
+
+                @if (($activeTab ?? '') === 'edit-layout')
+                    <h2 class="card-title">Edit Layout</h2>
+                    <p class="text-base-content/60">Configure tabs and field grouping for the edit form.</p>
+
+                    <div class="mt-4">
+                        <div class="flex items-center gap-2 mb-4">
+                            <button wire:click="addEditTab" class="btn btn-outline btn-sm gap-1">
+                                <x-tardis::icon name="plus" class="w-4 h-4" />
+                                Add Tab
+                            </button>
+                        </div>
+
+                        @forelse ($editTabs as $tabIndex => $tab)
+                            <div class="card bg-base-200 mb-3">
+                                <div class="card-body p-4">
+                                    <div class="flex items-center gap-2 mb-3">
+                                        <input type="text" wire:model="editTabs.{{ $tabIndex }}.name" class="input input-bordered input-sm flex-1" placeholder="Tab name" />
+                                        <button wire:click="removeEditTab({{ $tabIndex }})" class="btn btn-ghost btn-xs text-error">
+                                            <x-tardis::icon name="x-mark" class="w-4 h-4" />
+                                        </button>
+                                    </div>
+                                    <div class="flex flex-wrap gap-2">
+                                        @foreach ($fieldConfig as $key => $field)
+                                            <label class="flex items-center gap-1 cursor-pointer">
+                                                <input type="checkbox" wire:model="editTabs.{{ $tabIndex }}.fields" value="{{ $key }}" class="checkbox checkbox-sm checkbox-primary" />
+                                                <span class="text-xs">{{ $field['label'] }}</span>
+                                            </label>
+                                        @endforeach
+                                    </div>
+                                </div>
+                            </div>
+                        @empty
+                            <p class="text-sm opacity-50">No tabs configured. Fields will appear in a single form.</p>
+                        @endforelse
+                    </div>
+                @endif
             </div>
         </div>
     @endif
