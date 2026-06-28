@@ -1,13 +1,9 @@
 <div class="flex gap-6">
     <!-- Ana İçerik -->
     <div class="flex-1 min-w-0">
-        <!-- Başlık & Butonlar -->
+        <!-- Başlık -->
         <div class="flex items-center justify-between mb-6">
-            <div>
-                <h1 class="text-2xl font-bold">Media Library</h1>
-                <p class="text-base-content/60 mt-1">Manage your media files</p>
-            </div>
-
+            <h1 class="text-2xl font-bold">Media Library</h1>
             <div class="flex gap-2">
                 <button wire:click="$set('showNewDirModal', true)" class="btn btn-outline gap-2">
                     <x-tardis::icon name="folder" class="w-4 h-4" />
@@ -35,121 +31,112 @@
             </div>
         @endif
 
-        <!-- Arama & Filtreler & Sıralama -->
+        <!-- Breadcrumbs -->
+        <div class="text-sm breadcrumbs mb-4">
+            <ul>
+                @foreach ($this->getBreadcrumbs() as $crumb)
+                    <li>
+                        @if ($loop->last)
+                            <span class="font-semibold">{{ $crumb['label'] }}</span>
+                        @else
+                            <a wire:click="navigateTo('{{ $crumb['path'] }}')" class="link link-hover">{{ $crumb['label'] }}</a>
+                        @endif
+                    </li>
+                @endforeach
+            </ul>
+        </div>
+
+        <!-- Arama & Filtreler -->
         <div class="flex items-center gap-3 mb-4">
-            <!-- Arama -->
             <div class="flex-1 relative">
                 <x-tardis::icon name="magnifying-glass" class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 opacity-40" />
                 <input type="text" wire:model.live.debounce.300ms="searchQuery" class="input input-bordered w-full pl-10" placeholder="Search files or folder by name..." />
             </div>
-
-            <!-- Filtre Butonu -->
-            <div class="dropdown dropdown-end">
-                <button tabindex="0" class="btn btn-outline gap-2">
-                    <x-tardis::icon name="folder" class="w-4 h-4" />
-                    Filter
-                </button>
-                <ul tabindex="0" class="dropdown-content menu p-4 shadow bg-base-100 rounded-box w-72 z-10">
-                    <li class="menu-title">Date</li>
-                    <li>
-                        <select wire:model.live="dateFilter" class="select select-bordered select-sm w-full">
-                            <option value="">Any time</option>
-                            <option value="today">Today</option>
-                            <option value="week">This week</option>
-                            <option value="month">This month</option>
-                            <option value="year">This year</option>
-                        </select>
-                    </li>
-                    <li class="menu-title">Size</li>
-                    <li>
-                        <select wire:model.live="sizeFilter" class="select select-bordered select-sm w-full">
-                            <option value="">Any size</option>
-                            <option value="small">< 1 MB</option>
-                            <option value="medium">1-10 MB</option>
-                            <option value="large">10-100 MB</option>
-                            <option value="xlarge">> 100 MB</option>
-                        </select>
-                    </li>
-                    <li class="menu-title">Type</li>
-                    <li>
-                        <select wire:model.live="mimeTypeFilter" class="select select-bordered select-sm w-full">
-                            <option value="">All types</option>
-                            <option value="image">Images</option>
-                            <option value="video">Videos</option>
-                            <option value="application">Documents</option>
-                        </select>
-                    </li>
-                </ul>
-            </div>
-
-            <!-- Sıralama -->
-            <div class="dropdown dropdown-end">
-                <button tabindex="0" class="btn btn-outline gap-2">
-                    <x-tardis::icon name="table-cells" class="w-4 h-4" />
-                    Sort
-                </button>
-                <ul tabindex="0" class="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-48 z-10">
-                    <li><a wire:click="$set('sortBy', 'name')">
-                        <x-tardis::icon name="text" class="w-4 h-4" /> Sort by name
-                    </a></li>
-                    <li><a wire:click="$set('sortBy', 'updated')">
-                        <x-tardis::icon name="clock" class="w-4 h-4" /> Sort by updated
-                    </a></li>
-                    <li><a wire:click="$set('sortBy', 'size')">
-                        <x-tardis::icon name="hashtag" class="w-4 h-4" /> Sort by size
-                    </a></li>
-                    <li><a wire:click="$set('sortBy', 'type')">
-                        <x-tardis::icon name="document-text" class="w-4 h-4" /> Sort by type
-                    </a></li>
-                </ul>
-            </div>
-
-            <!-- Görünüm -->
-            <div class="join">
-                <button wire:click="$set('viewMode', 'grid')" class="join-item btn btn-sm {{ $viewMode === 'grid' ? 'btn-active' : '' }}">
-                    <x-tardis::icon name="table-cells" class="w-4 h-4" />
-                </button>
-                <button wire:click="$set('viewMode', 'list')" class="join-item btn btn-sm {{ $viewMode === 'list' ? 'btn-active' : '' }}">
-                    <x-tardis::icon name="bars-3" class="w-4 h-4" />
-                </button>
-            </div>
+            <button wire:click="toggleFilters" class="btn btn-outline gap-2">
+                <x-tardis::icon name="folder" class="w-4 h-4" />
+                Filter
+            </button>
+            <button wire:click="toggleSort" class="btn btn-outline gap-2">
+                <x-tardis::icon name="table-cells" class="w-4 h-4" />
+                Sort
+            </button>
+            <button wire:click="$set('viewMode', $viewMode === 'grid' ? 'list' : 'grid')" class="btn btn-ghost btn-sm">
+                <x-tardis::icon name="{{ $viewMode === 'grid' ? 'bars-3' : 'table-cells' }}" class="w-4 h-4" />
+            </button>
         </div>
 
-        <!-- Toplu İşlemler -->
-        @if (!empty($selectedFiles))
-            <div class="flex items-center gap-2 mb-4 px-4 py-3 bg-primary/5 border border-primary/20 rounded-lg">
-                <span class="text-sm font-medium">{{ count($selectedFiles) }} file(s) selected</span>
-                <div class="ml-auto flex gap-2">
-                    <button wire:click="downloadSelected" class="btn btn-primary btn-sm gap-1">
-                        <x-tardis::icon name="folder" class="w-4 h-4" /> Download
-                    </button>
-                    <button wire:click="bulkDelete" class="btn btn-error btn-sm gap-1">
-                        <x-tardis::icon name="x-mark" class="w-4 h-4" /> Delete
-                    </button>
-                    <button wire:click="deselectAll" class="btn btn-ghost btn-sm">Clear</button>
+        <!-- Filtre Paneli -->
+        @if ($showFilters)
+            <div class="card bg-base-100 shadow-sm mb-4">
+                <div class="card-body p-4">
+                    <div class="flex gap-4 flex-wrap">
+                        <div class="form-control">
+                            <label class="label"><span class="label-text text-xs">Date</span></label>
+                            <select wire:model.live="dateFilter" class="select select-bordered select-sm">
+                                <option value="">Any time</option>
+                                <option value="today">Today</option>
+                                <option value="week">This week</option>
+                                <option value="month">This month</option>
+                                <option value="year">This year</option>
+                            </select>
+                        </div>
+                        <div class="form-control">
+                            <label class="label"><span class="label-text text-xs">Size</span></label>
+                            <select wire:model.live="sizeFilter" class="select select-bordered select-sm">
+                                <option value="">Any size</option>
+                                <option value="small">< 1 MB</option>
+                                <option value="medium">1-10 MB</option>
+                                <option value="large">10-100 MB</option>
+                                <option value="xlarge">> 100 MB</option>
+                            </select>
+                        </div>
+                        <div class="form-control">
+                            <label class="label"><span class="label-text text-xs">Type</span></label>
+                            <select wire:model.live="mimeTypeFilter" class="select select-bordered select-sm">
+                                <option value="">All types</option>
+                                <option value="image">Images</option>
+                                <option value="video">Videos</option>
+                                <option value="application">Documents</option>
+                            </select>
+                        </div>
+                    </div>
                 </div>
             </div>
         @endif
 
-        <!-- Select All -->
-        @if (!empty($files) && empty($selectedFiles))
-            <div class="flex items-center gap-2 mb-3">
-                <label class="cursor-pointer flex items-center gap-2 text-sm">
-                    <input type="checkbox" class="checkbox checkbox-sm" onchange="if(this.checked) @this.selectAll(); else @this.deselectAll();" />
-                    Select all {{ count($files) }} items
-                </label>
+        <!-- Sıralama Paneli -->
+        @if ($showSort)
+            <div class="card bg-base-100 shadow-sm mb-4">
+                <div class="card-body p-4">
+                    <div class="flex gap-2">
+                        <button wire:click="$set('sortBy', 'name')" class="btn btn-sm {{ $sortBy === 'name' ? 'btn-active' : 'btn-ghost' }}">
+                            <x-tardis::icon name="text" class="w-4 h-4" /> Sort by name
+                        </button>
+                        <button wire:click="$set('sortBy', 'updated')" class="btn btn-sm {{ $sortBy === 'updated' ? 'btn-active' : 'btn-ghost' }}">
+                            <x-tardis::icon name="clock" class="w-4 h-4" /> Sort by updated
+                        </button>
+                        <button wire:click="$set('sortBy', 'size')" class="btn btn-sm {{ $sortBy === 'size' ? 'btn-active' : 'btn-ghost' }}">
+                            <x-tardis::icon name="hashtag" class="w-4 h-4" /> Sort by size
+                        </button>
+                        <button wire:click="$set('sortBy', 'type')" class="btn btn-sm {{ $sortBy === 'type' ? 'btn-active' : 'btn-ghost' }}">
+                            <x-tardis::icon name="document-text" class="w-4 h-4" /> Sort by type
+                        </button>
+                    </div>
+                </div>
             </div>
         @endif
 
-        <!-- Klasör İçeriği -->
-        @if ($currentPath !== '')
-            <div class="mb-3">
-                <button wire:click="goToParent" class="btn btn-ghost btn-sm gap-2">
-                    <x-tardis::icon name="folder" class="w-4 h-4" />
-                    ..
+        <!-- Sonuç Sayısı & Select All -->
+        <div class="flex items-center justify-between mb-3">
+            <span class="text-sm text-base-content/60">
+                ALL RESULTS · {{ count($files) }}
+            </span>
+            @if (!empty($files))
+                <button wire:click="{{ empty($selectedFiles) ? 'selectAll' : 'deselectAll' }}" class="text-sm text-primary hover:underline">
+                    {{ empty($selectedFiles) ? 'Select all '.count($files) : 'Deselect all' }}
                 </button>
-            </div>
-        @endif
+            @endif
+        </div>
 
         <!-- Dosyalar -->
         @if (empty($files))
@@ -179,37 +166,32 @@
             </div>
         @elseif ($viewMode === 'grid')
             <!-- Grid Görünümü -->
-            <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
+            <div class="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
                 @foreach ($files as $file)
-                    <div class="card bg-base-100 shadow-sm cursor-pointer hover:shadow-md transition-all relative group {{ in_array($file['relative_path'], $selectedFiles) ? 'ring-2 ring-primary' : '' }}"
+                    <div class="relative cursor-pointer group {{ in_array($file['relative_path'], $selectedFiles) ? 'ring-2 ring-primary rounded-xl' : '' }}"
                          wire:click="@if ($file['type'] === 'directory') navigateTo('{{ $file['relative_path'] }}') @else toggleSelect('{{ $file['relative_path'] }}') @endif">
                         <!-- Checkbox -->
-                        <div class="absolute top-2 left-2 z-10 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <div class="absolute top-2 left-2 z-10">
                             <input type="checkbox" class="checkbox checkbox-sm checkbox-primary"
                                    {{ in_array($file['relative_path'], $selectedFiles) ? 'checked' : '' }}
                                    wire:click.stop="toggleSelect('{{ $file['relative_path'] }}')" />
                         </div>
                         <!-- Önizleme -->
-                        <figure class="px-3 pt-3">
+                        <div class="rounded-xl overflow-hidden bg-base-200">
                             @if ($file['type'] === 'directory')
-                                <div class="w-full h-20 rounded-lg bg-base-200 flex items-center justify-center">
-                                    <x-tardis::icon name="folder" class="w-10 h-10 text-primary" />
+                                <div class="h-28 flex items-center justify-center">
+                                    <x-tardis::icon name="folder" class="w-12 h-12 text-primary" />
                                 </div>
                             @elseif (str_starts_with($file['type'], 'image/'))
-                                <img src="{{ $file['url'] }}" alt="{{ $file['name'] }}" class="rounded-lg h-20 w-full object-cover" loading="lazy" />
+                                <img src="{{ $file['url'] }}" alt="{{ $file['name'] }}" class="h-28 w-full object-cover" loading="lazy" />
                             @else
-                                <div class="w-full h-20 rounded-lg bg-base-200 flex items-center justify-center">
-                                    <x-tardis::icon name="document-text" class="w-8 h-8 opacity-30" />
+                                <div class="h-28 flex items-center justify-center">
+                                    <x-tardis::icon name="document-text" class="w-10 h-10 opacity-30" />
                                 </div>
                             @endif
-                        </figure>
-                        <!-- Bilgi -->
-                        <div class="card-body p-2">
-                            <p class="text-xs truncate font-medium" title="{{ $file['name'] }}">{{ $file['name'] }}</p>
-                            @if ($file['type'] !== 'directory')
-                                <p class="text-[10px] opacity-50">{{ $this->formatSize($file['size']) }}</p>
-                            @endif
                         </div>
+                        <!-- İsim -->
+                        <p class="text-xs font-medium mt-1 px-1 truncate" title="{{ $file['name'] }}">{{ $file['name'] }}</p>
                     </div>
                 @endforeach
             </div>
@@ -278,68 +260,110 @@
                 </div>
             </div>
         @endif
+
+        <!-- Sayfalama -->
+        <div class="flex items-center justify-center mt-4">
+            <div class="join">
+                <button class="join-item btn btn-sm" disabled>«</button>
+                <button class="join-item btn btn-sm btn-disabled">1</button>
+                <button class="join-item btn btn-sm" disabled>»</button>
+            </div>
+        </div>
     </div>
 
     <!-- Sağ Panel: Dosya Bilgisi -->
     @if ($showInfoModal && $infoFile)
-        <div class="w-80 flex-shrink-0">
-            <div class="card bg-base-100 shadow-sm sticky top-20">
+        <div class="w-72 flex-shrink-0">
+            <div class="card bg-base-100 shadow-sm">
                 <div class="card-body p-4">
-                    <div class="flex items-center justify-between mb-4">
-                        <h3 class="font-bold text-sm">File Info</h3>
-                        <button wire:click="closeFileInfo" class="btn btn-ghost btn-xs">
-                            <x-tardis::icon name="x-mark" class="w-4 h-4" />
-                        </button>
-                    </div>
-
+                    <!-- Önizleme -->
                     @if (str_starts_with($infoFile['mime_type'] ?? '', 'image/'))
-                        <div class="rounded-lg overflow-hidden bg-base-200 mb-4">
-                            <img src="{{ $infoFile['url'] }}" alt="{{ $infoFile['name'] }}" class="w-full object-contain max-h-48" />
+                        <div class="rounded-xl overflow-hidden bg-base-200 mb-4">
+                            <img src="{{ $infoFile['url'] }}" alt="{{ $infoFile['name'] }}" class="w-full object-cover max-h-48" />
                         </div>
                     @endif
 
-                    <div class="space-y-3">
-                        <div>
-                            <p class="text-xs text-base-content/50">Name</p>
-                            <p class="text-sm font-medium break-all">{{ $infoFile['name'] }}</p>
-                        </div>
-                        <div>
-                            <p class="text-xs text-base-content/50">Type</p>
-                            <p class="text-sm">{{ $infoFile['mime_type'] ?? 'directory' }}</p>
-                        </div>
-                        <div>
-                            <p class="text-xs text-base-content/50">Size</p>
-                            <p class="text-sm">{{ $this->formatSize($infoFile['size'] ?? 0) }}</p>
-                        </div>
-                        <div>
-                            <p class="text-xs text-base-content/50">Path</p>
-                            <p class="text-sm font-mono text-xs break-all">{{ $infoFile['relative_path'] }}</p>
-                        </div>
-                        @if ($infoFile['last_modified'] ?? null)
-                            <div>
-                                <p class="text-xs text-base-content/50">Modified</p>
-                                <p class="text-sm">{{ \Carbon\Carbon::createFromTimestamp($infoFile['last_modified'])->format('Y-m-d H:i:s') }}</p>
+                    <!-- Dosya Adı -->
+                    <h3 class="font-bold">{{ $infoFile['name'] }}</h3>
+                    <p class="text-sm text-base-content/60">
+                        {{ strtoupper(pathinfo($infoFile['name'], PATHINFO_EXTENSION)) }} ~ {{ $this->formatSize($infoFile['size'] ?? 0) }}
+                    </p>
+
+                    <!-- Bilgi Bölümü -->
+                    <div class="mt-4">
+                        <button wire:click="$set('showInfoSection', ! $showInfoSection)" class="btn btn-ghost btn-xs w-full justify-between">
+                            <span class="text-xs font-semibold uppercase tracking-wide">Information</span>
+                            <x-tardis::icon name="chevron-up-down" class="w-3 h-3" />
+                        </button>
+                        @if ($showInfoSection)
+                            <div class="space-y-2 mt-2">
+                                <div class="flex justify-between text-sm">
+                                    <span class="text-base-content/60">Author</span>
+                                    <span>{{ $infoFile['author'] ?? 'Unknown' }}</span>
+                                </div>
+                                <div class="flex justify-between text-sm">
+                                    <span class="text-base-content/60">Uploaded</span>
+                                    <span>{{ $infoFile['last_modified'] ? \Carbon\Carbon::createFromTimestamp($infoFile['last_modified'])->format('M d, Y \a\t g:i A') : '-' }}</span>
+                                </div>
+                                <div class="flex justify-between text-sm">
+                                    <span class="text-base-content/60">Updated</span>
+                                    <span>{{ $infoFile['last_modified'] ? \Carbon\Carbon::createFromTimestamp($infoFile['last_modified'])->format('M d, Y \a\t g:i A') : '-' }}</span>
+                                </div>
+                            </div>
+                        @endif
+                    </div>
+
+                    <!-- Etiketler -->
+                    <div class="mt-4">
+                        <button wire:click="$set('showTagsSection', ! $showTagsSection)" class="btn btn-ghost btn-xs w-full justify-between">
+                            <span class="text-xs font-semibold uppercase tracking-wide">Tags</span>
+                            <x-tardis::icon name="chevron-up-down" class="w-3 h-3" />
+                        </button>
+                        @if ($showTagsSection)
+                            <div class="mt-2">
+                                <input type="text" placeholder="New tag" class="input input-bordered input-sm w-full" />
+                                <button class="text-xs text-primary mt-1">Save</button>
                             </div>
                         @endif
                     </div>
 
                     <div class="divider"></div>
 
-                    <div class="flex gap-2">
-                        @if (str_starts_with($infoFile['mime_type'] ?? '', 'image/'))
-                            <a href="{{ $infoFile['url'] }}" target="_blank" class="btn btn-outline btn-sm flex-1 gap-1">
-                                <x-tardis::icon name="folder" class="w-4 h-4" />
-                                Download
-                            </a>
-                        @endif
-                        <button wire:click="confirmRename('{{ $infoFile['relative_path'] }}')" class="btn btn-outline btn-sm flex-1 gap-1">
-                            <x-tardis::icon name="pencil-square" class="w-4 h-4" />
-                            Rename
+                    <!-- Aksiyon Butonları -->
+                    <div class="flex flex-wrap gap-2">
+                        <button class="btn btn-outline btn-sm gap-1">
+                            <x-tardis::icon name="folder" class="w-4 h-4" /> Move
+                        </button>
+                        <button wire:click="confirmRename('{{ $infoFile['relative_path'] }}')" class="btn btn-outline btn-sm gap-1">
+                            <x-tardis::icon name="pencil-square" class="w-4 h-4" /> Rename
+                        </button>
+                        <button class="btn btn-outline btn-sm gap-1">
+                            <x-tardis::icon name="check-circle" class="w-4 h-4" /> Regenerate
                         </button>
                         <button wire:click="confirmDelete('{{ $infoFile['relative_path'] }}')" class="btn btn-error btn-sm gap-1">
-                            <x-tardis::icon name="x-mark" class="w-4 h-4" />
+                            <x-tardis::icon name="x-mark" class="w-4 h-4" /> Delete
                         </button>
                     </div>
+                </div>
+            </div>
+        </div>
+    @endif
+
+    <!-- Toplu İşlemler (Seçim yapıldığında) -->
+    @if (!empty($selectedFiles) && !$showInfoModal)
+        <div class="w-72 flex-shrink-0">
+            <div class="card bg-base-100 shadow-sm">
+                <div class="card-body p-4">
+                    <h3 class="font-bold text-sm mb-4">{{ count($selectedFiles) }} file(s) selected</h3>
+                    <div class="flex flex-wrap gap-2">
+                        <button wire:click="downloadSelected" class="btn btn-primary btn-sm gap-1">
+                            <x-tardis::icon name="folder" class="w-4 h-4" /> Download
+                        </button>
+                        <button wire:click="bulkDelete" class="btn btn-error btn-sm gap-1">
+                            <x-tardis::icon name="x-mark" class="w-4 h-4" /> Delete
+                        </button>
+                    </div>
+                    <button wire:click="deselectAll" class="text-xs text-primary mt-3">Deselect all</button>
                 </div>
             </div>
         </div>

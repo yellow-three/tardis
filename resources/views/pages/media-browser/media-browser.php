@@ -44,6 +44,14 @@ new #[Title('Media')] #[Layout('tardis::layouts.admin')] class extends Component
 
     public string $sortBy = 'name';
 
+    public bool $showFilters = false;
+
+    public bool $showSort = false;
+
+    public bool $showInfoSection = true;
+
+    public bool $showTagsSection = false;
+
     public ?array $infoFile = null;
 
     public bool $showInfoModal = false;
@@ -150,6 +158,18 @@ new #[Title('Media')] #[Layout('tardis::layouts.admin')] class extends Component
     public function updatedSearchQuery(): void
     {
         $this->loadFiles();
+    }
+
+    public function toggleFilters(): void
+    {
+        $this->showFilters = ! $this->showFilters;
+        $this->showSort = false;
+    }
+
+    public function toggleSort(): void
+    {
+        $this->showSort = ! $this->showSort;
+        $this->showFilters = false;
     }
 
     public function navigateTo(string $path): void
