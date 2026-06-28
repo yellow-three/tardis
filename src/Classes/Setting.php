@@ -104,12 +104,18 @@ class Setting
             'select' => 'Select',
             'toggle' => 'Toggle',
             'date' => 'Date',
+            'datetime' => 'DateTime',
             'color' => 'Color',
             'file' => 'File',
             'image' => 'Image',
             'media_picker' => 'Media Picker',
             'dynamic_input' => 'Dynamic Input',
             'simple_array' => 'Simple Array',
+            'checkbox' => 'Checkbox',
+            'radio' => 'Radio',
+            'slider' => 'Slider',
+            'slug' => 'Slug',
+            'tags' => 'Tags',
         ];
     }
 }

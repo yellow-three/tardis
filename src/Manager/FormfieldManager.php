@@ -3,11 +3,17 @@
 namespace Tardis\Manager;
 
 use Tardis\Formfields\Formfield;
+use Tardis\Formfields\Types\CheckboxField;
 use Tardis\Formfields\Types\DateField;
+use Tardis\Formfields\Types\DateTimeField;
 use Tardis\Formfields\Types\FileField;
 use Tardis\Formfields\Types\NumberField;
 use Tardis\Formfields\Types\PasswordField;
+use Tardis\Formfields\Types\RadioField;
 use Tardis\Formfields\Types\SelectField;
+use Tardis\Formfields\Types\SliderField;
+use Tardis\Formfields\Types\SlugField;
+use Tardis\Formfields\Types\TagsField;
 use Tardis\Formfields\Types\TextareaField;
 use Tardis\Formfields\Types\TextField;
 use Tardis\Formfields\Types\ToggleField;
@@ -26,9 +32,15 @@ class FormfieldManager
             'select' => SelectField::class,
             'toggle' => ToggleField::class,
             'date' => DateField::class,
+            'datetime' => DateTimeField::class,
             'textarea' => TextareaField::class,
             'password' => PasswordField::class,
             'file' => FileField::class,
+            'checkbox' => CheckboxField::class,
+            'radio' => RadioField::class,
+            'slider' => SliderField::class,
+            'slug' => SlugField::class,
+            'tags' => TagsField::class,
         ];
     }
 

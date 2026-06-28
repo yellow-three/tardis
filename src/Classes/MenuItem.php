@@ -44,11 +44,21 @@ class MenuItem
      */
     public string $activeMode = 'exact';
 
+    public bool $isDivider = false;
+
     public function __construct(string $title, ?string $icon = null)
     {
         $this->title = $title;
         $this->icon = $icon;
         $this->children = new Collection;
+    }
+
+    public static function makeDivider(): self
+    {
+        $item = new self('');
+        $item->isDivider = true;
+
+        return $item;
     }
 
     public function route(string $route, array $params = []): self

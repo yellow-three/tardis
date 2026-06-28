@@ -1,5 +1,10 @@
 @props(['item', 'level' => 0])
 
+@if ($item->isDivider)
+    <li class="divider"></li>
+    @return
+@endif
+
 @php
     $hasChildren = $item->children->isNotEmpty();
     $isActive = $item->isActive();
