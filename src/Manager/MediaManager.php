@@ -177,6 +177,31 @@ class MediaManager
         return $zipPath;
     }
 
+    public function getCollections(): array
+    {
+        return Media::distinct()->pluck('collection')->filter()->values()->toArray();
+    }
+
+    public function getMimeTypes(): array
+    {
+        return Media::distinct()
+            ->pluck('mime_type')
+            ->filter()
+            ->map(fn (string $mime) => explode('/', $mime)[0])
+            ->unique()
+            ->values()
+            ->toArray();
+    }
+
+    public function filterByMimeType(string $mimeType): Collection
+    {
+        $files = $this->listFiles();
+
+        return $files->filter(function ($file) use ($mimeType) {
+            return str_starts_with($file['type'], $mimeType.'/');
+        })->values();
+    }
+
     public function getFileInfo(string $path): ?array
     {
         $fullPath = $this->basePath.'/'.$path;
