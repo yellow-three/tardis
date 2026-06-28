@@ -7,6 +7,8 @@ Route::middleware(['web'])
     ->name('tardis.')
     ->group(function () {
         Route::livewire('/login', 'tardis::pages.login')->name('login');
+        Route::livewire('/forgot-password', 'tardis::pages.forgot-password')->name('password.request');
+        Route::livewire('/reset-password/{token}', 'tardis::pages.reset-password')->name('password.reset');
     });
 
 Route::middleware(['web', 'tardis.admin'])
