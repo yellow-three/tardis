@@ -25,7 +25,11 @@ new #[Title('BREAD Builder')] #[Layout('tardis::layouts.admin')] class extends C
 
     public array $detectedFields = [];
 
+    public array $detectedRelationships = [];
+
     public array $fieldConfig = [];
+
+    public array $relationshipConfig = [];
 
     public string $searchKey = '';
 
@@ -78,6 +82,8 @@ new #[Title('BREAD Builder')] #[Layout('tardis::layouts.admin')] class extends C
 
         $this->detectedFields = ModelReflector::getFields($this->model);
         $this->fieldConfig = $this->detectedFields;
+        $this->detectedRelationships = ModelReflector::getRelationships(new $this->model);
+        $this->relationshipConfig = $this->detectedRelationships;
         $this->name = class_basename($this->model);
         $this->namePlural = Str::headline(Str::plural($this->model));
 
@@ -185,45 +191,91 @@ new #[Title('BREAD Builder')] #[Layout('tardis::layouts.admin')] class extends C
         </div>
     @endif
 
-    <!-- Step 2: Review Fields -->
+    <!-- Step 2: Review Fields & Relationships -->
     @if ($step === 2)
         <div class="card bg-base-100 shadow-sm">
             <div class="card-body">
-                <h2 class="card-title">Step 2: Detected Fields</h2>
-                <p class="text-base-content/60">Review and configure the detected fields.</p>
-
-                <div class="overflow-x-auto mt-4">
-                    <table class="table table-sm">
-                        <thead>
-                            <tr>
-                                <th>Field</th>
-                                <th>Type</th>
-                                <th>Browse</th>
-                                <th>Read</th>
-                                <th>Edit</th>
-                                <th>Add</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach ($fieldConfig as $key => $field)
-                                <tr>
-                                    <td class="font-medium">{{ $field['label'] }}</td>
-                                    <td>
-                                        <select wire:model="fieldConfig.{{ $key }}.type" class="select select-bordered select-xs">
-                                            @foreach (\Tardis\Classes\Setting::availableTypes() as $type => $label)
-                                                <option value="{{ $type }}">{{ $label }}</option>
-                                            @endforeach
-                                        </select>
-                                    </td>
-                                    <td><input type="checkbox" wire:model="fieldConfig.{{ $key }}.browse" class="checkbox checkbox-sm" /></td>
-                                    <td><input type="checkbox" wire:model="fieldConfig.{{ $key }}.read" class="checkbox checkbox-sm" /></td>
-                                    <td><input type="checkbox" wire:model="fieldConfig.{{ $key }}.edit" class="checkbox checkbox-sm" /></td>
-                                    <td><input type="checkbox" wire:model="fieldConfig.{{ $key }}.add" class="checkbox checkbox-sm" /></td>
-                                </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
+                <div class="tabs tabs-box mb-4">
+                    <button wire:click="$set('activeTab', 'fields')" role="tab" class="tab {{ ($activeTab ?? 'fields') === 'fields' ? 'tab-active' : '' }}">Fields</button>
+                    <button wire:click="$set('activeTab', 'relationships')" role="tab" class="tab {{ ($activeTab ?? '') === 'relationships' ? 'tab-active' : '' }}">Relationships</button>
                 </div>
+
+                @if (($activeTab ?? 'fields') === 'fields')
+                    <h2 class="card-title">Detected Fields</h2>
+                    <p class="text-base-content/60">Review and configure the detected fields.</p>
+
+                    <div class="overflow-x-auto mt-4">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Field</th>
+                                    <th>Type</th>
+                                    <th>Browse</th>
+                                    <th>Read</th>
+                                    <th>Edit</th>
+                                    <th>Add</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach ($fieldConfig as $key => $field)
+                                    <tr>
+                                        <td class="font-medium">{{ $field['label'] }}</td>
+                                        <td>
+                                            <select wire:model="fieldConfig.{{ $key }}.type" class="select select-bordered select-xs">
+                                                @foreach (\Tardis\Classes\Setting::availableTypes() as $type => $label)
+                                                    <option value="{{ $type }}">{{ $label }}</option>
+                                                @endforeach
+                                            </select>
+                                        </td>
+                                        <td><input type="checkbox" wire:model="fieldConfig.{{ $key }}.browse" class="checkbox checkbox-sm" /></td>
+                                        <td><input type="checkbox" wire:model="fieldConfig.{{ $key }}.read" class="checkbox checkbox-sm" /></td>
+                                        <td><input type="checkbox" wire:model="fieldConfig.{{ $key }}.edit" class="checkbox checkbox-sm" /></td>
+                                        <td><input type="checkbox" wire:model="fieldConfig.{{ $key }}.add" class="checkbox checkbox-sm" /></td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                @else
+                    <h2 class="card-title">Detected Relationships</h2>
+                    <p class="text-base-content/60">Configure how relationships are displayed in BREAD.</p>
+
+                    @if (empty($relationshipConfig))
+                        <div class="text-center py-8 opacity-50">
+                            <p>No relationships detected in this model.</p>
+                        </div>
+                    @else
+                        <div class="overflow-x-auto mt-4">
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>Relation</th>
+                                        <th>Type</th>
+                                        <th>Related Model</th>
+                                        <th>Display Type</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach ($relationshipConfig as $name => $rel)
+                                        <tr>
+                                            <td class="font-medium">{{ $name }}</td>
+                                            <td><span class="badge badge-ghost badge-sm">{{ $rel['type'] }}</span></td>
+                                            <td>{{ class_basename($rel['model']) }}</td>
+                                            <td>
+                                                <select wire:model="relationshipConfig.{{ $name }}.display_type" class="select select-bordered select-xs">
+                                                    <option value="select">Select</option>
+                                                    <option value="checkbox">Checkbox</option>
+                                                    <option value="table">Table</option>
+                                                    <option value="hidden">Hidden</option>
+                                                </select>
+                                            </td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+                    @endif
+                @endif
 
                 <div class="card-actions justify-end mt-6">
                     <button wire:click="goToStep(1)" class="btn btn-ghost">Back</button>
