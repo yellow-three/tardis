@@ -47,7 +47,7 @@ new #[Title('Login')] #[Layout('tardis::layouts.auth')] class extends Component
 
     @if (session('status'))
         <div class="alert alert-success mb-4">
-            <x-heroicon-o-check-circle class="w-5 h-5" />
+            <x-tardis::icon name="check-circle" class="w-5 h-5" />
             <span>{{ session('status') }}</span>
         </div>
     @endif

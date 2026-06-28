@@ -9,6 +9,7 @@ use Livewire\Livewire;
 use Tardis\Bread\Sources\DatabaseBreadSource;
 use Tardis\Bread\Sources\JsonBreadSource;
 use Tardis\Http\Middleware\AdminMiddleware;
+use Tardis\Plugins\AuthenticationPlugin;
 
 class TardisServiceProvider extends ServiceProvider
 {
@@ -21,6 +22,7 @@ class TardisServiceProvider extends ServiceProvider
 
         $this->registerAliases();
         $this->registerPluginServiceProviders();
+        $this->registerDefaultAuth();
     }
 
     public function boot(): void
@@ -31,6 +33,37 @@ class TardisServiceProvider extends ServiceProvider
         $this->registerMigrations();
         $this->registerPublishing();
         $this->registerMiddleware();
+        $this->loadDefaultSettings();
+    }
+
+    /**
+     * Load default settings from the preset file on first install.
+     */
+    protected function loadDefaultSettings(): void
+    {
+        if ($this->app->runningInConsole()) {
+            return;
+        }
+
+        $presetPath = __DIR__.'/../resources/presets/settings.json';
+
+        if (! file_exists(storage_path('tardis/settings/settings.json'))) {
+            try {
+                $manager = $this->app->make(\Tardis\Manager\SettingsManager::class);
+                $manager->loadPreset($presetPath);
+            } catch (\Throwable) {
+                // Storage not available yet (e.g. during package discovery)
+            }
+        }
+    }
+
+    protected function registerDefaultAuth(): void
+    {
+        // Register the default AuthenticationPlugin so auth works out of the box
+        // without Fortify or any other auth package.
+        $manager = $this->app->make(\Tardis\Manager\PluginManager::class);
+        $manager->register('tardis-auth', AuthenticationPlugin::class);
+        $manager->enable('tardis-auth');
     }
 
     protected function registerLivewireNamespaces(): void
@@ -100,6 +133,6 @@ class TardisServiceProvider extends ServiceProvider
     {
         $this->app->register(TardisPluginManagerServiceProvider::class);
         $this->app->register(TardisMediaServiceProvider::class);
-        $this->app->register(TardisPermissionsServiceProvider::class);
     }
+
 }

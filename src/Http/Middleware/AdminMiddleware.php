@@ -1,14 +1,33 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tardis\Http\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;
+use Tardis\Manager\PluginManager;
 
 class AdminMiddleware
 {
+    public function __construct(
+        protected PluginManager $pluginManager,
+    ) {}
+
     public function handle(Request $request, Closure $next): mixed
     {
+        $authPlugins = $this->pluginManager->enabledWith(
+            \Tardis\Contracts\Plugins\AuthenticationPlugin::class
+        );
+
+        /** @var \Tardis\Contracts\Plugins\AuthenticationPlugin|null $auth */
+        $auth = $authPlugins->first();
+
+        if ($auth) {
+            return $auth->handleRequest($request, $next);
+        }
+
+        // Fallback: direct auth check if no AuthenticationPlugin registered
         if (! auth()->check()) {
             return redirect()->guest(route('tardis.login'));
         }

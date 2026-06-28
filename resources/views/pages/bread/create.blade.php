@@ -19,7 +19,7 @@ new #[Title('Create')] #[Layout('tardis::layouts.admin')] class extends Componen
 
     <div class="card bg-base-100 shadow">
         <div class="card-body text-center py-12">
-            <x-heroicon-o-plus-circle class="w-16 h-16 mx-auto opacity-30" />
+            <x-tardis::icon name="plus-circle" class="w-16 h-16 mx-auto opacity-30" />
             <h3 class="text-lg font-semibold mt-4">BREAD form coming soon</h3>
         </div>
     </div>

@@ -13,7 +13,7 @@ new #[Title('Activity Log')] #[Layout('tardis::layouts.admin')] class extends Co
 
     <div class="card bg-base-100 shadow">
         <div class="card-body text-center py-12">
-            <x-heroicon-o-clock class="w-16 h-16 mx-auto opacity-30" />
+            <x-tardis::icon name="clock" class="w-16 h-16 mx-auto opacity-30" />
             <h3 class="text-lg font-semibold mt-4">Activity log coming soon</h3>
         </div>
     </div>

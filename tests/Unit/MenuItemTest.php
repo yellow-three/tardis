@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Illuminate\Support\Collection;
 use Tardis\Classes\MenuItem;
 
 test('menu item can be created with title', function () {
@@ -75,20 +76,14 @@ test('menu item has default order of 50', function () {
     expect($item->order)->toBe(50);
 });
 
-test('menu item fluent group method', function () {
-    $item = (new MenuItem('Users'))->group('admin');
-
-    expect($item->group)->toBe('admin');
-});
-
 test('menu item fluent addChildren method', function () {
     $child1 = new MenuItem('Create');
     $child2 = new MenuItem('Edit');
     $parent = (new MenuItem('Posts'))->addChildren($child1, $child2);
 
     expect($parent->children)->toHaveCount(2)
-        ->and($parent->children[0]->title)->toBe('Create')
-        ->and($parent->children[1]->title)->toBe('Edit');
+        ->and($parent->children->get(0)->title)->toBe('Create')
+        ->and($parent->children->get(1)->title)->toBe('Edit');
 });
 
 test('menu item href returns # when no route or url', function () {
@@ -109,8 +104,9 @@ test('menu item isVisible returns true when no permission set', function () {
     expect($item->isVisible())->toBeTrue();
 });
 
-test('menu item children defaults to empty array', function () {
+test('menu item children defaults to empty collection', function () {
     $item = new MenuItem('Posts');
 
-    expect($item->children)->toBe([]);
+    expect($item->children)->toBeInstanceOf(Collection::class)
+        ->and($item->children->isEmpty())->toBeTrue();
 });

@@ -68,7 +68,7 @@ $typeLabels = [
     @if (empty($plugins))
         <div class="card bg-base-100 shadow">
             <div class="card-body text-center py-12">
-                <x-heroicon-o-puzzle-piece class="w-16 h-16 mx-auto opacity-30" />
+                <x-tardis::icon name="puzzle-piece" class="w-16 h-16 mx-auto opacity-30" />
                 <h3 class="text-lg font-semibold mt-4">No plugins installed</h3>
                 <p class="text-base-content/60 mt-2">
                     Install plugins via <code class="badge badge-ghost">composer require tardis/plugin-name</code>
@@ -110,12 +110,12 @@ $typeLabels = [
                                 <td>
                                     @if ($plugin['enabled'])
                                         <span class="badge badge-success badge-sm gap-1">
-                                            <x-heroicon-o-check-circle class="w-3 h-3" />
+                                            <x-tardis::icon name="check-circle" class="w-3 h-3" />
                                             Enabled
                                         </span>
                                     @else
                                         <span class="badge badge-ghost badge-sm gap-1">
-                                            <x-heroicon-o-x-circle class="w-3 h-3" />
+                                            <x-tardis::icon name="x-circle" class="w-3 h-3" />
                                             Disabled
                                         </span>
                                     @endif
@@ -126,7 +126,7 @@ $typeLabels = [
                                             wire:click="disable('{{ $plugin['slug'] }}')"
                                             class="btn btn-ghost btn-sm text-error"
                                         >
-                                            <x-heroicon-o-power class="w-4 h-4" />
+                                            <x-tardis::icon name="power" class="w-4 h-4" />
                                             Disable
                                         </button>
                                     @else
@@ -134,7 +134,7 @@ $typeLabels = [
                                             wire:click="enable('{{ $plugin['slug'] }}')"
                                             class="btn btn-ghost btn-sm text-success"
                                         >
-                                            <x-heroicon-o-power class="w-4 h-4" />
+                                            <x-tardis::icon name="power" class="w-4 h-4" />
                                             Enable
                                         </button>
                                     @endif

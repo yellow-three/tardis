@@ -1,7 +1,7 @@
 <div class="w-full @if($field->width < 12) md:col-span-{{ $field->width }} @endif @if($field->wrapperClass) {{ $field->wrapperClass }} @endif">
     <label for="field_{{ $name }}" class="label cursor-pointer">
         <span class="label-text flex items-center gap-1">
-            <x-heroicon-o-toggle class="w-4 h-4" />
+            <x-tardis::icon name="toggle" class="w-4 h-4" />
             {{ $label }}
             @if($required)
                 <span class="text-error">*</span>

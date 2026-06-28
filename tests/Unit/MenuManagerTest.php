@@ -3,7 +3,9 @@
 declare(strict_types=1);
 
 use Tardis\Classes\MenuItem;
+use Tardis\Classes\UserMenuItem;
 use Tardis\Manager\MenuManager;
+use Illuminate\Support\Collection;
 
 test('menu manager can be instantiated', function () {
     $manager = new MenuManager;
@@ -39,26 +41,25 @@ test('menu manager all returns sorted by order', function () {
         ->and($items->last()->title)->toBe('Settings');
 });
 
-test('menu manager forGroup filters by group', function () {
+test('menu manager tree returns all items', function () {
     $manager = new MenuManager;
-    $item1 = (new MenuItem('Users'))->group('admin');
-    $item2 = (new MenuItem('Posts'))->group('content');
-    $item3 = (new MenuItem('Categories'))->group('content');
-
-    $manager->addItems($item1, $item2, $item3);
-
-    $contentItems = $manager->forGroup('content');
-    expect($contentItems)->toHaveCount(2);
-});
-
-test('menu manager groups returns grouped items', function () {
-    $manager = new MenuManager;
-    $item1 = (new MenuItem('Users'))->group('admin');
-    $item2 = (new MenuItem('Posts'))->group('content');
+    $item1 = new MenuItem('Users');
+    $item2 = new MenuItem('Posts');
 
     $manager->addItems($item1, $item2);
 
-    $groups = $manager->groups();
-    expect($groups)->toHaveKey('admin')
-        ->and($groups)->toHaveKey('content');
+    $tree = $manager->tree();
+    expect($tree)->toHaveCount(2);
+});
+
+test('menu manager userMenu returns user menu items', function () {
+    $manager = new MenuManager;
+    $userItem = (new UserMenuItem('Profile'))->route('profile.edit');
+    $sidebarItem = new MenuItem('Dashboard');
+
+    $manager->addItems($userItem, $sidebarItem);
+
+    $userMenu = $manager->userMenu();
+    expect($userMenu)->toHaveCount(1)
+        ->and($userMenu->first()->title)->toBe('Profile');
 });

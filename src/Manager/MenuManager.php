@@ -1,34 +1,55 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tardis\Manager;
 
 use Illuminate\Support\Collection;
 use Tardis\Classes\MenuItem;
+use Tardis\Classes\UserMenuItem;
 use Tardis\Contracts\Plugins\Features\Filter\FilterMenuItems;
 use Tardis\Contracts\Plugins\Features\Provider\MenuItems;
 
 class MenuManager
 {
+    /** @var Collection<int, MenuItem> */
     protected Collection $items;
+
+    /** @var Collection<int, UserMenuItem> */
+    protected Collection $userMenuItems;
+
+    protected bool $collected = false;
 
     public function __construct()
     {
         $this->items = collect();
+        $this->userMenuItems = collect();
     }
 
     public function addItems(MenuItem ...$items): void
     {
         foreach ($items as $item) {
-            $this->items->push($item);
+            if ($item instanceof UserMenuItem) {
+                $this->userMenuItems->push($item);
+            } else {
+                $this->items->push($item);
+            }
         }
     }
 
+    /**
+     * Collect menu items from plugins and register defaults.
+     * Only runs once.
+     */
     public function collectFromPlugins(PluginManager $plugins): void
     {
-        if ($this->items->isNotEmpty()) {
+        if ($this->collected) {
             return;
         }
 
+        $this->collected = true;
+
+        // Register default sidebar menu items
         $this->addItems(
             (new MenuItem('Dashboard', 'heroicon-o-home'))
                 ->route('tardis.dashboard')
@@ -50,31 +71,54 @@ class MenuManager
                 ->order(50),
         );
 
-        foreach ($plugins->enabled() as $name => $plugin) {
-            $instance = $plugin['instance'];
+        // Register default user menu items
+        $this->addItems(
+            (new UserMenuItem('Profile', 'heroicon-o-user'))
+                ->route('profile.edit')
+                ->order(0),
+            (new UserMenuItem('Logout', 'heroicon-o-arrow-left-on-rectangle'))
+                ->url('#')
+                ->method('POST')
+                ->divider()
+                ->order(100),
+        );
 
-            if ($instance instanceof MenuItems) {
-                $menuItems = $instance->provideMenuItems();
-                foreach ($menuItems as $item) {
-                    $this->items->push($item);
-                }
+        // Collect from plugins that provide menu items
+        foreach ($plugins->enabledWith(MenuItems::class) as $instance) {
+            $menuItems = $instance->provideMenuItems();
+            foreach ($menuItems as $item) {
+                $this->addItems($item);
             }
         }
 
+        // Apply permission validation
+        $this->validatePermissions($plugins);
+
+        // Apply menu filters
         $this->applyFilters($plugins);
+    }
+
+    /**
+     * Recursively validate permissions on all items.
+     */
+    protected function validatePermissions(PluginManager $plugins): void
+    {
+        $this->items = $this->items
+            ->filter(fn (MenuItem $item) => $item->isVisible())
+            ->map(fn (MenuItem $item) => $item->validatePermissions($plugins))
+            ->values();
     }
 
     protected function applyFilters(PluginManager $plugins): void
     {
-        foreach ($plugins->enabled() as $name => $plugin) {
-            $instance = $plugin['instance'];
-
-            if ($instance instanceof FilterMenuItems) {
-                $this->items = $instance->filterMenuItems($this->items);
-            }
+        foreach ($plugins->enabledWith(FilterMenuItems::class) as $instance) {
+            $this->items = $instance->filterMenuItems($this->items);
         }
     }
 
+    /**
+     * Get all sidebar menu items as a flat collection (after permission validation).
+     */
     public function all(): Collection
     {
         return $this->items
@@ -83,17 +127,49 @@ class MenuManager
             ->values();
     }
 
-    public function forGroup(string $group): Collection
+    /**
+     * Get the recursive tree of menu items (parent-child structure).
+     * Returns only root-level items (items without parents).
+     */
+    public function tree(): Collection
     {
-        return $this->all()
-            ->filter(fn (MenuItem $item) => $item->group === $group)
+        return $this->all();
+    }
+
+    /**
+     * Get user menu items.
+     */
+    public function userMenu(): Collection
+    {
+        return $this->userMenuItems
+            ->filter(fn (UserMenuItem $item) => $item->isVisible())
+            ->sortBy(fn (UserMenuItem $item) => $item->order)
             ->values();
     }
 
-    public function groups(): Collection
+    /**
+     * Find a menu item by its route name.
+     */
+    public function findByRoute(string $routeName): ?MenuItem
     {
-        return $this->all()
-            ->groupBy(fn (MenuItem $item) => $item->group ?? '')
-            ->sortKeys();
+        return $this->findInItems($this->items, $routeName);
+    }
+
+    protected function findInItems(Collection $items, string $routeName): ?MenuItem
+    {
+        foreach ($items as $item) {
+            if ($item->routeName === $routeName) {
+                return $item;
+            }
+
+            if ($item->children->isNotEmpty()) {
+                $found = $this->findInItems($item->children, $routeName);
+                if ($found) {
+                    return $found;
+                }
+            }
+        }
+
+        return null;
     }
 }

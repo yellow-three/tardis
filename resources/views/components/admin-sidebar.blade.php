@@ -2,22 +2,7 @@
     $menuManager = app(\Tardis\Manager\MenuManager::class);
     $pluginManager = app(\Tardis\Manager\PluginManager::class);
     $menuManager->collectFromPlugins($pluginManager);
-
-    $breadManager = app(\Tardis\Bread\BreadManager::class);
-    $breads = $breadManager->all();
-
-    if ($breads->isNotEmpty()) {
-        foreach ($breads as $slug => $bread) {
-            $menuManager->addItems(
-                (new \Tardis\Classes\MenuItem(
-                    $bread['display_name_plural'] ?? $slug,
-                    'heroicon-o-table-cells',
-                ))->route('tardis.bread.index', ['slug' => $slug])->group('BREAD')->order(100),
-            );
-        }
-    }
-
-    $groups = $menuManager->groups();
+    $items = $menuManager->tree();
 @endphp
 
 <div class="drawer-side z-40">
@@ -34,51 +19,18 @@
         </div>
 
         <ul class="menu p-4">
-            @foreach ($groups as $groupName => $items)
-                @if ($groupName !== '')
-                    <li class="menu-title mt-4">{{ $groupName }}</li>
-                @endif
-                @foreach ($items as $item)
-                    <li>
-                        <a href="{{ $item->href() }}" class="{{ $item->isActive() ? 'active' : '' }}">
-                            @if ($item->icon)
-                                <x-dynamic-component :component="$item->icon" class="w-5 h-5" />
-                            @endif
-                            {{ $item->title }}
-                            @if ($item->badgeColor)
-                                <span class="badge badge-{{ $item->badgeColor }} badge-sm ml-auto">
-                                    {{ $item->badgeValue ?? '' }}
-                                </span>
-                            @endif
-                        </a>
-                        @if (!empty($item->children))
-                            <ul>
-                                @foreach ($item->children as $child)
-                                    @if ($child->isVisible())
-                                        <li>
-                                            <a href="{{ $child->href() }}" class="{{ $child->isActive() ? 'active' : '' }}">
-                                                @if ($child->icon)
-                                                    <x-dynamic-component :component="$child->icon" class="w-4 h-4" />
-                                                @endif
-                                                {{ $child->title }}
-                                            </a>
-                                        </li>
-                                    @endif
-                                @endforeach
-                            </ul>
-                        @endif
-                    </li>
-                @endforeach
+            @foreach ($items as $item)
+                @include('tardis::partials.menu-item', ['item' => $item, 'level' => 0])
             @endforeach
         </ul>
 
         <div class="border-t border-base-300 p-3">
             <button @click="$store.theme.toggle()" class="btn btn-ghost btn-sm w-full justify-start gap-2">
                 <template x-if="$store.theme.mode === 'dark' || ($store.theme.mode === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches)">
-                    <x-heroicon-o-sun class="w-4 h-4" />
+                    <x-tardis::icon name="sun" class="w-4 h-4" />
                 </template>
                 <template x-if="$store.theme.mode === 'light' || ($store.theme.mode === 'system' && !window.matchMedia('(prefers-color-scheme: dark)').matches)">
-                    <x-heroicon-o-moon class="w-4 h-4" />
+                    <x-tardis::icon name="moon" class="w-4 h-4" />
                 </template>
                 <span x-text="$store.theme.mode === 'dark' ? 'Dark mode' : ($store.theme.mode === 'light' ? 'Light mode' : 'System mode')"></span>
             </button>

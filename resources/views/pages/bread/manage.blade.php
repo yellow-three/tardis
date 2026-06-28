@@ -25,7 +25,7 @@ new #[Title('BREAD Management')] #[Layout('tardis::layouts.admin')] class extend
     @if ($this->breads->isEmpty())
         <div class="card bg-base-100 shadow">
             <div class="card-body text-center py-12">
-                <x-heroicon-o-table-cells class="w-16 h-16 mx-auto opacity-30" />
+                <x-tardis::icon name="table-cells" class="w-16 h-16 mx-auto opacity-30" />
                 <h3 class="text-lg font-semibold mt-4">No BREAD definitions found</h3>
                 <p class="text-base-content/60 mt-2">
                     Create a BREAD definition to get started

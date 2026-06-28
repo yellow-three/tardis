@@ -1,9 +1,12 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tardis\Classes;
 
 class Setting
 {
+    /** @var string Setting type: text, number, select, toggle, date, textarea, password, file, dynamic_input, simple_array, media_picker, email, color, image */
     public string $type;
 
     public ?string $group;
@@ -84,6 +87,29 @@ class Setting
             'uuid' => $this->uuid,
             'options' => $this->options,
             'validation' => $this->validation,
+        ];
+    }
+
+    /**
+     * Get available setting types with labels.
+     */
+    public static function availableTypes(): array
+    {
+        return [
+            'text' => 'Text',
+            'textarea' => 'Textarea',
+            'number' => 'Number',
+            'email' => 'Email',
+            'password' => 'Password',
+            'select' => 'Select',
+            'toggle' => 'Toggle',
+            'date' => 'Date',
+            'color' => 'Color',
+            'file' => 'File',
+            'image' => 'Image',
+            'media_picker' => 'Media Picker',
+            'dynamic_input' => 'Dynamic Input',
+            'simple_array' => 'Simple Array',
         ];
     }
 }

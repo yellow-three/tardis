@@ -9,7 +9,7 @@ Route::middleware(['web'])
         Route::livewire('/login', 'tardis::pages.login')->name('login');
     });
 
-Route::middleware(['web', 'tardis.admin', 'verified'])
+Route::middleware(['web', 'tardis.admin'])
     ->prefix(config('tardis.admin.prefix', 'admin'))
     ->name('tardis.')
     ->group(function () {

@@ -27,7 +27,7 @@ new class extends Component
     <div class="card-body">
         <div class="flex items-center gap-4">
             <div class="p-3 rounded-box bg-primary/10 text-primary">
-                <x-heroicon-o-photo class="w-8 h-8" />
+                <x-tardis::icon name="photo" class="w-8 h-8" />
             </div>
             <div>
                 <p class="text-3xl font-bold">{{ $count }}</p>

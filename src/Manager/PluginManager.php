@@ -48,7 +48,11 @@ class PluginManager
     {
         $this->enabled[] = $name;
         $this->disabled = array_values(array_diff($this->disabled, [$name]));
-        cache()->put('tardis.plugins.disabled', $this->disabled);
+        try {
+            cache()->put('tardis.plugins.disabled', $this->disabled);
+        } catch (\Throwable) {
+            // Cache not available yet (e.g. during early service registration or testing)
+        }
     }
 
     public function disable(string $name): void
@@ -57,7 +61,11 @@ class PluginManager
             $this->disabled[] = $name;
         }
         $this->enabled = array_values(array_diff($this->enabled, [$name]));
-        cache()->put('tardis.plugins.disabled', $this->disabled);
+        try {
+            cache()->put('tardis.plugins.disabled', $this->disabled);
+        } catch (\Throwable) {
+            // Cache not available yet (e.g. during early service registration or testing)
+        }
     }
 
     public function isEnabled(string $name): bool

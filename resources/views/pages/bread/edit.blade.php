@@ -22,7 +22,7 @@ new #[Title('Edit')] #[Layout('tardis::layouts.admin')] class extends Component
 
     <div class="card bg-base-100 shadow">
         <div class="card-body text-center py-12">
-            <x-heroicon-o-pencil-square class="w-16 h-16 mx-auto opacity-30" />
+            <x-tardis::icon name="pencil-square" class="w-16 h-16 mx-auto opacity-30" />
             <h3 class="text-lg font-semibold mt-4">BREAD form coming soon</h3>
         </div>
     </div>

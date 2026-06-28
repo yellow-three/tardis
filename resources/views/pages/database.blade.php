@@ -13,7 +13,7 @@ new #[Title('Database')] #[Layout('tardis::layouts.admin')] class extends Compon
 
     <div class="card bg-base-100 shadow">
         <div class="card-body text-center py-12">
-            <x-heroicon-o-database class="w-16 h-16 mx-auto opacity-30" />
+            <x-tardis::icon name="database" class="w-16 h-16 mx-auto opacity-30" />
             <h3 class="text-lg font-semibold mt-4">Database manager coming soon</h3>
         </div>
     </div>
