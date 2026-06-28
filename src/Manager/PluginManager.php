@@ -123,4 +123,39 @@ class PluginManager
             default => 'unknown',
         };
     }
+
+    public function getPluginInfo(string $name): ?array
+    {
+        $plugin = $this->plugins->get($name);
+        if (! $plugin) {
+            return null;
+        }
+
+        $instance = $plugin['instance'];
+        $version = null;
+
+        if (method_exists($instance, 'version')) {
+            $version = $instance->version();
+        }
+
+        $composerPath = dirname((new \ReflectionClass($instance))->getFileName()).'/../../composer.json';
+        if (file_exists($composerPath)) {
+            $composer = json_decode(file_get_contents($composerPath), true);
+            $version = $version ?? $composer['version'] ?? null;
+        }
+
+        return [
+            'name' => $name,
+            'class' => $plugin['class'],
+            'type' => $plugin['type'],
+            'enabled' => $this->isEnabled($name),
+            'version' => $version,
+            'description' => method_exists($instance, 'description') ? $instance->description() : null,
+        ];
+    }
+
+    public function allWithInfo(): Collection
+    {
+        return $this->plugins->map(fn ($plugin, $name) => $this->getPluginInfo($name));
+    }
 }
