@@ -181,10 +181,21 @@ class MenuItem
             $auth = $this->resolveAuthorization();
 
             if ($auth) {
-                return $auth->authorize($this->permission, ...$this->permissionArguments);
+                return $auth->can($this->permission, ...$this->permissionArguments);
             }
 
             return true;
+        }
+
+        return true;
+    }
+
+    public function hasPermission(string $ability, mixed ...$arguments): bool
+    {
+        $auth = $this->resolveAuthorization();
+
+        if ($auth) {
+            return $auth->can($ability, ...$arguments);
         }
 
         return true;

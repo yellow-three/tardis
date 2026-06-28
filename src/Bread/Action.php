@@ -22,6 +22,13 @@ abstract class Action
 
     public bool $bulk = false;
 
+    public function permission(string $permission): self
+    {
+        $this->permission = $permission;
+
+        return $this;
+    }
+
     public function getTitle(): string
     {
         return $this->title;
