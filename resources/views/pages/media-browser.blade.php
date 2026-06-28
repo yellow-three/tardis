@@ -32,7 +32,7 @@ new #[Title('Media')] #[Layout('tardis::layouts.admin')] class extends Component
 
     public bool $showDeleteModal = false;
 
-    public $uploadFile = null;
+    public $newUpload = null;
 
     public function mount(): void
     {
@@ -61,16 +61,16 @@ new #[Title('Media')] #[Layout('tardis::layouts.admin')] class extends Component
         $this->navigateTo($parent);
     }
 
-    public function uploadFile(): void
+    public function updatedNewUpload(): void
     {
         $this->validate([
-            'uploadFile' => 'required|file|max:'.config('tardis-media.max_file_size', 10240),
+            'newUpload' => 'required|file|max:'.config('tardis-media.max_file_size', 10240),
         ]);
 
         $manager = app(MediaManager::class);
-        $manager->upload($this->uploadFile, $this->currentPath);
+        $manager->upload($this->newUpload, $this->currentPath);
 
-        $this->uploadFile = null;
+        $this->newUpload = null;
         $this->loadFiles();
         session()->flash('message', 'File uploaded successfully');
     }
@@ -221,7 +221,7 @@ new #[Title('Media')] #[Layout('tardis::layouts.admin')] class extends Component
             <label class="btn btn-primary gap-2 cursor-pointer">
                 <x-tardis::icon name="plus" class="w-4 h-4" />
                 Upload
-                <input type="file" wire:model="uploadFile" wire:change="uploadFile" class="hidden" multiple />
+                <input type="file" wire:model.live="newUpload" class="hidden" multiple />
             </label>
         </div>
     </div>
@@ -233,10 +233,10 @@ new #[Title('Media')] #[Layout('tardis::layouts.admin')] class extends Component
         </div>
     @endif
 
-    @if ($uploadFile)
+    @if ($newUpload)
         <div class="alert alert-info mb-4 shadow-sm">
             <span class="loading loading-spinner loading-sm"></span>
-            <span>Uploading {{ is_array($uploadFile) ? count($uploadFile) . ' files' : $uploadFile->getClientOriginalName() }}...</span>
+            <span>Uploading {{ is_array($newUpload) ? count($newUpload) . ' files' : $newUpload->getClientOriginalName() }}...</span>
         </div>
     @endif
 
