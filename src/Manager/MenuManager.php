@@ -129,15 +129,11 @@ class MenuManager
     public function all(): Collection
     {
         return $this->items
-            ->filter(fn (MenuItem $item) => $item->isVisible())
+            ->filter(fn (MenuItem $item) => $item->isVisible() && ! $item->isDivider)
             ->sortBy(fn (MenuItem $item) => $item->order)
             ->values();
     }
 
-    /**
-     * Get the recursive tree of menu items (parent-child structure).
-     * Returns only root-level items (items without parents).
-     */
     public function tree(): Collection
     {
         return $this->all();
