@@ -24,6 +24,8 @@ Route::middleware(['web', 'tardis.admin'])
         Route::livewire('/database', 'tardis::pages.database')->name('database.index');
         Route::livewire('/settings', 'tardis::pages.settings')->name('settings.index');
 
+        Route::livewire('/search', 'tardis::pages.search')->name('search');
+
         Route::livewire('/permissions', 'tardis::pages.permissions')->name('permissions');
         Route::livewire('/roles', 'tardis::pages.roles')->name('roles');
 
