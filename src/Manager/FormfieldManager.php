@@ -3,10 +3,14 @@
 namespace Tardis\Manager;
 
 use Tardis\Formfields\Formfield;
+use Tardis\Formfields\Types\BelongsToManyField;
 use Tardis\Formfields\Types\CheckboxField;
+use Tardis\Formfields\Types\CodeEditorField;
 use Tardis\Formfields\Types\DateField;
 use Tardis\Formfields\Types\DateTimeField;
 use Tardis\Formfields\Types\FileField;
+use Tardis\Formfields\Types\HasManyField;
+use Tardis\Formfields\Types\MarkdownField;
 use Tardis\Formfields\Types\NumberField;
 use Tardis\Formfields\Types\PasswordField;
 use Tardis\Formfields\Types\RadioField;
@@ -16,6 +20,7 @@ use Tardis\Formfields\Types\SlugField;
 use Tardis\Formfields\Types\TagsField;
 use Tardis\Formfields\Types\TextareaField;
 use Tardis\Formfields\Types\TextField;
+use Tardis\Formfields\Types\TimeField;
 use Tardis\Formfields\Types\ToggleField;
 
 class FormfieldManager
@@ -33,6 +38,7 @@ class FormfieldManager
             'toggle' => ToggleField::class,
             'date' => DateField::class,
             'datetime' => DateTimeField::class,
+            'time' => TimeField::class,
             'textarea' => TextareaField::class,
             'password' => PasswordField::class,
             'file' => FileField::class,
@@ -41,6 +47,10 @@ class FormfieldManager
             'slider' => SliderField::class,
             'slug' => SlugField::class,
             'tags' => TagsField::class,
+            'markdown' => MarkdownField::class,
+            'code_editor' => CodeEditorField::class,
+            'belongs_to_many' => BelongsToManyField::class,
+            'has_many' => HasManyField::class,
         ];
     }
 
