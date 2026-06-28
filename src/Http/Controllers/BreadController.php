@@ -4,6 +4,7 @@ namespace Tardis\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
+use Illuminate\Support\Facades\File;
 use Tardis\Bread\Repositories\JsonBreadRepository;
 use Tardis\Events\BreadCreated;
 use Tardis\Events\BreadDeleted;
@@ -148,5 +149,43 @@ class BreadController extends Controller
 
         return redirect()->route('tardis.bread.index', $slug)
             ->with('message', 'Item deleted successfully.');
+    }
+
+    public function backup(string $slug)
+    {
+        $bread = $this->repository->find($slug);
+        if (! $bread) {
+            abort(404);
+        }
+
+        $source = storage_path('tardis/breads/'.$slug.'.json');
+        $backup = storage_path('tardis/breads/backups/'.$slug.'_backup_'.date('Y-m-d_His').'.json');
+
+        File::ensureDirectoryExists(dirname($backup));
+        File::copy($source, $backup);
+
+        return redirect()->route('tardis.bread.manage')
+            ->with('message', 'Backup created successfully.');
+    }
+
+    public function restore(string $slug)
+    {
+        $backupDir = storage_path('tardis/breads/backups');
+        $pattern = $backupDir.'/'.$slug.'_backup_*.json';
+        $files = glob($pattern);
+
+        if (empty($files)) {
+            return redirect()->route('tardis.bread.manage')
+                ->with('error', 'No backups found.');
+        }
+
+        usort($files, fn ($a, $b) => filemtime($b) - filemtime($a));
+        $latest = $files[0];
+
+        $target = storage_path('tardis/breads/'.$slug.'.json');
+        File::copy($latest, $target);
+
+        return redirect()->route('tardis.bread.manage')
+            ->with('message', 'BREAD restored from backup.');
     }
 }

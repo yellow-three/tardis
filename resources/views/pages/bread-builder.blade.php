@@ -43,6 +43,8 @@ new #[Title('BREAD Builder')] #[Layout('tardis::layouts.admin')] class extends C
 
     public array $editTabs = [];
 
+    public bool $softDelete = false;
+
     public bool $editMode = false;
 
     public ?string $existingSlug = null;
@@ -114,11 +116,17 @@ new #[Title('BREAD Builder')] #[Layout('tardis::layouts.admin')] class extends C
             'name' => $this->name,
             'name_plural' => $this->namePlural,
             'fields' => $this->fieldConfig,
+            'relationships' => $this->relationshipConfig,
             'icon' => $this->icon,
             'description' => $this->description,
             'search_key' => $this->searchKey ?: null,
             'order_column' => $this->orderColumn,
             'order_direction' => $this->orderDirection,
+            'soft_delete' => $this->softDelete,
+            'layout' => [
+                'browse' => $this->browseColumns,
+                'edit' => $this->editTabs,
+            ],
         ]);
 
         $repo = app(JsonBreadRepository::class);
@@ -376,6 +384,16 @@ new #[Title('BREAD Builder')] #[Layout('tardis::layouts.admin')] class extends C
                             <option value="asc">Ascending</option>
                             <option value="desc">Descending</option>
                         </select>
+                    </div>
+
+                    <div class="form-control">
+                        <label class="label cursor-pointer justify-start gap-3">
+                            <input type="checkbox" wire:model="softDelete" class="toggle toggle-primary" />
+                            <span class="label-text">Enable Soft Delete</span>
+                        </label>
+                        <label class="label">
+                            <span class="label-text-alt text-base-content/50">Allow restoring deleted items</span>
+                        </label>
                     </div>
                 </div>
                 @endif

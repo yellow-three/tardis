@@ -40,6 +40,8 @@ Route::middleware(['web', 'tardis.admin'])
         Route::get('/{slug}/{id}/edit', [\Tardis\Http\Controllers\BreadController::class, 'edit'])->name('bread.edit.item');
         Route::put('/{slug}/{id}', [\Tardis\Http\Controllers\BreadController::class, 'update'])->name('bread.update');
         Route::delete('/{slug}/{id}', [\Tardis\Http\Controllers\BreadController::class, 'destroy'])->name('bread.destroy');
+        Route::post('/{slug}/backup', [\Tardis\Http\Controllers\BreadController::class, 'backup'])->name('bread.backup');
+        Route::post('/{slug}/restore', [\Tardis\Http\Controllers\BreadController::class, 'restore'])->name('bread.restore');
 
         Route::livewire('/{slug}/create', 'tardis::pages.bread.create')->name('bread.create');
         Route::livewire('/{slug}/{id}/read', 'tardis::pages.bread.read')->name('bread.read');
