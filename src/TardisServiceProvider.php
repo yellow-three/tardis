@@ -33,7 +33,7 @@ class TardisServiceProvider extends ServiceProvider
         $this->registerMigrations();
         $this->registerPublishing();
         $this->registerMiddleware();
-        $this->loadDefaultSettings();
+        $this->registerCommands();
     }
 
     /**
@@ -127,6 +127,15 @@ class TardisServiceProvider extends ServiceProvider
     {
         $router = $this->app['router'];
         $router->aliasMiddleware('tardis.admin', AdminMiddleware::class);
+    }
+
+    protected function registerCommands(): void
+    {
+        if ($this->app->runningInConsole()) {
+            $this->commands([
+                \Tardis\Commands\TardisMakePluginCommand::class,
+            ]);
+        }
     }
 
     protected function registerPluginServiceProviders(): void
