@@ -129,7 +129,7 @@ class MenuManager
     public function all(): Collection
     {
         return $this->items
-            ->filter(fn (MenuItem $item) => $item->isVisible() && ! $item->isDivider)
+            ->filter(fn (MenuItem $item) => $item->isVisible())
             ->sortBy(fn (MenuItem $item) => $item->order)
             ->values();
     }
