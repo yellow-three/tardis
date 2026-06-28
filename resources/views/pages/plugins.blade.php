@@ -20,6 +20,7 @@ new #[Title('Plugin Manager')] #[Layout('tardis::layouts.admin')] class extends 
     {
         $this->plugins = Tardis::plugins()->all()->map(function ($plugin, $name) {
             $instance = $plugin['instance'];
+            $info = Tardis::plugins()->getPluginInfo($name);
 
             return [
                 'name' => $instance->name(),
@@ -27,6 +28,7 @@ new #[Title('Plugin Manager')] #[Layout('tardis::layouts.admin')] class extends 
                 'type' => $plugin['type'],
                 'description' => method_exists($instance, 'description') ? $instance->description() : null,
                 'enabled' => Tardis::plugins()->isEnabled($name),
+                'version' => $info['version'] ?? null,
             ];
         })->toArray();
 
@@ -96,6 +98,9 @@ $typeLabels = [
                                 <td>
                                     <div class="font-semibold">{{ $plugin['name'] }}</div>
                                     <div class="text-xs text-base-content/50">{{ $plugin['slug'] }}</div>
+                                    @if ($plugin['version'])
+                                        <div class="text-xs text-primary">v{{ $plugin['version'] }}</div>
+                                    @endif
                                     @if ($plugin['description'])
                                         <div class="text-sm text-base-content/70 mt-1">
                                             {{ $plugin['description'] }}
