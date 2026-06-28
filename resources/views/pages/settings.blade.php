@@ -120,7 +120,8 @@ new #[Title('Settings')] #[Layout('tardis::layouts.admin')] class extends Compon
         }
 
         Tardis::settings()->update($data);
-        $this->saved = true;
+        $this->dispatch('settings-saved');
+        $this->saved = false;
     }
 
     public function createSetting(): void
@@ -360,7 +361,40 @@ new #[Title('Settings')] #[Layout('tardis::layouts.admin')] class extends Compon
     }
 }; ?>
 
-<div>
+<div x-data="{
+    notification: null,
+    notificationTimeout: null,
+    showNotification(type, message) {
+        this.notification = { type, message };
+        clearTimeout(this.notificationTimeout);
+        this.notificationTimeout = setTimeout(() => { this.notification = null }, 3000);
+    }
+}" x-init="
+    // Ctrl+S shortcut
+    window.addEventListener('keydown', (e) => {
+        if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+            e.preventDefault();
+            $wire.save();
+            showNotification('success', 'Settings saved successfully.');
+        }
+    });
+    // URL hash support
+    const hash = window.location.hash.replace('#', '');
+    if (hash) { $wire.setActiveGroup(hash); }
+" @set-group.window="$wire.setActiveGroup($event.detail); window.location.hash = $event.detail">
+    <!-- Notification Toast -->
+    <template x-if="notification">
+        <div class="fixed top-4 right-4 z-50" x-transition>
+            <div class="alert shadow-lg" :class="{
+                'alert-success': notification.type === 'success',
+                'alert-error': notification.type === 'error',
+                'alert-info': notification.type === 'info'
+            }">
+                <span x-text="notification.message"></span>
+            </div>
+        </div>
+    </template>
+
     <!-- Header -->
     <div class="flex items-center justify-between mb-6">
         <div>
@@ -391,13 +425,6 @@ new #[Title('Settings')] #[Layout('tardis::layouts.admin')] class extends Compon
             </button>
         </div>
     </div>
-
-    @if ($saved)
-        <div class="alert alert-success mb-6 shadow-sm">
-            <x-tardis::icon name="check-circle" class="w-5 h-5" />
-            <span>Settings saved successfully.</span>
-        </div>
-    @endif
 
     <!-- Horizontal Group Tabs (Voyager II style) -->
     @php $filteredGroups = $this->getFilteredGroups(); @endphp
