@@ -5,92 +5,206 @@
         "key": "title",
         "name": "Title",
         "value": "TARDIS Admin",
-        "info": "The title shown in your browser",
+        "info": "The browser tab title for the admin panel",
         "translatable": false,
         "canBeTranslated": true,
         "options": {
-            "placeholder": null,
+            "placeholder": "Enter site title",
             "default_value": null,
-            "rows": 1,
-            "title": null,
-            "description": null
+            "rows": 1
         },
-        "validation": []
+        "validation": ["required", "max:255"]
     },
     {
         "type": "text",
         "group": "admin",
         "key": "sidebar-title",
-        "name": "Sidebar title",
+        "name": "Sidebar Title",
         "value": "TARDIS",
-        "info": "The title shown in the sidebar",
+        "info": "The title displayed in the admin sidebar",
         "translatable": false,
         "canBeTranslated": true,
         "options": {
-            "placeholder": null,
+            "placeholder": "Enter sidebar title",
             "default_value": null,
-            "rows": 1,
-            "title": null,
-            "description": null
+            "rows": 1
         },
-        "validation": []
+        "validation": ["required", "max:255"]
+    },
+    {
+        "type": "text",
+        "group": "admin",
+        "key": "sidebar-description",
+        "name": "Sidebar Description",
+        "value": "Admin Panel",
+        "info": "A short description shown below the sidebar title",
+        "translatable": false,
+        "canBeTranslated": true,
+        "options": {
+            "placeholder": "Enter description",
+            "default_value": null,
+            "rows": 1
+        },
+        "validation": ["max:255"]
     },
     {
         "type": "number",
         "group": "admin",
         "key": "icon-size",
-        "name": "Icon size",
+        "name": "Icon Size",
         "value": 6,
-        "info": "The size of the sidebar icons",
+        "info": "Sidebar icon size in rem units (4-8)",
         "translatable": false,
         "options": {
             "min": 4,
             "max": 8
         },
-        "validation": []
+        "validation": ["required", "numeric", "min:4", "max:8"]
     },
     {
         "type": "select",
         "group": "admin",
         "key": "ui-components",
-        "name": "UI components",
-        "value": true,
-        "info": "Show or hide the UI components page",
+        "name": "UI Components Page",
+        "value": "show",
+        "info": "Show or hide the UI components reference page",
         "translatable": false,
         "canBeTranslated": false,
         "options": {
-            "multiple": false,
-            "options": [
-                {
-                    "key": true,
-                    "value": "Show"
-                },
-                {
-                    "key": false,
-                    "value": "Hide"
-                }
-            ],
-            "title": null,
-            "description": null
+            "show": "Show",
+            "hide": "Hide"
         },
-        "validation": []
+        "validation": ["required", "in:show,hide"]
+    },
+    {
+        "type": "toggle",
+        "group": "admin",
+        "key": "dark-mode",
+        "name": "Dark Mode",
+        "value": true,
+        "info": "Enable dark mode for the admin panel by default",
+        "translatable": false,
+        "options": {}
+    },
+    {
+        "type": "select",
+        "group": "admin",
+        "key": "theme",
+        "name": "Admin Theme",
+        "value": "dark",
+        "info": "Default theme for the admin interface",
+        "translatable": false,
+        "options": {
+            "light": "Light (winter)",
+            "dark": "Dark (dark)",
+            "system": "System preference"
+        },
+        "validation": ["required", "in:light,dark,system"]
     },
     {
         "type": "text",
         "group": "media",
         "key": "path",
-        "name": "Path",
+        "name": "Default Path",
         "value": "/",
-        "info": "Starting path for the media manager",
+        "info": "Starting directory for the media manager",
         "translatable": false,
         "canBeTranslated": true,
         "options": {
-            "placeholder": null,
-            "default_value": null,
-            "rows": 1,
-            "title": null,
-            "description": null
+            "placeholder": "/",
+            "default_value": "/"
         },
+        "validation": ["required"]
+    },
+    {
+        "type": "select",
+        "group": "media",
+        "key": "disk",
+        "name": "Storage Disk",
+        "value": "public",
+        "info": "Laravel filesystem disk used for media storage",
+        "translatable": false,
+        "options": {
+            "public": "Public",
+            "local": "Local",
+            "s3": "S3 Cloud"
+        },
+        "validation": ["required", "in:public,local,s3"]
+    },
+    {
+        "type": "number",
+        "group": "media",
+        "key": "max-file-size",
+        "name": "Max File Size",
+        "value": 10,
+        "info": "Maximum upload file size in megabytes",
+        "translatable": false,
+        "options": {
+            "min": 1,
+            "max": 128
+        },
+        "validation": ["required", "numeric", "min:1", "max:128"]
+    },
+    {
+        "type": "simple_array",
+        "group": "media",
+        "key": "allowed-extensions",
+        "name": "Allowed Extensions",
+        "value": ["jpg", "jpeg", "png", "gif", "webp", "svg", "pdf", "doc", "docx", "xls", "xlsx"],
+        "info": "Comma-separated list of allowed file extensions",
+        "translatable": false,
+        "options": {},
+        "validation": []
+    },
+    {
+        "type": "text",
+        "group": "auth",
+        "key": "redirect-after-login",
+        "name": "Redirect After Login",
+        "value": "/admin/dashboard",
+        "info": "Where to redirect users after successful login",
+        "translatable": false,
+        "options": {
+            "placeholder": "/admin/dashboard"
+        },
+        "validation": ["required"]
+    },
+    {
+        "type": "text",
+        "group": "auth",
+        "key": "redirect-after-logout",
+        "name": "Redirect After Logout",
+        "value": "/admin/login",
+        "info": "Where to redirect users after logout",
+        "translatable": false,
+        "options": {
+            "placeholder": "/admin/login"
+        },
+        "validation": ["required"]
+    },
+    {
+        "type": "number",
+        "group": "auth",
+        "key": "password-min-length",
+        "name": "Minimum Password Length",
+        "value": 8,
+        "info": "Minimum required password length for user accounts",
+        "translatable": false,
+        "options": {
+            "min": 6,
+            "max": 128
+        },
+        "validation": ["required", "numeric", "min:6", "max:128"]
+    },
+    {
+        "type": "toggle",
+        "group": "auth",
+        "key": "two-factor",
+        "name": "Two-Factor Authentication",
+        "value": false,
+        "info": "Require two-factor authentication for all admin users",
+        "translatable": false,
+        "options": {},
         "validation": []
     }
 ]

@@ -32,6 +32,102 @@ class DynamicInput
     }
 
     /**
+     * Builder: Add a text field.
+     */
+    public function addText(string $key, mixed $value = null, ?string $label = null): self
+    {
+        return $this->addField($key, $value, $label, 'text');
+    }
+
+    /**
+     * Builder: Add a number field with optional min/max.
+     */
+    public function addNumber(string $key, mixed $value = null, ?string $label = null, ?int $min = null, ?int $max = null): self
+    {
+        $field = [
+            'key' => $key,
+            'value' => $value,
+            'label' => $label ?? $key,
+            'type' => 'number',
+        ];
+
+        if ($min !== null) {
+            $field['min'] = $min;
+        }
+
+        if ($max !== null) {
+            $field['max'] = $max;
+        }
+
+        $this->fields->push($field);
+
+        return $this;
+    }
+
+    /**
+     * Builder: Add a select (dropdown) field.
+     */
+    public function addSelect(string $key, array $options = [], mixed $value = null, ?string $label = null): self
+    {
+        $this->fields->push([
+            'key' => $key,
+            'value' => $value,
+            'label' => $label ?? $key,
+            'type' => 'select',
+            'options' => $options,
+        ]);
+
+        return $this;
+    }
+
+    /**
+     * Builder: Add a checkbox group field.
+     */
+    public function addCheckboxes(string $key, array $options = [], array $value = [], ?string $label = null): self
+    {
+        $this->fields->push([
+            'key' => $key,
+            'value' => $value,
+            'label' => $label ?? $key,
+            'type' => 'checkboxes',
+            'options' => $options,
+        ]);
+
+        return $this;
+    }
+
+    /**
+     * Builder: Add a radio group field.
+     */
+    public function addRadios(string $key, array $options = [], mixed $value = null, ?string $label = null): self
+    {
+        $this->fields->push([
+            'key' => $key,
+            'value' => $value,
+            'label' => $label ?? $key,
+            'type' => 'radios',
+            'options' => $options,
+        ]);
+
+        return $this;
+    }
+
+    /**
+     * Builder: Add a switch/toggle field.
+     */
+    public function addSwitch(string $key, bool $value = false, ?string $label = null): self
+    {
+        $this->fields->push([
+            'key' => $key,
+            'value' => $value,
+            'label' => $label ?? $key,
+            'type' => 'switch',
+        ]);
+
+        return $this;
+    }
+
+    /**
      * Remove a field by key.
      */
     public function removeField(string $key): self

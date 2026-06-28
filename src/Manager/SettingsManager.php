@@ -122,11 +122,126 @@ class SettingsManager
         $this->save();
     }
 
-    protected function findByKey(string $key): ?Setting
+    public function create(array $data): Setting
     {
+        $this->load();
+
+        $setting = new Setting($data);
+
+        if (! $setting->uuid) {
+            $setting->uuid = (string) Str::uuid();
+        }
+
+        $existing = $this->findByKey($setting->getFullKey());
+        if ($existing) {
+            throw new \RuntimeException("Setting with key '{$setting->getFullKey()}' already exists.");
+        }
+
+        $this->settings->push($setting);
+        $this->save();
+
+        $this->logAudit('created', $setting->getFullKey(), null, $setting->toArray());
+
+        return $setting;
+    }
+
+    public function delete(string $key): bool
+    {
+        $this->load();
+
+        $setting = $this->findByKey($key);
+        if (! $setting) {
+            return false;
+        }
+
+        $oldValues = $setting->toArray();
+        $this->settings = $this->settings->filter(
+            fn (Setting $s) => $s->getFullKey() !== $key
+        )->values();
+
+        $this->save();
+
+        $this->logAudit('deleted', $key, $oldValues, null);
+
+        return true;
+    }
+
+    public function duplicate(string $key): ?Setting
+    {
+        $this->load();
+
+        $setting = $this->findByKey($key);
+        if (! $setting) {
+            return null;
+        }
+
+        $data = $setting->toArray();
+        $data['key'] = $setting->key . '_copy';
+        $data['uuid'] = (string) Str::uuid();
+
+        return $this->create($data);
+    }
+
+    public function import(string $json): int
+    {
+        $data = json_decode($json, true);
+        if (! is_array($data)) {
+            throw new \RuntimeException('Invalid JSON data.');
+        }
+
+        $count = 0;
+        foreach ($data as $item) {
+            if (isset($item['key'])) {
+                $this->create($item);
+                $count++;
+            }
+        }
+
+        return $count;
+    }
+
+    public function export(): string
+    {
+        $this->load();
+
+        return $this->settings->map(fn (Setting $setting) => $setting->toArray()
+        )->values()->toJson(JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
+    }
+
+    public function findByKey(string $key): ?Setting
+    {
+        $this->load();
+
         return $this->settings->first(function (Setting $setting) use ($key) {
             return $setting->getFullKey() === $key;
         });
+    }
+
+    protected function logAudit(string $action, string $key, ?array $oldValues, mixed $newValues): void
+    {
+        $auditPath = dirname($this->path).'/audit.json';
+
+        $entry = [
+            'action' => $action,
+            'key' => $key,
+            'old_values' => $oldValues,
+            'new_values' => $newValues,
+            'user_id' => auth()->id(),
+            'timestamp' => now()->toIso8601String(),
+        ];
+
+        $audit = [];
+        if (File::exists($auditPath)) {
+            $audit = json_decode(File::get($auditPath), true) ?? [];
+        }
+
+        $audit[] = $entry;
+
+        if (count($audit) > 100) {
+            $audit = array_slice($audit, -100);
+        }
+
+        File::put($auditPath, json_encode($audit, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
     }
 
     protected function ensureDirectoryExists(): void
