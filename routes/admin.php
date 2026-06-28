@@ -17,7 +17,7 @@ Route::middleware(['web', 'tardis.admin'])
     ->group(function () {
         Route::livewire('/dashboard', 'tardis::pages.dashboard')->name('dashboard');
 
-        Route::livewire('/media', 'tardis::pages.media-browser')->name('media');
+        Route::livewire('/plugins', 'tardis::pages.plugins')->name('plugins.index');
         Route::livewire('/media', 'tardis::pages.media-browser')->name('media');
         Route::livewire('/media/browse', 'tardis::pages.media-browser')->name('media.browse');
         Route::livewire('/activity-log', 'tardis::pages.activity-log')->name('activity.index');
