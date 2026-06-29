@@ -6,9 +6,10 @@
 @endphp
 
 <header class="navbar bg-base-100 border-b border-base-300 sticky top-0 z-30">
-    <div class="flex-none lg:hidden">
-        <label for="tardis-drawer" class="btn btn-square btn-ghost">
-            <x-tardis::icon name="bars-3" class="w-6 h-6" />
+    <div class="flex-none">
+        <label for="tardis-drawer" class="btn btn-square btn-ghost" aria-label="Menüyü aç/kapat">
+            <x-tardis::icon name="ui.menu" class="w-5 h-5 is-drawer-open:hidden" />
+            <x-tardis::icon name="ui.close" class="w-5 h-5 is-drawer-close:hidden" />
         </label>
     </div>
 
@@ -17,10 +18,26 @@
     </div>
 
     <div class="flex-none gap-1">
-        <div class="swap swap-rotate btn btn-ghost btn-sm" @click="$store.theme.toggle()" :class="{ 'swap-active': $store.theme.mode !== 'light' }">
-            <x-tardis::icon name="sun" class="swap-on w-5 h-5" />
-            <x-tardis::icon name="moon" class="swap-off w-5 h-5" />
-        </div>
+        <label class="input input-bordered input-sm flex items-center gap-2 max-w-xs w-full hidden md:flex">
+            <x-tardis::icon name="action.search" class="w-4 h-4 opacity-50" />
+            <input type="search" class="grow" placeholder="Ara..." />
+        </label>
+
+        <button class="btn btn-ghost btn-circle" aria-label="Bildirimler">
+            <div class="indicator">
+                <x-tardis::icon name="ui.bell" class="w-5 h-5" />
+                <span class="badge badge-xs badge-primary indicator-item"></span>
+            </div>
+        </button>
+
+        <button class="btn btn-ghost btn-circle" @click="$store.theme.toggle()" aria-label="Tema değiştir">
+            <template x-if="$store.theme.applied === $store.theme.dark">
+                <x-tardis::icon name="ui.sun" class="w-5 h-5" />
+            </template>
+            <template x-if="$store.theme.applied !== $store.theme.dark">
+                <x-tardis::icon name="ui.moon" class="w-5 h-5" />
+            </template>
+        </button>
 
         <div class="dropdown dropdown-end">
             <div tabindex="0" role="button" class="btn btn-ghost btn-circle avatar">
