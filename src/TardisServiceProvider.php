@@ -20,6 +20,13 @@ class TardisServiceProvider extends ServiceProvider
             'tardis'
         );
 
+        $this->mergeConfigFrom(
+            __DIR__.'/../config/tardis-icons.php',
+            'tardis-icons'
+        );
+
+        $this->app->singleton(\Tardis\Manager\AssetManager::class);
+
         $this->registerAliases();
         $this->registerPluginServiceProviders();
         $this->registerDefaultAuth();
@@ -27,8 +34,22 @@ class TardisServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        \Illuminate\Support\Facades\Blade::directive('tardisStyles', function () {
+            return "<?php echo app(\\Tardis\\Manager\\AssetManager::class)->styles(); ?>";
+        });
+
+        \Illuminate\Support\Facades\Blade::directive('tardisScripts', function () {
+            return "<?php echo app(\\Tardis\\Manager\\AssetManager::class)->scripts(); ?>";
+        });
+
         $this->registerLivewireNamespaces();
         $this->registerViews();
+
+        \Illuminate\Support\Facades\Blade::anonymousComponentPath(
+            __DIR__.'/../resources/views/components',
+            'tardis'
+        );
+
         $this->registerRoutes();
         $this->registerMigrations();
         $this->registerPublishing();
@@ -106,6 +127,10 @@ class TardisServiceProvider extends ServiceProvider
         $this->publishes([
             __DIR__.'/../dist' => public_path('vendor/tardis'),
         ], 'tardis-assets');
+
+        $this->publishes([
+            __DIR__.'/../config/tardis-icons.php' => config_path('tardis-icons.php'),
+        ], 'tardis-icons-config');
     }
 
     protected function registerAliases(): void

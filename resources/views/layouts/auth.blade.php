@@ -7,7 +7,7 @@
 
     <title>{{ $title ?? 'Login' }} - TARDIS</title>
 
-    <link rel="stylesheet" href="{{ asset('vendor/tardis/assets/app.css') }}">
+    @tardisStyles
     @livewireStyles
 </head>
 <body class="min-h-screen bg-base-200 flex items-center justify-center p-4">
@@ -30,6 +30,7 @@
         </p>
     </div>
 
+    @tardisScripts
     @livewireScripts
 </body>
 </html>

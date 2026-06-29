@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" x-data x-init="$store.theme.init()" :data-theme="$store.theme.applied">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" x-data x-init="$store.theme.init()" data-theme="dark" :data-theme="$store.theme.applied">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -7,35 +7,31 @@
 
     <title>{{ ($title ?? 'TARDIS Admin') }} - TARDIS</title>
 
-    <link rel="stylesheet" href="{{ asset('vendor/tardis/assets/app.css') }}">
+    @tardisStyles
     @livewireStyles
-
-    @foreach(app(\Tardis\Manager\PluginManager::class)->enabledWith(\Tardis\Contracts\Plugins\Features\Provider\CSS::class) as $plugin)
-        <style>{!! $plugin->provideCSS() !!}</style>
-    @endforeach
-
-    @foreach(app(\Tardis\Manager\PluginManager::class)->enabledWith(\Tardis\Contracts\Plugins\ThemePlugin::class) as $theme)
-        <style>{!! $theme->getStyles() !!}</style>
-    @endforeach
 </head>
 <body class="min-h-screen bg-base-200">
     <div class="drawer lg:drawer-open">
         <input id="tardis-drawer" type="checkbox" class="drawer-toggle" />
 
-        <div class="drawer-content flex flex-col">
+        <div class="drawer-content flex flex-col min-h-screen">
             <x-tardis::admin-header :title="$title ?? 'TARDIS Admin'" />
 
-            <main class="flex-1 p-6">
+            <main class="flex-1 p-4 lg:p-6">
                 {{ $slot }}
             </main>
+
+            <footer class="footer footer-center bg-base-100 text-base-content/60 p-4 text-sm border-t border-base-300">
+                <aside>
+                    <p>© {{ date('Y') }} TARDIS Admin</p>
+                </aside>
+            </footer>
         </div>
 
         <x-tardis::admin-sidebar />
     </div>
 
-    @foreach(app(\Tardis\Manager\PluginManager::class)->enabledWith(\Tardis\Contracts\Plugins\Features\Provider\JS::class) as $plugin)
-        <script>{!! $plugin->provideJS() !!}</script>
-    @endforeach
+    @tardisScripts
 
     <script>
         document.addEventListener('alpine:init', () => {
