@@ -3,6 +3,9 @@
 namespace Tardis\Bread;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\Relation;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Str;
 
 class ModelReflector
@@ -111,14 +114,14 @@ class ModelReflector
                 continue;
             }
 
-            if ($return instanceof \Illuminate\Database\Eloquent\Relations\Relation) {
+            if ($return instanceof Relation) {
                 $type = class_basename($return);
                 $related = $return->getRelated();
 
                 $relationships[$method] = [
                     'type' => lcfirst($type),
                     'model' => get_class($related),
-                    'foreign_key' => $return instanceof \Illuminate\Database\Eloquent\Relations\BelongsTo
+                    'foreign_key' => $return instanceof BelongsTo
                         ? $return->getForeignKeyName()
                         : null,
                 ];
@@ -130,7 +133,7 @@ class ModelReflector
 
     protected static function hasSoftDeletes(Model $model): bool
     {
-        return in_array(\Illuminate\Database\Eloquent\SoftDeletes::class, class_uses_recursive($model));
+        return in_array(SoftDeletes::class, class_uses_recursive($model));
     }
 
     protected static function guessFieldType(string $field, array $casts): string

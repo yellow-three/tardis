@@ -5,7 +5,6 @@ declare(strict_types=1);
 use Tardis\Classes\MenuItem;
 use Tardis\Classes\UserMenuItem;
 use Tardis\Manager\MenuManager;
-use Illuminate\Support\Collection;
 
 test('menu manager can be instantiated', function () {
     $manager = new MenuManager;

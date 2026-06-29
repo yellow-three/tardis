@@ -2,11 +2,8 @@
 
 namespace Tardis\Auth;
 
-use Illuminate\Foundation\Auth\User as Authenticatable;
-use Illuminate\Support\Facades\Gate;
 use Tardis\Contracts\Plugins\AuthorizationPlugin;
 use Tardis\Models\Permission;
-use Tardis\Models\Role;
 
 class TardisAuthorizationPlugin implements AuthorizationPlugin
 {

@@ -6,6 +6,7 @@ namespace Tardis\Http\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;
+use Tardis\Contracts\Plugins\AuthenticationPlugin;
 use Tardis\Manager\PluginManager;
 
 class AdminMiddleware
@@ -17,10 +18,10 @@ class AdminMiddleware
     public function handle(Request $request, Closure $next): mixed
     {
         $authPlugins = $this->pluginManager->enabledWith(
-            \Tardis\Contracts\Plugins\AuthenticationPlugin::class
+            AuthenticationPlugin::class
         );
 
-        /** @var \Tardis\Contracts\Plugins\AuthenticationPlugin|null $auth */
+        /** @var AuthenticationPlugin|null $auth */
         $auth = $authPlugins->first();
 
         if ($auth) {

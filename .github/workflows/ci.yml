@@ -48,14 +48,16 @@ jobs:
         run: composer install --no-interaction --no-progress --prefer-dist
 
       - name: Run tests with coverage
-        run: composer test-coverage
+        run: vendor/bin/pest --coverage-clover coverage.xml
 
       - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v3
+        uses: codecov/codecov-action@v4
         with:
-          file: ./coverage.xml
+          files: coverage.xml
           flags: unittests
           name: codecov-umbrella
+          token: ${{ secrets.CODECOV_TOKEN }}
+          fail_ci_if_error: false
 
   build-assets:
     runs-on: ubuntu-latest

@@ -1,5 +1,6 @@
 <?php
 
+use Carbon\Carbon;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
@@ -67,22 +68,22 @@ new #[Title('Media')] #[Layout('tardis::layouts.admin')] class extends Component
         $files = $manager->listFiles($this->currentPath);
 
         if ($this->mimeTypeFilter) {
-            $files = $files->filter(fn ($f) =>
-                $f['type'] !== 'directory' && str_starts_with($f['type'], $this->mimeTypeFilter.'/')
+            $files = $files->filter(fn ($f) => $f['type'] !== 'directory' && str_starts_with($f['type'], $this->mimeTypeFilter.'/')
             );
         }
 
         if ($this->dateFilter) {
             $now = now();
-            $files = $files->filter(function ($f) use ($now) {
+            $files = $files->filter(function ($f) {
                 if ($f['type'] === 'directory' || ! isset($f['last_modified'])) {
                     return true;
                 }
+
                 return match ($this->dateFilter) {
-                    'today' => \Carbon\Carbon::createFromTimestamp($f['last_modified'])->isToday(),
-                    'week' => \Carbon\Carbon::createFromTimestamp($f['last_modified'])->isThisWeek(),
-                    'month' => \Carbon\Carbon::createFromTimestamp($f['last_modified'])->isThisMonth(),
-                    'year' => \Carbon\Carbon::createFromTimestamp($f['last_modified'])->isThisYear(),
+                    'today' => Carbon::createFromTimestamp($f['last_modified'])->isToday(),
+                    'week' => Carbon::createFromTimestamp($f['last_modified'])->isThisWeek(),
+                    'month' => Carbon::createFromTimestamp($f['last_modified'])->isThisMonth(),
+                    'year' => Carbon::createFromTimestamp($f['last_modified'])->isThisYear(),
                     default => true,
                 };
             });
@@ -94,6 +95,7 @@ new #[Title('Media')] #[Layout('tardis::layouts.admin')] class extends Component
                     return true;
                 }
                 $sizeKB = $f['size'] / 1024;
+
                 return match ($this->sizeFilter) {
                     'small' => $sizeKB < 1024,
                     'medium' => $sizeKB >= 1024 && $sizeKB < 10240,
@@ -105,8 +107,7 @@ new #[Title('Media')] #[Layout('tardis::layouts.admin')] class extends Component
         }
 
         if ($this->searchQuery) {
-            $files = $files->filter(fn ($f) =>
-                str_contains(strtolower($f['name']), strtolower($this->searchQuery))
+            $files = $files->filter(fn ($f) => str_contains(strtolower($f['name']), strtolower($this->searchQuery))
             );
         }
 
@@ -360,4 +361,4 @@ new #[Title('Media')] #[Layout('tardis::layouts.admin')] class extends Component
 
         return $breadcrumbs;
     }
-}; 
+};

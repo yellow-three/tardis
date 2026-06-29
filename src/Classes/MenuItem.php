@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tardis\Classes;
 
 use Illuminate\Support\Collection;
+use Tardis\Contracts\Plugins\AuthorizationPlugin;
 use Tardis\Manager\PluginManager;
 
 class MenuItem
@@ -122,6 +123,7 @@ class MenuItem
     public function section(?string $section): self
     {
         $this->section = $section;
+
         return $this;
     }
 
@@ -239,7 +241,7 @@ class MenuItem
         $plugins ??= app(PluginManager::class);
 
         return $plugins->enabledWith(
-            \Tardis\Contracts\Plugins\AuthorizationPlugin::class
+            AuthorizationPlugin::class
         )->first();
     }
 }

@@ -176,7 +176,7 @@ class SettingsManager
         }
 
         $data = $setting->toArray();
-        $data['key'] = $setting->key . '_copy';
+        $data['key'] = $setting->key.'_copy';
         $data['uuid'] = (string) Str::uuid();
 
         return $this->create($data);

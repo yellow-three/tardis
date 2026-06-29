@@ -4,11 +4,16 @@ declare(strict_types=1);
 
 namespace Tardis;
 
+use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\ServiceProvider;
 use Livewire\Livewire;
 use Tardis\Bread\Sources\DatabaseBreadSource;
 use Tardis\Bread\Sources\JsonBreadSource;
+use Tardis\Commands\TardisMakePluginCommand;
 use Tardis\Http\Middleware\AdminMiddleware;
+use Tardis\Manager\AssetManager;
+use Tardis\Manager\PluginManager;
+use Tardis\Manager\SettingsManager;
 use Tardis\Plugins\AuthenticationPlugin;
 
 class TardisServiceProvider extends ServiceProvider
@@ -25,7 +30,7 @@ class TardisServiceProvider extends ServiceProvider
             'tardis-icons'
         );
 
-        $this->app->singleton(\Tardis\Manager\AssetManager::class);
+        $this->app->singleton(AssetManager::class);
 
         $this->registerAliases();
         $this->registerPluginServiceProviders();
@@ -34,18 +39,18 @@ class TardisServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
-        \Illuminate\Support\Facades\Blade::directive('tardisStyles', function () {
-            return "<?php echo app(\\Tardis\\Manager\\AssetManager::class)->styles(); ?>";
+        Blade::directive('tardisStyles', function () {
+            return '<?php echo app(\\Tardis\\Manager\\AssetManager::class)->styles(); ?>';
         });
 
-        \Illuminate\Support\Facades\Blade::directive('tardisScripts', function () {
-            return "<?php echo app(\\Tardis\\Manager\\AssetManager::class)->scripts(); ?>";
+        Blade::directive('tardisScripts', function () {
+            return '<?php echo app(\\Tardis\\Manager\\AssetManager::class)->scripts(); ?>';
         });
 
         $this->registerLivewireNamespaces();
         $this->registerViews();
 
-        \Illuminate\Support\Facades\Blade::anonymousComponentPath(
+        Blade::anonymousComponentPath(
             __DIR__.'/../resources/views/components',
             'tardis'
         );
@@ -70,7 +75,7 @@ class TardisServiceProvider extends ServiceProvider
 
         if (! file_exists(storage_path('tardis/settings/settings.json'))) {
             try {
-                $manager = $this->app->make(\Tardis\Manager\SettingsManager::class);
+                $manager = $this->app->make(SettingsManager::class);
                 $manager->loadPreset($presetPath);
             } catch (\Throwable) {
                 // Storage not available yet (e.g. during package discovery)
@@ -82,7 +87,7 @@ class TardisServiceProvider extends ServiceProvider
     {
         // Register the default AuthenticationPlugin so auth works out of the box
         // without Fortify or any other auth package.
-        $manager = $this->app->make(\Tardis\Manager\PluginManager::class);
+        $manager = $this->app->make(PluginManager::class);
         $manager->register('tardis-auth', AuthenticationPlugin::class);
         $manager->enable('tardis-auth');
     }
@@ -158,7 +163,7 @@ class TardisServiceProvider extends ServiceProvider
     {
         if ($this->app->runningInConsole()) {
             $this->commands([
-                \Tardis\Commands\TardisMakePluginCommand::class,
+                TardisMakePluginCommand::class,
             ]);
         }
     }
@@ -168,5 +173,4 @@ class TardisServiceProvider extends ServiceProvider
         $this->app->register(TardisPluginManagerServiceProvider::class);
         $this->app->register(TardisMediaServiceProvider::class);
     }
-
 }

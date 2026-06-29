@@ -3,7 +3,6 @@
 declare(strict_types=1);
 
 use Illuminate\Support\Facades\Blade;
-use Illuminate\Support\Facades\View;
 
 test('@tardisStyles directive renders HTML', function () {
     $html = Blade::render('@tardisStyles');

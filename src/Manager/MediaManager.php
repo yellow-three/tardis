@@ -2,6 +2,7 @@
 
 namespace Tardis\Manager;
 
+use Illuminate\Filesystem\DirectoryAttributes;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Storage;
@@ -50,7 +51,7 @@ class MediaManager
 
         $files = collect($storage->listContents($path))
             ->map(function ($item) use ($storage) {
-                $isDir = $item instanceof \Illuminate\Filesystem\DirectoryAttributes
+                $isDir = $item instanceof DirectoryAttributes
                     || str_ends_with($item['path'], '/');
 
                 $size = 0;
