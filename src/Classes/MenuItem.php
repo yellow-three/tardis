@@ -46,6 +46,8 @@ class MenuItem
 
     public bool $isDivider = false;
 
+    public ?string $section = null;
+
     public function __construct(string $title, ?string $icon = null)
     {
         $this->title = $title;
@@ -110,6 +112,16 @@ class MenuItem
     {
         $this->activeMode = $mode;
 
+        return $this;
+    }
+
+    /**
+     * Set the menu section/group label.
+     * Sections are rendered as menu-title headers in grouped views.
+     */
+    public function section(?string $section): self
+    {
+        $this->section = $section;
         return $this;
     }
 

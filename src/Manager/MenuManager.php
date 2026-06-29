@@ -140,6 +140,37 @@ class MenuManager
     }
 
     /**
+     * Get menu items grouped by section, with section labels.
+     * Items without a section are returned as a flat list.
+     *
+     * @return Collection<int, array{section: ?string, items: Collection}|MenuItem>
+     */
+    public function treeBySection(): Collection
+    {
+        $items = $this->all();
+
+        $grouped = $items->groupBy(fn (MenuItem $item) => $item->section ?? '__nosection__');
+
+        $result = collect();
+
+        foreach ($grouped as $section => $groupItems) {
+            if ($section === '__nosection__') {
+                // Items without a section — add directly
+                foreach ($groupItems as $item) {
+                    $result->push($item);
+                }
+            } else {
+                $result->push((object) [
+                    'section' => $section,
+                    'items' => $groupItems,
+                ]);
+            }
+        }
+
+        return $result;
+    }
+
+    /**
      * Get user menu items.
      */
     public function userMenu(): Collection
