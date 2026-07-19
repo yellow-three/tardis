@@ -2,3 +2,40 @@
 @plugin "daisyui" {
     themes: all;
 }
+
+@plugin "daisyui/theme" {
+    name: "tardis-light";
+    default: true;
+    color-scheme: light;
+
+    --color-primary: oklch(45% 0.2 260);
+    --color-primary-content: oklch(98% 0.01 260);
+    --color-secondary: oklch(55% 0.15 180);
+    --color-secondary-content: oklch(98% 0.01 180);
+    --color-accent: oklch(75% 0.18 80);
+    --color-accent-content: oklch(20% 0.05 80);
+    --color-neutral: oklch(45% 0.03 260);
+    --color-neutral-content: oklch(98% 0.01 260);
+    --color-base-100: oklch(97% 0.01 260);
+    --color-base-200: oklch(93% 0.015 260);
+    --color-base-300: oklch(88% 0.02 260);
+    --color-base-content: oklch(20% 0.05 260);
+}
+
+@plugin "daisyui/theme" {
+    name: "tardis-dark";
+    color-scheme: dark;
+
+    --color-primary: oklch(50% 0.22 280);
+    --color-primary-content: oklch(98% 0.01 280);
+    --color-secondary: oklch(60% 0.18 195);
+    --color-secondary-content: oklch(98% 0.01 195);
+    --color-accent: oklch(72% 0.17 70);
+    --color-accent-content: oklch(20% 0.05 70);
+    --color-neutral: oklch(30% 0.02 260);
+    --color-neutral-content: oklch(95% 0.01 260);
+    --color-base-100: oklch(15% 0.015 260);
+    --color-base-200: oklch(20% 0.02 260);
+    --color-base-300: oklch(28% 0.025 260);
+    --color-base-content: oklch(92% 0.01 260);
+}

@@ -11,6 +11,9 @@ use Tardis\Manager\AssetManager;
 use Tardis\Manager\PluginManager;
 
 test('styles returns HTML with link tag', function () {
+    $hotPath = AssetManager::packageHotPath();
+    @unlink($hotPath);
+
     $manager = app(AssetManager::class);
     $html = $manager->styles();
     expect($html)->toContain('<link rel="stylesheet"');
@@ -77,6 +80,38 @@ test('plugin JS is included when plugin implements JS interface', function () {
     $assetManager = app(AssetManager::class);
     $html = $assetManager->scripts();
     expect($html)->toContain('console.log("test-js");');
+});
+
+test('styles uses Vite dev server URL when hot file exists', function () {
+    $hotPath = AssetManager::packageHotPath();
+    $hotDir = dirname($hotPath);
+
+    if (! is_dir($hotDir)) {
+        mkdir($hotDir, 0755, true);
+    }
+
+    file_put_contents($hotPath, 'http://localhost:5173');
+
+    try {
+        $manager = new AssetManager(app());
+        $html = $manager->styles();
+
+        expect($html)->toContain('http://localhost:5173/resources/css/app.css');
+        expect($html)->not->toContain('vendor/tardis/assets/app.css');
+    } finally {
+        @unlink($hotPath);
+    }
+});
+
+test('styles uses production URL when hot file does not exist', function () {
+    $hotPath = AssetManager::packageHotPath();
+    @unlink($hotPath);
+
+    $manager = new AssetManager(app());
+    $html = $manager->styles();
+
+    expect($html)->toContain('vendor/tardis/assets/app.css');
+    expect($html)->not->toContain('/resources/css/app.css');
 });
 
 test('ThemePlugin styles are included', function () {

@@ -451,6 +451,41 @@ new #[Title('Settings')] #[Layout('tardis::layouts.admin')] class extends Compon
         </div>
     </div>
 
+    <!-- Theme Preview Section -->
+    <div class="card bg-base-100 shadow-sm mb-6" x-data x-show="$store.theme.availableThemes.length > 0">
+        <div class="card-body p-4">
+            <h3 class="card-title text-sm font-semibold flex items-center gap-2">
+                <x-tardis::icon name="paint-brush" class="w-4 h-4" />
+                Available Themes
+                <span class="text-xs text-base-content/40 font-normal" x-text="'(' + $store.theme.availableThemes.length + ')'"></span>
+            </h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 mt-2">
+                <template x-for="theme in $store.theme.availableThemes" :key="theme.name">
+                    <div class="flex items-center gap-3 p-3 rounded-lg bg-base-200">
+                        <div class="flex gap-1">
+                            <template x-for="(color, i) in theme.previewColors" :key="i">
+                                <div
+                                    class="w-6 h-6 rounded-full border border-base-300 shrink-0"
+                                    :style="`background-color: ${color}`"
+                                    :title="color"
+                                ></div>
+                            </template>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <div class="font-medium text-sm truncate" x-text="theme.name"></div>
+                            <div class="flex items-center gap-2 mt-0.5">
+                                <span class="badge badge-ghost badge-xs" x-text="theme.colorScheme"></span>
+                                <template x-if="theme.default">
+                                    <span class="badge badge-primary badge-xs">Default</span>
+                                </template>
+                            </div>
+                        </div>
+                    </div>
+                </template>
+            </div>
+        </div>
+    </div>
+
     <!-- Horizontal Group Tabs (Voyager II style) -->
     @php $filteredGroups = $this->getFilteredGroups(); @endphp
     @if (count($filteredGroups) > 0)
