@@ -79,10 +79,7 @@ new #[Title('Search')] #[Layout('tardis::layouts.admin')] class extends Componen
 }; ?>
 
 <div>
-    <div class="mb-6">
-        <h1 class="text-2xl font-bold">Search</h1>
-        <p class="text-base-content/60 mt-1">Search across all BREADs</p>
-    </div>
+    <x-tardis::page-header title="Search" description="Search across all BREADs" />
 
     <!-- Search Input -->
     <div class="card bg-base-100 shadow-sm mb-6">

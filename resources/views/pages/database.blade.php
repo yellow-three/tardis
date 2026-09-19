@@ -96,10 +96,7 @@ new #[Title('Database Explorer')] #[Layout('tardis::layouts.admin')] class exten
 }; ?>
 
 <div>
-    <div class="mb-6">
-        <h1 class="text-2xl font-bold">Database Explorer</h1>
-        <p class="text-base-content/60 mt-1">Browse database tables and their data</p>
-    </div>
+    <x-tardis::page-header title="Database Explorer" description="Browse database tables and their data" />
 
     @if ($error)
         <div class="alert alert-error mb-4 shadow-sm">

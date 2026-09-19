@@ -3,23 +3,21 @@
     <div class="flex-1 min-w-0 space-y-4">
 
         {{-- Header: Title & Buttons --}}
-        <header class="flex justify-between items-center">
-            <div>
-                <h1 class="text-3xl font-extrabold tracking-tight">Media Library</h1>
-                <p class="text-base-content/60 text-sm mt-1">Manage your media files</p>
-            </div>
-            <div class="flex gap-2">
-                <button wire:click="$set('showNewDirModal', true)" class="btn btn-outline gap-2 shadow-sm">
-                    <x-tardis::icon name="folder" class="w-4 h-4" />
-                    Create folder
-                </button>
-                <label class="btn btn-primary gap-2 shadow-sm cursor-pointer">
-                    <x-tardis::icon name="plus" class="w-4 h-4" />
-                    Upload
-                    <input type="file" wire:model.live="newUploads" class="hidden" multiple />
-                </label>
-            </div>
-        </header>
+        <x-tardis::page-header title="Media Library" description="Manage your media files">
+            <x-slot:action>
+                <div class="flex gap-2">
+                    <button wire:click="$set('showNewDirModal', true)" class="btn btn-outline gap-2 shadow-sm">
+                        <x-tardis::icon name="folder" class="w-4 h-4" />
+                        Create folder
+                    </button>
+                    <label class="btn btn-primary gap-2 shadow-sm cursor-pointer">
+                        <x-tardis::icon name="plus" class="w-4 h-4" />
+                        Upload
+                        <input type="file" wire:model.live="newUploads" class="hidden" multiple />
+                    </label>
+                </div>
+            </x-slot:action>
+        </x-tardis::page-header>
 
         {{-- Session Messages --}}
         @if (session('message'))

@@ -169,6 +169,12 @@ class MenuItem
     {
         if ($this->routeName) {
             if ($this->activeMode === 'prefix') {
+                $prefixRoute = $this->getParentRoute();
+
+                if ($prefixRoute && request()->routeIs($prefixRoute.'.*')) {
+                    return true;
+                }
+
                 return request()->routeIs($this->routeName.'*');
             }
 

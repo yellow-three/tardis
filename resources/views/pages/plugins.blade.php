@@ -60,12 +60,10 @@ $typeLabels = [
 @endphp
 
 <div>
-    <div class="mb-6">
-        <h1 class="text-2xl font-bold">Plugin Manager</h1>
-        <p class="text-base-content/60 mt-1">
-            {{ count($plugins) }} plugin(s) registered · {{ $enabledCount }} enabled
-        </p>
-    </div>
+    <x-tardis::page-header
+        title="Plugin Manager"
+        :description="count($plugins) . ' plugin(s) registered · ' . $enabledCount . ' enabled'"
+    />
 
     @if (empty($plugins))
         <div class="card bg-base-100 shadow">

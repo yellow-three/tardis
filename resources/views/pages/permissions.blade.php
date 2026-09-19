@@ -67,16 +67,14 @@ new #[Title('Permissions')] #[Layout('tardis::layouts.admin')] class extends Com
 }; ?>
 
 <div>
-    <div class="flex items-center justify-between mb-6">
-        <div>
-            <h1 class="text-2xl font-bold">Permissions</h1>
-            <p class="text-base-content/60 mt-1">Manage system permissions</p>
-        </div>
-        <button wire:click="$set('showAddModal', true)" class="btn btn-primary gap-2">
-            <x-tardis::icon name="plus" class="w-4 h-4" />
-            Add Permission
-        </button>
-    </div>
+    <x-tardis::page-header title="Permissions" description="Manage system permissions">
+        <x-slot:action>
+            <button wire:click="$set('showAddModal', true)" class="btn btn-primary gap-2">
+                <x-tardis::icon name="plus" class="w-4 h-4" />
+                Add Permission
+            </button>
+        </x-slot:action>
+    </x-tardis::page-header>
 
     <div class="card bg-base-100 shadow-sm">
         <div class="overflow-x-auto">

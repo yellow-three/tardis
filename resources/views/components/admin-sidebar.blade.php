@@ -19,11 +19,25 @@
             </div>
         </div>
 
-        <ul class="menu menu-md w-full px-2 py-4 gap-1 flex-1 overflow-y-auto is-drawer-close:overflow-visible">
-            @foreach ($items as $item)
-                @include('tardis::partials.menu-item', ['item' => $item, 'level' => 0])
+        <div class="flex-1 overflow-y-auto px-2 py-4 is-drawer-close:overflow-visible">
+            @php
+                $sections = $items->groupBy(fn ($item) => $item->section ?? 'General');
+            @endphp
+
+            @foreach ($sections as $sectionName => $sectionItems)
+                @if ($sectionName !== 'General')
+                    <div class="mb-3 px-2 pt-2">
+                        <p class="text-[10px] font-semibold uppercase tracking-[0.18em] text-base-content/40">{{ $sectionName }}</p>
+                    </div>
+                @endif
+
+                <ul class="menu menu-md w-full gap-1 mb-2">
+                    @foreach ($sectionItems as $item)
+                        @include('tardis::partials.menu-item', ['item' => $item, 'level' => 0])
+                    @endforeach
+                </ul>
             @endforeach
-        </ul>
+        </div>
 
         {{-- Alt kullanıcı kartı --}}
         <div class="border-t border-base-300 p-2">

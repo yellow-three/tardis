@@ -1,7 +1,6 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use Tardis\Http\Controllers\BreadController;
 
 Route::middleware(['web'])
     ->prefix(config('tardis.admin.prefix', 'admin'))
@@ -36,19 +35,8 @@ Route::middleware(['web', 'tardis.admin'])
         Route::livewire('/bread/create', 'tardis::pages.bread-builder')->name('bread.create');
         Route::livewire('/bread/{slug}/edit', 'tardis::pages.bread-builder')->name('bread.edit');
 
-        // BREAD CRUD Routes
-        Route::get('/{slug}', [BreadController::class, 'browse'])->name('bread.index');
-        Route::get('/{slug}/create', [BreadController::class, 'add'])->name('bread.add');
-        Route::post('/{slug}', [BreadController::class, 'store'])->name('bread.store');
-        Route::get('/{slug}/{id}', [BreadController::class, 'read'])->name('bread.read');
-        Route::get('/{slug}/{id}/edit', [BreadController::class, 'edit'])->name('bread.edit.item');
-        Route::put('/{slug}/{id}', [BreadController::class, 'update'])->name('bread.update');
-        Route::delete('/{slug}/{id}', [BreadController::class, 'destroy'])->name('bread.destroy');
-        Route::post('/{slug}/backup', [BreadController::class, 'backup'])->name('bread.backup');
-        Route::post('/{slug}/restore', [BreadController::class, 'restore'])->name('bread.restore');
-
-        Route::livewire('/{slug}/create', 'tardis::pages.bread.create')->name('bread.create');
-        Route::livewire('/{slug}/{id}/read', 'tardis::pages.bread.read')->name('bread.read');
-        Route::livewire('/{slug}/{id}/edit', 'tardis::pages.bread.edit')->name('bread.edit');
         Route::livewire('/{slug}', 'tardis::pages.bread.index')->name('bread.index');
+        Route::livewire('/{slug}/create', 'tardis::pages.bread.create')->name('bread.add');
+        Route::livewire('/{slug}/{id}', 'tardis::pages.bread.read')->name('bread.read');
+        Route::livewire('/{slug}/{id}/edit', 'tardis::pages.bread.edit')->name('bread.edit.item');
     });

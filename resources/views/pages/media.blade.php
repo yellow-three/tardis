@@ -79,10 +79,10 @@ new #[Title('Media')] #[Layout('tardis::layouts.admin')] class extends Component
         </div>
     @endif
 
+    <x-tardis::page-header title="Media" description="Upload and manage media files" />
+
     <div class="card bg-base-100 shadow-xl mb-6">
         <div class="card-body">
-            <h2 class="card-title text-2xl mb-2">Media</h2>
-            <p class="text-sm opacity-70 mb-4">Upload and manage media files</p>
 
             <form wire:submit="upload" class="flex flex-col gap-4">
                 <div class="form-control">
