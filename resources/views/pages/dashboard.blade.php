@@ -55,10 +55,7 @@ new #[Title('Dashboard')] #[Layout('tardis::layouts.admin')] class extends Compo
 }; ?>
 
 <div>
-    <div class="mb-6">
-        <h1 class="text-2xl font-bold">Dashboard</h1>
-        <p class="text-base-content/60 mt-1">Welcome to TARDIS Admin</p>
-    </div>
+    <x-tardis::page-header title="Dashboard" description="Welcome to TARDIS Admin" />
 
     <!-- Stats Cards -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">

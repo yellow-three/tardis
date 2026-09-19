@@ -26,3 +26,7 @@ Thumbs.db
 /.claude
 /ai
 /dist
+/public/tardis-assets
+graphify-out
+resources/hot
+.opencode

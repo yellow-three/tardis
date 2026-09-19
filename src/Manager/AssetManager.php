@@ -19,6 +19,38 @@ class AssetManager
         private Application $app
     ) {}
 
+    private function isViteDevMode(): bool
+    {
+        return file_exists(self::packageHotPath());
+    }
+
+    private function viteDevUrl(): string
+    {
+        return rtrim((string) file_get_contents(self::packageHotPath()), '/');
+    }
+
+    /**
+     * Path to the hot file created by Vite in the package's own resources/ directory.
+     * Using resource_path() would resolve to the HOST app's resources/hot, which is wrong
+     * because the Vite dev server runs from the package directory.
+     */
+    public static function packageHotPath(): string
+    {
+        return dirname(__DIR__, 2).'/resources/hot';
+    }
+
+    /**
+     * Path to the themes manifest in the package's own public/ directory.
+     * In dev mode the Vite plugin writes the manifest here AND serves it via
+     * middleware, so PHP can always read it from disk without needing to make
+     * an HTTP request to the Vite dev server (which may not be reachable from
+     * within Docker / Lerd).
+     */
+    public static function packageManifestPath(): string
+    {
+        return dirname(__DIR__, 2).'/public/tardis-assets/themes-manifest.json';
+    }
+
     public function styles(): string
     {
         if ($this->stylesRendered) {
@@ -29,7 +61,12 @@ class AssetManager
         $html = '<!-- TARDIS Styles -->'.PHP_EOL;
 
         // 1. Main CSS asset
-        $html .= '<link rel="stylesheet" href="'.asset('vendor/tardis/assets/app.css').'">'.PHP_EOL;
+        if ($this->isViteDevMode()) {
+            $cssUrl = $this->viteDevUrl().'/resources/css/app.css';
+        } else {
+            $cssUrl = asset('vendor/tardis/assets/app.css');
+        }
+        $html .= '<link rel="stylesheet" href="'.$cssUrl.'">'.PHP_EOL;
 
         // 2. Plugin CSS providers (CSS interface)
         foreach ($this->plugins()->enabledWith(CSS::class) as $plugin) {

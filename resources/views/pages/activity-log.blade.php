@@ -106,10 +106,7 @@ new #[Title('Activity Log')] #[Layout('tardis::layouts.admin')] class extends Co
 }; ?>
 
 <div>
-    <div class="mb-6">
-        <h1 class="text-2xl font-bold">Activity Log</h1>
-        <p class="text-base-content/60 mt-1">Track all system activities</p>
-    </div>
+    <x-tardis::page-header title="Activity Log" description="Track all system activities" />
 
     <!-- Filters -->
     <div class="card bg-base-100 shadow-sm mb-6">

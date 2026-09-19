@@ -33,12 +33,44 @@
 
     @tardisScripts
 
+    @php
+        $hotPath = \Tardis\Manager\AssetManager::packageHotPath();
+        $manifestThemes = [];
+
+        if (file_exists($hotPath)) {
+            // Dev mode — try Vite dev server, fallback to package disk
+            $viteUrl = rtrim((string) file_get_contents($hotPath), '/');
+            $manifestJson = @file_get_contents($viteUrl.'/tardis-assets/themes-manifest.json');
+            if ($manifestJson === false) {
+                $packageManifest = \Tardis\Manager\AssetManager::packageManifestPath();
+                if (file_exists($packageManifest)) {
+                    $manifestJson = file_get_contents($packageManifest);
+                }
+            }
+            if ($manifestJson !== false) {
+                $manifestData = json_decode($manifestJson, true);
+                $manifestThemes = $manifestData['themes'] ?? [];
+            }
+        } else {
+            // Production — read from disk
+            $manifestPath = public_path('tardis-assets/themes-manifest.json');
+            if (file_exists($manifestPath)) {
+                $manifestData = json_decode(file_get_contents($manifestPath), true);
+                $manifestThemes = $manifestData['themes'] ?? [];
+            }
+        }
+    @endphp
+
+    <script>
+        window.__TARDIS_THEMES__ = @json($manifestThemes);
+    </script>
+
     <script>
         document.addEventListener('alpine:init', () => {
             Alpine.store('theme', {
                 mode: localStorage.getItem('tardis-theme-mode') || 'dark',
-                light: localStorage.getItem('tardis-theme-light') || 'winter',
-                dark: localStorage.getItem('tardis-theme-dark') || 'dark',
+                light: localStorage.getItem('tardis-theme-light') || (window.__TARDIS_THEMES__?.find(t => t.colorScheme === 'light')?.name || 'winter'),
+                dark: localStorage.getItem('tardis-theme-dark') || (window.__TARDIS_THEMES__?.find(t => t.colorScheme === 'dark')?.name || 'dark'),
 
                 get applied() {
                     if (this.mode === 'system') {
@@ -46,6 +78,18 @@
                     }
 
                     return this.mode === 'dark' ? this.dark : this.light
+                },
+
+                get availableThemes() {
+                    return window.__TARDIS_THEMES__ || [];
+                },
+
+                get lightThemes() {
+                    return this.availableThemes.filter(t => t.colorScheme === 'light');
+                },
+
+                get darkThemes() {
+                    return this.availableThemes.filter(t => t.colorScheme === 'dark');
                 },
 
                 init() {

@@ -53,28 +53,39 @@ class MenuManager
         $this->addItems(
             (new MenuItem('Dashboard', 'heroicon-o-home'))
                 ->route('tardis.dashboard')
+                ->section('Overview')
                 ->order(0),
             (new MenuItem('Media', 'heroicon-o-photo'))
                 ->route('tardis.media')
+                ->section('Overview')
+                ->activeMode('prefix')
                 ->order(10),
             (new MenuItem('UI Components', 'heroicon-o-squares-2x2'))
                 ->route('tardis.ui-components')
+                ->section('Overview')
                 ->order(20),
             (new MenuItem('Settings', 'heroicon-o-cog-6-tooth'))
                 ->route('tardis.settings.index')
+                ->section('Management')
+                ->activeMode('prefix')
                 ->order(30),
             (new MenuItem('Plugins', 'heroicon-o-puzzle-piece'))
                 ->route('tardis.plugins.index')
+                ->section('Management')
                 ->order(40),
             (new MenuItem('BREAD', 'heroicon-o-table-cells'))
                 ->route('tardis.bread.manage')
+                ->section('Management')
+                ->activeMode('prefix')
                 ->order(50),
             MenuItem::makeDivider(),
             (new MenuItem('Permissions', 'heroicon-o-lock-closed'))
                 ->route('tardis.permissions')
+                ->section('Access')
                 ->order(60),
             (new MenuItem('Roles', 'heroicon-o-user-group'))
                 ->route('tardis.roles')
+                ->section('Access')
                 ->order(70),
         );
 
