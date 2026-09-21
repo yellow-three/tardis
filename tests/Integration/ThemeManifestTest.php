@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-$manifestPath = dirname(__DIR__, 2) . '/public/tardis-assets/themes-manifest.json';
+$manifestPath = dirname(__DIR__, 2).'/public/tardis-assets/themes-manifest.json';
 
 test('theme manifest file exists', function () use ($manifestPath) {
     expect(file_exists($manifestPath))->toBeTrue();

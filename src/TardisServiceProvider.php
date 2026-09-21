@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tardis;
 
 use Illuminate\Support\Facades\Blade;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\ServiceProvider;
 use Livewire\Livewire;
 use Tardis\Bread\Sources\DatabaseBreadSource;
@@ -39,7 +40,7 @@ class TardisServiceProvider extends ServiceProvider
         $this->app->singleton(AssetManager::class);
 
         $this->app->singleton(ThemeManager::class, function ($app) {
-            $manager = new ThemeManager();
+            $manager = new ThemeManager;
 
             $hotPath = AssetManager::packageHotPath();
 
@@ -55,7 +56,7 @@ class TardisServiceProvider extends ServiceProvider
                         try {
                             $manager->loadManifest($packageManifest);
                         } catch (\Throwable $e2) {
-                            \Illuminate\Support\Facades\Log::debug(
+                            Log::debug(
                                 'Vite dev manifest (disk fallback) not available: '.$e2->getMessage()
                             );
                         }
@@ -72,7 +73,7 @@ class TardisServiceProvider extends ServiceProvider
                     try {
                         $manager->loadManifest($manifestPath);
                     } catch (\Throwable $e) {
-                        \Illuminate\Support\Facades\Log::warning(
+                        Log::warning(
                             'Failed to load theme manifest: '.$e->getMessage()
                         );
                     }
