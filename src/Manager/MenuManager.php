@@ -95,7 +95,7 @@ class MenuManager
                 ->route('profile.edit')
                 ->order(0),
             (new UserMenuItem('Logout', 'heroicon-o-arrow-left-on-rectangle'))
-                ->url('#')
+                ->route('tardis.logout')
                 ->method('POST')
                 ->divider()
                 ->order(100),

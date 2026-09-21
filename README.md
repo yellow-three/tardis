@@ -21,6 +21,15 @@ Publish the package configuration if needed:
 php artisan vendor:publish --tag=tardis-config
 ```
 
+Publish the compiled admin assets and theme manifest as well:
+
+```bash
+php artisan vendor:publish --tag=tardis-assets --force
+php artisan vendor:publish --tag=tardis-themes-assets --force
+```
+
+Run these commands again after rebuilding the package assets with `npm run build`.
+
 ## Current architecture
 
 The package follows the Livewire 4 page-first pattern:
