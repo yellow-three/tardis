@@ -1,5 +1,6 @@
 <?php
 
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['web'])
@@ -25,6 +26,13 @@ Route::middleware(['web', 'tardis.admin'])
         Route::livewire('/settings', 'tardis::pages.settings')->name('settings.index');
 
         Route::livewire('/search', 'tardis::pages.search')->name('search');
+        Route::post('/logout', function () {
+            Auth::logout();
+            request()->session()->invalidate();
+            request()->session()->regenerateToken();
+
+            return redirect()->route('tardis.login');
+        })->name('logout');
 
         Route::livewire('/permissions', 'tardis::pages.permissions')->name('permissions');
         Route::livewire('/roles', 'tardis::pages.roles')->name('roles');

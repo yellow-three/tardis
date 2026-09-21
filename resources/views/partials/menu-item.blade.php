@@ -17,9 +17,9 @@
         <details {{ $isExpanded ? 'open' : '' }}>
             <summary class="{{ $isActive ? 'active' : '' }} flex items-center gap-2 is-drawer-close:tooltip is-drawer-close:tooltip-right is-drawer-close:after:hidden" data-tip="{{ $item->title }}">
                 @if ($item->icon)
-                    <x-dynamic-component :component="$item->icon" class="w-5 h-5 flex-shrink-0" />
+                    <x-dynamic-component :component="$item->icon" class="w-5 h-5 shrink-0" />
                 @endif
-                <span class="is-drawer-open:hidden flex items-center gap-2 flex-1 min-w-0">
+                <span class="tardis-sidebar-label flex items-center gap-2 flex-1 min-w-0">
                     <span class="truncate">{{ $item->title }}</span>
                     @if ($item->badgeColor)
                         <span class="badge badge-{{ $item->badgeColor }} badge-sm ml-auto">
@@ -37,9 +37,9 @@
     @else
         <a href="{{ $item->href() }}" wire:navigate class="{{ $isActive ? 'active' : '' }} flex items-center gap-2 is-drawer-close:tooltip is-drawer-close:tooltip-right" data-tip="{{ $item->title }}">
             @if ($item->icon)
-                <x-dynamic-component :component="$item->icon" class="w-5 h-5 flex-shrink-0" />
+                <x-dynamic-component :component="$item->icon" class="w-5 h-5 shrink-0" />
             @endif
-            <span class="is-drawer-open:hidden flex items-center gap-2 flex-1 min-w-0">
+            <span class="tardis-sidebar-label flex items-center gap-2 flex-1 min-w-0">
                 <span class="truncate">{{ $item->title }}</span>
                 @if ($item->badgeColor)
                     <span class="badge badge-{{ $item->badgeColor }} badge-sm ml-auto">

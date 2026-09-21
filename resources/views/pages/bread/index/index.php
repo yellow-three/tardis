@@ -4,6 +4,7 @@ use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
 use Tardis\Bread\Repositories\JsonBreadRepository;
+use Tardis\Events\BreadDeleted;
 
 new #[Title('BREAD')] #[Layout('tardis::layouts.admin')] class extends Component
 {
@@ -62,5 +63,20 @@ new #[Title('BREAD')] #[Layout('tardis::layouts.admin')] class extends Component
     public function getCreateUrlProperty(): string
     {
         return url(trim(config('tardis.admin.prefix', 'admin'), '/').'/'.$this->slug.'/create');
+    }
+
+    public function delete(int|string $id): void
+    {
+        $model = $this->bread['model'] ?? null;
+
+        if (! $model || ! class_exists($model)) {
+            abort(404);
+        }
+
+        $item = $model::findOrFail($id);
+        $item->delete();
+
+        BreadDeleted::dispatch($this->slug, $item);
+        session()->flash('message', 'Item deleted successfully.');
     }
 };
