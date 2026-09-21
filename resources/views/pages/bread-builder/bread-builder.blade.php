@@ -77,8 +77,8 @@
                                         <td class="font-medium">{{ $field['label'] }}</td>
                                         <td>
                                             <select wire:model="fieldConfig.{{ $key }}.type" class="select select-bordered select-xs">
-                                                @foreach (\Tardis\Classes\Setting::availableTypes() as $type => $label)
-                                                    <option value="{{ $type }}">{{ $label }}</option>
+                                                @foreach (\Tardis\Bread\FieldType::cases() as $fieldType)
+                                                    <option value="{{ $fieldType->value }}">{{ Str::headline($fieldType->value) }}</option>
                                                 @endforeach
                                             </select>
                                         </td>

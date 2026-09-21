@@ -69,10 +69,15 @@ new #[Title('BREAD Builder')] #[Layout('tardis::layouts.admin')] class extends C
                 $this->icon = $bread->icon;
                 $this->description = $bread->description;
                 $this->fieldConfig = $bread->fields;
-                $this->searchKey = $bread->searchKey;
-                $this->orderColumn = $bread->orderColumn;
-                $this->orderDirection = $bread->orderDirection;
+                $this->relationshipConfig = $bread->relationships;
+                $this->searchKey = $bread->searchKey ?? '';
+                $this->orderColumn = $bread->orderColumn ?? null;
+                $this->orderDirection = $bread->orderDirection ?? 'asc';
+                $this->softDelete = $bread->softDelete;
+                $this->browseColumns = $bread->layout['browse'] ?? [];
+                $this->editTabs = $bread->layout['edit'] ?? [];
                 $this->step = 3;
+                $this->activeTab = 'general';
             }
         }
     }
@@ -94,7 +99,7 @@ new #[Title('BREAD Builder')] #[Layout('tardis::layouts.admin')] class extends C
         $this->detectedRelationships = ModelReflector::getRelationships(new $this->model);
         $this->relationshipConfig = $this->detectedRelationships;
         $this->name = class_basename($this->model);
-        $this->namePlural = Str::headline(Str::plural($this->model));
+        $this->namePlural = Str::headline(Str::plural(class_basename($this->model)));
 
         $this->step = 2;
     }
@@ -102,6 +107,11 @@ new #[Title('BREAD Builder')] #[Layout('tardis::layouts.admin')] class extends C
     public function goToStep(int $step): void
     {
         $this->step = $step;
+
+        // Step 3 (Configure) keeps its own tab set; 'fields' belongs to step 2.
+        if ($step === 3) {
+            $this->activeTab = 'general';
+        }
     }
 
     public function save(): void

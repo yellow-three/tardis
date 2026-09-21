@@ -37,7 +37,7 @@ class ModelReflector
         $fields = [];
 
         foreach ($analysis['fillable'] as $field) {
-            $type = self::guessFieldType($field, $analysis['casts']);
+            $type = FieldType::normalize(self::guessFieldType($field, $analysis['casts']));
 
             $fields[$field] = [
                 'name' => $field,
@@ -96,7 +96,7 @@ class ModelReflector
         return $scopes;
     }
 
-    protected static function getRelationships(Model $model): array
+    public static function getRelationships(Model $model): array
     {
         $relationships = [];
         $methods = get_class_methods($model);
