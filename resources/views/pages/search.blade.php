@@ -3,7 +3,7 @@
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
-use Tardis\Bread\Repositories\JsonBreadRepository;
+use Tardis\Bread\BreadManager;
 
 new #[Title('Search')] #[Layout('tardis::layouts.admin')] class extends Component
 {
@@ -41,7 +41,7 @@ new #[Title('Search')] #[Layout('tardis::layouts.admin')] class extends Componen
             return;
         }
 
-        $repo = app(JsonBreadRepository::class);
+        $repo = app(BreadManager::class);
         $breads = $repo->all();
         $this->results = [];
 

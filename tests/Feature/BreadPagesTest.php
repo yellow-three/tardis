@@ -8,8 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Schema;
 use Livewire\Livewire;
-use Tardis\Bread\BreadDefinition;
-use Tardis\Bread\Repositories\JsonBreadRepository;
+use Tardis\Bread\Sources\ConfigBreadSource;
 use Tardis\Classes\MenuItem;
 
 class BreadPageTestModel extends Model
@@ -43,19 +42,7 @@ test('bread index page renders records from a configured model', function () {
         'content' => 'Data content',
     ]);
 
-    app(JsonBreadRepository::class)->save(BreadDefinition::fromArray([
-        'slug' => 'bread-page-posts',
-        'model' => BreadPageTestModel::class,
-        'name' => 'Post',
-        'name_plural' => 'Posts',
-        'fields' => [
-            ['name' => 'title', 'type' => 'text', 'label' => 'Title', 'browse' => true, 'read' => true, 'edit' => true, 'add' => true, 'validation' => ['required']],
-            ['name' => 'content', 'type' => 'textarea', 'label' => 'Content', 'browse' => false, 'read' => true, 'edit' => true, 'add' => true, 'validation' => ['nullable']],
-        ],
-        'search_key' => 'title',
-        'order_column' => 'created_at',
-        'order_direction' => 'desc',
-    ]));
+    app()->instance(ConfigBreadSource::class, new ConfigBreadSource(__DIR__.'/../Fixtures/bread'));
 
     Livewire::test('tardis::pages.bread.index', ['slug' => 'bread-page-posts'])
         ->assertSee('Posts')
@@ -70,16 +57,7 @@ test('bread create page can save a record', function () {
         $table->timestamps();
     });
 
-    app(JsonBreadRepository::class)->save(BreadDefinition::fromArray([
-        'slug' => 'bread-page-posts-create',
-        'model' => BreadPageCreateTestModel::class,
-        'name' => 'Post',
-        'name_plural' => 'Posts',
-        'fields' => [
-            ['name' => 'title', 'type' => 'text', 'label' => 'Title', 'browse' => true, 'read' => true, 'edit' => true, 'add' => true, 'validation' => ['required']],
-            ['name' => 'content', 'type' => 'textarea', 'label' => 'Content', 'browse' => false, 'read' => true, 'edit' => true, 'add' => true, 'validation' => ['nullable']],
-        ],
-    ]));
+    app()->instance(ConfigBreadSource::class, new ConfigBreadSource(__DIR__.'/../Fixtures/bread'));
 
     Livewire::test('tardis::pages.bread.create', ['slug' => 'bread-page-posts-create'])
         ->set('form.title', 'New title')

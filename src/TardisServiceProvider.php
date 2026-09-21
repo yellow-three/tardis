@@ -8,8 +8,8 @@ use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\ServiceProvider;
 use Livewire\Livewire;
-use Tardis\Bread\Sources\DatabaseBreadSource;
-use Tardis\Bread\Sources\JsonBreadSource;
+use Tardis\Bread\Sources\ConfigBreadSource;
+use Tardis\Commands\TardisMakeBreadCommand;
 use Tardis\Commands\TardisMakePluginCommand;
 use Tardis\Http\Middleware\AdminMiddleware;
 use Tardis\Manager\AssetManager;
@@ -199,12 +199,8 @@ class TardisServiceProvider extends ServiceProvider
             return new Tardis;
         });
 
-        $this->app->singleton(JsonBreadSource::class, function () {
-            return new JsonBreadSource(storage_path('tardis/bread'));
-        });
-
-        $this->app->singleton(DatabaseBreadSource::class, function () {
-            return new DatabaseBreadSource;
+        $this->app->singleton(ConfigBreadSource::class, function () {
+            return new ConfigBreadSource(config_path('bread'));
         });
     }
 
@@ -218,6 +214,7 @@ class TardisServiceProvider extends ServiceProvider
     {
         if ($this->app->runningInConsole()) {
             $this->commands([
+                TardisMakeBreadCommand::class,
                 TardisMakePluginCommand::class,
             ]);
         }

@@ -88,7 +88,14 @@ new #[Title('Database Explorer')] #[Layout('tardis::layouts.admin')] class exten
     {
         try {
             $connection = config('database.default');
-            $this->tables = Schema::connection($connection)->getTables();
+
+            // MySQL/MariaDB users typically see every database on the server, so
+            // schema-scope the listing to the database we are actually connected to.
+            // Other drivers (e.g. sqlite tests) rely on schema-less getTables().
+            $driver = DB::connection($connection)->getDriverName();
+            $this->tables = in_array($driver, ['mysql', 'mariadb'], true)
+                ? Schema::connection($connection)->getTables(DB::connection($connection)->getDatabaseName())
+                : Schema::connection($connection)->getTables();
         } catch (Throwable $e) {
             $this->error = 'Could not load tables: '.$e->getMessage();
             $this->tables = [];

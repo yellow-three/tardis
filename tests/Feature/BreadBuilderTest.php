@@ -121,3 +121,21 @@ test('goToStep resets the active tab when entering the configure step', function
         ->call('goToStep', 3)
         ->assertSet('activeTab', 'general');
 });
+
+test('step 1 model select uses a live change binding so the next button enables on selection', function () {
+    // Livewire v4 defaults wire:model to a deferred update. Without .live the
+    // model is only sent to the server on the next action, so the server-side
+    // `empty($model)` check would keep the Next button disabled forever.
+    Livewire::test('tardis::pages.bread-builder')
+        ->assertSee('Step 1: Select Model')
+        ->assertSeeHtml('wire:model.change.live="model"');
+});
+
+test('step 1 next button is disabled until a model is selected', function () {
+    $button = '<button wire:click="detectFields" class="btn btn-primary" disabled';
+
+    Livewire::test('tardis::pages.bread-builder')
+        ->assertSeeHtml($button)
+        ->set('model', BreadBuilderTestModel::class)
+        ->assertDontSeeHtml($button);
+});

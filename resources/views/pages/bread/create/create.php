@@ -3,7 +3,7 @@
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
-use Tardis\Bread\Repositories\JsonBreadRepository;
+use Tardis\Bread\BreadManager;
 
 new #[Title('Create')] #[Layout('tardis::layouts.admin')] class extends Component
 {
@@ -16,7 +16,7 @@ new #[Title('Create')] #[Layout('tardis::layouts.admin')] class extends Componen
     public function mount(string $slug): void
     {
         $this->slug = $slug;
-        $definition = app(JsonBreadRepository::class)->find($slug);
+        $definition = app(BreadManager::class)->find($slug);
 
         if (! $definition) {
             abort(404);

@@ -4,8 +4,8 @@ use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
 use Tardis\Bread\BreadDefinition;
+use Tardis\Bread\BreadManager;
 use Tardis\Bread\ModelReflector;
-use Tardis\Bread\Repositories\JsonBreadRepository;
 
 new #[Title('BREAD Builder')] #[Layout('tardis::layouts.admin')] class extends Component
 {
@@ -56,7 +56,7 @@ new #[Title('BREAD Builder')] #[Layout('tardis::layouts.admin')] class extends C
     public function mount(?string $slug = null): void
     {
         if ($slug) {
-            $repo = app(JsonBreadRepository::class);
+            $repo = app(BreadManager::class);
             $bread = $repo->find($slug);
 
             if ($bread) {
@@ -140,7 +140,7 @@ new #[Title('BREAD Builder')] #[Layout('tardis::layouts.admin')] class extends C
             ],
         ]);
 
-        $repo = app(JsonBreadRepository::class);
+        $repo = app(BreadManager::class);
         $repo->save($bread);
 
         session()->flash('message', 'BREAD definition saved successfully.');

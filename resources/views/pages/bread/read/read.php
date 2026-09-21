@@ -3,7 +3,7 @@
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
-use Tardis\Bread\Repositories\JsonBreadRepository;
+use Tardis\Bread\BreadManager;
 
 new #[Title('View')] #[Layout('tardis::layouts.admin')] class extends Component
 {
@@ -19,7 +19,7 @@ new #[Title('View')] #[Layout('tardis::layouts.admin')] class extends Component
     {
         $this->slug = $slug;
         $this->id = $id;
-        $definition = app(JsonBreadRepository::class)->find($slug);
+        $definition = app(BreadManager::class)->find($slug);
 
         if (! $definition) {
             abort(404);

@@ -29,7 +29,7 @@
                     <label class="label">
                         <span class="label-text">Model Class</span>
                     </label>
-                    <select wire:model="model" class="select select-bordered w-full">
+                    <select wire:model.change.live="model" class="select select-bordered w-full">
                         <option value="">Select a model...</option>
                         @foreach ($this->getModelOptions() as $class => $name)
                             <option value="{{ $class }}">{{ $name }}</option>

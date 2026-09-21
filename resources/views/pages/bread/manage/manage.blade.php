@@ -36,9 +36,9 @@
                     <tbody>
                         @foreach ($this->breads as $slug => $bread)
                             <tr>
-                                <td class="font-semibold">{{ $bread['name'] ?? $slug }}</td>
+                                <td class="font-semibold">{{ $bread->name ?? $slug }}</td>
                                 <td><code class="badge badge-ghost badge-sm">{{ $slug }}</code></td>
-                                <td><span class="badge badge-info badge-sm">{{ $bread['source'] ?? 'unknown' }}</span></td>
+                                <td><span class="badge badge-info badge-sm">config</span></td>
                                 <td class="text-right">
                                     <a href="{{ route('tardis.bread.index', ['slug' => $slug]) }}" class="btn btn-ghost btn-sm">
                                         Browse
