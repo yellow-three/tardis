@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Tardis;
 
-use Tardis\Manager\BreadManager;
+use Tardis\Bread\BreadManager;
 use Tardis\Manager\FormfieldManager;
 use Tardis\Manager\MenuManager;
 use Tardis\Manager\PluginManager;
@@ -52,7 +52,7 @@ class Tardis
 
     public function bread(): BreadManager
     {
-        return $this->breadManager ??= new BreadManager;
+        return $this->breadManager ??= app(BreadManager::class);
     }
 
     public static function version(): string

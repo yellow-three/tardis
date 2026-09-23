@@ -1,17 +1,25 @@
 # Example BREAD Definition
 
-This example shows how to register a dynamic BREAD resource for a `Post` model.
+A BREAD definition is a plain PHP config file under `config/bread/{slug}.php`. This example registers a dynamic BREAD resource for a `Post` model.
+
+## Generate from a model
+
+```bash
+php artisan tardis:make-bread "App\Models\Post"
+```
+
+This writes `config/bread/posts.php` with fields detected from the model.
+
+## Or write it by hand
+
+`config/bread/posts.php`:
 
 ```php
 <?php
 
-use App\Models\Post;
-use Tardis\Bread\BreadDefinition;
-use Tardis\Bread\Repositories\JsonBreadRepository;
-
-$bread = BreadDefinition::fromArray([
+return [
     'slug' => 'posts',
-    'model' => Post::class,
+    'model' => App\Models\Post::class,
     'name' => 'Post',
     'name_plural' => 'Posts',
     'description' => 'Blog posts managed from the admin panel.',
@@ -72,14 +80,21 @@ $bread = BreadDefinition::fromArray([
         'slug' => 'required|string|max:255|unique:posts,slug',
         'content' => 'required|string',
     ],
-]);
+];
+```
 
-app(JsonBreadRepository::class)->save($bread);
+## Reading definitions
+
+```php
+use Tardis\Bread\BreadManager;
+
+app(BreadManager::class)->find('posts'); // ?BreadDefinition
+app(BreadManager::class)->all();         // Collection of BreadDefinition
 ```
 
 ## Result
 
-This registers the `posts` resource and allows the Tardis admin to render:
+The `posts` config file registers the BREAD resource and allows the Tardis admin to render:
 
 - list view
 - create form
@@ -87,7 +102,7 @@ This registers the `posts` resource and allows the Tardis admin to render:
 - edit form
 - delete action
 
-The URL pattern will follow the admin route family:
+The URL pattern follows the admin route family:
 
 - `/admin/posts`
 - `/admin/posts/create`

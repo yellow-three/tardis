@@ -3,49 +3,29 @@
 namespace Tardis\Bread;
 
 use Illuminate\Support\Collection;
-use Tardis\Bread\Sources\BreadSource;
-use Tardis\Bread\Sources\DatabaseBreadSource;
-use Tardis\Bread\Sources\JsonBreadSource;
+use Tardis\Bread\Sources\ConfigBreadSource;
 
 class BreadManager
 {
     public function __construct(
-        protected JsonBreadSource $json,
-        protected DatabaseBreadSource $database,
+        protected ConfigBreadSource $config,
     ) {}
 
-    public function source(string $slug): BreadSource
+    /**
+     * @param  array<string, mixed>|BreadDefinition  $bread
+     */
+    public function save(array|BreadDefinition $bread): void
     {
-        return ($this->json->find($slug) !== null) ? $this->json : $this->database;
+        $this->config->save($bread);
     }
 
-    public function find(string $slug): ?array
+    public function find(string $slug): ?BreadDefinition
     {
-        return $this->json->find($slug)
-            ?? $this->database->find($slug);
+        return $this->config->find($slug);
     }
 
     public function all(): Collection
     {
-        $fromJson = $this->json->all();
-        $fromDb = $this->database->all()
-            ->reject(fn ($b, $slug) => $fromJson->has($slug));
-
-        return $fromJson->merge($fromDb);
-    }
-
-    public function save(array $bread): void
-    {
-        $this->json->save($bread);
-    }
-
-    public function jsonSource(): JsonBreadSource
-    {
-        return $this->json;
-    }
-
-    public function databaseSource(): DatabaseBreadSource
-    {
-        return $this->database;
+        return $this->config->all();
     }
 }

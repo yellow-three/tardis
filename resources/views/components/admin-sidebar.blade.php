@@ -13,7 +13,7 @@
             <div class="bg-primary text-primary-content rounded-lg w-10 h-10 flex items-center justify-center shrink-0">
                 <span class="text-primary-content font-bold text-xl">T</span>
             </div>
-            <div class="is-drawer-close:hidden">
+            <div class="tardis-sidebar-label">
                 <p class="font-bold text-base leading-tight">TARDIS</p>
                 <p class="text-xs text-base-content/60">Yönetim Paneli</p>
             </div>
@@ -26,7 +26,7 @@
 
             @foreach ($sections as $sectionName => $sectionItems)
                 @if ($sectionName !== 'General')
-                    <div class="mb-3 px-2 pt-2">
+                    <div class="tardis-sidebar-label mb-3 px-2 pt-2">
                         <p class="text-[10px] font-semibold uppercase tracking-[0.18em] text-base-content/40">{{ $sectionName }}</p>
                     </div>
                 @endif
@@ -39,22 +39,26 @@
             @endforeach
         </div>
 
-        {{-- Alt kullanıcı kartı --}}
+        @php
+            $user = auth()->user();
+            $userName = $user?->name ?: $user?->email ?: 'Admin';
+            $userInitial = mb_strtoupper(mb_substr($userName, 0, 1));
+        @endphp
+
         <div class="border-t border-base-300 p-2">
-            <a href="#"
-               data-tip="Ahmet Yılmaz"
-               class="flex items-center gap-3 p-2 rounded-lg hover:bg-base-200 transition-colors is-drawer-close:tooltip is-drawer-close:tooltip-right is-drawer-close:justify-center">
+            <div
+               data-tip="{{ $userName }}"
+               class="flex items-center gap-3 p-2 rounded-lg is-drawer-close:tooltip is-drawer-close:tooltip-right is-drawer-close:justify-center">
                 <div class="avatar avatar-placeholder">
                     <div class="bg-neutral text-neutral-content rounded-full w-10">
-                        <span>AY</span>
+                        <span>{{ $userInitial }}</span>
                     </div>
                 </div>
-                <div class="flex-1 min-w-0 is-drawer-close:hidden">
-                    <p class="font-medium text-sm truncate">Ahmet Yılmaz</p>
-                    <p class="text-xs text-base-content/60 truncate">admin@ornek.com</p>
+                <div class="flex-1 min-w-0 tardis-sidebar-label">
+                    <p class="font-medium text-sm truncate">{{ $userName }}</p>
+                    <p class="text-xs text-base-content/60 truncate">{{ $user?->email }}</p>
                 </div>
-                <i class="icon-log-out text-base-content/60 is-drawer-close:hidden"></i>
-            </a>
+            </div>
         </div>
     </aside>
 </div>

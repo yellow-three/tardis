@@ -17,7 +17,7 @@
                 <label class="label">
                     <span class="label-text">Search</span>
                 </label>
-                <input type="search" wire:model.live.debounce.300ms="search" class="input input-bordered" placeholder="Search {{ $bread?->namePlural ?? ucfirst($slug) }}..." />
+                <input type="search" wire:model.live.debounce.300ms="search" class="input input-bordered" placeholder="Search {{ $bread['name_plural'] ?? ucfirst($slug) }}…" aria-label="Search {{ $bread['name_plural'] ?? ucfirst($slug) }}" autocomplete="off" />
             </div>
         </div>
     </div>
@@ -51,11 +51,7 @@
                                     <div class="flex justify-end gap-2">
                                         <a href="{{ url(trim(config('tardis.admin.prefix', 'admin'), '/').'/'.$slug.'/'.$row->getKey()) }}" class="btn btn-ghost btn-xs">View</a>
                                         <a href="{{ url(trim(config('tardis.admin.prefix', 'admin'), '/').'/'.$slug.'/'.$row->getKey().'/edit') }}" class="btn btn-ghost btn-xs">Edit</a>
-                                        <form action="{{ url(trim(config('tardis.admin.prefix', 'admin'), '/').'/'.$slug.'/'.$row->getKey()) }}" method="POST" onsubmit="return confirm('Delete this record?')">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" class="btn btn-ghost btn-xs text-error">Delete</button>
-                                        </form>
+                                        <button type="button" wire:click="delete({{ $row->getKey() }})" wire:confirm="Delete this record?" class="btn btn-ghost btn-xs text-error">Delete</button>
                                     </div>
                                 </td>
                             </tr>

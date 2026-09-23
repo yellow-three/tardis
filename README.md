@@ -21,6 +21,15 @@ Publish the package configuration if needed:
 php artisan vendor:publish --tag=tardis-config
 ```
 
+Publish the compiled admin assets and theme manifest as well:
+
+```bash
+php artisan vendor:publish --tag=tardis-assets --force
+php artisan vendor:publish --tag=tardis-themes-assets --force
+```
+
+Run these commands again after rebuilding the package assets with `npm run build`.
+
 ## Current architecture
 
 The package follows the Livewire 4 page-first pattern:
@@ -109,19 +118,43 @@ npm run build
 
 ## BREAD usage
 
-A BREAD definition can be defined from a model and stored in the package JSON repository. The management screens then render list/detail/edit/create screens from that metadata instead of hardcoding one-off admin pages.
+A BREAD definition is a plain PHP config file under `config/bread/{slug}.php`. The management screens then render list/detail/edit/create screens from that metadata instead of hardcoding one-off admin pages.
+
+The fastest way to create one is from an existing model:
+
+```bash
+php artisan tardis:make-bread "App\Models\Post"
+```
+
+This writes `config/bread/posts.php` with the fields detected from the model (fillable + schema nullability):
 
 ```php
-use Tardis\Bread\BreadDefinition;
-use Tardis\Bread\Repositories\JsonBreadRepository;
+<?php
 
-app(JsonBreadRepository::class)->save(BreadDefinition::fromArray([
+/*
+|--------------------------------------------------------------------------
+| BREAD definition: posts
+|--------------------------------------------------------------------------
+| Managed through the Tardis admin BREAD builder. The array shape is
+| compatible with BreadDefinition::fromArray().
+*/
+
+return [
     'slug' => 'posts',
     'model' => App\Models\Post::class,
     'name' => 'Post',
     'name_plural' => 'Posts',
     'fields' => [],
-]));
+];
+```
+
+Definitions are read through the `BreadManager`:
+
+```php
+use Tardis\Bread\BreadManager;
+
+app(BreadManager::class)->find('posts'); // ?BreadDefinition
+app(BreadManager::class)->all();         // Collection of BreadDefinition
 ```
 
 ## Livewire usage

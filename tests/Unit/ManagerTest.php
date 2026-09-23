@@ -2,7 +2,10 @@
 
 declare(strict_types=1);
 
+use Illuminate\Support\Facades\File;
+use Tardis\Bread\BreadDefinition;
 use Tardis\Bread\BreadManager;
+use Tardis\Bread\Sources\ConfigBreadSource;
 use Tardis\Manager\FormfieldManager;
 use Tardis\Manager\MenuManager;
 use Tardis\Manager\PluginManager;
@@ -34,6 +37,23 @@ test('FormfieldManager can be instantiated', function () {
     expect($manager)->toBeInstanceOf(FormfieldManager::class);
 });
 
-test('BreadManager class exists', function () {
-    expect(class_exists(BreadManager::class))->toBeTrue();
+test('BreadManager delegates to the config source', function () {
+    $path = sys_get_temp_dir().'/tardis-manager-'.uniqid();
+
+    try {
+        $manager = new BreadManager(new ConfigBreadSource($path));
+
+        $manager->save([
+            'slug' => 'posts',
+            'model' => 'App\Models\Post',
+            'name' => 'Post',
+            'name_plural' => 'Posts',
+            'fields' => [],
+        ]);
+
+        expect($manager->find('posts'))->toBeInstanceOf(BreadDefinition::class)
+            ->and($manager->all())->toHaveCount(1);
+    } finally {
+        File::deleteDirectory($path);
+    }
 });
