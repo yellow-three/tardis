@@ -1,0 +1,15 @@
+<?php
+
+namespace {{NAMESPACE}};
+
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Attributes\Table;
+{{IMPORTS}}
+
+{{ATTRIBUTES}}
+class {{CLASS_NAME}} extends Model
+{
+    protected $fillable = [
+        {{FILLABLE}}
+    ];{{CASTS_BLOCK}}
+}

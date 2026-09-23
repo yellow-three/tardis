@@ -10,6 +10,7 @@ use Illuminate\Support\ServiceProvider;
 use Livewire\Livewire;
 use Tardis\Bread\Sources\ConfigBreadSource;
 use Tardis\Commands\TardisMakeBreadCommand;
+use Tardis\Commands\TardisMakeModelCommand;
 use Tardis\Commands\TardisMakePluginCommand;
 use Tardis\Http\Middleware\AdminMiddleware;
 use Tardis\Manager\AssetManager;
@@ -215,6 +216,7 @@ class TardisServiceProvider extends ServiceProvider
         if ($this->app->runningInConsole()) {
             $this->commands([
                 TardisMakeBreadCommand::class,
+                TardisMakeModelCommand::class,
                 TardisMakePluginCommand::class,
             ]);
         }

@@ -7,6 +7,13 @@
         </div>
     @endif
 
+    @if ($message)
+        <div class="alert alert-success mb-4 shadow-sm">
+            <x-tardis::icon name="check-circle" class="w-3 h-3" />
+            <span>{{ $message }}</span>
+        </div>
+    @endif
+
     <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
         <!-- Table List -->
         <div class="card bg-base-100 shadow-sm">
@@ -50,6 +57,10 @@
                                     <x-tardis::icon name="document-text" class="w-3 h-3" />
                                     Create BREAD
                                 </a>
+                                <button wire:click="generateModel" class="btn btn-ghost btn-xs">
+                                    <x-tardis::icon name="code-bracket" class="w-3 h-3" />
+                                    Create Model
+                                </button>
                                 <button wire:click="openAddColumn" class="btn btn-ghost btn-xs">
                                     <x-tardis::icon name="plus" class="w-3 h-3" />
                                     Add Column
@@ -154,6 +165,10 @@
                         <label class="label cursor-pointer gap-2">
                             <span class="label-text">Timestamps</span>
                             <input type="checkbox" wire:model="createTimestamps" class="toggle toggle-sm toggle-primary" />
+                        </label>
+                        <label class="label cursor-pointer gap-2">
+                            <span class="label-text">Create Model</span>
+                            <input type="checkbox" wire:model="createModel" class="toggle toggle-sm toggle-primary" />
                         </label>
                     </div>
                 </div>

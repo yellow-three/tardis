@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Schema;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
+use Tardis\Database\ModelGenerator;
 
 new #[Title('Database Explorer')] #[Layout('tardis::layouts.admin')] class extends Component
 {
@@ -38,6 +39,10 @@ new #[Title('Database Explorer')] #[Layout('tardis::layouts.admin')] class exten
     public bool $createAutoId = true;
 
     public bool $createTimestamps = true;
+
+    public bool $createModel = false;
+
+    public ?string $message = null;
 
     public bool $showAddColumnModal = false;
 
@@ -106,6 +111,7 @@ new #[Title('Database Explorer')] #[Layout('tardis::layouts.admin')] class exten
     {
         $this->selectedTable = $table;
         $this->page = 1;
+        $this->message = null;
         $this->loadTableData();
     }
 
@@ -163,6 +169,8 @@ new #[Title('Database Explorer')] #[Layout('tardis::layouts.admin')] class exten
         $this->newTableColumns = [$this->emptyColumn()];
         $this->createAutoId = true;
         $this->createTimestamps = true;
+        $this->createModel = false;
+        $this->message = null;
         $this->error = null;
     }
 
@@ -248,8 +256,33 @@ new #[Title('Database Explorer')] #[Layout('tardis::layouts.admin')] class exten
             $this->page = 1;
             $this->loadTables();
             $this->loadTableData();
+
+            if ($this->createModel) {
+                try {
+                    app(ModelGenerator::class)->generate($this->newTableName, $this->columns, ['force' => true]);
+
+                    $this->message = 'Table and model created successfully.';
+                } catch (Throwable $e) {
+                    $this->message = 'Table created, but model generation failed: '.$e->getMessage();
+                }
+            }
         } catch (Throwable $e) {
             $this->error = 'Could not create table: '.$e->getMessage();
+        }
+    }
+
+    public function generateModel(): void
+    {
+        if (! $this->selectedTable) {
+            return;
+        }
+
+        try {
+            app(ModelGenerator::class)->generate($this->selectedTable, $this->columns, ['force' => true]);
+
+            $this->message = 'Model created successfully.';
+        } catch (Throwable $e) {
+            $this->message = 'Model generation failed: '.$e->getMessage();
         }
     }
 
