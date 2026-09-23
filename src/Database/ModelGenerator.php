@@ -24,11 +24,10 @@ class ModelGenerator
     public function generate(string $table, array $columns, array $options = []): string
     {
         $namespace = $options['namespace'] ?? 'App\Models';
-        $path = $options['path'] ?? app_path('Models');
         $force = $options['force'] ?? false;
 
         $className = Str::studly(Str::singular($table));
-        $file = $path.'/'.$className.'.php';
+        $file = $this->modelPath($table, $options);
 
         if (File::exists($file) && ! $force) {
             throw new RuntimeException("Model [{$className}] already exists.");
@@ -48,10 +47,31 @@ class ModelGenerator
         $content = File::get(__DIR__.'/../../stubs/model.stub');
         $content = str_replace(array_keys($replacements), array_values($replacements), $content);
 
-        File::ensureDirectoryExists($path);
+        File::ensureDirectoryExists(dirname($file));
         File::put($file, $content);
 
         return $file;
+    }
+
+    /**
+     * Check whether a generated model file already exists for the given table.
+     *
+     * @param  array{namespace?: string, path?: string, force?: bool}  $options
+     */
+    public function modelExists(string $table, array $options = []): bool
+    {
+        return File::exists($this->modelPath($table, $options));
+    }
+
+    /**
+     * @param  array{namespace?: string, path?: string, force?: bool}  $options
+     */
+    protected function modelPath(string $table, array $options = []): string
+    {
+        $path = $options['path'] ?? app_path('Models');
+        $className = Str::studly(Str::singular($table));
+
+        return $path.'/'.$className.'.php';
     }
 
     protected function buildImports(bool $withTimestamps): string

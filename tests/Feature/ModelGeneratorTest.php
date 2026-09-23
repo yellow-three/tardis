@@ -115,6 +115,16 @@ test('generator refuses to overwrite an existing model without force', function 
     expect(File::exists($generator->generate('widgets', $columns, ['force' => true])))->toBeTrue();
 });
 
+test('modelExists reports false before generation and true after', function () {
+    $generator = app(ModelGenerator::class);
+
+    expect($generator->modelExists('widgets'))->toBeFalse();
+
+    $generator->generate('widgets', [['name' => 'title', 'type' => 'string']]);
+
+    expect($generator->modelExists('widgets'))->toBeTrue();
+});
+
 test('createTable generates a model when the create model toggle is on', function () {
     Livewire::test('tardis::pages.database')
         ->call('openCreateTable')
@@ -145,6 +155,57 @@ test('generateModel creates a model for the selected table', function () {
         ->assertHasNoErrors();
 
     expect(File::exists(app_path('Models/Widget.php')))->toBeTrue();
+});
+
+test('generateModelFor creates a model and refreshes the has_model flag', function () {
+    Schema::create('widgets', function ($table) {
+        $table->id();
+        $table->string('title');
+    });
+
+    Livewire::test('tardis::pages.database')
+        ->call('generateModelFor', 'widgets')
+        ->assertSet('message', 'Model created successfully.')
+        ->assertSet('tables', function (array $tables) {
+            foreach ($tables as $table) {
+                if ($table['name'] === 'widgets') {
+                    return ($table['has_model'] ?? false) === true;
+                }
+            }
+
+            return false;
+        })
+        ->assertHasNoErrors();
+
+    expect(File::exists(app_path('Models/Widget.php')))->toBeTrue();
+});
+
+test('create model button is shown when the table has no model', function () {
+    Schema::create('widgets', function ($table) {
+        $table->id();
+        $table->string('title');
+        $table->timestamps();
+    });
+
+    Livewire::test('tardis::pages.database')
+        ->call('selectTable', 'widgets')
+        ->assertSee('Create Model');
+});
+
+test('create model button is hidden when the table already has a model', function () {
+    Schema::create('widgets', function ($table) {
+        $table->id();
+        $table->string('title');
+        $table->timestamps();
+    });
+
+    app(ModelGenerator::class)->generate('widgets', [
+        ['name' => 'title', 'type' => 'string'],
+    ]);
+
+    Livewire::test('tardis::pages.database')
+        ->call('selectTable', 'widgets')
+        ->assertDontSee('Create Model');
 });
 
 test('artisan tardis:make-model creates a model for an existing table', function () {

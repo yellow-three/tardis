@@ -73,6 +73,11 @@ class MenuManager
                 ->route('tardis.plugins.index')
                 ->section('Management')
                 ->order(40),
+            (new MenuItem('Database Explorer', 'heroicon-o-circle-stack'))
+                ->route('tardis.database.index')
+                ->section('Management')
+                ->activeMode('prefix')
+                ->order(45),
             (new MenuItem('BREAD', 'heroicon-o-table-cells'))
                 ->route('tardis.bread.manage')
                 ->section('Management')

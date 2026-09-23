@@ -41,6 +41,26 @@ test('selectTable loads columns and row count', function () {
         });
 });
 
+test('viewTable opens the table info modal with columns and key markers', function () {
+    Schema::create('widgets', function ($table) {
+        $table->id();
+        $table->string('title')->unique();
+    });
+
+    Livewire::test('tardis::pages.database')
+        ->call('viewTable', 'widgets')
+        ->assertSet('showTableInfoModal', true)
+        ->assertSet('selectedTable', 'widgets')
+        ->assertSet('columns', function (array $columns) {
+            $byName = array_column($columns, null, 'name');
+
+            return ($byName['id']['key'] ?? '') === 'PRI'
+                && ($byName['title']['key'] ?? '') === 'UNI';
+        })
+        ->call('cancelModals')
+        ->assertSet('showTableInfoModal', false);
+});
+
 test('createTable creates a table with columns and selects it', function () {
     Livewire::test('tardis::pages.database')
         ->call('openCreateTable')

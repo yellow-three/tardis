@@ -1,5 +1,5 @@
 <div>
-    <x-tardis::page-header title="Database Explorer" description="Browse tables, manage columns and create BREAD definitions" />
+    <x-tardis::page-header title="Database Explorer" description="Create and manage database tables and columns" />
 
     @if ($error)
         <div class="alert alert-error mb-4 shadow-sm">
@@ -14,142 +14,162 @@
         </div>
     @endif
 
-    <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
-        <!-- Table List -->
-        <div class="card bg-base-100 shadow-sm">
-            <div class="card-body p-4">
-                <div class="flex items-center justify-between mb-2">
-                    <h3 class="card-title text-sm">Tables</h3>
-                    <button wire:click="openCreateTable" class="btn btn-primary btn-xs">
-                        <x-tardis::icon name="plus" class="w-3 h-3" />
-                        New Table
-                    </button>
-                </div>
-                <div class="overflow-y-auto max-h-96">
-                    @forelse ($tables as $table)
-                        <button
-                            wire:click="selectTable('{{ $table['name'] }}')"
-                            class="btn btn-ghost btn-sm w-full justify-start {{ $selectedTable === $table['name'] ? 'btn-active' : '' }}"
-                        >
-                            <x-tardis::icon name="database" class="w-4 h-4" />
-                            {{ $table['name'] }}
-                        </button>
-                    @empty
-                        <p class="text-sm opacity-50 py-4 text-center">No tables found</p>
-                    @endforelse
-                </div>
+    <!-- Table List -->
+    <div class="card bg-base-100 shadow-sm">
+        <div class="card-body p-4">
+            <div class="flex items-center justify-between mb-3">
+                <h3 class="card-title text-sm">
+                    <x-tardis::icon name="table-cells" class="w-4 h-4" />
+                    Tables
+                    <span class="badge badge-ghost badge-sm">{{ count($tables) }}</span>
+                </h3>
+                <button wire:click="openCreateTable" class="btn btn-primary btn-sm">
+                    <x-tardis::icon name="plus" class="w-3 h-3" />
+                    New Table
+                </button>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Table</th>
+                            <th class="text-right">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse ($tables as $table)
+                            <tr wire:key="table-{{ $table['name'] }}">
+                                <td>
+                                    <button wire:click="viewTable('{{ $table['name'] }}')" class="flex items-center gap-2 font-medium hover:text-primary">
+                                        <x-tardis::icon name="table-cells" class="w-4 h-4 text-base-content/40" />
+                                        {{ $table['name'] }}
+                                    </button>
+                                </td>
+                                <td>
+                                    <div class="flex items-center justify-end gap-1 flex-wrap">
+                                        <button wire:click="viewTable('{{ $table['name'] }}')" class="btn btn-ghost btn-xs">
+                                            <x-tardis::icon name="eye" class="w-3 h-3" />
+                                            View
+                                        </button>
+                                        <a href="{{ route('tardis.bread.create') }}" class="btn btn-ghost btn-xs">
+                                            <x-tardis::icon name="document-text" class="w-3 h-3" />
+                                            Create BREAD
+                                        </a>
+                                        @if (! $table['has_model'])
+                                            <button wire:click="generateModelFor('{{ $table['name'] }}')" class="btn btn-ghost btn-xs">
+                                                <x-tardis::icon name="code-bracket" class="w-3 h-3" />
+                                                Create Model
+                                            </button>
+                                        @endif
+                                        <button wire:click="openAddColumnFor('{{ $table['name'] }}')" class="btn btn-ghost btn-xs">
+                                            <x-tardis::icon name="plus" class="w-3 h-3" />
+                                            Add Column
+                                        </button>
+                                        <button wire:click="requestDropTableFor('{{ $table['name'] }}')" class="btn btn-ghost btn-xs text-error">
+                                            <x-tardis::icon name="trash" class="w-3 h-3" />
+                                            Drop Table
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="2" class="text-center py-12 opacity-50">
+                                    <x-tardis::icon name="database" class="w-16 h-16 mx-auto opacity-20" />
+                                    <p class="mt-2">No tables found</p>
+                                </td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
             </div>
         </div>
+    </div>
 
-        <!-- Table Data -->
-        <div class="lg:col-span-3">
-            @if ($selectedTable)
-                <div class="card bg-base-100 shadow-sm">
-                    <div class="card-body">
-                        <div class="flex items-center justify-between mb-4 gap-2 flex-wrap">
-                            <h3 class="card-title">
-                                <x-tardis::icon name="database" class="w-5 h-5" />
-                                {{ $selectedTable }}
-                            </h3>
-                            <div class="flex items-center gap-2">
-                                <span class="badge badge-ghost">{{ $totalRows }} rows</span>
-                                <a href="{{ route('tardis.bread.create') }}" class="btn btn-primary btn-xs">
-                                    <x-tardis::icon name="document-text" class="w-3 h-3" />
-                                    Create BREAD
-                                </a>
-                                <button wire:click="generateModel" class="btn btn-ghost btn-xs">
-                                    <x-tardis::icon name="code-bracket" class="w-3 h-3" />
-                                    Create Model
-                                </button>
-                                <button wire:click="openAddColumn" class="btn btn-ghost btn-xs">
-                                    <x-tardis::icon name="plus" class="w-3 h-3" />
-                                    Add Column
-                                </button>
-                                <button wire:click="requestDropTable" class="btn btn-ghost btn-xs text-error">
-                                    <x-tardis::icon name="trash" class="w-3 h-3" />
-                                    Drop Table
-                                </button>
-                            </div>
-                        </div>
+    <!-- Table Info Modal -->
+    @if ($showTableInfoModal && $selectedTable)
+        <dialog class="modal modal-open">
+            <div class="modal-box w-full max-w-6xl">
+                <div class="flex items-center justify-between mb-4 gap-2 flex-wrap">
+                    <h3 class="font-bold text-lg flex items-center gap-2">
+                        <x-tardis::icon name="table-cells" class="w-5 h-5" />
+                        {{ $selectedTable }}
+                    </h3>
+                    <div class="flex items-center gap-2">
+                        <span class="badge badge-ghost">{{ count($columns) }} columns</span>
+                        <span class="badge badge-ghost">{{ $totalRows }} rows</span>
+                    </div>
+                </div>
 
-                        @if (!empty($columns))
-                            <div class="mb-4">
-                                <h4 class="text-sm font-semibold mb-2">Columns</h4>
-                                <div class="flex flex-wrap gap-1">
-                                    @foreach ($columns as $col)
-                                        <span class="badge badge-ghost badge-xs gap-1">
-                                            {{ $col['name'] }}
-                                            <span class="text-base-content/40">{{ $col['type'] ?? 'unknown' }}</span>
-                                            <button wire:click="openEditColumn('{{ $col['name'] }}')" class="text-base-content/50 hover:text-base-content" title="Edit {{ $col['name'] }}">
+                <div class="overflow-x-auto">
+                    <table class="table table-xs">
+                        <thead>
+                            <tr>
+                                <th>Field</th>
+                                <th>Type</th>
+                                <th>Null</th>
+                                <th>Default</th>
+                                <th>Key</th>
+                                <th class="text-right">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @forelse ($columns as $col)
+                                <tr wire:key="column-{{ $col['name'] }}">
+                                    <td class="font-semibold">{{ $col['name'] }}</td>
+                                    <td><code class="text-xs">{{ $col['type'] ?? 'unknown' }}</code></td>
+                                    <td>{{ ! empty($col['nullable']) ? 'YES' : '' }}</td>
+                                    <td class="text-xs">{{ $col['default'] === null ? 'NULL' : $col['default'] }}</td>
+                                    <td>
+                                        @if (($col['key'] ?? '') === 'PRI')
+                                            <span class="badge badge-primary badge-xs">PRI</span>
+                                        @elseif (($col['key'] ?? '') === 'UNI')
+                                            <span class="badge badge-warning badge-xs">UNI</span>
+                                        @endif
+                                    </td>
+                                    <td>
+                                        <div class="flex items-center justify-end gap-1">
+                                            <button wire:click="openEditColumn('{{ $col['name'] }}')" class="btn btn-ghost btn-xs" title="Edit {{ $col['name'] }}">
                                                 <x-tardis::icon name="pencil-square" class="w-3 h-3" />
                                             </button>
-                                            <button wire:click="requestDropColumn('{{ $col['name'] }}')" class="text-error/50 hover:text-error" title="Drop {{ $col['name'] }}">
+                                            <button wire:click="requestDropColumn('{{ $col['name'] }}')" class="btn btn-ghost btn-xs text-error" title="Drop {{ $col['name'] }}">
                                                 <x-tardis::icon name="x-mark" class="w-3 h-3" />
                                             </button>
-                                        </span>
-                                    @endforeach
-                                </div>
-                            </div>
-                        @endif
-
-                        @if (!empty($rows))
-                            <div class="overflow-x-auto">
-                                <table class="table table-sm">
-                                    <thead>
-                                        <tr>
-                                            @foreach ($columns as $col)
-                                                <th>{{ $col['name'] }}</th>
-                                            @endforeach
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        @foreach ($rows as $row)
-                                            <tr>
-                                                @foreach ($columns as $col)
-                                                    <td class="text-xs max-w-[200px] truncate" title="{{ $row->{$col['name']} ?? '' }}">
-                                                        {{ $row->{$col['name']} ?? '' }}
-                                                    </td>
-                                                @endforeach
-                                            </tr>
-                                        @endforeach
-                                    </tbody>
-                                </table>
-                            </div>
-
-                            <!-- Pagination -->
-                            <div class="flex items-center justify-between mt-4">
-                                <span class="text-sm opacity-60">
-                                    Showing {{ ($page - 1) * $perPage + 1 }}-{{ min($page * $perPage, $totalRows) }} of {{ $totalRows }}
-                                </span>
-                                <div class="join">
-                                    <button wire:click="previousPage" class="join-item btn btn-sm" {{ $page <= 1 ? 'disabled' : '' }}>«</button>
-                                    <span class="join-item btn btn-sm btn-disabled">{{ $page }} / {{ $this->getTotalPages() }}</span>
-                                    <button wire:click="nextPage" class="join-item btn btn-sm" {{ $page >= $this->getTotalPages() ? 'disabled' : '' }}>»</button>
-                                </div>
-                            </div>
-                        @else
-                            <div class="text-center py-8 opacity-50">
-                                <p>No data in this table</p>
-                            </div>
-                        @endif
-                    </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="6" class="text-center py-8 opacity-50">No columns found</td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
                 </div>
-            @else
-                <div class="card bg-base-100 shadow-sm">
-                    <div class="card-body text-center py-16">
-                        <x-tardis::icon name="database" class="w-16 h-16 mx-auto opacity-20" />
-                        <h3 class="text-lg font-semibold mt-4">Select a table</h3>
-                        <p class="text-base-content/60 mt-2">Choose a table from the list to browse its data or create a new one</p>
-                    </div>
+
+                <div class="modal-action">
+                    <button wire:click="openAddColumn" class="btn btn-ghost btn-sm">
+                        <x-tardis::icon name="plus" class="w-3 h-3" />
+                        Add Column
+                    </button>
+                    <button wire:click="requestDropTable" class="btn btn-ghost btn-sm text-error">
+                        <x-tardis::icon name="trash" class="w-3 h-3" />
+                        Drop Table
+                    </button>
+                    <button wire:click="cancelModals" class="btn btn-primary btn-sm">Close</button>
                 </div>
-            @endif
-        </div>
-    </div>
+            </div>
+            <form method="dialog" class="modal-backdrop">
+                <button wire:click="cancelModals">close</button>
+            </form>
+        </dialog>
+    @endif
 
     <!-- Create Table Modal -->
     @if ($showCreateTableModal)
         <dialog class="modal modal-open">
-            <div class="modal-box w-full max-w-3xl">
+            <div class="modal-box w-full max-w-4xl">
                 <h3 class="font-bold text-lg mb-4">Create Table</h3>
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
@@ -241,7 +261,7 @@
     <!-- Add Column Modal -->
     @if ($showAddColumnModal)
         <dialog class="modal modal-open">
-            <div class="modal-box w-full max-w-xl">
+            <div class="modal-box w-full max-w-2xl">
                 <h3 class="font-bold text-lg mb-4">Add Column to {{ $selectedTable }}</h3>
 
                 <div class="grid grid-cols-2 gap-4 mb-4">
@@ -285,7 +305,7 @@
     <!-- Edit Column Modal -->
     @if ($showEditColumnModal)
         <dialog class="modal modal-open">
-            <div class="modal-box w-full max-w-xl">
+            <div class="modal-box w-full max-w-2xl">
                 <h3 class="font-bold text-lg mb-4">Edit Column {{ $editColumnOriginal }}</h3>
 
                 <div class="grid grid-cols-2 gap-4 mb-4">
