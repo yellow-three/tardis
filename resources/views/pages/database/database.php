@@ -55,6 +55,8 @@ new #[Title('Database Explorer')] #[Layout('tardis::layouts.admin')] class exten
 
     public bool $showTableInfoModal = false;
 
+    public bool $selectedTableHasModel = false;
+
     /** @var array<string, true> Whitelist of Blueprint column methods that are safe to call. */
     public const COLUMN_TYPES = [
         'bigInteger' => true,
@@ -139,6 +141,7 @@ new #[Title('Database Explorer')] #[Layout('tardis::layouts.admin')] class exten
     public function viewTable(string $table): void
     {
         $this->selectTable($table);
+        $this->selectedTableHasModel = app(ModelGenerator::class)->modelExists($table);
         $this->showTableInfoModal = true;
         $this->error = null;
     }
@@ -263,28 +266,11 @@ new #[Title('Database Explorer')] #[Layout('tardis::layouts.admin')] class exten
             app(ModelGenerator::class)->generate($this->selectedTable, $this->columns, ['force' => true]);
 
             $this->loadTables();
+            $this->selectedTableHasModel = true;
             $this->message = 'Model created successfully.';
         } catch (Throwable $e) {
             $this->message = 'Model generation failed: '.$e->getMessage();
         }
-    }
-
-    public function generateModelFor(string $table): void
-    {
-        $this->selectTable($table);
-        $this->generateModel();
-    }
-
-    public function openAddColumnFor(string $table): void
-    {
-        $this->selectTable($table);
-        $this->openAddColumn();
-    }
-
-    public function requestDropTableFor(string $table): void
-    {
-        $this->selectTable($table);
-        $this->requestDropTable();
     }
 
     public function addColumn(): void

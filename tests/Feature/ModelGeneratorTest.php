@@ -157,15 +157,18 @@ test('generateModel creates a model for the selected table', function () {
     expect(File::exists(app_path('Models/Widget.php')))->toBeTrue();
 });
 
-test('generateModelFor creates a model and refreshes the has_model flag', function () {
+test('generateModel from the table info modal refreshes the has_model flag', function () {
     Schema::create('widgets', function ($table) {
         $table->id();
         $table->string('title');
     });
 
     Livewire::test('tardis::pages.database')
-        ->call('generateModelFor', 'widgets')
+        ->call('viewTable', 'widgets')
+        ->assertSet('selectedTableHasModel', false)
+        ->call('generateModel')
         ->assertSet('message', 'Model created successfully.')
+        ->assertSet('selectedTableHasModel', true)
         ->assertSet('tables', function (array $tables) {
             foreach ($tables as $table) {
                 if ($table['name'] === 'widgets') {
@@ -180,7 +183,7 @@ test('generateModelFor creates a model and refreshes the has_model flag', functi
     expect(File::exists(app_path('Models/Widget.php')))->toBeTrue();
 });
 
-test('create model button is shown when the table has no model', function () {
+test('create model button is shown in the table info modal when the table has no model', function () {
     Schema::create('widgets', function ($table) {
         $table->id();
         $table->string('title');
@@ -188,11 +191,12 @@ test('create model button is shown when the table has no model', function () {
     });
 
     Livewire::test('tardis::pages.database')
-        ->call('selectTable', 'widgets')
+        ->call('viewTable', 'widgets')
+        ->assertSet('selectedTableHasModel', false)
         ->assertSee('Create Model');
 });
 
-test('create model button is hidden when the table already has a model', function () {
+test('create model button is hidden in the table info modal when the table already has a model', function () {
     Schema::create('widgets', function ($table) {
         $table->id();
         $table->string('title');
@@ -204,7 +208,8 @@ test('create model button is hidden when the table already has a model', functio
     ]);
 
     Livewire::test('tardis::pages.database')
-        ->call('selectTable', 'widgets')
+        ->call('viewTable', 'widgets')
+        ->assertSet('selectedTableHasModel', true)
         ->assertDontSee('Create Model');
 });
 

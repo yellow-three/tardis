@@ -56,20 +56,6 @@
                                             <x-tardis::icon name="document-text" class="w-3 h-3" />
                                             Create BREAD
                                         </a>
-                                        @if (! $table['has_model'])
-                                            <button wire:click="generateModelFor('{{ $table['name'] }}')" class="btn btn-ghost btn-xs">
-                                                <x-tardis::icon name="code-bracket" class="w-3 h-3" />
-                                                Create Model
-                                            </button>
-                                        @endif
-                                        <button wire:click="openAddColumnFor('{{ $table['name'] }}')" class="btn btn-ghost btn-xs">
-                                            <x-tardis::icon name="plus" class="w-3 h-3" />
-                                            Add Column
-                                        </button>
-                                        <button wire:click="requestDropTableFor('{{ $table['name'] }}')" class="btn btn-ghost btn-xs text-error">
-                                            <x-tardis::icon name="trash" class="w-3 h-3" />
-                                            Drop Table
-                                        </button>
                                     </div>
                                 </td>
                             </tr>
@@ -149,6 +135,12 @@
                 </div>
 
                 <div class="modal-action">
+                    @if (! $selectedTableHasModel)
+                        <button wire:click="generateModel" class="btn btn-ghost btn-sm">
+                            <x-tardis::icon name="code-bracket" class="w-3 h-3" />
+                            Create Model
+                        </button>
+                    @endif
                     <button wire:click="openAddColumn" class="btn btn-ghost btn-sm">
                         <x-tardis::icon name="plus" class="w-3 h-3" />
                         Add Column
