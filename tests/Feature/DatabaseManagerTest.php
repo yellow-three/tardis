@@ -41,7 +41,7 @@ test('selectTable loads columns and row count', function () {
         });
 });
 
-test('viewTable opens the table info modal with columns and key markers', function () {
+test('viewTable opens the table info modal and closeViewTable dismisses it', function () {
     Schema::create('widgets', function ($table) {
         $table->id();
         $table->string('title')->unique();
@@ -57,35 +57,30 @@ test('viewTable opens the table info modal with columns and key markers', functi
             return ($byName['id']['key'] ?? '') === 'PRI'
                 && ($byName['title']['key'] ?? '') === 'UNI';
         })
-        ->call('cancelModals')
+        ->call('closeViewTable')
         ->assertSet('showTableInfoModal', false);
 });
 
-test('createTable creates a table with columns and selects it', function () {
-    Livewire::test('tardis::pages.database')
-        ->call('openCreateTable')
-        ->assertSet('showCreateTableModal', true)
+test('create page creates a table and redirects to the explorer', function () {
+    Livewire::test('tardis::pages.database.create')
         ->set('newTableName', 'widgets')
         ->set('newTableColumns', [
             ['name' => 'title', 'type' => 'string', 'length' => '255', 'nullable' => false, 'default' => '', 'primary' => false],
             ['name' => 'qty', 'type' => 'integer', 'length' => '', 'nullable' => false, 'default' => '0', 'primary' => false],
         ])
         ->call('createTable')
-        ->assertSet('showCreateTableModal', false)
-        ->assertSet('selectedTable', 'widgets')
+        ->assertRedirect(route('tardis.database.index'))
         ->assertHasNoErrors();
 
     expect(Schema::hasTable('widgets'))->toBeTrue();
 
-    $columns = Schema::getColumns('widgets');
-    $names = array_column($columns, 'name');
+    $names = array_column(Schema::getColumns('widgets'), 'name');
 
     expect($names)->toContain('id', 'title', 'qty');
 });
 
-test('createTable auto id and timestamps toggles are honoured', function () {
-    Livewire::test('tardis::pages.database')
-        ->call('openCreateTable')
+test('create page honours the auto id and timestamps toggles', function () {
+    Livewire::test('tardis::pages.database.create')
         ->set('newTableName', 'widgets')
         ->set('createAutoId', false)
         ->set('createTimestamps', false)
@@ -93,6 +88,7 @@ test('createTable auto id and timestamps toggles are honoured', function () {
             ['name' => 'title', 'type' => 'string', 'length' => '255', 'nullable' => false, 'default' => '', 'primary' => true],
         ])
         ->call('createTable')
+        ->assertRedirect(route('tardis.database.index'))
         ->assertHasNoErrors();
 
     $names = array_column(Schema::getColumns('widgets'), 'name');
@@ -101,23 +97,20 @@ test('createTable auto id and timestamps toggles are honoured', function () {
         ->and($names)->not->toContain('id', 'created_at', 'updated_at');
 });
 
-test('createTable rejects invalid table names without hitting the database', function () {
-    Livewire::test('tardis::pages.database')
-        ->call('openCreateTable')
+test('create page rejects invalid table names without hitting the database', function () {
+    Livewire::test('tardis::pages.database.create')
         ->set('newTableName', 'Invalid Name')
         ->set('newTableColumns', [
             ['name' => 'title', 'type' => 'string', 'length' => '', 'nullable' => false, 'default' => '', 'primary' => false],
         ])
         ->call('createTable')
-        ->assertSet('error', 'Table name must start with a letter and contain only lowercase letters, numbers and underscores.')
-        ->assertSet('showCreateTableModal', true);
+        ->assertSet('error', 'Table name must start with a letter and contain only lowercase letters, numbers and underscores.');
 
     expect(Schema::hasTable('Invalid Name'))->toBeFalse();
 });
 
-test('createTable rejects zero columns', function () {
-    Livewire::test('tardis::pages.database')
-        ->call('openCreateTable')
+test('create page rejects zero columns', function () {
+    Livewire::test('tardis::pages.database.create')
         ->set('newTableName', 'widgets')
         ->set('newTableColumns', [])
         ->call('createTable')
@@ -132,12 +125,11 @@ test('addColumn appends a column to the selected table', function () {
         $table->string('title');
     });
 
-    Livewire::test('tardis::pages.database')
-        ->call('selectTable', 'widgets')
+    Livewire::test('tardis::pages.database.edit', ['table' => 'widgets'])
         ->call('openAddColumn')
-        ->set('newColumn', ['name' => 'sku', 'type' => 'string', 'length' => '100', 'nullable' => true, 'default' => ''])
+        ->set('newColumn', ['name' => 'sku', 'type' => 'string', 'length' => '100', 'nullable' => true, 'default' => '', 'primary' => false])
         ->call('addColumn')
-        ->assertSet('showAddColumnModal', false)
+        ->assertSet('showAddColumnForm', false)
         ->assertHasNoErrors();
 
     $names = array_column(Schema::getColumns('widgets'), 'name');
@@ -151,13 +143,12 @@ test('addColumn rejects unsupported column types', function () {
         $table->string('title');
     });
 
-    Livewire::test('tardis::pages.database')
-        ->call('selectTable', 'widgets')
+    Livewire::test('tardis::pages.database.edit', ['table' => 'widgets'])
         ->call('openAddColumn')
-        ->set('newColumn', ['name' => 'hack', 'type' => 'evil; drop table widgets', 'length' => '', 'nullable' => false, 'default' => ''])
+        ->set('newColumn', ['name' => 'hack', 'type' => 'evil; drop table widgets', 'length' => '', 'nullable' => false, 'default' => '', 'primary' => false])
         ->call('addColumn')
         ->assertSet('error', 'Unsupported column type [evil; drop table widgets].')
-        ->assertSet('showAddColumnModal', true);
+        ->assertSet('showAddColumnForm', true);
 
     expect(Schema::hasColumn('widgets', 'hack'))->toBeFalse();
 });
@@ -168,18 +159,16 @@ test('editColumn renames a column and changes its type', function () {
         $table->string('title');
     });
 
-    Livewire::test('tardis::pages.database')
-        ->call('selectTable', 'widgets')
+    Livewire::test('tardis::pages.database.edit', ['table' => 'widgets'])
         ->call('openEditColumn', 'title')
         ->set('editColumn.name', 'heading')
         ->set('editColumn.type', 'text')
         ->call('saveEditColumn')
-        ->assertSet('showEditColumnModal', false)
+        ->assertSet('showEditColumnForm', false)
         ->assertSet('error', null)
         ->assertHasNoErrors();
 
-    $columns = Schema::getColumns('widgets');
-    $names = array_column($columns, 'name');
+    $names = array_column(Schema::getColumns('widgets'), 'name');
 
     expect($names)->toContain('heading')
         ->and($names)->not->toContain('title');
@@ -192,8 +181,7 @@ test('dropColumn removes the column from the selected table', function () {
         $table->string('obsolete');
     });
 
-    Livewire::test('tardis::pages.database')
-        ->call('selectTable', 'widgets')
+    Livewire::test('tardis::pages.database.edit', ['table' => 'widgets'])
         ->call('requestDropColumn', 'obsolete')
         ->assertSet('confirmDropColumn', 'obsolete')
         ->call('dropColumn')
@@ -203,19 +191,17 @@ test('dropColumn removes the column from the selected table', function () {
     expect(Schema::hasColumn('widgets', 'obsolete'))->toBeFalse();
 });
 
-test('dropTable drops the selected table', function () {
+test('dropTable drops the table and redirects to the explorer', function () {
     Schema::create('widgets', function ($table) {
         $table->id();
         $table->string('title');
     });
 
-    Livewire::test('tardis::pages.database')
-        ->call('selectTable', 'widgets')
+    Livewire::test('tardis::pages.database.edit', ['table' => 'widgets'])
         ->call('requestDropTable')
         ->assertSet('confirmDropTable', true)
         ->call('dropTable')
-        ->assertSet('confirmDropTable', false)
-        ->assertSet('selectedTable', null);
+        ->assertRedirect(route('tardis.database.index'));
 
     expect(Schema::hasTable('widgets'))->toBeFalse();
 });

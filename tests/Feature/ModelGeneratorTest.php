@@ -125,31 +125,29 @@ test('modelExists reports false before generation and true after', function () {
     expect($generator->modelExists('widgets'))->toBeTrue();
 });
 
-test('createTable generates a model when the create model toggle is on', function () {
-    Livewire::test('tardis::pages.database')
-        ->call('openCreateTable')
+test('create page generates a model when the create model toggle is on', function () {
+    Livewire::test('tardis::pages.database.create')
         ->set('newTableName', 'widgets')
         ->set('newTableColumns', [
             ['name' => 'title', 'type' => 'string', 'length' => '255', 'nullable' => false, 'default' => '', 'primary' => false],
         ])
         ->set('createModel', true)
         ->call('createTable')
-        ->assertSet('selectedTable', 'widgets')
-        ->assertSet('message', 'Table and model created successfully.')
+        ->assertRedirect(route('tardis.database.index'))
         ->assertHasNoErrors();
 
-    expect(File::exists(app_path('Models/Widget.php')))->toBeTrue();
+    expect(session('message'))->toBe('Table and model created successfully.')
+        ->and(File::exists(app_path('Models/Widget.php')))->toBeTrue();
 });
 
-test('generateModel creates a model for the selected table', function () {
+test('edit page generates a model for the selected table', function () {
     Schema::create('widgets', function ($table) {
         $table->id();
         $table->string('title');
         $table->timestamps();
     });
 
-    Livewire::test('tardis::pages.database')
-        ->call('selectTable', 'widgets')
+    Livewire::test('tardis::pages.database.edit', ['table' => 'widgets'])
         ->call('generateModel')
         ->assertSet('message', 'Model created successfully.')
         ->assertHasNoErrors();
@@ -157,58 +155,44 @@ test('generateModel creates a model for the selected table', function () {
     expect(File::exists(app_path('Models/Widget.php')))->toBeTrue();
 });
 
-test('generateModel from the table info modal refreshes the has_model flag', function () {
+test('edit page refreshes the has_model flag after generating a model', function () {
     Schema::create('widgets', function ($table) {
         $table->id();
         $table->string('title');
     });
 
-    Livewire::test('tardis::pages.database')
-        ->call('viewTable', 'widgets')
+    Livewire::test('tardis::pages.database.edit', ['table' => 'widgets'])
         ->assertSet('selectedTableHasModel', false)
         ->call('generateModel')
         ->assertSet('message', 'Model created successfully.')
         ->assertSet('selectedTableHasModel', true)
-        ->assertSet('tables', function (array $tables) {
-            foreach ($tables as $table) {
-                if ($table['name'] === 'widgets') {
-                    return ($table['has_model'] ?? false) === true;
-                }
-            }
-
-            return false;
-        })
         ->assertHasNoErrors();
 
     expect(File::exists(app_path('Models/Widget.php')))->toBeTrue();
 });
 
-test('create model button is shown in the table info modal when the table has no model', function () {
+test('edit page shows the create model button when the table has no model', function () {
     Schema::create('widgets', function ($table) {
         $table->id();
         $table->string('title');
-        $table->timestamps();
     });
 
-    Livewire::test('tardis::pages.database')
-        ->call('viewTable', 'widgets')
+    Livewire::test('tardis::pages.database.edit', ['table' => 'widgets'])
         ->assertSet('selectedTableHasModel', false)
         ->assertSee('Create Model');
 });
 
-test('create model button is hidden in the table info modal when the table already has a model', function () {
+test('edit page hides the create model button when the table already has a model', function () {
     Schema::create('widgets', function ($table) {
         $table->id();
         $table->string('title');
-        $table->timestamps();
     });
 
     app(ModelGenerator::class)->generate('widgets', [
         ['name' => 'title', 'type' => 'string'],
     ]);
 
-    Livewire::test('tardis::pages.database')
-        ->call('viewTable', 'widgets')
+    Livewire::test('tardis::pages.database.edit', ['table' => 'widgets'])
         ->assertSet('selectedTableHasModel', true)
         ->assertDontSee('Create Model');
 });
