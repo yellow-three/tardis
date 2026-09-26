@@ -174,6 +174,110 @@ test('editColumn renames a column and changes its type', function () {
         ->and($names)->not->toContain('title');
 });
 
+test('addEditColumnRow appends an empty editable row', function () {
+    Schema::create('widgets', function ($table) {
+        $table->id();
+        $table->string('title');
+    });
+
+    Livewire::test('tardis::pages.database.edit', ['table' => 'widgets'])
+        ->assertCount('editColumns', 2)
+        ->call('addEditColumnRow')
+        ->assertCount('editColumns', 3)
+        ->assertSet('editColumns.2.name', '')
+        ->assertSet('editColumns.2.original', '')
+        ->assertSet('editColumns.2.type', 'string');
+});
+
+test('saveColumn persists a new column from an added row', function () {
+    Schema::create('widgets', function ($table) {
+        $table->id();
+        $table->string('title');
+    });
+
+    Livewire::test('tardis::pages.database.edit', ['table' => 'widgets'])
+        ->call('addEditColumnRow')
+        ->set('editColumns.2.name', 'sku')
+        ->set('editColumns.2.type', 'string')
+        ->set('editColumns.2.length', '100')
+        ->set('editColumns.2.nullable', true)
+        ->call('saveColumn', 2)
+        ->assertSet('message', 'Column added successfully.')
+        ->assertSet('error', null)
+        ->assertHasNoErrors();
+
+    $names = array_column(Schema::getColumns('widgets'), 'name');
+
+    expect($names)->toContain('sku');
+});
+
+test('saveColumn renames and updates an existing column', function () {
+    Schema::create('widgets', function ($table) {
+        $table->id();
+        $table->string('title');
+    });
+
+    Livewire::test('tardis::pages.database.edit', ['table' => 'widgets'])
+        ->set('editColumns.1.name', 'heading')
+        ->set('editColumns.1.type', 'text')
+        ->call('saveColumn', 1)
+        ->assertSet('message', 'Column updated successfully.')
+        ->assertSet('error', null)
+        ->assertHasNoErrors();
+
+    $names = array_column(Schema::getColumns('widgets'), 'name');
+
+    expect($names)->toContain('heading')
+        ->and($names)->not->toContain('title');
+});
+
+test('saveColumn rejects invalid column names without hitting the database', function () {
+    Schema::create('widgets', function ($table) {
+        $table->id();
+        $table->string('title');
+    });
+
+    Livewire::test('tardis::pages.database.edit', ['table' => 'widgets'])
+        ->call('addEditColumnRow')
+        ->set('editColumns.2.name', 'Bad Name')
+        ->call('saveColumn', 2)
+        ->assertSet('error', 'Column #3 name must start with a letter and contain only lowercase letters, numbers and underscores.');
+
+    $names = array_column(Schema::getColumns('widgets'), 'name');
+
+    expect($names)->not->toContain('Bad Name');
+});
+
+test('requestRemoveColumnRow discards an unsaved row without touching the database', function () {
+    Schema::create('widgets', function ($table) {
+        $table->id();
+        $table->string('title');
+    });
+
+    Livewire::test('tardis::pages.database.edit', ['table' => 'widgets'])
+        ->call('addEditColumnRow')
+        ->assertCount('editColumns', 3)
+        ->call('requestRemoveColumnRow', 2)
+        ->assertCount('editColumns', 2)
+        ->assertSet('confirmDropColumn', null);
+
+    $names = array_column(Schema::getColumns('widgets'), 'name');
+
+    expect($names)->toContain('id', 'title');
+});
+
+test('requestRemoveColumnRow opens the drop confirmation for an existing column', function () {
+    Schema::create('widgets', function ($table) {
+        $table->id();
+        $table->string('title');
+        $table->string('obsolete');
+    });
+
+    Livewire::test('tardis::pages.database.edit', ['table' => 'widgets'])
+        ->call('requestRemoveColumnRow', 2)
+        ->assertSet('confirmDropColumn', 'obsolete');
+});
+
 test('dropColumn removes the column from the selected table', function () {
     Schema::create('widgets', function ($table) {
         $table->id();

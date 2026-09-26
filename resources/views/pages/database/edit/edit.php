@@ -18,6 +18,13 @@ new #[Title('Edit Table')] #[Layout('tardis::layouts.admin')] class extends Comp
     /** @var array<int, array<string, mixed>> */
     public array $columns = [];
 
+    /**
+     * Editable column rows bound to the create-style table.
+     *
+     * @var array<int, array{name: string, original: string, type: string, length: string, nullable: bool, default: string, key: string}>
+     */
+    public array $editColumns = [];
+
     public int $totalRows = 0;
 
     public ?string $error = null;
@@ -65,11 +72,120 @@ new #[Title('Edit Table')] #[Layout('tardis::layouts.admin')] class extends Comp
                 Schema::connection($connection)->getIndexes($this->selectedTable)
             );
 
+            $this->editColumns = array_map(
+                fn (array $column) => [
+                    'name' => $column['name'],
+                    'original' => $column['name'],
+                    'type' => $this->guessColumnType($column['name']),
+                    'length' => $this->parseColumnLength((string) $column['type']),
+                    'nullable' => (bool) ($column['nullable'] ?? false),
+                    'default' => $column['default'] === null ? '' : (string) $column['default'],
+                    'key' => $column['key'] ?? '',
+                ],
+                $this->columns
+            );
+
             $this->totalRows = DB::connection($connection)->table($this->selectedTable)->count();
         } catch (Throwable $e) {
             $this->error = 'Could not load table data: '.$e->getMessage();
             $this->columns = [];
+            $this->editColumns = [];
         }
+    }
+
+    protected function parseColumnLength(string $rawType): string
+    {
+        if (preg_match('/\((\d+(?:,\s*\d+)?)\)/', $rawType, $matches)) {
+            return str_replace(' ', '', $matches[1]);
+        }
+
+        return '';
+    }
+
+    public function addEditColumnRow(): void
+    {
+        $this->editColumns[] = [
+            'name' => '',
+            'original' => '',
+            'type' => 'string',
+            'length' => '',
+            'nullable' => false,
+            'default' => '',
+            'key' => '',
+        ];
+        $this->error = null;
+    }
+
+    public function saveColumn(int $index): void
+    {
+        $column = $this->editColumns[$index] ?? null;
+
+        if ($column === null) {
+            return;
+        }
+
+        if (! $this->validateColumn($column, $index)) {
+            return;
+        }
+
+        $this->error = null;
+
+        try {
+            $connection = config('database.default');
+
+            if ($column['original'] === '') {
+                // Newly added row → persist the column.
+                Schema::connection($connection)
+                    ->table($this->selectedTable, function (Blueprint $table) use ($column) {
+                        $this->applyColumnDefinition($table, $column);
+                    });
+
+                $this->message = 'Column added successfully.';
+            } else {
+                // Existing row → rename first, then apply the new definition.
+                $original = $column['original'];
+                $renamed = $column['name'];
+
+                if ($renamed !== $original) {
+                    Schema::connection($connection)
+                        ->table($this->selectedTable, function (Blueprint $t) use ($original, $renamed) {
+                            $t->renameColumn($original, $renamed);
+                        });
+                }
+
+                Schema::connection($connection)
+                    ->table($this->selectedTable, function (Blueprint $t) use ($column, $renamed) {
+                        $current = $column;
+                        $current['name'] = $renamed;
+                        $this->applyColumnDefinition($t, $current, false, true);
+                    });
+
+                $this->message = 'Column updated successfully.';
+            }
+
+            $this->loadTableData();
+        } catch (Throwable $e) {
+            $this->error = 'Could not save column: '.$e->getMessage();
+        }
+    }
+
+    public function requestRemoveColumnRow(int $index): void
+    {
+        $column = $this->editColumns[$index] ?? null;
+
+        if ($column === null) {
+            return;
+        }
+
+        // Unsaved rows are removed from the editor without touching the database.
+        if ($column['original'] === '') {
+            unset($this->editColumns[$index]);
+            $this->editColumns = array_values($this->editColumns);
+
+            return;
+        }
+
+        $this->requestDropColumn($column['original']);
     }
 
     public function openAddColumn(): void

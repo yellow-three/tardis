@@ -43,10 +43,6 @@
                     Create Model
                 </button>
             @endif
-            <button wire:click="openAddColumn" class="btn btn-ghost btn-sm gap-1">
-                <x-tardis::icon name="plus" class="w-3 h-3" />
-                Add Column
-            </button>
             <button wire:click="requestDropTable" class="btn btn-ghost btn-sm text-error gap-1">
                 <x-tardis::icon name="trash" class="w-3 h-3" />
                 Drop Table
@@ -54,76 +50,66 @@
         </div>
     </div>
 
-    <!-- Add Column Inline Form -->
-    @if ($showAddColumnForm)
-        <div class="card bg-base-100 shadow-sm mb-4 border border-primary/20">
-            <div class="card-body p-4">
-                <h3 class="card-title text-sm mb-2">Add Column</h3>
-                @include('tardis::pages.database._column-fields', ['bind' => 'newColumn', 'types' => $this->columnTypes()])
-                <div class="flex items-center justify-end gap-2 mt-3">
-                    <button wire:click="closeAddColumn" class="btn btn-ghost btn-sm">Cancel</button>
-                    <button wire:click="addColumn" class="btn btn-primary btn-sm gap-1">
-                        <x-tardis::icon name="check" class="w-3 h-3" />
-                        Add Column
-                    </button>
-                </div>
-            </div>
-        </div>
-    @endif
-
-    <!-- Edit Column Inline Form -->
-    @if ($showEditColumnForm)
-        <div class="card bg-base-100 shadow-sm mb-4 border border-primary/20">
-            <div class="card-body p-4">
-                <h3 class="card-title text-sm mb-2">Edit Column: {{ $editColumnOriginal }}</h3>
-                @include('tardis::pages.database._column-fields', ['bind' => 'editColumn', 'types' => $this->columnTypes()])
-                <div class="flex items-center justify-end gap-2 mt-3">
-                    <button wire:click="closeEditColumn" class="btn btn-ghost btn-sm">Cancel</button>
-                    <button wire:click="saveEditColumn" class="btn btn-primary btn-sm gap-1">
-                        <x-tardis::icon name="check" class="w-3 h-3" />
-                        Save Changes
-                    </button>
-                </div>
-            </div>
-        </div>
-    @endif
-
     <!-- Columns -->
     <div class="card bg-base-100 shadow-sm">
-        <div class="card-body p-4">
+        <div class="card-body p-4 space-y-3">
+            <div class="flex items-center justify-between">
+                <h3 class="card-title text-sm">Columns</h3>
+                <button wire:click="addEditColumnRow" class="btn btn-ghost btn-xs gap-1">
+                    <x-tardis::icon name="plus" class="w-3 h-3" />
+                    Add Column
+                </button>
+            </div>
+
             <div class="overflow-x-auto">
-                <table class="table">
+                <table class="table table-sm">
                     <thead>
                         <tr>
-                            <th>Field</th>
-                            <th>Type</th>
-                            <th>Null</th>
-                            <th>Default</th>
-                            <th>Key</th>
-                            <th class="text-right">Actions</th>
+                            <th class="w-48">Name</th>
+                            <th class="w-44">Type</th>
+                            <th class="w-28">Length</th>
+                            <th class="w-32">Default</th>
+                            <th>Nullable</th>
+                            <th class="w-16">Key</th>
+                            <th class="w-32"></th>
                         </tr>
                     </thead>
                     <tbody>
-                        @forelse ($columns as $col)
-                            <tr wire:key="column-{{ $col['name'] }}">
-                                <td class="font-semibold">{{ $col['name'] }}</td>
-                                <td><code class="text-xs">{{ $col['type'] ?? 'unknown' }}</code></td>
-                                <td>{{ ! empty($col['nullable']) ? 'YES' : '' }}</td>
-                                <td class="text-xs">{{ $col['default'] === null ? 'NULL' : $col['default'] }}</td>
+                        @forelse ($editColumns as $index => $column)
+                            <tr wire:key="edit-column-{{ $column['original'] !== '' ? $column['original'] : 'new-'.$index }}">
                                 <td>
-                                    @if (($col['key'] ?? '') === 'PRI')
+                                    <input type="text" wire:model="editColumns.{{ $index }}.name" class="input input-bordered input-xs" placeholder="name" />
+                                </td>
+                                <td>
+                                    <select wire:model="editColumns.{{ $index }}.type" class="select select-bordered select-xs">
+                                        @foreach ($this->columnTypes() as $columnType)
+                                            <option value="{{ $columnType }}">{{ $columnType }}</option>
+                                        @endforeach
+                                    </select>
+                                </td>
+                                <td>
+                                    <input type="text" wire:model="editColumns.{{ $index }}.length" class="input input-bordered input-xs" placeholder="255" />
+                                </td>
+                                <td>
+                                    <input type="text" wire:model="editColumns.{{ $index }}.default" class="input input-bordered input-xs" placeholder="NULL" />
+                                </td>
+                                <td>
+                                    <input type="checkbox" wire:model="editColumns.{{ $index }}.nullable" class="toggle toggle-xs toggle-primary" />
+                                </td>
+                                <td>
+                                    @if (($column['key'] ?? '') === 'PRI')
                                         <span class="badge badge-primary badge-xs">PRI</span>
-                                    @elseif (($col['key'] ?? '') === 'UNI')
+                                    @elseif (($column['key'] ?? '') === 'UNI')
                                         <span class="badge badge-warning badge-xs">UNI</span>
                                     @endif
                                 </td>
                                 <td>
                                     <div class="flex items-center justify-end gap-1">
-                                        <button wire:click="openEditColumn('{{ $col['name'] }}')" class="btn btn-ghost btn-xs">
-                                            <x-tardis::icon name="pencil-square" class="w-3 h-3" />
-                                            Edit
+                                        <button wire:click="saveColumn({{ $index }})" class="btn btn-primary btn-xs gap-1">
+                                            <x-tardis::icon name="check" class="w-3 h-3" />
+                                            Save
                                         </button>
-                                        <button wire:click="requestDropColumn('{{ $col['name'] }}')" class="btn btn-ghost btn-xs text-error">
+                                        <button wire:click="requestRemoveColumnRow({{ $index }})" class="btn btn-ghost btn-xs text-error">
                                             <x-tardis::icon name="trash" class="w-3 h-3" />
                                             Drop
                                         </button>
@@ -132,7 +118,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="6" class="text-center py-12 opacity-50">
+                                <td colspan="7" class="text-center py-12 opacity-50">
                                     <x-tardis::icon name="database" class="w-16 h-16 mx-auto opacity-20" />
                                     <p class="mt-2">No columns found</p>
                                 </td>
