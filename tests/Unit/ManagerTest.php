@@ -5,7 +5,7 @@ declare(strict_types=1);
 use Illuminate\Support\Facades\File;
 use Tardis\Bread\BreadDefinition;
 use Tardis\Bread\BreadManager;
-use Tardis\Bread\Sources\ConfigBreadSource;
+use Tardis\Bread\Sources\JsonBreadSource;
 use Tardis\Manager\FormfieldManager;
 use Tardis\Manager\MenuManager;
 use Tardis\Manager\PluginManager;
@@ -37,11 +37,11 @@ test('FormfieldManager can be instantiated', function () {
     expect($manager)->toBeInstanceOf(FormfieldManager::class);
 });
 
-test('BreadManager delegates to the config source', function () {
+test('BreadManager delegates to the json source', function () {
     $path = sys_get_temp_dir().'/tardis-manager-'.uniqid();
 
     try {
-        $manager = new BreadManager(new ConfigBreadSource($path));
+        $manager = new BreadManager(new JsonBreadSource($path));
 
         $manager->save([
             'slug' => 'posts',

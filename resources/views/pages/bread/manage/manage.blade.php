@@ -11,6 +11,32 @@
         </x-slot:action>
     </x-tardis::page-header>
 
+    @if (session('message'))
+        <div class="alert alert-success mb-4 shadow-sm">
+            <span>{{ session('message') }}</span>
+        </div>
+    @endif
+
+    @if (session('error'))
+        <div class="alert alert-error mb-4 shadow-sm">
+            <span>{{ session('error') }}</span>
+        </div>
+    @endif
+
+    @if ($this->hasLegacyDefinitions)
+        <div class="alert alert-warning mb-6 shadow-sm">
+            <x-tardis::icon name="information-circle" class="w-5 h-5 shrink-0" />
+            <div class="flex-1">
+                <h3 class="font-semibold">Legacy config definitions detected</h3>
+                <p class="text-sm text-base-content/70">
+                    You still have BREAD definitions in <code class="badge badge-ghost badge-sm">config/bread</code>.
+                    Run <code class="badge badge-ghost badge-sm">php artisan tardis:bread:migrate</code> to move
+                    them into JSON storage.
+                </p>
+            </div>
+        </div>
+    @endif
+
     @if ($this->breads->isEmpty())
         <div class="card bg-base-100 shadow">
             <div class="card-body text-center py-12">
@@ -38,11 +64,39 @@
                             <tr>
                                 <td class="font-semibold">{{ $bread->name ?? $slug }}</td>
                                 <td><code class="badge badge-ghost badge-sm">{{ $slug }}</code></td>
-                                <td><span class="badge badge-info badge-sm">config</span></td>
+                                <td><span class="badge badge-info badge-sm">json</span></td>
                                 <td class="text-right">
-                                    <a href="{{ route('tardis.bread.index', ['slug' => $slug]) }}" class="btn btn-ghost btn-sm">
-                                        Browse
-                                    </a>
+                                    <div class="flex items-center justify-end gap-1">
+                                        <div class="dropdown dropdown-end">
+                                            <div tabindex="0" role="button" class="btn btn-ghost btn-sm gap-1" aria-label="Backups for {{ $slug }}">
+                                                <x-tardis::icon name="clock" class="w-4 h-4" />
+                                                Backups
+                                            </div>
+                                            <ul tabindex="0" class="dropdown-content menu bg-base-100 rounded-box z-10 w-72 p-2 shadow border border-base-300">
+                                                @forelse ($this->backups($slug) as $backup)
+                                                    <li>
+                                                        <button
+                                                            wire:click="rollback('{{ $slug }}', '{{ $backup['name'] }}')"
+                                                            wire:confirm="Restore this backup? The current definition will be snapshotted first."
+                                                            class="justify-between font-mono text-xs"
+                                                        >
+                                                            <span class="truncate">{{ $backup['date'] }}</span>
+                                                            <span class="badge badge-warning badge-sm shrink-0">Restore</span>
+                                                        </button>
+                                                    </li>
+                                                @empty
+                                                    <li>
+                                                        <span class="px-2 py-1 text-sm opacity-60">
+                                                            No backups yet
+                                                        </span>
+                                                    </li>
+                                                @endforelse
+                                            </ul>
+                                        </div>
+                                        <a href="{{ route('tardis.bread.index', ['slug' => $slug]) }}" class="btn btn-ghost btn-sm">
+                                            Browse
+                                        </a>
+                                    </div>
                                 </td>
                             </tr>
                         @endforeach

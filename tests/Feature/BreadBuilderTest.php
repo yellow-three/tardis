@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Schema;
 use Livewire\Livewire;
 use Tardis\Bread\BreadManager;
 use Tardis\Bread\FieldType;
-use Tardis\Bread\Sources\ConfigBreadSource;
+use Tardis\Bread\Sources\JsonBreadSource;
 
 class BreadBuilderTestModel extends Model
 {
@@ -44,7 +44,7 @@ afterEach(function () {
 });
 
 test('detectFields normalizes detected types and pluralizes the model basename', function () {
-    app()->instance(ConfigBreadSource::class, new ConfigBreadSource($this->breadPath));
+    app()->instance(JsonBreadSource::class, new JsonBreadSource($this->breadPath));
 
     Livewire::test('tardis::pages.bread-builder')
         ->set('model', BreadBuilderTestModel::class)
@@ -67,9 +67,9 @@ test('detectFields produces only valid FieldType values', function () {
     }
 });
 
-test('builder saves a BREAD definition to the config source', function () {
-    $source = new ConfigBreadSource($this->breadPath);
-    app()->instance(ConfigBreadSource::class, $source);
+test('builder saves a BREAD definition to the json source', function () {
+    $source = new JsonBreadSource($this->breadPath);
+    app()->instance(JsonBreadSource::class, $source);
 
     Livewire::test('tardis::pages.bread-builder')
         ->set('model', BreadBuilderTestModel::class)
@@ -88,8 +88,8 @@ test('builder saves a BREAD definition to the config source', function () {
 });
 
 test('builder edit mode hydrates the full definition', function () {
-    $source = new ConfigBreadSource($this->breadPath);
-    app()->instance(ConfigBreadSource::class, $source);
+    $source = new JsonBreadSource($this->breadPath);
+    app()->instance(JsonBreadSource::class, $source);
 
     $source->save([
         'slug' => 'bread-builder-test',

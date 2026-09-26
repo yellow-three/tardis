@@ -20,6 +20,11 @@ return [
     'bread' => [
         'soft_deletes' => true,
         'timestamps' => true,
+        // Directory where runtime BREAD definitions are stored as JSON files.
+        // When null, defaults to storage_path('tardis/bread').
+        'path' => null,
+        // How many timestamped backups to keep per definition.
+        'backup_keep' => 10,
     ],
 
     /*

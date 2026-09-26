@@ -8,7 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Schema;
 use Livewire\Livewire;
-use Tardis\Bread\Sources\ConfigBreadSource;
+use Tardis\Bread\Sources\JsonBreadSource;
 use Tardis\Classes\MenuItem;
 
 class BreadPageTestModel extends Model
@@ -42,7 +42,7 @@ test('bread index page renders records from a configured model', function () {
         'content' => 'Data content',
     ]);
 
-    app()->instance(ConfigBreadSource::class, new ConfigBreadSource(__DIR__.'/../Fixtures/bread'));
+    app()->instance(JsonBreadSource::class, new JsonBreadSource(__DIR__.'/../Fixtures/bread'));
 
     Livewire::test('tardis::pages.bread.index', ['slug' => 'bread-page-posts'])
         ->assertSee('Posts')
@@ -57,7 +57,7 @@ test('bread create page can save a record', function () {
         $table->timestamps();
     });
 
-    app()->instance(ConfigBreadSource::class, new ConfigBreadSource(__DIR__.'/../Fixtures/bread'));
+    app()->instance(JsonBreadSource::class, new JsonBreadSource(__DIR__.'/../Fixtures/bread'));
 
     Livewire::test('tardis::pages.bread.create', ['slug' => 'bread-page-posts-create'])
         ->set('form.title', 'New title')

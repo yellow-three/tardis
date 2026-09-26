@@ -118,7 +118,7 @@ npm run build
 
 ## BREAD usage
 
-A BREAD definition is a plain PHP config file under `config/bread/{slug}.php`. The management screens then render list/detail/edit/create screens from that metadata instead of hardcoding one-off admin pages.
+A BREAD definition is a JSON file under `storage/tardis/bread/{slug}.json` (configurable through `tardis.bread.path`, defaults to `storage_path('tardis/bread')`). The management screens then render list/detail/edit/create screens from that metadata instead of hardcoding one-off admin pages.
 
 The fastest way to create one is from an existing model:
 
@@ -126,26 +126,16 @@ The fastest way to create one is from an existing model:
 php artisan tardis:make-bread "App\Models\Post"
 ```
 
-This writes `config/bread/posts.php` with the fields detected from the model (fillable + schema nullability):
+This writes `storage/tardis/bread/posts.json` with the fields detected from the model (fillable + schema nullability):
 
-```php
-<?php
-
-/*
-|--------------------------------------------------------------------------
-| BREAD definition: posts
-|--------------------------------------------------------------------------
-| Managed through the Tardis admin BREAD builder. The array shape is
-| compatible with BreadDefinition::fromArray().
-*/
-
-return [
-    'slug' => 'posts',
-    'model' => App\Models\Post::class,
-    'name' => 'Post',
-    'name_plural' => 'Posts',
-    'fields' => [],
-];
+```json
+{
+    "slug": "posts",
+    "model": "App\\Models\\Post",
+    "name": "Post",
+    "name_plural": "Posts",
+    "fields": []
+}
 ```
 
 Definitions are read through the `BreadManager`:
@@ -155,6 +145,24 @@ use Tardis\Bread\BreadManager;
 
 app(BreadManager::class)->find('posts'); // ?BreadDefinition
 app(BreadManager::class)->all();         // Collection of BreadDefinition
+```
+
+Every save keeps a timestamped backup (`posts.backup.{Y-m-d@H-i-s.u}.json`) and prunes older ones to `tardis.bread.backup_keep` (default 10). Backups can be restored from the BREAD management screen.
+
+Legacy PHP definitions in `config/bread/{slug}.php` are still readable. Migrate them to JSON storage with:
+
+```bash
+php artisan tardis:bread:migrate          # write JSON copies
+php artisan tardis:bread:migrate --dry-run  # preview what would be migrated
+php artisan tardis:bread:migrate --force    # overwrite existing JSON with the same slug
+php artisan tardis:bread:migrate --delete   # move migrated .php files to config/bread-migrated
+```
+
+Export all JSON definitions as a single document with:
+
+```bash
+php artisan tardis:bread:export --file=bread-export.json
+php artisan tardis:bread:export            # print to stdout
 ```
 
 ## Livewire usage

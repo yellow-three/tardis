@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 use Tardis\Bread\BreadDefinition;
 use Tardis\Bread\ModelReflector;
-use Tardis\Bread\Sources\ConfigBreadSource;
+use Tardis\Bread\Sources\JsonBreadSource;
 
 class TardisMakeBreadCommand extends Command
 {
@@ -15,9 +15,9 @@ class TardisMakeBreadCommand extends Command
         {model : The fully qualified model class (e.g., App\\Models\\Post)}
         {slug? : BREAD slug (default: plural snake case of the model basename)}';
 
-    protected $description = 'Create a BREAD config file from an Eloquent model';
+    protected $description = 'Create a BREAD definition file from an Eloquent model';
 
-    public function handle(ConfigBreadSource $source): int
+    public function handle(JsonBreadSource $source): int
     {
         $model = $this->argument('model');
 
@@ -47,17 +47,18 @@ class TardisMakeBreadCommand extends Command
 
         $source->save($definition);
 
-        $target = $source->path().'/'.$slug.'.php';
+        $target = $source->path().'/'.$slug.'.json';
 
         $this->components->info("BREAD definition [{$slug}] created successfully.");
-        $this->components->twoColumnDetail('Config File', $target);
+        $this->components->twoColumnDetail('Definition File', $target);
         $this->components->twoColumnDetail('Model', $model);
         $this->components->twoColumnDetail('Fields Detected', (string) count($fields));
 
         $this->newLine();
         $this->components->bulletList([
             "Edit {$target} to tweak fields, labels, validation and layout.",
-            'The BREAD screens pick the definition up automatically from the config file.',
+            'The BREAD screens pick the definition up automatically from the JSON file.',
+            'A timestamped backup of the previous version is kept before every save.',
         ]);
 
         return self::SUCCESS;

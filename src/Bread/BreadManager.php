@@ -1,14 +1,16 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tardis\Bread;
 
 use Illuminate\Support\Collection;
-use Tardis\Bread\Sources\ConfigBreadSource;
+use Tardis\Bread\Sources\JsonBreadSource;
 
 class BreadManager
 {
     public function __construct(
-        protected ConfigBreadSource $config,
+        protected JsonBreadSource $bread,
     ) {}
 
     /**
@@ -16,16 +18,56 @@ class BreadManager
      */
     public function save(array|BreadDefinition $bread): void
     {
-        $this->config->save($bread);
+        $this->bread->save($bread);
     }
 
     public function find(string $slug): ?BreadDefinition
     {
-        return $this->config->find($slug);
+        return $this->bread->find($slug);
     }
 
     public function all(): Collection
     {
-        return $this->config->all();
+        return $this->bread->all();
+    }
+
+    public function has(string $slug): bool
+    {
+        return $this->bread->has($slug);
+    }
+
+    public function delete(string $slug): bool
+    {
+        return $this->bread->delete($slug);
+    }
+
+    public function backup(string $slug): ?string
+    {
+        return $this->bread->backup($slug);
+    }
+
+    public function backups(string $slug): Collection
+    {
+        return $this->bread->backups($slug);
+    }
+
+    public function rollback(string $slug, string $backup): bool
+    {
+        return $this->bread->rollback($slug, $backup);
+    }
+
+    public function prune(string $slug, ?int $keep = null): int
+    {
+        return $this->bread->prune($slug, $keep);
+    }
+
+    public function path(): string
+    {
+        return $this->bread->path();
+    }
+
+    public function source(): JsonBreadSource
+    {
+        return $this->bread;
     }
 }
