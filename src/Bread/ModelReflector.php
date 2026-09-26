@@ -103,13 +103,29 @@ class ModelReflector
 
         $relationTypes = ['hasMany', 'belongsTo', 'belongsToMany', 'hasOne', 'morphMany', 'morphTo', 'hasManyThrough'];
 
+        // Eloquent's base Model method names. Relationship detection must
+        // never invoke these, even if the user's model overrides them:
+        // Model::unsetConnectionResolver() (static, 0 args) would null the
+        // global connection resolver mid-request, and save()/push()/delete()
+        // would mutate or destroy the fresh instance being introspected.
+        $modelMethodNames = self::baseModelMethodNames();
+
         foreach ($methods as $method) {
             $return = null;
             try {
                 $reflection = new \ReflectionMethod($model, $method);
-                if ($reflection->getNumberOfParameters() === 0) {
-                    $return = $reflection->invoke($model);
+
+                if ($reflection->getNumberOfParameters() !== 0) {
+                    continue;
                 }
+                if ($reflection->isStatic()) {
+                    continue;
+                }
+                if (isset($modelMethodNames[$method])) {
+                    continue;
+                }
+
+                $return = $reflection->invoke($model);
             } catch (\Throwable) {
                 continue;
             }
@@ -129,6 +145,22 @@ class ModelReflector
         }
 
         return $relationships;
+    }
+
+    /**
+     * Public method names declared by Eloquent's base Model (including trait
+     * methods). Used to protect relationship detection from ever invoking
+     * framework methods that mutate state or the global connection resolver.
+     */
+    protected static function baseModelMethodNames(): array
+    {
+        static $names = null;
+
+        if ($names === null) {
+            $names = array_flip(get_class_methods(Model::class));
+        }
+
+        return $names;
     }
 
     protected static function hasSoftDeletes(Model $model): bool
