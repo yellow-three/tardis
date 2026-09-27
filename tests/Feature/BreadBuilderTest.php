@@ -414,6 +414,51 @@ test('slug status distinguishes empty, invalid, available and taken slugs', func
     expect($component->instance()->slugStatus)->toBe('taken');
 });
 
+test('save coerces a field type that is not a registered FieldType', function () {
+    $source = new JsonBreadSource($this->breadPath);
+    app()->instance(JsonBreadSource::class, $source);
+
+    Livewire::test('tardis::pages.bread-builder')
+        ->set('model', BreadBuilderTestModel::class)
+        ->call('detectFields')
+        ->set('slug', 'bread-builder-test')
+        // The type <select> binds straight to the config array, so this is the
+        // exact path a hand-crafted Livewire payload would take.
+        ->set('fieldConfig.avatar.type', 'not-a-real-type')
+        ->call('save')
+        ->assertHasNoErrors();
+
+    $bread = app(BreadManager::class)->find('bread-builder-test');
+
+    // Falls back to the type the reflector detected for that column (file) --
+    // not to a blanket text -- and every persisted type stays on the enum.
+    expect($bread->fields['avatar']['type'])->toBe('file');
+
+    foreach ($bread->fields as $field) {
+        expect(array_column(FieldType::cases(), 'value'))->toContain($field['type']);
+    }
+});
+
+test('save maps a legacy field type name onto the enum', function () {
+    $source = new JsonBreadSource($this->breadPath);
+    app()->instance(JsonBreadSource::class, $source);
+
+    Livewire::test('tardis::pages.bread-builder')
+        ->set('model', BreadBuilderTestModel::class)
+        ->call('detectFields')
+        ->set('slug', 'bread-builder-test')
+        // 'image' is not an enum case, but FieldType::normalize() reads it as
+        // File, so the staged intent survives instead of losing to the type the
+        // reflector detected for body.
+        ->set('fieldConfig.body.type', 'image')
+        ->call('save')
+        ->assertHasNoErrors();
+
+    $bread = app(BreadManager::class)->find('bread-builder-test');
+
+    expect($bread->fields['body']['type'])->toBe('file');
+});
+
 test('save refuses to silently overwrite another BREAD definition', function () {
     $source = new JsonBreadSource($this->breadPath);
     app()->instance(JsonBreadSource::class, $source);

@@ -190,6 +190,7 @@ new #[Title('BREAD Builder')] #[Layout('tardis::layouts.admin')] class extends C
         }
 
         $this->hydrateLayoutDefaults();
+        $this->normalizeFieldTypes();
 
         $bread = BreadDefinition::fromArray([
             'slug' => $this->slug,
@@ -388,6 +389,37 @@ new #[Title('BREAD Builder')] #[Layout('tardis::layouts.admin')] class extends C
         }
 
         $this->fieldConfig[$key]['type'] = $normalized->value;
+    }
+
+    /**
+     * Coerce every staged field type back onto the FieldType enum.
+     *
+     * The type <select> only ever offers registered values, but it binds
+     * straight to fieldConfig.<key>.type, so a hand-crafted Livewire payload
+     * can write any string there. JsonBreadSource rejects an unknown type by
+     * throwing, which would surface to the user as a 500 on save, so fall
+     * back to the type the reflector detected for that column instead.
+     */
+    protected function normalizeFieldTypes(): void
+    {
+        foreach ($this->fieldConfig as $key => $field) {
+            if (! is_array($field)) {
+                continue;
+            }
+
+            $detected = $this->detectedFields[$key]['type'] ?? null;
+            $fallback = is_string($detected) ? FieldType::tryFrom($detected) : null;
+
+            // Run the staged value through FieldType::normalize() first so a
+            // legacy/semantic name (image, email, simple_array) still maps onto
+            // the enum instead of being discarded in favour of the detected type.
+            $current = $field['type'] ?? null;
+            $normalized = is_string($current)
+                ? FieldType::tryFrom(FieldType::normalize($current))
+                : null;
+
+            $this->fieldConfig[$key]['type'] = ($normalized ?? $fallback ?? FieldType::Text)->value;
+        }
     }
 
     // ---------------------------------------------------------------------
