@@ -36,7 +36,19 @@ beforeEach(function () {
     });
 
     $this->breadPath = sys_get_temp_dir().'/tardis-bread-builder-'.uniqid();
+
+    // Keep every test hermetic: without this, a test that never saves would
+    // still read whatever happens to sit in the real storage_path('tardis/bread').
+    app()->instance(JsonBreadSource::class, new JsonBreadSource($this->breadPath));
 });
+
+/** The field keys in the order the step 2 table actually renders them. */
+function renderedFieldKeys(string $html): array
+{
+    preg_match_all('/wire:key="field-([^"]+)"/', $html, $matches);
+
+    return $matches[1];
+}
 
 afterEach(function () {
     Schema::dropIfExists('bread_builder_test');
@@ -138,4 +150,319 @@ test('step 1 next button is disabled until a model is selected', function () {
         ->assertSeeHtml($button)
         ->set('model', BreadBuilderTestModel::class)
         ->assertDontSeeHtml($button);
+});
+
+test('goToStep owns the active tab of the fields and configure steps', function () {
+    $component = Livewire::test('tardis::pages.bread-builder')
+        ->call('goToStep', 3);
+
+    expect($component->get('step'))->toBe(3)
+        ->and($component->get('activeTab'))->toBe('general');
+
+    $component->set('activeTab', 'read')->call('goToStep', 2);
+
+    expect($component->get('step'))->toBe(2)
+        ->and($component->get('activeTab'))->toBe('fields');
+});
+
+test('save persists the read layout and the field order', function () {
+    $source = new JsonBreadSource($this->breadPath);
+    app()->instance(JsonBreadSource::class, $source);
+
+    Livewire::test('tardis::pages.bread-builder')
+        ->set('model', BreadBuilderTestModel::class)
+        ->call('detectFields')
+        ->set('slug', 'bread-builder-test')
+        ->set('readLayout', ['name', 'email'])
+        ->set('fieldOrder', ['body', 'tags', 'avatar', 'email', 'name'])
+        ->call('save')
+        ->assertHasNoErrors();
+
+    $bread = app(BreadManager::class)->find('bread-builder-test');
+
+    expect($bread->layout['read'])->toBe(['name', 'email'])
+        ->and($bread->layout['field_order'])->toBe(['body', 'tags', 'avatar', 'email', 'name']);
+});
+
+test('save fills the read layout and field order that were never configured', function () {
+    $source = new JsonBreadSource($this->breadPath);
+    app()->instance(JsonBreadSource::class, $source);
+
+    Livewire::test('tardis::pages.bread-builder')
+        ->set('model', BreadBuilderTestModel::class)
+        ->call('detectFields')
+        ->set('slug', 'bread-builder-test')
+        ->set('readLayout', [])
+        ->set('fieldOrder', [])
+        ->call('save')
+        ->assertHasNoErrors();
+
+    $bread = app(BreadManager::class)->find('bread-builder-test');
+    $expected = ['name', 'email', 'avatar', 'tags', 'body'];
+
+    expect($bread->layout['read'])->toBe($expected)
+        ->and($bread->layout['field_order'])->toBe($expected);
+});
+
+test('toggleReadField adds a field to the read layout and removes it again', function () {
+    $component = Livewire::test('tardis::pages.bread-builder')
+        ->set('model', BreadBuilderTestModel::class)
+        ->call('detectFields')
+        ->set('readLayout', [])
+        ->call('toggleReadField', 'name')
+        ->call('toggleReadField', 'email');
+
+    expect($component->get('readLayout'))->toBe(['name', 'email']);
+
+    $component->call('toggleReadField', 'name');
+
+    expect($component->get('readLayout'))->toBe(['email']);
+});
+
+test('moveReadField reorders the read layout and ignores out of range moves', function () {
+    $component = Livewire::test('tardis::pages.bread-builder')
+        ->set('model', BreadBuilderTestModel::class)
+        ->call('detectFields')
+        ->set('readLayout', ['name', 'email', 'body']);
+
+    $component->call('moveReadField', 'name', 1);
+
+    expect($component->get('readLayout'))->toBe(['email', 'name', 'body']);
+
+    $component->call('moveReadField', 'body', 99);
+
+    expect($component->get('readLayout'))->toBe(['email', 'name', 'body']);
+});
+
+test('moveField reorders the field table without dropping fields', function () {
+    $component = Livewire::test('tardis::pages.bread-builder')
+        ->set('model', BreadBuilderTestModel::class)
+        ->call('detectFields')
+        ->call('moveField', 'name', 1);
+
+    $expected = ['email', 'name', 'avatar', 'tags', 'body'];
+
+    expect($component->get('fieldOrder'))->toBe($expected);
+
+    // A fresh component is what the browser receives on the next request, so
+    // this asserts the order the table is genuinely rendered in.
+    $next = Livewire::test('tardis::pages.bread-builder')
+        ->set('model', BreadBuilderTestModel::class)
+        ->call('detectFields')
+        ->set('fieldOrder', $expected);
+
+    expect(renderedFieldKeys($next->html()))->toBe($expected);
+});
+
+test('orderedFieldKeys appends fields missing from a stale field order', function () {
+    $component = Livewire::test('tardis::pages.bread-builder')
+        ->set('model', BreadBuilderTestModel::class)
+        ->call('detectFields')
+        ->set('fieldOrder', ['body', 'name']);
+
+    expect($component->instance()->orderedFieldKeys)
+        ->toBe(['body', 'name', 'email', 'avatar', 'tags']);
+});
+
+test('fieldSearch filters the field table by key, label and type', function () {
+    $component = Livewire::test('tardis::pages.bread-builder')
+        ->set('model', BreadBuilderTestModel::class)
+        ->call('detectFields');
+
+    $component->set('fieldSearch', 'email');
+    expect($component->instance()->visibleFieldKeys)->toBe(['email']);
+
+    $component->set('fieldSearch', 'file');
+    expect($component->instance()->visibleFieldKeys)->toBe(['avatar']);
+
+    $component->set('fieldSearch', 'no-such-field');
+    expect($component->instance()->visibleFieldKeys)->toBe([]);
+
+    $component->set('fieldSearch', '');
+    expect($component->instance()->visibleFieldKeys)->toHaveCount(5);
+});
+
+test('toggleAllFields flips one flag across every field and ignores unknown flags', function () {
+    $component = Livewire::test('tardis::pages.bread-builder')
+        ->set('model', BreadBuilderTestModel::class)
+        ->call('detectFields')
+        ->call('toggleAllFields', 'browse', false);
+
+    $browse = array_values(array_unique(array_column($component->get('fieldConfig'), 'browse')));
+    expect($browse)->toBe([false]);
+
+    $component->call('toggleAllFields', 'not-a-flag', true);
+
+    expect(array_values(array_unique(array_column($component->get('fieldConfig'), 'browse'))))->toBe([false]);
+});
+
+test('setFieldType ignores unknown types and unknown fields', function () {
+    $component = Livewire::test('tardis::pages.bread-builder')
+        ->set('model', BreadBuilderTestModel::class)
+        ->call('detectFields');
+
+    $before = $component->get('fieldConfig.name.type');
+
+    $component->call('setFieldType', 'name', 'not-a-type');
+    expect($component->get('fieldConfig.name.type'))->toBe($before);
+
+    $component->call('setFieldType', 'ghost_field', 'text');
+    expect($component->get('fieldConfig'))->not->toHaveKey('ghost_field');
+
+    $component->call('setFieldType', 'name', 'file');
+    expect($component->get('fieldConfig.name.type'))->toBe('file');
+});
+
+test('selectIcon sets the icon and closes the picker', function () {
+    $component = Livewire::test('tardis::pages.bread-builder')
+        ->set('showIconPicker', true)
+        ->set('iconSearch', 'ta');
+
+    $component->call('selectIcon', 'photo');
+
+    expect($component->get('icon'))->toBe('photo')
+        ->and($component->get('showIconPicker'))->toBeFalse()
+        ->and($component->get('iconSearch'))->toBe('');
+});
+
+test('review step warns about an incomplete definition', function () {
+    $component = Livewire::test('tardis::pages.bread-builder');
+
+    expect(implode("\n", array_column($component->instance()->reviewWarnings, 'message')))
+        ->toContain('Slug is empty');
+
+    $component->set('model', BreadBuilderTestModel::class)
+        ->call('detectFields')
+        ->set('slug', 'bread-builder-test')
+        ->set('readLayout', []);
+
+    expect(implode("\n", array_column($component->instance()->reviewWarnings, 'message')))
+        ->toContain('Read layout is empty');
+});
+
+test('review step raises no warnings for a complete definition', function () {
+    $component = Livewire::test('tardis::pages.bread-builder')
+        ->set('model', BreadBuilderTestModel::class)
+        ->call('detectFields')
+        ->set('slug', 'bread-builder-test');
+
+    expect($component->instance()->reviewWarnings)->toBe([]);
+});
+
+test('review summary counts the fields that reach the generated views', function () {
+    $component = Livewire::test('tardis::pages.bread-builder')
+        ->set('model', BreadBuilderTestModel::class)
+        ->call('detectFields')
+        ->set('slug', 'bread-builder-test')
+        ->set('readLayout', ['name', 'email']);
+
+    $summary = $component->instance()->reviewSummary;
+
+    expect($summary['total_fields'])->toBe(5)
+        ->and($summary['read_fields'])->toBe(['name', 'email'])
+        ->and($summary['browse_fields'])->toHaveCount(5)
+        ->and($summary['add_fields'])->toBe(5)
+        ->and($summary['edit_fields'])->toBe(5);
+});
+
+test('the review step renders the summary of the staged definition', function () {
+    Livewire::test('tardis::pages.bread-builder')
+        ->set('model', BreadBuilderTestModel::class)
+        ->call('detectFields')
+        ->set('slug', 'bread-builder-test')
+        ->call('goToStep', 4)
+        ->assertSee('Summary')
+        ->assertSee('bread-builder-test')
+        ->assertDontSee('Before you save');
+});
+
+test('the review step renders advisories when the definition is incomplete', function () {
+    Livewire::test('tardis::pages.bread-builder')
+        ->set('model', BreadBuilderTestModel::class)
+        ->call('detectFields')
+        ->set('readLayout', [])
+        ->call('goToStep', 4)
+        ->assertSee('Before you save')
+        ->assertSee('Read layout is empty');
+});
+
+test('slug status distinguishes empty, invalid, available and taken slugs', function () {
+    $source = new JsonBreadSource($this->breadPath);
+    app()->instance(JsonBreadSource::class, $source);
+
+    $component = Livewire::test('tardis::pages.bread-builder');
+    expect($component->instance()->slugStatus)->toBe('empty');
+
+    $component->set('slug', 'Not A Slug');
+    expect($component->instance()->slugStatus)->toBe('invalid');
+
+    $component->set('slug', 'brand-new-slug');
+    expect($component->instance()->slugStatus)->toBe('available');
+
+    $source->save([
+        'slug' => 'brand-new-slug',
+        'model' => BreadBuilderTestModel::class,
+        'name' => 'Brand New',
+        'name_plural' => 'Brand New Slugs',
+        'fields' => [
+            'name' => ['name' => 'name', 'type' => 'text', 'label' => 'Name', 'required' => false, 'browse' => true, 'read' => true, 'edit' => true, 'add' => true, 'validation' => []],
+        ],
+        'relationships' => [],
+    ]);
+
+    $component->set('slug', 'brand-new-slug');
+    expect($component->instance()->slugStatus)->toBe('taken');
+});
+
+test('save refuses to silently overwrite another BREAD definition', function () {
+    $source = new JsonBreadSource($this->breadPath);
+    app()->instance(JsonBreadSource::class, $source);
+
+    $source->save([
+        'slug' => 'posts',
+        'model' => BreadBuilderTestModel::class,
+        'name' => 'Posts',
+        'name_plural' => 'Posts',
+        'fields' => [
+            'name' => ['name' => 'name', 'type' => 'text', 'label' => 'Name', 'required' => false, 'browse' => true, 'read' => true, 'edit' => true, 'add' => true, 'validation' => []],
+        ],
+        'relationships' => [],
+    ]);
+
+    Livewire::test('tardis::pages.bread-builder')
+        ->set('model', BreadBuilderTestModel::class)
+        ->call('detectFields')
+        ->set('slug', 'posts')
+        ->call('save')
+        ->assertHasErrors('slug');
+
+    expect(app(BreadManager::class)->find('posts')->name)->toBe('Posts');
+});
+
+test('edit mode may save over its own definition', function () {
+    $source = new JsonBreadSource($this->breadPath);
+    app()->instance(JsonBreadSource::class, $source);
+
+    $source->save([
+        'slug' => 'bread-builder-test',
+        'model' => BreadBuilderTestModel::class,
+        'name' => 'Bread Builder Test',
+        'name_plural' => 'Bread Builder Test Models',
+        'fields' => [
+            'name' => ['name' => 'name', 'type' => 'text', 'label' => 'Name', 'required' => false, 'browse' => true, 'read' => true, 'edit' => true, 'add' => true, 'validation' => []],
+        ],
+        'relationships' => [],
+        'layout' => [
+            'read' => ['name'],
+            'field_order' => ['name'],
+        ],
+    ]);
+
+    Livewire::test('tardis::pages.bread-builder', ['slug' => 'bread-builder-test'])
+        ->set('name', 'Renamed Test')
+        ->call('save')
+        ->assertHasNoErrors()
+        ->assertSessionHas('message');
+
+    expect(app(BreadManager::class)->find('bread-builder-test')->name)->toBe('Renamed Test');
 });

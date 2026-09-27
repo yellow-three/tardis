@@ -1,10 +1,12 @@
 <?php
 
+use Illuminate\Support\Str;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
 use Tardis\Bread\BreadDefinition;
 use Tardis\Bread\BreadManager;
+use Tardis\Bread\FieldType;
 use Tardis\Bread\ModelReflector;
 
 new #[Title('BREAD Builder')] #[Layout('tardis::layouts.admin')] class extends Component
@@ -43,6 +45,21 @@ new #[Title('BREAD Builder')] #[Layout('tardis::layouts.admin')] class extends C
 
     public array $editTabs = [];
 
+    /**
+     * Ordered list of field names rendered on the read/show view.
+     *
+     * Stored as an ordered name list rather than a reindexed map so that
+     * `fieldConfig` keys (which are field names, referenced by
+     * `wire:model="fieldConfig.<name>.type"`) are never invalidated.
+     */
+    public array $readLayout = [];
+
+    /**
+     * User-defined display order for the step 2 field table.
+     * Holds field names; `$fieldConfig` itself is never reindexed.
+     */
+    public array $fieldOrder = [];
+
     public bool $softDelete = false;
 
     public bool $editMode = false;
@@ -52,6 +69,22 @@ new #[Title('BREAD Builder')] #[Layout('tardis::layouts.admin')] class extends C
     public bool $showIconPicker = false;
 
     public string $iconSearch = '';
+
+    public bool $focusMode = false;
+
+    public string $fieldSearch = '';
+
+    /**
+     * Tracks whether the slug was typed by hand, so name-driven slug
+     * generation never clobbers a deliberate value.
+     */
+    public bool $slugTouched = false;
+
+    public string $modelTable = '';
+
+    public bool $modelHasSoftDeletes = false;
+
+    public bool $modelHasTimestamps = true;
 
     public function mount(?string $slug = null): void
     {
@@ -63,6 +96,7 @@ new #[Title('BREAD Builder')] #[Layout('tardis::layouts.admin')] class extends C
                 $this->editMode = true;
                 $this->existingSlug = $slug;
                 $this->slug = $bread->slug;
+                $this->slugTouched = true;
                 $this->model = $bread->model;
                 $this->name = $bread->name;
                 $this->namePlural = $bread->namePlural;
@@ -76,8 +110,13 @@ new #[Title('BREAD Builder')] #[Layout('tardis::layouts.admin')] class extends C
                 $this->softDelete = $bread->softDelete;
                 $this->browseColumns = $bread->layout['browse'] ?? [];
                 $this->editTabs = $bread->layout['edit'] ?? [];
+                $this->readLayout = $bread->layout['read'] ?? [];
+                $this->fieldOrder = $bread->layout['field_order'] ?? [];
                 $this->step = 3;
                 $this->activeTab = 'general';
+
+                $this->captureModelAnalysis();
+                $this->hydrateLayoutDefaults();
             }
         }
     }
@@ -94,14 +133,30 @@ new #[Title('BREAD Builder')] #[Layout('tardis::layouts.admin')] class extends C
             return;
         }
 
+        $this->captureModelAnalysis();
+
         $this->detectedFields = ModelReflector::getFields($this->model);
         $this->fieldConfig = $this->detectedFields;
         $this->detectedRelationships = ModelReflector::getRelationships(new $this->model);
         $this->relationshipConfig = $this->detectedRelationships;
+
+        foreach ($this->relationshipConfig as $key => $relationship) {
+            $this->relationshipConfig[$key]['display_type'] ??= 'select';
+        }
+
         $this->name = class_basename($this->model);
         $this->namePlural = Str::headline(Str::plural(class_basename($this->model)));
 
+        $this->slugTouched = false;
+        $this->syncSlug();
+
+        $this->fieldOrder = array_keys($this->fieldConfig);
+        $this->readLayout = [];
+        $this->browseColumns = [];
+        $this->hydrateLayoutDefaults();
+
         $this->step = 2;
+        $this->activeTab = 'fields';
     }
 
     public function goToStep(int $step): void
@@ -112,6 +167,10 @@ new #[Title('BREAD Builder')] #[Layout('tardis::layouts.admin')] class extends C
         if ($step === 3) {
             $this->activeTab = 'general';
         }
+
+        if ($step === 2) {
+            $this->activeTab = 'fields';
+        }
     }
 
     public function save(): void
@@ -120,6 +179,17 @@ new #[Title('BREAD Builder')] #[Layout('tardis::layouts.admin')] class extends C
             'slug' => 'required|regex:/^[a-z0-9-]+$/',
             'name' => 'required|string|max:255',
         ]);
+
+        $repo = app(BreadManager::class);
+
+        // Guard against silently overwriting a different BREAD definition.
+        if ($repo->find($this->slug) !== null && $this->existingSlug !== $this->slug) {
+            $this->addError('slug', 'This slug is already used by another BREAD definition.');
+
+            return;
+        }
+
+        $this->hydrateLayoutDefaults();
 
         $bread = BreadDefinition::fromArray([
             'slug' => $this->slug,
@@ -137,10 +207,11 @@ new #[Title('BREAD Builder')] #[Layout('tardis::layouts.admin')] class extends C
             'layout' => [
                 'browse' => $this->browseColumns,
                 'edit' => $this->editTabs,
+                'read' => $this->readLayout,
+                'field_order' => $this->fieldOrder,
             ],
         ]);
 
-        $repo = app(BreadManager::class);
         $repo->save($bread);
 
         session()->flash('message', 'BREAD definition saved successfully.');
@@ -177,5 +248,371 @@ new #[Title('BREAD Builder')] #[Layout('tardis::layouts.admin')] class extends C
     {
         unset($this->editTabs[$index]);
         $this->editTabs = array_values($this->editTabs);
+    }
+
+    // ---------------------------------------------------------------------
+    // Slug handling
+    // ---------------------------------------------------------------------
+
+    public function updatedName(): void
+    {
+        $this->syncSlug();
+    }
+
+    public function updatedNamePlural(): void
+    {
+        $this->syncSlug();
+    }
+
+    public function updatedSlug(): void
+    {
+        $this->slugTouched = true;
+    }
+
+    /**
+     * Derive the slug from the display names until the user types one by hand.
+     */
+    protected function syncSlug(): void
+    {
+        if ($this->slugTouched) {
+            return;
+        }
+
+        $this->slug = Str::slug($this->namePlural !== '' ? $this->namePlural : $this->name);
+    }
+
+    /**
+     * @return 'empty'|'invalid'|'taken'|'current'|'available'
+     */
+    public function getSlugStatusProperty(): string
+    {
+        if (trim($this->slug) === '') {
+            return 'empty';
+        }
+
+        if (! preg_match('/^[a-z0-9-]+$/', $this->slug)) {
+            return 'invalid';
+        }
+
+        $existing = app(BreadManager::class)->find($this->slug);
+
+        if ($existing === null) {
+            return 'available';
+        }
+
+        return $this->existingSlug === $this->slug ? 'current' : 'taken';
+    }
+
+    // ---------------------------------------------------------------------
+    // Field ordering, filtering and bulk toggles
+    // ---------------------------------------------------------------------
+
+    /**
+     * Field names in display order, appending any fields missing from
+     * `$fieldOrder` (e.g. loaded from a definition saved before ordering
+     * existed) so nothing can silently disappear from the table.
+     *
+     * @return list<string>
+     */
+    public function getOrderedFieldKeysProperty(): array
+    {
+        $known = array_keys($this->fieldConfig);
+        $ordered = array_values(array_filter(
+            $this->fieldOrder,
+            fn ($key) => array_key_exists($key, $this->fieldConfig)
+        ));
+
+        return array_values(array_merge($ordered, array_diff($known, $ordered)));
+    }
+
+    /**
+     * @return list<string>
+     */
+    public function getVisibleFieldKeysProperty(): array
+    {
+        $query = mb_strtolower(trim($this->fieldSearch));
+
+        if ($query === '') {
+            return $this->orderedFieldKeys;
+        }
+
+        return array_values(array_filter(
+            $this->orderedFieldKeys,
+            function ($key) use ($query) {
+                $field = $this->fieldConfig[$key] ?? [];
+
+                return str_contains(mb_strtolower($key), $query)
+                    || str_contains(mb_strtolower((string) ($field['label'] ?? $key)), $query)
+                    || str_contains(mb_strtolower((string) ($field['type'] ?? '')), $query);
+            }
+        ));
+    }
+
+    public function moveField(string $key, int $delta): void
+    {
+        $keys = $this->orderedFieldKeys;
+        $index = array_search($key, $keys, true);
+
+        if ($index === false) {
+            return;
+        }
+
+        $target = $index + $delta;
+
+        if ($target < 0 || $target >= count($keys)) {
+            return;
+        }
+
+        [$keys[$index], $keys[$target]] = [$keys[$target], $keys[$index]];
+
+        $this->fieldOrder = $keys;
+    }
+
+    public function toggleAllFields(string $flag, bool $value): void
+    {
+        if (! in_array($flag, ['browse', 'read', 'edit', 'add'], true)) {
+            return;
+        }
+
+        foreach ($this->fieldConfig as $key => $field) {
+            $this->fieldConfig[$key][$flag] = $value;
+        }
+    }
+
+    public function setFieldType(string $key, string $type): void
+    {
+        $normalized = FieldType::tryFrom($type);
+
+        if ($normalized === null || ! isset($this->fieldConfig[$key])) {
+            return;
+        }
+
+        $this->fieldConfig[$key]['type'] = $normalized->value;
+    }
+
+    // ---------------------------------------------------------------------
+    // Read layout
+    // ---------------------------------------------------------------------
+
+    public function toggleReadField(string $key): void
+    {
+        if (! isset($this->fieldConfig[$key])) {
+            return;
+        }
+
+        $layout = array_values(array_filter(
+            $this->readLayout,
+            fn ($name) => $name !== $key
+        ));
+
+        if (in_array($key, $this->readLayout, true)) {
+            $this->readLayout = $layout;
+
+            return;
+        }
+
+        $layout[] = $key;
+        $this->readLayout = $layout;
+    }
+
+    public function moveReadField(string $key, int $delta): void
+    {
+        $layout = array_values($this->readLayout);
+        $index = array_search($key, $layout, true);
+
+        if ($index === false) {
+            return;
+        }
+
+        $target = $index + $delta;
+
+        if ($target < 0 || $target >= count($layout)) {
+            return;
+        }
+
+        [$layout[$index], $layout[$target]] = [$layout[$target], $layout[$index]];
+
+        $this->readLayout = $layout;
+    }
+
+    // ---------------------------------------------------------------------
+    // Icon picker
+    // ---------------------------------------------------------------------
+
+    public function selectIcon(string $name): void
+    {
+        $this->icon = $name;
+        $this->showIconPicker = false;
+        $this->iconSearch = '';
+    }
+
+    /**
+     * @return list<string>
+     */
+    public function getIconOptionsProperty(): array
+    {
+        return [
+            'table-cells', 'document-text', 'database', 'folder', 'photo', 'puzzle-piece',
+            'squares-2x2', 'key', 'tag', 'hashtag', 'book-open', 'user-group', 'bell',
+            'calendar-days', 'clock', 'cog-6-tooth', 'bars-3', 'chevron-up-down',
+            'paper-clip', 'link', 'adjustments-horizontal', 'text', 'toggle',
+            'pencil-square', 'plus-circle', 'check-circle', 'x-circle', 'power',
+            'check', 'x-mark', 'plus', 'sun', 'moon', 'lock-closed',
+        ];
+    }
+
+    // ---------------------------------------------------------------------
+    // Review step
+    // ---------------------------------------------------------------------
+
+    /**
+     * Non-blocking advisories shown on the review step. Everything here is
+     * derivable from the current state, so the user can judge the BREAD
+     * before writing it.
+     *
+     * @return list<array{level: string, message: string}>
+     */
+    public function getReviewWarningsProperty(): array
+    {
+        $warnings = [];
+
+        if ($this->slug === '') {
+            $warnings[] = ['level' => 'error', 'message' => 'Slug is empty — set it on the Configure step.'];
+        } elseif ($this->getSlugStatusProperty() === 'taken') {
+            $warnings[] = ['level' => 'error', 'message' => 'Slug "'.$this->slug.'" already belongs to another BREAD definition.'];
+        }
+
+        if ($this->fieldConfig === []) {
+            $warnings[] = [
+                'level' => 'error',
+                'message' => 'No fields were detected. Add entries to the model\'s $fillable property and start over.',
+            ];
+        }
+
+        if ($this->fieldConfig !== []) {
+            $visibleBrowse = array_filter(
+                $this->orderedFieldKeys,
+                fn ($key) => $this->browseColumns[$key]['visible'] ?? ($this->fieldConfig[$key]['browse'] ?? true)
+            );
+
+            if ($visibleBrowse === []) {
+                $warnings[] = ['level' => 'warning', 'message' => 'No visible browse columns — the listing table would be empty.'];
+            }
+
+            $addable = array_filter($this->fieldConfig, fn ($field) => (bool) ($field['add'] ?? false));
+            $editable = array_filter($this->fieldConfig, fn ($field) => (bool) ($field['edit'] ?? false));
+
+            if ($addable === []) {
+                $warnings[] = ['level' => 'warning', 'message' => 'No field is marked "Add" — records cannot be created.'];
+            }
+
+            if ($editable === []) {
+                $warnings[] = ['level' => 'warning', 'message' => 'No field is marked "Edit" — records cannot be modified.'];
+            }
+
+            if ($this->readLayout === []) {
+                $warnings[] = ['level' => 'warning', 'message' => 'Read layout is empty — the detail view would be empty.'];
+            }
+
+            if ($this->searchKey !== '' && ! ($this->browseColumns[$this->searchKey]['searchable'] ?? false)) {
+                $warnings[] = [
+                    'level' => 'warning',
+                    'message' => 'Search key "'.$this->searchKey.'" is not flagged searchable in the browse layout.',
+                ];
+            }
+        }
+
+        foreach ($this->editTabs as $index => $tab) {
+            if (($tab['fields'] ?? []) === []) {
+                $warnings[] = [
+                    'level' => 'info',
+                    'message' => 'Edit tab "'.($tab['name'] ?? 'Tab '.($index + 1)).'" has no fields assigned.',
+                ];
+            }
+        }
+
+        if ($this->modelHasSoftDeletes && ! $this->softDelete) {
+            $warnings[] = [
+                'level' => 'info',
+                'message' => 'The model uses SoftDeletes but soft delete is disabled for this BREAD.',
+            ];
+        }
+
+        return $warnings;
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    public function getReviewSummaryProperty(): array
+    {
+        $browse = array_filter(
+            $this->orderedFieldKeys,
+            fn ($key) => $this->browseColumns[$key]['visible'] ?? ($this->fieldConfig[$key]['browse'] ?? true)
+        );
+
+        return [
+            'slug' => $this->slug,
+            'model' => $this->model,
+            'table' => $this->modelTable,
+            'name' => $this->name,
+            'name_plural' => $this->namePlural,
+            'icon' => $this->icon,
+            'total_fields' => count($this->fieldConfig),
+            'browse_fields' => array_values($browse),
+            'read_fields' => array_values($this->readLayout),
+            'add_fields' => count(array_filter($this->fieldConfig, fn ($f) => (bool) ($f['add'] ?? false))),
+            'edit_fields' => count(array_filter($this->fieldConfig, fn ($f) => (bool) ($f['edit'] ?? false))),
+            'relationships' => count($this->relationshipConfig),
+            'search_key' => $this->searchKey,
+            'order_column' => $this->orderColumn,
+            'order_direction' => $this->orderDirection,
+            'soft_delete' => $this->softDelete,
+        ];
+    }
+
+    // ---------------------------------------------------------------------
+    // Internals
+    // ---------------------------------------------------------------------
+
+    protected function captureModelAnalysis(): void
+    {
+        if ($this->model === '' || ! class_exists($this->model)) {
+            return;
+        }
+
+        $analysis = ModelReflector::analyze($this->model);
+
+        $this->modelTable = (string) ($analysis['table'] ?? '');
+        $this->modelHasSoftDeletes = (bool) ($analysis['softDelete'] ?? false);
+        $this->modelHasTimestamps = (bool) ($analysis['timestamps'] ?? true);
+    }
+
+    /**
+     * Fill in any layout entries the user has not visited yet, so a BREAD
+     * saved straight from step 1 still carries a complete layout.
+     */
+    protected function hydrateLayoutDefaults(): void
+    {
+        $searchable = $this->searchKey !== '' ? [$this->searchKey => true] : [];
+
+        foreach ($this->fieldConfig as $key => $field) {
+            $this->browseColumns[$key] ??= [
+                'visible' => (bool) ($field['browse'] ?? true),
+                'sortable' => false,
+                'searchable' => $searchable[$key] ?? false,
+            ];
+        }
+
+        if ($this->readLayout === []) {
+            $this->readLayout = array_values(array_filter(
+                array_keys($this->fieldConfig),
+                fn ($key) => (bool) ($this->fieldConfig[$key]['read'] ?? true)
+            ));
+        }
+
+        if ($this->fieldOrder === []) {
+            $this->fieldOrder = array_keys($this->fieldConfig);
+        }
     }
 };
