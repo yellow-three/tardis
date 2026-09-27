@@ -13,7 +13,7 @@
                     <label class="btn btn-primary gap-2 shadow-sm cursor-pointer">
                         <x-tardis::icon name="plus" class="w-4 h-4" />
                         Upload
-                        <input type="file" wire:model.live="newUploads" class="hidden" multiple />
+                        <input type="file" wire:key="media-upload-{{ $uploadInputKey }}" wire:model.live="newUploads" class="hidden" multiple />
                     </label>
                 </div>
             </x-slot:action>
