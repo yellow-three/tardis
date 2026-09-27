@@ -11,13 +11,26 @@
     @livewireStyles
 </head>
 <body class="min-h-screen bg-base-200">
+    <style>
+        .drawer > .drawer-toggle:not(:checked) ~ .drawer-side .tardis-sidebar-label {
+            display: none;
+        }
+
+        .drawer > .drawer-toggle:checked ~ .drawer-content .tardis-drawer-closed-only {
+            display: none;
+        }
+
+        .drawer > .drawer-toggle:not(:checked) ~ .drawer-content .tardis-drawer-open-only {
+            display: none;
+        }
+    </style>
     <div class="drawer lg:drawer-open">
         <input id="tardis-drawer" type="checkbox" class="drawer-toggle" />
 
         <div class="drawer-content flex flex-col min-h-screen">
             <x-tardis::admin-header :title="$title ?? 'TARDIS Admin'" />
 
-            <main class="flex-1 p-4 lg:p-6">
+            <main id="main-content" tabindex="-1" class="flex-1 p-4 lg:p-6">
                 {{ $slot }}
             </main>
 

@@ -4,8 +4,8 @@ use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
 use Tardis\Bread\BreadDefinition;
+use Tardis\Bread\BreadManager;
 use Tardis\Bread\ModelReflector;
-use Tardis\Bread\Repositories\JsonBreadRepository;
 
 new #[Title('BREAD Builder')] #[Layout('tardis::layouts.admin')] class extends Component
 {
@@ -56,7 +56,7 @@ new #[Title('BREAD Builder')] #[Layout('tardis::layouts.admin')] class extends C
     public function mount(?string $slug = null): void
     {
         if ($slug) {
-            $repo = app(JsonBreadRepository::class);
+            $repo = app(BreadManager::class);
             $bread = $repo->find($slug);
 
             if ($bread) {
@@ -69,10 +69,15 @@ new #[Title('BREAD Builder')] #[Layout('tardis::layouts.admin')] class extends C
                 $this->icon = $bread->icon;
                 $this->description = $bread->description;
                 $this->fieldConfig = $bread->fields;
-                $this->searchKey = $bread->searchKey;
-                $this->orderColumn = $bread->orderColumn;
-                $this->orderDirection = $bread->orderDirection;
+                $this->relationshipConfig = $bread->relationships;
+                $this->searchKey = $bread->searchKey ?? '';
+                $this->orderColumn = $bread->orderColumn ?? null;
+                $this->orderDirection = $bread->orderDirection ?? 'asc';
+                $this->softDelete = $bread->softDelete;
+                $this->browseColumns = $bread->layout['browse'] ?? [];
+                $this->editTabs = $bread->layout['edit'] ?? [];
                 $this->step = 3;
+                $this->activeTab = 'general';
             }
         }
     }
@@ -94,7 +99,7 @@ new #[Title('BREAD Builder')] #[Layout('tardis::layouts.admin')] class extends C
         $this->detectedRelationships = ModelReflector::getRelationships(new $this->model);
         $this->relationshipConfig = $this->detectedRelationships;
         $this->name = class_basename($this->model);
-        $this->namePlural = Str::headline(Str::plural($this->model));
+        $this->namePlural = Str::headline(Str::plural(class_basename($this->model)));
 
         $this->step = 2;
     }
@@ -102,6 +107,11 @@ new #[Title('BREAD Builder')] #[Layout('tardis::layouts.admin')] class extends C
     public function goToStep(int $step): void
     {
         $this->step = $step;
+
+        // Step 3 (Configure) keeps its own tab set; 'fields' belongs to step 2.
+        if ($step === 3) {
+            $this->activeTab = 'general';
+        }
     }
 
     public function save(): void
@@ -130,7 +140,7 @@ new #[Title('BREAD Builder')] #[Layout('tardis::layouts.admin')] class extends C
             ],
         ]);
 
-        $repo = app(JsonBreadRepository::class);
+        $repo = app(BreadManager::class);
         $repo->save($bread);
 
         session()->flash('message', 'BREAD definition saved successfully.');

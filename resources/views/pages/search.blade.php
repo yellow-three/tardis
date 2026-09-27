@@ -3,7 +3,7 @@
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
-use Tardis\Bread\Repositories\JsonBreadRepository;
+use Tardis\Bread\BreadManager;
 
 new #[Title('Search')] #[Layout('tardis::layouts.admin')] class extends Component
 {
@@ -12,6 +12,15 @@ new #[Title('Search')] #[Layout('tardis::layouts.admin')] class extends Componen
     public array $results = [];
 
     public bool $showResults = false;
+
+    public function mount(): void
+    {
+        $this->query = (string) request()->query('query', '');
+
+        if (strlen($this->query) >= 2) {
+            $this->search();
+        }
+    }
 
     public function updatedQuery(): void
     {
@@ -32,7 +41,7 @@ new #[Title('Search')] #[Layout('tardis::layouts.admin')] class extends Componen
             return;
         }
 
-        $repo = app(JsonBreadRepository::class);
+        $repo = app(BreadManager::class);
         $breads = $repo->all();
         $this->results = [];
 
@@ -89,16 +98,17 @@ new #[Title('Search')] #[Layout('tardis::layouts.admin')] class extends Componen
                     type="text"
                     wire:model.live.debounce.300ms="query"
                     class="input input-bordered flex-1"
-                    placeholder="Search for anything..."
-                    autofocus
+                    placeholder="Search for anything…"
+                    aria-label="Search across BREAD resources"
+                    autocomplete="off"
                 />
                 <button wire:click="search" class="btn btn-primary gap-2">
                     <x-tardis::icon name="document-text" class="w-4 h-4" />
                     Search
                 </button>
                 @if ($query)
-                    <button wire:click="clearSearch" class="btn btn-ghost">
-                        <x-tardis::icon name="x-mark" class="w-4 h-4" />
+                    <button wire:click="clearSearch" class="btn btn-ghost" aria-label="Clear search">
+                        <x-tardis::icon name="x-mark" class="w-4 h-4" aria-hidden="true" />
                     </button>
                 @endif
             </div>
@@ -108,7 +118,7 @@ new #[Title('Search')] #[Layout('tardis::layouts.admin')] class extends Componen
     <!-- Results -->
     @if ($showResults)
         @if (empty($results))
-            <div class="card bg-base-100 shadow-sm">
+            <div class="card bg-base-100 shadow-sm" aria-live="polite">
                 <div class="card-body text-center py-12">
                     <x-tardis::icon name="document-text" class="w-16 h-16 mx-auto opacity-20" />
                     <h3 class="text-lg font-semibold mt-4">No results found</h3>

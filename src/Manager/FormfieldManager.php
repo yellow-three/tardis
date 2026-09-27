@@ -106,6 +106,46 @@ class FormfieldManager
                 $field->options($definition['options']);
             }
 
+            if ($field instanceof BelongsToManyField || $field instanceof HasManyField) {
+                if (isset($definition['relation'])) {
+                    $field->relation($definition['relation']);
+                }
+
+                if (isset($definition['model'])) {
+                    $field->model($definition['model']);
+                }
+            }
+
+            if ($field instanceof BelongsToManyField && isset($definition['label_column'])) {
+                $field->labelColumn($definition['label_column']);
+            }
+
+            if ($field instanceof FileField) {
+                if (isset($definition['mimes'])) {
+                    $field->mimes($definition['mimes']);
+                }
+
+                if (isset($definition['max_size'])) {
+                    $field->maxSize((int) $definition['max_size']);
+                }
+
+                if (isset($definition['disk'])) {
+                    $field->disk($definition['disk']);
+                }
+
+                if (isset($definition['directory'])) {
+                    $field->directory($definition['directory']);
+                }
+            }
+
+            if (isset($definition['translatable'])) {
+                $field->translatable((bool) $definition['translatable']);
+            }
+
+            if (isset($definition['locales'])) {
+                $field->locales((array) $definition['locales']);
+            }
+
             $fields[] = $field;
         }
 

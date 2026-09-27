@@ -5,9 +5,7 @@ namespace Tardis\Models;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
 use Tardis\Database\Factories\MediaFactory;
 
 class Media extends Model
@@ -67,28 +65,5 @@ class Media extends Model
     public function isImage(): bool
     {
         return str_starts_with($this->mime_type, 'image/');
-    }
-
-    public static function upload(
-        $file,
-        string $collection = 'default',
-        ?string $altText = null,
-        ?string $disk = null,
-    ): self {
-        $disk = $disk ?? config('tardis-media.disk', 'public');
-        $name = Str::random(40).'.'.$file->getClientOriginalExtension();
-        $path = $file->storeAs($collection, $name, $disk);
-
-        return static::create([
-            'name' => $name,
-            'original_name' => $file->getClientOriginalName(),
-            'path' => $path,
-            'disk' => $disk,
-            'mime_type' => $file->getMimeType(),
-            'size' => $file->getSize(),
-            'alt_text' => $altText,
-            'collection' => $collection,
-            'created_by' => Auth::id(),
-        ]);
     }
 }

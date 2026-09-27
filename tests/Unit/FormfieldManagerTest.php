@@ -2,6 +2,9 @@
 
 declare(strict_types=1);
 
+use Tardis\Formfields\Types\BelongsToManyField;
+use Tardis\Formfields\Types\FileField;
+use Tardis\Formfields\Types\HasManyField;
 use Tardis\Formfields\Types\NumberField;
 use Tardis\Formfields\Types\TextField;
 use Tardis\Manager\FormfieldManager;
@@ -67,4 +70,54 @@ test('formfield manager fields creates multiple fields', function () {
     expect($fields)->toHaveCount(2)
         ->and($fields[0])->toBeInstanceOf(TextField::class)
         ->and($fields[1])->toBeInstanceOf(NumberField::class);
+});
+
+test('formfield manager resolveType returns correct class for relation and file types', function () {
+    $manager = new FormfieldManager;
+
+    expect($manager->resolveType('belongs_to_many'))->toBe(BelongsToManyField::class)
+        ->and($manager->resolveType('has_many'))->toBe(HasManyField::class)
+        ->and($manager->resolveType('file'))->toBe(FileField::class);
+});
+
+test('formfield manager fields maps belongs_to_many relation metadata', function () {
+    $manager = new FormfieldManager;
+
+    $fields = $manager->fields([
+        ['name' => 'tags', 'type' => 'belongs_to_many', 'relation' => 'tags', 'model' => 'App\Models\Tag', 'label_column' => 'name'],
+    ]);
+
+    expect($fields)->toHaveCount(1)
+        ->and($fields[0])->toBeInstanceOf(BelongsToManyField::class)
+        ->and($fields[0]->relation)->toBe('tags')
+        ->and($fields[0]->model)->toBe('App\Models\Tag')
+        ->and($fields[0]->labelColumn)->toBe('name');
+});
+
+test('formfield manager fields maps has_many relation metadata', function () {
+    $manager = new FormfieldManager;
+
+    $fields = $manager->fields([
+        ['name' => 'comments', 'type' => 'has_many', 'relation' => 'comments', 'model' => 'App\Models\Comment'],
+    ]);
+
+    expect($fields)->toHaveCount(1)
+        ->and($fields[0])->toBeInstanceOf(HasManyField::class)
+        ->and($fields[0]->relation)->toBe('comments')
+        ->and($fields[0]->model)->toBe('App\Models\Comment');
+});
+
+test('formfield manager fields maps file upload metadata', function () {
+    $manager = new FormfieldManager;
+
+    $fields = $manager->fields([
+        ['name' => 'avatar', 'type' => 'file', 'mimes' => ['jpg', 'png'], 'max_size' => 2048, 'disk' => 'public', 'directory' => 'avatars'],
+    ]);
+
+    expect($fields)->toHaveCount(1)
+        ->and($fields[0])->toBeInstanceOf(FileField::class)
+        ->and($fields[0]->mimes)->toBe(['jpg', 'png'])
+        ->and($fields[0]->maxSize)->toBe(2048)
+        ->and($fields[0]->disk)->toBe('public')
+        ->and($fields[0]->directory)->toBe('avatars');
 });

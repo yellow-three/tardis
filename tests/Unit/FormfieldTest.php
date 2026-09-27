@@ -2,8 +2,13 @@
 
 declare(strict_types=1);
 
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
+use Tardis\Formfields\Types\BelongsToManyField;
 use Tardis\Formfields\Types\DateField;
 use Tardis\Formfields\Types\FileField;
+use Tardis\Formfields\Types\HasManyField;
 use Tardis\Formfields\Types\NumberField;
 use Tardis\Formfields\Types\PasswordField;
 use Tardis\Formfields\Types\SelectField;
@@ -171,4 +176,125 @@ test('file field maxSize method', function () {
     $field = (new FileField('document'))->maxSize(5120);
 
     expect($field->maxSize)->toBe(5120);
+});
+
+test('file field defaults to public disk and uploads directory', function () {
+    $field = new FileField('avatar');
+
+    expect($field->disk)->toBe('public')
+        ->and($field->directory)->toBe('uploads');
+});
+
+test('file field fluent disk and directory methods', function () {
+    $field = (new FileField('avatar'))->disk('private')->directory('avatars');
+
+    expect($field->disk)->toBe('private')
+        ->and($field->directory)->toBe('avatars');
+});
+
+test('file field transform keeps non-upload values untouched', function () {
+    $field = new FileField('avatar');
+
+    expect($field->transform('uploads/existing.jpg'))->toBe('uploads/existing.jpg')
+        ->and($field->transform(null))->toBeNull();
+});
+
+test('file field transform stores uploaded files on the configured disk', function () {
+    Storage::fake('public');
+
+    $field = (new FileField('avatar'))->disk('public')->directory('avatars');
+
+    $path = $field->transform(UploadedFile::fake()->image('avatar.jpg'));
+
+    expect($path)->toBeString()
+        ->and($path)->toStartWith('avatars/')
+        ->and(Storage::disk('public')->exists($path))->toBeTrue();
+});
+
+test('toggle field transform casts values to boolean', function () {
+    $field = new ToggleField('active');
+
+    expect($field->transform('1'))->toBeTrue()
+        ->and($field->transform(1))->toBeTrue()
+        ->and($field->transform(true))->toBeTrue()
+        ->and($field->transform('0'))->toBeFalse()
+        ->and($field->transform(''))->toBeFalse()
+        ->and($field->transform(null))->toBeFalse();
+});
+
+test('number field transform casts values to float and blank to null', function () {
+    $field = new NumberField('quantity');
+
+    expect($field->transform('42'))->toBe(42.0)
+        ->and($field->transform(7))->toBe(7.0)
+        ->and($field->transform(''))->toBeNull()
+        ->and($field->transform(null))->toBeNull();
+});
+
+test('password field transform hashes non-blank values and returns null for blank', function () {
+    $field = new PasswordField('secret');
+
+    $hash = $field->transform('plain-text');
+
+    expect($hash)->not->toBe('plain-text')
+        ->and(Hash::check('plain-text', $hash))->toBeTrue()
+        ->and($field->transform(''))->toBeNull()
+        ->and($field->transform(null))->toBeNull();
+});
+
+test('password field skips blank values', function () {
+    $field = new PasswordField('secret');
+
+    expect($field->skipWhenBlank())->toBeTrue();
+});
+
+test('base formfield transform is pass-through', function () {
+    $field = new TextField('title');
+
+    expect($field->transform('value'))->toBe('value')
+        ->and($field->transform(null))->toBeNull();
+});
+
+test('base formfield does not skip blank values by default', function () {
+    $field = new TextField('title');
+
+    expect($field->skipWhenBlank())->toBeFalse();
+});
+
+test('base formfield is not a relation field by default', function () {
+    $field = new TextField('title');
+
+    expect($field->isRelation())->toBeFalse();
+});
+
+test('belongs to many field is a relation field', function () {
+    $field = new BelongsToManyField('tags');
+
+    expect($field->isRelation())->toBeTrue();
+});
+
+test('belongs to many field fluent relation model and label column methods', function () {
+    $field = (new BelongsToManyField('tags'))
+        ->relation('tags')
+        ->model('App\Models\Tag')
+        ->labelColumn('name');
+
+    expect($field->relation)->toBe('tags')
+        ->and($field->model)->toBe('App\Models\Tag')
+        ->and($field->labelColumn)->toBe('name');
+});
+
+test('has many field is a relation field', function () {
+    $field = new HasManyField('comments');
+
+    expect($field->isRelation())->toBeTrue();
+});
+
+test('has many field fluent relation and model methods', function () {
+    $field = (new HasManyField('comments'))
+        ->relation('comments')
+        ->model('App\Models\Comment');
+
+    expect($field->relation)->toBe('comments')
+        ->and($field->model)->toBe('App\Models\Comment');
 });

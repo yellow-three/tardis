@@ -7,6 +7,7 @@ use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use InvalidArgumentException;
 use Tardis\Models\Media;
 
 class MediaManager
@@ -26,10 +27,12 @@ class MediaManager
         string $path = '',
         ?string $altText = null,
     ): Media {
-        $path = Str::finish($this->basePath.'/'.$path, '/');
+        $path = Str::finish($this->fullPath($path), '/');
 
         $name = $this->getUniqueFileName($file, $path);
-        $storedPath = $file->storeAs($path, $name, $this->disk);
+
+        // storeAs() joins with its own separator, so it must not receive a trailing slash.
+        $storedPath = $file->storeAs(rtrim($path, '/'), $name, $this->disk);
 
         return Media::create([
             'name' => $name,
@@ -46,7 +49,7 @@ class MediaManager
 
     public function listFiles(string $path = ''): Collection
     {
-        $path = Str::finish($this->basePath.'/'.$path, '/');
+        $path = Str::finish($this->fullPath($path), '/');
         $storage = Storage::disk($this->disk);
 
         $files = collect($storage->listContents($path))
@@ -87,80 +90,63 @@ class MediaManager
 
     public function createDirectory(string $path, string $name): bool
     {
-        $fullPath = Str::finish($this->basePath.'/'.$path, '/').$name;
+        $this->assertValidName($name, 'createDirectory');
 
-        return Storage::disk($this->disk)->makeDirectory($fullPath);
+        return Storage::disk($this->disk)->makeDirectory($this->fullPath($path).'/'.$name);
     }
 
     public function deleteFile(string $path): bool
     {
-        return Storage::disk($this->disk)->delete($this->basePath.'/'.$path);
+        $fullPath = $this->fullPath($path);
+
+        $deleted = Storage::disk($this->disk)->delete($fullPath);
+
+        Media::query()->where('path', $fullPath)->delete();
+
+        return $deleted;
     }
 
     public function deleteDirectory(string $path): bool
     {
-        return Storage::disk($this->disk)->deleteDirectory($this->basePath.'/'.$path);
+        $fullPath = $this->fullPath($path);
+
+        $deleted = Storage::disk($this->disk)->deleteDirectory($fullPath);
+
+        Media::query()->where('path', 'like', $fullPath.'/%')->delete();
+
+        return $deleted;
     }
 
     public function rename(string $oldPath, string $newName): bool
     {
-        $fullOldPath = $this->basePath.'/'.$oldPath;
-        $directory = dirname($fullOldPath);
-        $newPath = $directory.'/'.$newName;
+        $this->assertValidName($newName, 'rename');
 
-        $content = Storage::disk($this->disk)->get($fullOldPath);
-        if ($content === null) {
+        $source = $this->fullPath($oldPath);
+        $target = dirname($source).'/'.$newName;
+
+        $storage = Storage::disk($this->disk);
+
+        if (! $storage->exists($source)) {
             return false;
         }
 
-        Storage::disk($this->disk)->put($newPath, $content);
-        Storage::disk($this->disk)->delete($fullOldPath);
+        $wasDirectory = $storage->directoryExists($source);
 
-        return true;
-    }
-
-    public function move(string $from, string $toDirectory): bool
-    {
-        $fullFrom = $this->basePath.'/'.$from;
-        $fileName = basename($fullFrom);
-        $fullTo = Str::finish($this->basePath.'/'.$toDirectory, '/').$fileName;
-
-        $content = Storage::disk($this->disk)->get($fullFrom);
-        if ($content === null) {
+        if (! $storage->move($source, $target)) {
             return false;
         }
 
-        Storage::disk($this->disk)->put($fullTo, $content);
-        Storage::disk($this->disk)->delete($fullFrom);
-
-        return true;
-    }
-
-    public function copy(string $from, string $toDirectory): bool
-    {
-        $fullFrom = $this->basePath.'/'.$from;
-        $fileName = basename($fullFrom);
-        $fullTo = Str::finish($this->basePath.'/'.$toDirectory, '/').$fileName;
-
-        $content = Storage::disk($this->disk)->get($fullFrom);
-        if ($content === null) {
-            return false;
+        if ($wasDirectory) {
+            $this->syncDirectoryRename($source, $target);
+        } else {
+            // name tracks the current basename; original_name keeps the uploaded one.
+            Media::query()->where('path', $source)->update([
+                'path' => $target,
+                'name' => $newName,
+            ]);
         }
 
-        Storage::disk($this->disk)->put($fullTo, $content);
-
         return true;
-    }
-
-    public function download(string $path): ?string
-    {
-        $fullPath = $this->basePath.'/'.$path;
-
-        if (! Storage::disk($this->disk)->exists($fullPath)) {
-            return null;
-        }
-
-        return Storage::disk($this->disk)->get($fullPath);
     }
 
     public function downloadZip(array $paths, string $filename = 'media-export.zip'): string
@@ -176,75 +162,168 @@ class MediaManager
             throw new \RuntimeException('Could not create ZIP archive');
         }
 
-        foreach ($paths as $path) {
-            $fullPath = $this->basePath.'/'.$path;
-            $fileName = basename($fullPath);
+        $storage = Storage::disk($this->disk);
+        $tempFiles = [];
+        $added = 0;
 
-            if (Storage::disk($this->disk)->exists($fullPath)) {
-                $tempFile = tempnam(sys_get_temp_dir(), 'tardis_');
-                file_put_contents($tempFile, Storage::disk($this->disk)->get($fullPath));
-                $zip->addFile($tempFile, $fileName);
+        try {
+            foreach ($paths as $path) {
+                $fullPath = $this->fullPath($path);
+
+                if (! $storage->fileExists($fullPath)) {
+                    continue;
+                }
+
+                $tempFiles[] = $this->addStreamToArchive($zip, $storage->readStream($fullPath), $fullPath);
+                $added++;
+            }
+
+            // Temp files must outlive close(): the archive is only finalised here.
+            $zip->close();
+        } finally {
+            foreach ($tempFiles as $tempFile) {
                 unlink($tempFile);
             }
         }
 
-        $zip->close();
+        // ZipArchive writes nothing at all when no entry was added, so returning
+        // $zipPath here would hand the caller a path to a file that was never created.
+        if ($added === 0) {
+            if (is_file($zipPath)) {
+                unlink($zipPath);
+            }
+
+            throw new \RuntimeException('None of the selected media entries could be archived.');
+        }
 
         return $zipPath;
     }
 
-    public function getCollections(): array
-    {
-        return Media::distinct()->pluck('collection')->filter()->values()->toArray();
-    }
-
-    public function getMimeTypes(): array
-    {
-        return Media::distinct()
-            ->pluck('mime_type')
-            ->filter()
-            ->map(fn (string $mime) => explode('/', $mime)[0])
-            ->unique()
-            ->values()
-            ->toArray();
-    }
-
-    public function filterByMimeType(string $mimeType): Collection
-    {
-        $files = $this->listFiles();
-
-        return $files->filter(function ($file) use ($mimeType) {
-            return str_starts_with($file['type'], $mimeType.'/');
-        })->values();
-    }
-
     public function getFileInfo(string $path): ?array
     {
-        $fullPath = $this->basePath.'/'.$path;
+        $fullPath = $this->fullPath($path);
         $storage = Storage::disk($this->disk);
 
         if (! $storage->exists($fullPath)) {
             return null;
         }
 
+        // Flysystem refuses fileSize()/mimeType() on a directory, so a folder is
+        // described exactly the way listFiles() describes one instead.
+        $isDirectory = $storage->directoryExists($fullPath);
+        $mimeType = $isDirectory ? 'directory' : $storage->mimeType($fullPath);
+
         return [
+            'type' => $mimeType,
             'name' => basename($fullPath),
             'path' => $fullPath,
             'relative_path' => Str::after($fullPath, $this->basePath.'/'),
-            'size' => $storage->fileSize($fullPath),
-            'mime_type' => $storage->mimeType($fullPath),
+            'size' => $isDirectory ? 0 : $storage->fileSize($fullPath),
+            'mime_type' => $mimeType,
             'url' => $storage->url($fullPath),
-            'last_modified' => $storage->lastModified($fullPath),
+            'last_modified' => $isDirectory ? null : $storage->lastModified($fullPath),
         ];
     }
 
-    public function search(string $query, string $path = ''): Collection
+    /**
+     * Every public $path argument is relative to basePath; this is the only place
+     * that turns one into a storage path, so traversal cannot slip in elsewhere.
+     */
+    protected function fullPath(string $relativePath): string
     {
-        $files = $this->listFiles($path);
+        $path = trim($relativePath, '/');
 
-        return $files->filter(function ($file) use ($query) {
-            return str_contains(strtolower($file['name']), strtolower($query));
-        })->values();
+        if (str_contains($path, "\0") || in_array('..', explode('/', str_replace('\\', '/', $path)), true)) {
+            throw new InvalidArgumentException(
+                'Media path ['.$relativePath.'] is invalid: it may not contain ".." segments or null bytes.'
+            );
+        }
+
+        return rtrim($this->basePath.'/'.$path, '/');
+    }
+
+    protected function assertValidName(string $name, string $operation): void
+    {
+        if ($name === ''
+            || str_contains($name, "\0")
+            || str_contains($name, '/')
+            || str_contains($name, '\\')
+            || str_contains($name, '..')) {
+            throw new InvalidArgumentException(
+                $operation.'() name ['.$name.'] is invalid: use a single name without path separators, ".." or null bytes.'
+            );
+        }
+    }
+
+    /**
+     * A LIKE pre-select is not trusted for the rewrite itself: the prefix is
+     * re-checked in PHP so a name containing % or _ cannot shift a path.
+     */
+    protected function syncDirectoryRename(string $from, string $to): void
+    {
+        $prefix = $from.'/';
+
+        Media::query()
+            ->where('path', 'like', $prefix.'%')
+            ->orWhere('collection', 'like', $prefix.'%')
+            ->orWhere('collection', $from)
+            ->get(['id', 'path', 'collection'])
+            ->each(function (Media $media) use ($from, $to) {
+                $path = $this->swapPathPrefix($media->path, $from, $to);
+                $collection = $this->swapPathPrefix($media->collection, $from, $to);
+
+                if ($path === $media->path && $collection === $media->collection) {
+                    return;
+                }
+
+                $media->path = $path;
+                $media->collection = $collection;
+                $media->save();
+            });
+    }
+
+    protected function swapPathPrefix(?string $value, string $from, string $to): ?string
+    {
+        if ($value === $from) {
+            return $to;
+        }
+
+        if ($value !== null && str_starts_with($value, $from.'/')) {
+            return $to.substr($value, strlen($from));
+        }
+
+        return $value;
+    }
+
+    protected function addStreamToArchive(\ZipArchive $zip, mixed $stream, string $fullPath): string
+    {
+        if (! is_resource($stream)) {
+            throw new \RuntimeException('Could not read media file ['.$fullPath.']');
+        }
+
+        $tempFile = tempnam(sys_get_temp_dir(), 'tardis_');
+
+        if ($tempFile === false) {
+            fclose($stream);
+
+            throw new \RuntimeException('Could not create a temporary file for media file ['.$fullPath.']');
+        }
+
+        try {
+            if (file_put_contents($tempFile, $stream) === false) {
+                throw new \RuntimeException('Could not buffer media file ['.$fullPath.'] for the ZIP archive');
+            }
+
+            $zip->addFile($tempFile, basename($fullPath));
+        } catch (\Throwable $e) {
+            unlink($tempFile);
+
+            throw $e;
+        } finally {
+            fclose($stream);
+        }
+
+        return $tempFile;
     }
 
     protected function getUniqueFileName(UploadedFile $file, string $path): string

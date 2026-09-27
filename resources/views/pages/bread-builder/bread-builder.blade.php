@@ -29,7 +29,7 @@
                     <label class="label">
                         <span class="label-text">Model Class</span>
                     </label>
-                    <select wire:model="model" class="select select-bordered w-full">
+                    <select wire:model.change.live="model" class="select select-bordered w-full">
                         <option value="">Select a model...</option>
                         @foreach ($this->getModelOptions() as $class => $name)
                             <option value="{{ $class }}">{{ $name }}</option>
@@ -77,8 +77,8 @@
                                         <td class="font-medium">{{ $field['label'] }}</td>
                                         <td>
                                             <select wire:model="fieldConfig.{{ $key }}.type" class="select select-bordered select-xs">
-                                                @foreach (\Tardis\Classes\Setting::availableTypes() as $type => $label)
-                                                    <option value="{{ $type }}">{{ $label }}</option>
+                                                @foreach (\Tardis\Bread\FieldType::cases() as $fieldType)
+                                                    <option value="{{ $fieldType->value }}">{{ Str::headline($fieldType->value) }}</option>
                                                 @endforeach
                                             </select>
                                         </td>

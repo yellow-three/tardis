@@ -27,6 +27,13 @@
             </div>
         @endif
 
+        @if (session('error'))
+            <div class="alert alert-error shadow-sm">
+                <x-tardis::icon name="exclamation-circle" class="w-5 h-5" />
+                <span>{{ session('error') }}</span>
+            </div>
+        @endif
+
         {{-- Upload Progress --}}
         @if (!empty($newUploads))
             <div class="alert alert-info shadow-sm">
@@ -421,7 +428,6 @@
             </div>
         </div>
     @endif
-</div>
 
 {{-- Create Folder Modal --}}
 @if ($showNewDirModal)
@@ -475,8 +481,14 @@
 @if ($showDeleteModal)
     <dialog class="modal modal-open">
         <div class="modal-box">
-            <h3 class="font-bold text-lg">Delete File</h3>
-            <p class="py-4">Are you sure you want to delete <strong>{{ $deletePath }}</strong>?</p>
+            <h3 class="font-bold text-lg">
+                {{ $deleteIsBulk ? 'Delete ' . count($selectedFiles) . ' Item(s)' : ($deleteIsDirectory ? 'Delete Folder' : 'Delete File') }}
+            </h3>
+            @if ($deleteIsBulk)
+                <p class="py-4">Are you sure you want to delete <strong>{{ count($selectedFiles) }}</strong> selected item(s)? This cannot be undone.</p>
+            @else
+                <p class="py-4">Are you sure you want to delete <strong>{{ $deletePath }}</strong>?</p>
+            @endif
             <div class="modal-action">
                 <button wire:click="$set('showDeleteModal', false)" class="btn btn-ghost">Cancel</button>
                 <button wire:click="deleteFile" class="btn btn-error">Delete</button>
@@ -487,3 +499,4 @@
         </form>
     </dialog>
 @endif
+</div>
