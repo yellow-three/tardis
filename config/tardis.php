@@ -40,6 +40,16 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Localization / Translation Settings
+    |--------------------------------------------------------------------------
+    */
+    // Locales available for translatable BREAD fields. A field may override
+    // this list with its own "locales" key. When empty, translatable fields
+    // fall back to the application's current locale.
+    'locales' => [],
+
+    /*
+    |--------------------------------------------------------------------------
     | Plugin Settings
     |--------------------------------------------------------------------------
     */

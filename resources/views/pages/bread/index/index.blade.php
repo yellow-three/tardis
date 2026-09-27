@@ -45,7 +45,13 @@
                             <tr>
                                 @foreach ($this->visibleFields as $field)
                                     @php($fieldName = $field['name'] ?? '')
-                                    <td>{{ data_get($row, $fieldName, '-') }}</td>
+                                    <td>
+                                        @if (! empty($field['translatable']))
+                                            {{ \Tardis\Classes\Translation::value(data_get($row, $fieldName), $field['locales'] ?? null) }}
+                                        @else
+                                            {{ data_get($row, $fieldName, '-') }}
+                                        @endif
+                                    </td>
                                 @endforeach
                                 <td class="text-right">
                                     <div class="flex justify-end gap-2">
@@ -61,6 +67,23 @@
 
                 <div class="p-4">
                     {{ $this->rows->links() }}
+                </div>
+
+                <div class="flex flex-wrap items-center justify-between gap-2 border-t border-base-300 px-4 py-2">
+                    <span class="text-sm text-base-content/60">
+                        {{ $this->rows->total() }} records · {{ $this->executionMs }} ms
+                    </span>
+
+                    @if (! empty($this->warnings))
+                        <div class="flex flex-col gap-1">
+                            @foreach ($this->warnings as $warning)
+                                <span class="inline-flex items-center gap-1 text-sm text-warning">
+                                    <x-tardis::icon name="exclamation-triangle" class="w-4 h-4" />
+                                    {{ $warning }}
+                                </span>
+                            @endforeach
+                        </div>
+                    @endif
                 </div>
             @endif
         </div>

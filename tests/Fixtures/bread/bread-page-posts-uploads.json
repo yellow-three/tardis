@@ -1,0 +1,51 @@
+{
+    "slug": "bread-page-posts-uploads",
+    "model": "BreadPageUploadPostModel",
+    "name": "Post",
+    "name_plural": "Posts",
+    "fields": [
+        {
+            "name": "title",
+            "type": "text",
+            "label": "Title",
+            "browse": true,
+            "read": true,
+            "edit": true,
+            "add": true,
+            "validation": [
+                "required"
+            ]
+        },
+        {
+            "name": "avatar",
+            "type": "file",
+            "label": "Avatar",
+            "browse": false,
+            "read": true,
+            "edit": true,
+            "add": true,
+            "mimes": [
+                "jpg",
+                "png"
+            ],
+            "max_size": 2048,
+            "disk": "public",
+            "directory": "avatars",
+            "validation": [
+                "nullable"
+            ]
+        },
+        {
+            "name": "secret",
+            "type": "password",
+            "label": "Secret",
+            "browse": false,
+            "read": false,
+            "edit": true,
+            "add": true,
+            "validation": [
+                "nullable"
+            ]
+        }
+    ]
+}

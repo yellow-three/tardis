@@ -2,6 +2,9 @@
 
 namespace Tardis\Formfields;
 
+use Illuminate\Database\Eloquent\Model;
+use Tardis\Classes\Translation;
+
 abstract class Formfield
 {
     public string $name;
@@ -25,6 +28,10 @@ abstract class Formfield
     public ?string $wrapperClass = null;
 
     public int $width = 12;
+
+    public bool $translatable = false;
+
+    public array $locales = [];
 
     public function __construct(string $name, ?string $label = null)
     {
@@ -93,6 +100,75 @@ abstract class Formfield
         $this->width = $cols;
 
         return $this;
+    }
+
+    public function translatable(bool $translatable = true): self
+    {
+        $this->translatable = $translatable;
+
+        return $this;
+    }
+
+    public function locales(array $locales): self
+    {
+        $this->locales = array_values(array_filter(array_unique(array_map('strval', $locales))));
+
+        return $this;
+    }
+
+    /**
+     * The locales this field renders and persists, resolving field-level
+     * overrides, then the global tardis.locales config, then app locale.
+     */
+    public function resolvedLocales(): array
+    {
+        return Translation::locales($this->locales);
+    }
+
+    /**
+     * Transform the raw form value before it is persisted to the model.
+     */
+    public function transform(mixed $value): mixed
+    {
+        if (! $this->translatable) {
+            return $value;
+        }
+
+        $normalized = Translation::normalize($value, $this->resolvedLocales());
+
+        if (implode('', $normalized) === '') {
+            return null;
+        }
+
+        return $normalized;
+    }
+
+    /**
+     * Whether blank values (null/empty string) should be skipped entirely
+     * instead of being transformed and persisted (e.g. password fields).
+     */
+    public function skipWhenBlank(): bool
+    {
+        return false;
+    }
+
+    /**
+     * Whether this field represents a relationship (BelongsToMany, HasMany, ...)
+     * that must not be written to a model column.
+     */
+    public function isRelation(): bool
+    {
+        return false;
+    }
+
+    public function stored(mixed $value, Model $model): void
+    {
+        //
+    }
+
+    public function updated(mixed $value, Model $model): void
+    {
+        $this->stored($value, $model);
     }
 
     public function viewData(): array

@@ -1,5 +1,6 @@
 <?php
 
+use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
@@ -13,6 +14,10 @@ new #[Title('BREAD')] #[Layout('tardis::layouts.admin')] class extends Component
     public string $search = '';
 
     public array $bread = [];
+
+    public float $executionMs = 0.0;
+
+    public array $warnings = [];
 
     public function mount(string $slug): void
     {
@@ -38,6 +43,9 @@ new #[Title('BREAD')] #[Layout('tardis::layouts.admin')] class extends Component
             return collect();
         }
 
+        DB::enableQueryLog();
+        $start = hrtime(true);
+
         $query = $model::query();
 
         if (! empty($this->bread['order_column'])) {
@@ -48,7 +56,27 @@ new #[Title('BREAD')] #[Layout('tardis::layouts.admin')] class extends Component
             $query->where($this->bread['search_key'], 'like', '%'.$this->search.'%');
         }
 
-        return $query->paginate(15);
+        $rows = $query->paginate(15);
+
+        $this->executionMs = round((hrtime(true) - $start) / 1_000_000, 2);
+
+        $queries = DB::getQueryLog();
+        DB::disableQueryLog();
+
+        $this->warnings = [];
+
+        foreach ($queries as $queryLogEntry) {
+            if (($queryLogEntry['time'] ?? 0) > 200) {
+                $querySql = substr($queryLogEntry['query'] ?? '', 0, 120);
+                $this->warnings[] = "Slow query ({$queryLogEntry['time']} ms): {$querySql}";
+            }
+        }
+
+        if (count($queries) > 15) {
+            $this->warnings[] = 'High query count ('.count($queries).') for this listing — possible missing eager loading.';
+        }
+
+        return $rows;
     }
 
     public function getVisibleFieldsProperty(): array
