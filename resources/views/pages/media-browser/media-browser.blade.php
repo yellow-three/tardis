@@ -117,16 +117,16 @@
                     Sort
                 </button>
                 <ul tabindex="0" class="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-48 z-10 border border-base-200 mt-1">
-                    <li><a wire:click="$set('sortBy', 'name')" class="{{ $sortBy === 'name' ? 'active' : '' }}">
+                    <li><a wire:click="$set('sortBy', 'name')" class="{{ $sortBy === 'name' ? 'menu-active' : '' }}">
                         <x-tardis::icon name="text" class="w-4 h-4" /> Sort by name
                     </a></li>
-                    <li><a wire:click="$set('sortBy', 'updated')" class="{{ $sortBy === 'updated' ? 'active' : '' }}">
+                    <li><a wire:click="$set('sortBy', 'updated')" class="{{ $sortBy === 'updated' ? 'menu-active' : '' }}">
                         <x-tardis::icon name="clock" class="w-4 h-4" /> Sort by updated
                     </a></li>
-                    <li><a wire:click="$set('sortBy', 'size')" class="{{ $sortBy === 'size' ? 'active' : '' }}">
+                    <li><a wire:click="$set('sortBy', 'size')" class="{{ $sortBy === 'size' ? 'menu-active' : '' }}">
                         <x-tardis::icon name="hashtag" class="w-4 h-4" /> Sort by size
                     </a></li>
-                    <li><a wire:click="$set('sortBy', 'type')" class="{{ $sortBy === 'type' ? 'active' : '' }}">
+                    <li><a wire:click="$set('sortBy', 'type')" class="{{ $sortBy === 'type' ? 'menu-active' : '' }}">
                         <x-tardis::icon name="document-text" class="w-4 h-4" /> Sort by type
                     </a></li>
                 </ul>

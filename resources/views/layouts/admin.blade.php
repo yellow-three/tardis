@@ -11,19 +11,8 @@
     @livewireStyles
 </head>
 <body class="min-h-screen bg-base-200">
-    <style>
-        .drawer > .drawer-toggle:not(:checked) ~ .drawer-side .tardis-sidebar-label {
-            display: none;
-        }
+    <a href="#main-content" class="tardis-skip-link btn btn-primary btn-sm">İçeriğe geç</a>
 
-        .drawer > .drawer-toggle:checked ~ .drawer-content .tardis-drawer-closed-only {
-            display: none;
-        }
-
-        .drawer > .drawer-toggle:not(:checked) ~ .drawer-content .tardis-drawer-open-only {
-            display: none;
-        }
-    </style>
     <div class="drawer lg:drawer-open">
         <input id="tardis-drawer" type="checkbox" class="drawer-toggle" />
 
@@ -34,10 +23,8 @@
                 {{ $slot }}
             </main>
 
-            <footer class="footer footer-center bg-base-100 text-base-content/60 p-4 text-sm border-t border-base-300">
-                <aside>
-                    <p>© {{ date('Y') }} TARDIS Admin</p>
-                </aside>
+            <footer class="flex items-center justify-center border-t border-base-300 bg-base-100 px-4 py-3 text-xs text-base-content/50">
+                <p>© {{ date('Y') }} TARDIS</p>
             </footer>
         </div>
 
