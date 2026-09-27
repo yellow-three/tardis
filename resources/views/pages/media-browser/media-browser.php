@@ -31,6 +31,10 @@ new #[Title('Media')] #[Layout('tardis::layouts.admin')] class extends Component
 
     public ?string $deletePath = null;
 
+    public bool $deleteIsDirectory = false;
+
+    public bool $deleteIsBulk = false;
+
     public bool $showDeleteModal = false;
 
     public $newUploads = [];
@@ -246,7 +250,7 @@ new #[Title('Media')] #[Layout('tardis::layouts.admin')] class extends Component
     public function createDirectory(): void
     {
         $this->validate([
-            'newDirectoryName' => 'required|string|max:255',
+            'newDirectoryName' => ['required', 'string', 'max:255', 'not_regex:/\.\./', 'not_regex:/[\/\\\\]/'],
         ]);
 
         $manager = app(MediaManager::class);
@@ -267,7 +271,7 @@ new #[Title('Media')] #[Layout('tardis::layouts.admin')] class extends Component
     public function renameFile(): void
     {
         $this->validate([
-            'renameNewName' => 'required|string|max:255',
+            'renameNewName' => ['required', 'string', 'max:255', 'not_regex:/\.\./', 'not_regex:/[\/\\\\]/'],
         ]);
 
         $manager = app(MediaManager::class);
@@ -281,19 +285,31 @@ new #[Title('Media')] #[Layout('tardis::layouts.admin')] class extends Component
     public function confirmDelete(string $path): void
     {
         $this->deletePath = $path;
+        $this->deleteIsDirectory = $this->isDirectory($path);
+        $this->deleteIsBulk = false;
         $this->showDeleteModal = true;
     }
 
     public function deleteFile(): void
     {
-        if ($this->deletePath) {
-            $manager = app(MediaManager::class);
-            $manager->deleteFile($this->deletePath);
+        $manager = app(MediaManager::class);
 
-            $this->deletePath = null;
-            $this->showDeleteModal = false;
-            $this->loadFiles();
+        if ($this->deleteIsBulk) {
+            // A bulk delete is irreversible, so the modal has to be confirmed before anything is removed.
+            foreach ($this->selectedFiles as $path) {
+                $this->deleteTarget($manager, $path);
+            }
+
+            $this->selectedFiles = [];
+        } elseif ($this->deletePath) {
+            $this->deleteTarget($manager, $this->deletePath);
         }
+
+        $this->deletePath = null;
+        $this->deleteIsDirectory = false;
+        $this->deleteIsBulk = false;
+        $this->showDeleteModal = false;
+        $this->loadFiles();
     }
 
     public function toggleSelect(string $path): void
@@ -321,14 +337,12 @@ new #[Title('Media')] #[Layout('tardis::layouts.admin')] class extends Component
             return;
         }
 
-        $manager = app(MediaManager::class);
-
-        foreach ($this->selectedFiles as $path) {
-            $manager->deleteFile($path);
-        }
-
-        $this->selectedFiles = [];
-        $this->loadFiles();
+        // Deleting the whole selection in one click used to wipe it with no confirmation and no undo,
+        // so this only arms the confirmation modal; deleteFile() does the actual work.
+        $this->deletePath = null;
+        $this->deleteIsDirectory = false;
+        $this->deleteIsBulk = true;
+        $this->showDeleteModal = true;
     }
 
     public function downloadSelected(): void
@@ -338,7 +352,15 @@ new #[Title('Media')] #[Layout('tardis::layouts.admin')] class extends Component
         }
 
         $manager = app(MediaManager::class);
-        $zipPath = $manager->downloadZip($this->selectedFiles);
+
+        try {
+            $zipPath = $manager->downloadZip($this->selectedFiles);
+        } catch (RuntimeException $e) {
+            // Keep the selection so the user can adjust it instead of losing the work.
+            session()->flash('error', $e->getMessage());
+
+            return;
+        }
 
         $this->selectedFiles = [];
 
@@ -360,5 +382,27 @@ new #[Title('Media')] #[Layout('tardis::layouts.admin')] class extends Component
         }
 
         return $breadcrumbs;
+    }
+
+    protected function isDirectory(string $relativePath): bool
+    {
+        foreach ($this->files as $file) {
+            if (($file['relative_path'] ?? null) === $relativePath) {
+                return ($file['type'] ?? null) === 'directory';
+            }
+        }
+
+        return false;
+    }
+
+    protected function deleteTarget(MediaManager $manager, string $relativePath): void
+    {
+        if ($this->isDirectory($relativePath)) {
+            $manager->deleteDirectory($relativePath);
+
+            return;
+        }
+
+        $manager->deleteFile($relativePath);
     }
 };
