@@ -1,51 +1,73 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tardis\Bread;
 
 use Illuminate\Support\Collection;
-use Tardis\Bread\Sources\BreadSource;
-use Tardis\Bread\Sources\DatabaseBreadSource;
 use Tardis\Bread\Sources\JsonBreadSource;
 
 class BreadManager
 {
     public function __construct(
-        protected JsonBreadSource $json,
-        protected DatabaseBreadSource $database,
+        protected JsonBreadSource $bread,
     ) {}
 
-    public function source(string $slug): BreadSource
+    /**
+     * @param  array<string, mixed>|BreadDefinition  $bread
+     */
+    public function save(array|BreadDefinition $bread): void
     {
-        return ($this->json->find($slug) !== null) ? $this->json : $this->database;
+        $this->bread->save($bread);
     }
 
-    public function find(string $slug): ?array
+    public function find(string $slug): ?BreadDefinition
     {
-        return $this->json->find($slug)
-            ?? $this->database->find($slug);
+        return $this->bread->find($slug);
     }
 
     public function all(): Collection
     {
-        $fromJson = $this->json->all();
-        $fromDb = $this->database->all()
-            ->reject(fn ($b, $slug) => $fromJson->has($slug));
-
-        return $fromJson->merge($fromDb);
+        return $this->bread->all();
     }
 
-    public function save(array $bread): void
+    public function has(string $slug): bool
     {
-        $this->json->save($bread);
+        return $this->bread->has($slug);
     }
 
-    public function jsonSource(): JsonBreadSource
+    public function delete(string $slug): bool
     {
-        return $this->json;
+        return $this->bread->delete($slug);
     }
 
-    public function databaseSource(): DatabaseBreadSource
+    public function backup(string $slug): ?string
     {
-        return $this->database;
+        return $this->bread->backup($slug);
+    }
+
+    public function backups(string $slug): Collection
+    {
+        return $this->bread->backups($slug);
+    }
+
+    public function rollback(string $slug, string $backup): bool
+    {
+        return $this->bread->rollback($slug, $backup);
+    }
+
+    public function prune(string $slug, ?int $keep = null): int
+    {
+        return $this->bread->prune($slug, $keep);
+    }
+
+    public function path(): string
+    {
+        return $this->bread->path();
+    }
+
+    public function source(): JsonBreadSource
+    {
+        return $this->bread;
     }
 }

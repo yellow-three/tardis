@@ -8,8 +8,8 @@
 <header class="navbar bg-base-100 border-b border-base-300 sticky top-0 z-30">
     <div class="flex-none">
         <label for="tardis-drawer" class="btn btn-square btn-ghost" aria-label="Menüyü aç/kapat">
-            <x-tardis::icon name="ui.menu" class="w-5 h-5 is-drawer-open:hidden" />
-            <x-tardis::icon name="ui.close" class="w-5 h-5 is-drawer-close:hidden" />
+            <x-tardis::icon name="ui.menu" class="tardis-drawer-closed-only w-5 h-5" />
+            <x-tardis::icon name="ui.close" class="tardis-drawer-open-only w-5 h-5" />
         </label>
     </div>
 
@@ -17,11 +17,14 @@
         <span class="text-xl font-bold px-4">{{ $title }}</span>
     </div>
 
-    <div class="flex-none gap-1">
-        <label class="input input-bordered input-sm flex items-center gap-2 max-w-xs w-full hidden md:flex">
-            <x-tardis::icon name="action.search" class="w-4 h-4 opacity-50" />
-            <input type="search" class="grow" placeholder="Ara..." />
-        </label>
+    <div class="flex-none gap-1 ml-auto">
+        <form method="GET" action="{{ route('tardis.search') }}" class="hidden md:flex" style="position: absolute; left: 50%; transform: translateX(-50%); width: min(28rem, 40vw);">
+            <label class="input input-bordered input-sm flex items-center gap-2 w-full">
+                <x-tardis::icon name="action.search" class="w-4 h-4 opacity-50" aria-hidden="true" />
+                <span class="sr-only">Search records</span>
+                <input type="search" name="query" class="grow" placeholder="Ara…" autocomplete="off" />
+            </label>
+        </form>
 
         <button class="btn btn-ghost btn-circle" aria-label="Bildirimler">
             <div class="indicator">
@@ -45,7 +48,7 @@
                     {{ substr(auth()->user()->name ?? 'A', 0, 1) }}
                 </div>
             </div>
-            <ul tabindex="0" class="menu menu-sm dropdown-content mt-3 z-[1] p-2 shadow bg-base-100 rounded-box w-52">
+            <ul tabindex="0" class="menu menu-sm dropdown-content mt-3 z-1 p-2 shadow bg-base-100 rounded-box w-52">
                 @forelse ($userMenuItems as $userItem)
                     @if ($userItem->divider)
                         <li class="menu-divider"></li>

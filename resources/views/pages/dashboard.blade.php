@@ -4,7 +4,7 @@ use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
 use Illuminate\Support\Facades\DB;
-use Tardis\Bread\Repositories\JsonBreadRepository;
+use Tardis\Bread\BreadManager;
 
 new #[Title('Dashboard')] #[Layout('tardis::layouts.admin')] class extends Component
 {
@@ -31,7 +31,7 @@ new #[Title('Dashboard')] #[Layout('tardis::layouts.admin')] class extends Compo
             $this->totalUsers = 0;
         }
 
-        $repo = app(JsonBreadRepository::class);
+        $repo = app(BreadManager::class);
         $this->totalBreads = count($repo->all());
 
         try {

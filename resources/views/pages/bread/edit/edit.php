@@ -1,12 +1,19 @@
 <?php
 
+use Illuminate\Http\UploadedFile;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
-use Tardis\Bread\Repositories\JsonBreadRepository;
+use Livewire\WithFileUploads;
+use Tardis\Bread\BreadManager;
+use Tardis\Classes\Translation;
+use Tardis\Formfields\Types\BelongsToManyField;
+use Tardis\Manager\FormfieldManager;
 
 new #[Title('Edit')] #[Layout('tardis::layouts.admin')] class extends Component
 {
+    use WithFileUploads;
+
     public string $slug = '';
 
     public int|string $id = 0;
@@ -17,11 +24,15 @@ new #[Title('Edit')] #[Layout('tardis::layouts.admin')] class extends Component
 
     public array $form = [];
 
+    public array $relationSearch = [];
+
+    public array $relationResults = [];
+
     public function mount(string $slug, int|string $id): void
     {
         $this->slug = $slug;
         $this->id = $id;
-        $definition = app(JsonBreadRepository::class)->find($slug);
+        $definition = app(BreadManager::class)->find($slug);
 
         if (! $definition) {
             abort(404);
@@ -37,6 +48,72 @@ new #[Title('Edit')] #[Layout('tardis::layouts.admin')] class extends Component
         $record = $modelClass::findOrFail($id);
         $this->record = $record->toArray();
         $this->form = $this->record;
+
+        foreach ($this->fields as $field) {
+            $name = $field['name'] ?? null;
+            $type = $field['type'] ?? null;
+
+            if (! $name || ! $type) {
+                continue;
+            }
+
+            if ($type === 'password') {
+                // Never prefill a password; blank means "keep the current one".
+                $this->form[$name] = '';
+            } elseif ($type === 'belongs_to_many' && ! empty($field['relation'])) {
+                $this->form[$name] = $record->{$field['relation']}()->get()->modelKeys();
+            } elseif ($type === 'has_many' && ! empty($field['relation'])) {
+                $this->form[$name] = $record->{$field['relation']}()->get()->toArray();
+            } elseif (! empty($field['translatable'])) {
+                $this->form[$name] = Translation::normalize(
+                    $record->{$name} ?? null,
+                    Translation::locales($field['locales'] ?? null),
+                );
+            }
+        }
+
+        $this->initRelationSearch();
+    }
+
+    public function initRelationSearch(): void
+    {
+        foreach ($this->fields as $field) {
+            $name = $field['name'] ?? null;
+
+            if (! $name || ($field['type'] ?? null) !== 'belongs_to_many') {
+                continue;
+            }
+
+            $this->relationSearch[$name] = '';
+            $this->searchRelationOptions($name);
+        }
+    }
+
+    public function updated($name, $value): void
+    {
+        if (str_starts_with((string) $name, 'relationSearch.')) {
+            $this->searchRelationOptions(substr((string) $name, strlen('relationSearch.')));
+        }
+    }
+
+    public function searchRelationOptions(string $fieldName): void
+    {
+        $field = collect($this->fields)->first(fn (array $field) => ($field['name'] ?? null) === $fieldName);
+
+        if (! $field || ($field['type'] ?? null) !== 'belongs_to_many') {
+            return;
+        }
+
+        $relationField = app(FormfieldManager::class)->fields([$field])[0] ?? null;
+
+        if (! $relationField instanceof BelongsToManyField) {
+            return;
+        }
+
+        $this->relationResults[$fieldName] = $relationField->searchOptions(
+            (string) ($this->relationSearch[$fieldName] ?? ''),
+            (array) ($this->form[$fieldName] ?? []),
+        );
     }
 
     public function getFieldsProperty(): array
@@ -61,6 +138,18 @@ new #[Title('Edit')] #[Layout('tardis::layouts.admin')] class extends Component
 
             $fieldRules = $field['validation'] ?? [];
             $rules['form.'.$name] = in_array('required', $fieldRules, true) ? 'required' : 'nullable';
+
+            if (($field['type'] ?? null) === 'file' && ($this->form[$name] ?? null) instanceof UploadedFile) {
+                $rules['form.'.$name] .= '|file';
+
+                if (! empty($field['mimes'])) {
+                    $rules['form.'.$name] .= '|mimes:'.implode(',', (array) $field['mimes']);
+                }
+
+                if (! empty($field['max_size'])) {
+                    $rules['form.'.$name] .= '|max:'.(int) $field['max_size'];
+                }
+            }
         }
 
         return $rules;
@@ -74,7 +163,32 @@ new #[Title('Edit')] #[Layout('tardis::layouts.admin')] class extends Component
 
         if ($modelClass && class_exists($modelClass)) {
             $record = $modelClass::findOrFail($this->id);
-            $record->update($this->form);
+
+            $fields = app(FormfieldManager::class)->fields($this->fields);
+            $data = [];
+            $relations = [];
+
+            foreach ($fields as $field) {
+                $value = $this->form[$field->name] ?? $field->default;
+
+                if ($field->skipWhenBlank() && blank($value)) {
+                    continue;
+                }
+
+                if ($field->isRelation()) {
+                    $relations[] = [$field, $value];
+
+                    continue;
+                }
+
+                $data[$field->name] = $field->transform($value);
+            }
+
+            $record->update($data);
+
+            foreach ($relations as [$field, $value]) {
+                $field->updated($value, $record);
+            }
         }
 
         session()->flash('message', 'Item updated successfully.');

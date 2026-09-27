@@ -1,9 +1,11 @@
 <?php
 
+use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
-use Tardis\Bread\Repositories\JsonBreadRepository;
+use Tardis\Bread\BreadManager;
+use Tardis\Events\BreadDeleted;
 
 new #[Title('BREAD')] #[Layout('tardis::layouts.admin')] class extends Component
 {
@@ -13,10 +15,14 @@ new #[Title('BREAD')] #[Layout('tardis::layouts.admin')] class extends Component
 
     public array $bread = [];
 
+    public float $executionMs = 0.0;
+
+    public array $warnings = [];
+
     public function mount(string $slug): void
     {
         $this->slug = $slug;
-        $definition = app(JsonBreadRepository::class)->find($slug);
+        $definition = app(BreadManager::class)->find($slug);
 
         if (! $definition) {
             abort(404);
@@ -37,6 +43,9 @@ new #[Title('BREAD')] #[Layout('tardis::layouts.admin')] class extends Component
             return collect();
         }
 
+        DB::enableQueryLog();
+        $start = hrtime(true);
+
         $query = $model::query();
 
         if (! empty($this->bread['order_column'])) {
@@ -47,7 +56,27 @@ new #[Title('BREAD')] #[Layout('tardis::layouts.admin')] class extends Component
             $query->where($this->bread['search_key'], 'like', '%'.$this->search.'%');
         }
 
-        return $query->paginate(15);
+        $rows = $query->paginate(15);
+
+        $this->executionMs = round((hrtime(true) - $start) / 1_000_000, 2);
+
+        $queries = DB::getQueryLog();
+        DB::disableQueryLog();
+
+        $this->warnings = [];
+
+        foreach ($queries as $queryLogEntry) {
+            if (($queryLogEntry['time'] ?? 0) > 200) {
+                $querySql = substr($queryLogEntry['query'] ?? '', 0, 120);
+                $this->warnings[] = "Slow query ({$queryLogEntry['time']} ms): {$querySql}";
+            }
+        }
+
+        if (count($queries) > 15) {
+            $this->warnings[] = 'High query count ('.count($queries).') for this listing — possible missing eager loading.';
+        }
+
+        return $rows;
     }
 
     public function getVisibleFieldsProperty(): array
@@ -62,5 +91,20 @@ new #[Title('BREAD')] #[Layout('tardis::layouts.admin')] class extends Component
     public function getCreateUrlProperty(): string
     {
         return url(trim(config('tardis.admin.prefix', 'admin'), '/').'/'.$this->slug.'/create');
+    }
+
+    public function delete(int|string $id): void
+    {
+        $model = $this->bread['model'] ?? null;
+
+        if (! $model || ! class_exists($model)) {
+            abort(404);
+        }
+
+        $item = $model::findOrFail($id);
+        $item->delete();
+
+        BreadDeleted::dispatch($this->slug, $item);
+        session()->flash('message', 'Item deleted successfully.');
     }
 };

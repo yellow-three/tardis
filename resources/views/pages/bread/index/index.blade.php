@@ -17,7 +17,7 @@
                 <label class="label">
                     <span class="label-text">Search</span>
                 </label>
-                <input type="search" wire:model.live.debounce.300ms="search" class="input input-bordered" placeholder="Search {{ $bread?->namePlural ?? ucfirst($slug) }}..." />
+                <input type="search" wire:model.live.debounce.300ms="search" class="input input-bordered" placeholder="Search {{ $bread['name_plural'] ?? ucfirst($slug) }}…" aria-label="Search {{ $bread['name_plural'] ?? ucfirst($slug) }}" autocomplete="off" />
             </div>
         </div>
     </div>
@@ -45,17 +45,19 @@
                             <tr>
                                 @foreach ($this->visibleFields as $field)
                                     @php($fieldName = $field['name'] ?? '')
-                                    <td>{{ data_get($row, $fieldName, '-') }}</td>
+                                    <td>
+                                        @if (! empty($field['translatable']))
+                                            {{ \Tardis\Classes\Translation::value(data_get($row, $fieldName), $field['locales'] ?? null) }}
+                                        @else
+                                            {{ data_get($row, $fieldName, '-') }}
+                                        @endif
+                                    </td>
                                 @endforeach
                                 <td class="text-right">
                                     <div class="flex justify-end gap-2">
                                         <a href="{{ url(trim(config('tardis.admin.prefix', 'admin'), '/').'/'.$slug.'/'.$row->getKey()) }}" class="btn btn-ghost btn-xs">View</a>
                                         <a href="{{ url(trim(config('tardis.admin.prefix', 'admin'), '/').'/'.$slug.'/'.$row->getKey().'/edit') }}" class="btn btn-ghost btn-xs">Edit</a>
-                                        <form action="{{ url(trim(config('tardis.admin.prefix', 'admin'), '/').'/'.$slug.'/'.$row->getKey()) }}" method="POST" onsubmit="return confirm('Delete this record?')">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" class="btn btn-ghost btn-xs text-error">Delete</button>
-                                        </form>
+                                        <button type="button" wire:click="delete({{ $row->getKey() }})" wire:confirm="Delete this record?" class="btn btn-ghost btn-xs text-error">Delete</button>
                                     </div>
                                 </td>
                             </tr>
@@ -65,6 +67,23 @@
 
                 <div class="p-4">
                     {{ $this->rows->links() }}
+                </div>
+
+                <div class="flex flex-wrap items-center justify-between gap-2 border-t border-base-300 px-4 py-2">
+                    <span class="text-sm text-base-content/60">
+                        {{ $this->rows->total() }} records · {{ $this->executionMs }} ms
+                    </span>
+
+                    @if (! empty($this->warnings))
+                        <div class="flex flex-col gap-1">
+                            @foreach ($this->warnings as $warning)
+                                <span class="inline-flex items-center gap-1 text-sm text-warning">
+                                    <x-tardis::icon name="exclamation-triangle" class="w-4 h-4" />
+                                    {{ $warning }}
+                                </span>
+                            @endforeach
+                        </div>
+                    @endif
                 </div>
             @endif
         </div>

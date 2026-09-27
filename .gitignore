@@ -30,3 +30,5 @@ Thumbs.db
 graphify-out
 resources/hot
 .opencode
+# playwright-cli QA artifacts
+/.playwright-cli
