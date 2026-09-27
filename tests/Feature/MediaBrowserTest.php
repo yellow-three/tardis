@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Livewire;
@@ -280,4 +281,33 @@ test('downloadSelected reports a friendly error when nothing is archivable', fun
         ->assertNotDispatched('download-zip')
         // Selection is preserved so the user can fix it instead of starting over.
         ->assertSet('selectedFiles', ['box']);
+});
+
+test('the same file can be uploaded twice in a row', function () {
+    $component = Livewire::test('tardis::pages.media-browser')
+        ->set('newUploads', UploadedFile::fake()->create('photo.jpg', 10));
+
+    Storage::disk('public')->assertExists('media/photo.jpg');
+
+    // Re-selecting the very same file is what a user does after an upload, and the
+    // manager must give it a unique name rather than silently ignoring it.
+    $component
+        ->set('newUploads', UploadedFile::fake()->create('photo.jpg', 10));
+
+    expect(Media::query()->count())->toBe(2);
+    Storage::disk('public')->assertExists('media/photo.jpg');
+    Storage::disk('public')->assertExists('media/photo_1.jpg');
+});
+
+test('the file input is re-keyed after an upload so it can be re-selected', function () {
+    Livewire::test('tardis::pages.media-browser')
+        ->assertSet('uploadInputKey', 0)
+        ->assertSee('media-upload-0', false)
+        ->set('newUploads', UploadedFile::fake()->create('photo.jpg', 10))
+        // A fresh key forces Livewire to render a new <input>, which is what empties
+        // the browser-side value. Without it the second selection fires no change event.
+        ->assertSet('uploadInputKey', 1)
+        ->assertSee('media-upload-1', false)
+        // The selection buffer is emptied so the next pick is treated as a new upload.
+        ->assertSet('newUploads', []);
 });

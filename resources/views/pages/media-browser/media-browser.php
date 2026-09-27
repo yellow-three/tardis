@@ -39,6 +39,14 @@ new #[Title('Media')] #[Layout('tardis::layouts.admin')] class extends Component
 
     public $newUploads = [];
 
+    /**
+     * Bumped after every successful upload so the file input is re-created with an
+     * empty native value. Without it the browser keeps the previously chosen file
+     * in the input, and re-selecting that same file fires no change event, so the
+     * second upload is silently ignored.
+     */
+    public int $uploadInputKey = 0;
+
     public string $mimeTypeFilter = '';
 
     public string $searchQuery = '';
@@ -208,6 +216,7 @@ new #[Title('Media')] #[Layout('tardis::layouts.admin')] class extends Component
 
         $count = count($files);
         $this->newUploads = [];
+        $this->uploadInputKey++;
         $this->loadFiles();
         session()->flash('message', $count.' file(s) uploaded successfully');
     }
