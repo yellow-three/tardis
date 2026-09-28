@@ -53,9 +53,9 @@ new #[Title('Login')] #[Layout('tardis::layouts.auth')] class extends Component
     @endif
 
     <form wire:submit="login" class="space-y-4">
-        <div class="form-control">
+        <div class="flex flex-col gap-2">
             <label class="label" for="email">
-                <span class="label-text">Email address</span>
+                <span class="text-base-content">Email address</span>
             </label>
             <input
                 type="email"
@@ -65,18 +65,18 @@ new #[Title('Login')] #[Layout('tardis::layouts.auth')] class extends Component
                 autofocus
                 autocomplete="email"
                 placeholder="email@example.com"
-                class="input input-bordered w-full @error('email') input-error @enderror"
+                class="input w-full @error('email') input-error @enderror"
             />
             @error('email')
                 <label class="label">
-                    <span class="label-text-alt text-error">{{ $message }}</span>
+                    <span class="text-error">{{ $message }}</span>
                 </label>
             @enderror
         </div>
 
-        <div class="form-control">
+        <div class="flex flex-col gap-2">
             <label class="label" for="password">
-                <span class="label-text">Password</span>
+                <span class="text-base-content">Password</span>
             </label>
             <input
                 type="password"
@@ -85,23 +85,23 @@ new #[Title('Login')] #[Layout('tardis::layouts.auth')] class extends Component
                 required
                 autocomplete="current-password"
                 placeholder="••••••••"
-                class="input input-bordered w-full @error('password') input-error @enderror"
+                class="input w-full @error('password') input-error @enderror"
             />
             @error('password')
                 <label class="label">
-                    <span class="label-text-alt text-error">{{ $message }}</span>
+                    <span class="text-error">{{ $message }}</span>
                 </label>
             @enderror
         </div>
 
-        <div class="form-control">
+        <div class="flex flex-col gap-2">
             <label class="label cursor-pointer justify-start gap-3">
                 <input
                     type="checkbox"
                     wire:model="remember"
                     class="checkbox checkbox-primary checkbox-sm"
                 />
-                <span class="label-text">Remember me</span>
+                <span class="text-base-content">Remember me</span>
             </label>
         </div>
 

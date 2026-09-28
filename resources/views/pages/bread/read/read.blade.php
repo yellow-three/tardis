@@ -8,7 +8,7 @@
         </x-slot:action>
     </x-tardis::page-header>
 
-    <div class="card bg-base-100 shadow-sm">
+    <div class="card bg-base-100 border border-base-300">
         <div class="card-body space-y-4">
             @foreach ($this->fields as $field)
                 @php($name = $field['name'] ?? '')

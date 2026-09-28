@@ -66,9 +66,9 @@ $typeLabels = [
     />
 
     @if (empty($plugins))
-        <div class="card bg-base-100 shadow">
+        <div class="card bg-base-100 border border-base-300">
             <div class="card-body text-center py-12">
-                <x-tardis::icon name="puzzle-piece" class="w-16 h-16 mx-auto opacity-30" />
+                <x-tardis::icon name="puzzle-piece" class="w-16 h-16 mx-auto text-base-content/30" />
                 <h3 class="text-lg font-semibold mt-4">No plugins installed</h3>
                 <p class="text-base-content/60 mt-2">
                     Install plugins via <code class="badge badge-ghost">composer require tardis/plugin-name</code>
@@ -76,15 +76,15 @@ $typeLabels = [
             </div>
         </div>
     @else
-        <div class="card bg-base-100 shadow">
+        <div class="card bg-base-100 border border-base-300">
             <div class="overflow-x-auto">
                 <table class="table">
                     <thead>
                         <tr>
-                            <th>Plugin</th>
-                            <th>Type</th>
-                            <th>Status</th>
-                            <th class="text-right">Actions</th>
+                            <th scope="col">Plugin</th>
+                            <th scope="col">Type</th>
+                            <th scope="col">Status</th>
+                            <th class="text-right" scope="col">Actions</th>
                         </tr>
                     </thead>
                     <tbody>

@@ -109,14 +109,14 @@ new #[Title('Activity Log')] #[Layout('tardis::layouts.admin')] class extends Co
     <x-tardis::page-header title="Activity Log" description="Track all system activities" />
 
     <!-- Filters -->
-    <div class="card bg-base-100 shadow-sm mb-6">
+    <div class="card bg-base-100 mb-6 border border-base-300">
         <div class="card-body p-4">
             <div class="flex flex-wrap gap-4">
-                <div class="form-control flex-1 min-w-[200px]">
-                    <input type="text" wire:model.live.debounce.300ms="search" class="input input-bordered input-sm" placeholder="Search..." />
+                <div class="flex flex-col gap-2 flex-1 min-w-[200px]">
+                    <input type="text" wire:model.live.debounce.300ms="search" class="input input-sm" placeholder="Search..." />
                 </div>
-                <div class="form-control">
-                    <select wire:model.live="filterAction" class="select select-bordered select-sm">
+                <div class="flex flex-col gap-2">
+                    <select wire:model.live="filterAction" class="select select-sm">
                         <option value="">All Actions</option>
                         <option value="created">Created</option>
                         <option value="updated">Updated</option>
@@ -128,15 +128,15 @@ new #[Title('Activity Log')] #[Layout('tardis::layouts.admin')] class extends Co
     </div>
 
     <!-- Activities -->
-    <div class="card bg-base-100 shadow-sm">
+    <div class="card bg-base-100 border border-base-300">
         <div class="overflow-x-auto">
             <table class="table table-sm">
                 <thead>
                     <tr>
-                        <th>Action</th>
-                        <th>Model</th>
-                        <th>User</th>
-                        <th>Time</th>
+                        <th scope="col">Action</th>
+                        <th scope="col">Model</th>
+                        <th scope="col">User</th>
+                        <th scope="col">Time</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -149,14 +149,14 @@ new #[Title('Activity Log')] #[Layout('tardis::layouts.admin')] class extends Co
                             </td>
                             <td class="text-sm">
                                 <span class="font-medium">{{ class_basename($activity->model_type) }}</span>
-                                <span class="opacity-50">#{{ $activity->model_id }}</span>
+                                <span class="text-base-content/50">#{{ $activity->model_id }}</span>
                             </td>
-                            <td class="text-sm opacity-60">{{ $activity->user_id ?? 'System' }}</td>
-                            <td class="text-sm opacity-60">{{ $activity->created_at }}</td>
+                            <td class="text-sm text-base-content/60">{{ $activity->user_id ?? 'System' }}</td>
+                            <td class="text-sm text-base-content/60">{{ $activity->created_at }}</td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="4" class="text-center py-8 opacity-50">No activities found</td>
+                            <td colspan="4" class="text-center py-8 text-base-content/50">No activities found</td>
                         </tr>
                     @endforelse
                 </tbody>
@@ -166,7 +166,7 @@ new #[Title('Activity Log')] #[Layout('tardis::layouts.admin')] class extends Co
         @if ($totalRows > $perPage)
             <div class="card-body p-4 border-t border-base-200">
                 <div class="flex items-center justify-between">
-                    <span class="text-sm opacity-60">
+                    <span class="text-sm text-base-content/60">
                         Showing {{ ($page - 1) * $perPage + 1 }}-{{ min($page * $perPage, $totalRows) }} of {{ $totalRows }}
                     </span>
                     <div class="join">

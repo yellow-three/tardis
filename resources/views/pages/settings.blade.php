@@ -410,7 +410,7 @@ new #[Title('Settings')] #[Layout('tardis::layouts.admin')] class extends Compon
     <!-- Notification Toast -->
     <template x-if="notification">
         <div class="fixed top-4 right-4 z-50" x-transition>
-            <div class="alert shadow-lg" :class="{
+            <div class="alert" :class="{
                 'alert-success': notification.type === 'success',
                 'alert-error': notification.type === 'error',
                 'alert-info': notification.type === 'info'
@@ -429,8 +429,8 @@ new #[Title('Settings')] #[Layout('tardis::layouts.admin')] class extends Compon
 
         <div class="flex gap-2">
             <div class="relative">
-                <x-tardis::icon name="magnifying-glass" class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 opacity-50" />
-                <input type="text" wire:model.live.debounce.300ms="search" class="input input-bordered input-sm pl-10 w-64" placeholder="Search settings..." />
+                <x-tardis::icon name="magnifying-glass" class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-base-content/50" />
+                <input type="text" wire:model.live.debounce.300ms="search" class="input input-sm pl-10 w-64" placeholder="Search settings..." />
             </div>
             <button wire:click="$set('showAddGroupModal', true)" class="btn btn-outline btn-sm gap-2">
                 <x-tardis::icon name="plus" class="w-4 h-4" />
@@ -452,7 +452,7 @@ new #[Title('Settings')] #[Layout('tardis::layouts.admin')] class extends Compon
     </div>
 
     <!-- Theme Preview Section -->
-    <div class="card bg-base-100 shadow-sm mb-6" x-data x-show="$store.theme.availableThemes.length > 0">
+    <div class="card bg-base-100 mb-6 border border-base-300" x-data x-show="$store.theme.availableThemes.length > 0">
         <div class="card-body p-4">
             <h3 class="card-title text-sm font-semibold flex items-center gap-2">
                 <x-tardis::icon name="paint-brush" class="w-4 h-4" />
@@ -489,7 +489,7 @@ new #[Title('Settings')] #[Layout('tardis::layouts.admin')] class extends Compon
     <!-- Horizontal Group Tabs (Voyager II style) -->
     @php $filteredGroups = $this->getFilteredGroups(); @endphp
     @if (count($filteredGroups) > 0)
-        <div class="tabs tabs-box mb-6 bg-base-100 shadow-sm overflow-x-auto">
+        <div class="tabs tabs-box mb-6 bg-base-100 overflow-x-auto">
             @foreach ($filteredGroups as $groupKey => $group)
                 <button wire:click="setActiveGroup('{{ $groupKey }}')"
                         role="tab"
@@ -505,7 +505,7 @@ new #[Title('Settings')] #[Layout('tardis::layouts.admin')] class extends Compon
 
         <!-- Active Group Settings Card -->
         @if ($activeGroup && isset($filteredGroups[$activeGroup]))
-            <div class="card bg-base-100 shadow-sm">
+            <div class="card bg-base-100 border border-base-300">
                 <div class="card-body">
                     <h2 class="card-title text-xl flex items-center gap-2">
                         @if ($filteredGroups[$activeGroup]['icon'])
@@ -567,7 +567,7 @@ new #[Title('Settings')] #[Layout('tardis::layouts.admin')] class extends Compon
                                             id="setting-{{ $setting['uuid'] }}"
                                             wire:model="values.{{ $activeGroup }}.{{ $setting['key'] }}"
                                             placeholder="{{ $setting['options']['placeholder'] ?? '' }}"
-                                            class="input input-bordered w-full"
+                                            class="input w-full"
                                         />
 
                                     {{-- Color --}}
@@ -589,7 +589,7 @@ new #[Title('Settings')] #[Layout('tardis::layouts.admin')] class extends Compon
                                         <textarea
                                             id="setting-{{ $setting['uuid'] }}"
                                             wire:model="values.{{ $activeGroup }}.{{ $setting['key'] }}"
-                                            class="textarea textarea-bordered w-full"
+                                            class="textarea w-full"
                                             rows="{{ $setting['options']['rows'] ?? 4 }}"
                                             placeholder="{{ $setting['options']['placeholder'] ?? '' }}"
                                         ></textarea>
@@ -602,7 +602,7 @@ new #[Title('Settings')] #[Layout('tardis::layouts.admin')] class extends Compon
                                             wire:model="values.{{ $activeGroup }}.{{ $setting['key'] }}"
                                             min="{{ $setting['options']['min'] ?? '' }}"
                                             max="{{ $setting['options']['max'] ?? '' }}"
-                                            class="input input-bordered w-full"
+                                            class="input w-full"
                                         />
 
                                     {{-- Password --}}
@@ -611,7 +611,7 @@ new #[Title('Settings')] #[Layout('tardis::layouts.admin')] class extends Compon
                                             type="password"
                                             id="setting-{{ $setting['uuid'] }}"
                                             wire:model="values.{{ $activeGroup }}.{{ $setting['key'] }}"
-                                            class="input input-bordered w-full"
+                                            class="input w-full"
                                         />
 
                                     {{-- Select --}}
@@ -619,7 +619,7 @@ new #[Title('Settings')] #[Layout('tardis::layouts.admin')] class extends Compon
                                         <select
                                             id="setting-{{ $setting['uuid'] }}"
                                             wire:model="values.{{ $activeGroup }}.{{ $setting['key'] }}"
-                                            class="select select-bordered w-full"
+                                            class="select w-full"
                                         >
                                             @if (!empty($setting['options']))
                                                 @foreach ($setting['options'] as $optionValue => $optionLabel)
@@ -649,7 +649,7 @@ new #[Title('Settings')] #[Layout('tardis::layouts.admin')] class extends Compon
                                             type="date"
                                             id="setting-{{ $setting['uuid'] }}"
                                             wire:model="values.{{ $activeGroup }}.{{ $setting['key'] }}"
-                                            class="input input-bordered w-full"
+                                            class="input w-full"
                                         />
 
                                     {{-- Simple Array --}}
@@ -661,7 +661,7 @@ new #[Title('Settings')] #[Layout('tardis::layouts.admin')] class extends Compon
                                                     <input
                                                         type="text"
                                                         wire:model="values.{{ $activeGroup }}.{{ $setting['key'] }}.{{ $arrIndex }}"
-                                                        class="input input-bordered flex-1 input-sm"
+                                                        class="input flex-1 input-sm"
                                                         placeholder="Item {{ $arrIndex + 1 }}"
                                                     />
                                                     <button
@@ -692,13 +692,13 @@ new #[Title('Settings')] #[Layout('tardis::layouts.admin')] class extends Compon
                                                         type="text"
                                                         wire:model="values.{{ $activeGroup }}.{{ $setting['key'] }}.{{ $dynIndex }}.key"
                                                         placeholder="Key"
-                                                        class="input input-bordered w-2/5 input-sm"
+                                                        class="input w-2/5 input-sm"
                                                     />
                                                     <input
                                                         type="text"
                                                         wire:model="values.{{ $activeGroup }}.{{ $setting['key'] }}.{{ $dynIndex }}.value"
                                                         placeholder="Value"
-                                                        class="input input-bordered flex-1 input-sm"
+                                                        class="input flex-1 input-sm"
                                                     />
                                                     <button
                                                         wire:click="removeDynamicRow('{{ $setting['fullKey'] }}', {{ $dynIndex }})"
@@ -726,7 +726,7 @@ new #[Title('Settings')] #[Layout('tardis::layouts.admin')] class extends Compon
                                                 id="setting-{{ $setting['uuid'] }}"
                                                 wire:model="values.{{ $activeGroup }}.{{ $setting['key'] }}"
                                                 placeholder="Media path or URL"
-                                                class="input input-bordered flex-1"
+                                                class="input flex-1"
                                             />
                                             <button class="btn btn-outline btn-square" title="Browse media">
                                                 <x-tardis::icon name="folder" class="w-4 h-4" />
@@ -741,7 +741,7 @@ new #[Title('Settings')] #[Layout('tardis::layouts.admin')] class extends Compon
                                                 id="setting-{{ $setting['uuid'] }}"
                                                 wire:model="values.{{ $activeGroup }}.{{ $setting['key'] }}"
                                                 placeholder="File path"
-                                                class="input input-bordered flex-1"
+                                                class="input flex-1"
                                             />
                                             <button class="btn btn-outline btn-square" title="Browse files">
                                                 <x-tardis::icon name="folder" class="w-4 h-4" />
@@ -755,7 +755,7 @@ new #[Title('Settings')] #[Layout('tardis::layouts.admin')] class extends Compon
                                             id="setting-{{ $setting['uuid'] }}"
                                             wire:model="values.{{ $activeGroup }}.{{ $setting['key'] }}"
                                             placeholder="{{ $setting['options']['placeholder'] ?? '' }}"
-                                            class="input input-bordered w-full"
+                                            class="input w-full"
                                         />
                                     @endif
 
@@ -776,7 +776,7 @@ new #[Title('Settings')] #[Layout('tardis::layouts.admin')] class extends Compon
 
                                     @error('values.' . $setting['fullKey'])
                                         <label class="label">
-                                            <span class="label-text-alt text-error flex items-center gap-1">
+                                            <span class="text-error flex items-center gap-1">
                                                 <x-tardis::icon name="x-circle" class="w-3.5 h-3.5" />
                                                 {{ $message }}
                                             </span>
@@ -799,9 +799,9 @@ new #[Title('Settings')] #[Layout('tardis::layouts.admin')] class extends Compon
         @endif
     @else
         <!-- Empty State -->
-        <div class="card bg-base-100 shadow-sm">
+        <div class="card bg-base-100 border border-base-300">
             <div class="card-body text-center py-16">
-                <x-tardis::icon name="cog-6-tooth" class="w-16 h-16 mx-auto opacity-20" />
+                <x-tardis::icon name="cog-6-tooth" class="w-16 h-16 mx-auto text-base-content/20" />
                 @if ($search)
                     <h3 class="text-lg font-semibold mt-4">No matching settings</h3>
                     <p class="text-base-content/60 mt-1 max-w-md mx-auto">
@@ -840,74 +840,74 @@ new #[Title('Settings')] #[Layout('tardis::layouts.admin')] class extends Compon
                 <h3 class="font-bold text-lg mb-4">Add New Setting</h3>
 
                 <form wire:submit="createSetting" class="space-y-4">
-                    <div class="form-control">
+                    <div class="flex flex-col gap-2">
                         <label class="label">
-                            <span class="label-text">Key <span class="text-error">*</span></span>
+                            <span class="text-base-content">Key <span class="text-error">*</span></span>
                         </label>
-                        <input type="text" wire:model="newKey" class="input input-bordered" placeholder="e.g., site_name" />
+                        <input type="text" wire:model="newKey" class="input" placeholder="e.g., site_name" />
                         @error('newKey')
                             <label class="label">
-                                <span class="label-text-alt text-error">{{ $message }}</span>
+                                <span class="text-error">{{ $message }}</span>
                             </label>
                         @enderror
                     </div>
 
-                    <div class="form-control">
+                    <div class="flex flex-col gap-2">
                         <label class="label">
-                            <span class="label-text">Group</span>
+                            <span class="text-base-content">Group</span>
                         </label>
-                        <input type="text" wire:model="newGroup" class="input input-bordered" placeholder="e.g., admin (optional)" />
+                        <input type="text" wire:model="newGroup" class="input" placeholder="e.g., admin (optional)" />
                     </div>
 
-                    <div class="form-control">
+                    <div class="flex flex-col gap-2">
                         <label class="label">
-                            <span class="label-text">Type <span class="text-error">*</span></span>
+                            <span class="text-base-content">Type <span class="text-error">*</span></span>
                         </label>
-                        <select wire:model="newType" class="select select-bordered">
+                        <select wire:model="newType" class="select">
                             @foreach ($this->getAvailableTypes() as $typeValue => $typeLabel)
                                 <option value="{{ $typeValue }}">{{ $typeLabel }}</option>
                             @endforeach
                         </select>
                         @error('newType')
                             <label class="label">
-                                <span class="label-text-alt text-error">{{ $message }}</span>
+                                <span class="text-error">{{ $message }}</span>
                             </label>
                         @enderror
                     </div>
 
-                    <div class="form-control">
+                    <div class="flex flex-col gap-2">
                         <label class="label">
-                            <span class="label-text">Label <span class="text-error">*</span></span>
+                            <span class="text-base-content">Label <span class="text-error">*</span></span>
                         </label>
-                        <input type="text" wire:model="newName" class="input input-bordered" placeholder="e.g., Site Name" />
+                        <input type="text" wire:model="newName" class="input" placeholder="e.g., Site Name" />
                         @error('newName')
                             <label class="label">
-                                <span class="label-text-alt text-error">{{ $message }}</span>
+                                <span class="text-error">{{ $message }}</span>
                             </label>
                         @enderror
                     </div>
 
-                    <div class="form-control">
+                    <div class="flex flex-col gap-2">
                         <label class="label">
-                            <span class="label-text">Description</span>
+                            <span class="text-base-content">Description</span>
                         </label>
-                        <input type="text" wire:model="newInfo" class="input input-bordered" placeholder="Optional description" />
+                        <input type="text" wire:model="newInfo" class="input" placeholder="Optional description" />
                     </div>
 
-                    <div class="form-control">
+                    <div class="flex flex-col gap-2">
                         <label class="label">
-                            <span class="label-text">Default Value</span>
+                            <span class="text-base-content">Default Value</span>
                         </label>
-                        <input type="text" wire:model="newDefaultValue" class="input input-bordered" placeholder="Optional default value" />
+                        <input type="text" wire:model="newDefaultValue" class="input" placeholder="Optional default value" />
                     </div>
 
-                    <div class="form-control">
+                    <div class="flex flex-col gap-2">
                         <label class="label">
-                            <span class="label-text">Validation Rules</span>
+                            <span class="text-base-content">Validation Rules</span>
                         </label>
-                        <input type="text" wire:model="newValidation" class="input input-bordered" placeholder="e.g., required|string|max:255" />
+                        <input type="text" wire:model="newValidation" class="input" placeholder="e.g., required|string|max:255" />
                         <label class="label">
-                            <span class="label-text-alt text-base-content/50">Pipe-separated rules (optional)</span>
+                            <span class="text-base-content/50">Pipe-separated rules (optional)</span>
                         </label>
                     </div>
 
@@ -947,19 +947,19 @@ new #[Title('Settings')] #[Layout('tardis::layouts.admin')] class extends Compon
                 <h3 class="font-bold text-lg mb-4">Import Settings</h3>
 
                 <form wire:submit="importSettings" class="space-y-4">
-                    <div class="form-control">
+                    <div class="flex flex-col gap-2">
                         <label class="label">
-                            <span class="label-text">JSON Data <span class="text-error">*</span></span>
+                            <span class="text-base-content">JSON Data <span class="text-error">*</span></span>
                         </label>
                         <textarea
                             wire:model="importJson"
-                            class="textarea textarea-bordered font-mono text-sm"
+                            class="textarea font-mono text-sm"
                             rows="10"
                             placeholder='[{"key": "setting_name", "type": "text", "name": "Setting Name", "value": "default"}]'
                         ></textarea>
                         @error('importJson')
                             <label class="label">
-                                <span class="label-text-alt text-error">{{ $message }}</span>
+                                <span class="text-error">{{ $message }}</span>
                             </label>
                         @enderror
                     </div>
@@ -982,12 +982,12 @@ new #[Title('Settings')] #[Layout('tardis::layouts.admin')] class extends Compon
             <div class="modal-box w-full max-w-lg">
                 <h3 class="font-bold text-lg mb-4">Export Settings</h3>
 
-                <div class="form-control">
+                <div class="flex flex-col gap-2">
                     <label class="label">
-                        <span class="label-text">JSON Data</span>
+                        <span class="text-base-content">JSON Data</span>
                     </label>
                     <textarea
-                        class="textarea textarea-bordered font-mono text-sm"
+                        class="textarea font-mono text-sm"
                         rows="10"
                         readonly
                     >{{ $exportJson }}</textarea>
@@ -1010,14 +1010,14 @@ new #[Title('Settings')] #[Layout('tardis::layouts.admin')] class extends Compon
             <div class="modal-box">
                 <h3 class="font-bold text-lg mb-4">Add Group</h3>
                 <form wire:submit="addGroup" class="space-y-4">
-                    <div class="form-control">
+                    <div class="flex flex-col gap-2">
                         <label class="label">
-                            <span class="label-text">Group Name</span>
+                            <span class="text-base-content">Group Name</span>
                         </label>
-                        <input type="text" wire:model="newGroupName" class="input input-bordered" placeholder="e.g., General, Media, Auth" autofocus />
+                        <input type="text" wire:model="newGroupName" class="input" placeholder="e.g., General, Media, Auth" autofocus />
                         @error('newGroupName')
                             <label class="label">
-                                <span class="label-text-alt text-error">{{ $message }}</span>
+                                <span class="text-error">{{ $message }}</span>
                             </label>
                         @enderror
                     </div>
@@ -1044,7 +1044,7 @@ new #[Title('Settings')] #[Layout('tardis::layouts.admin')] class extends Compon
                 <x-tardis::icon name="chevron-up-down" class="w-4 h-4 transition-transform" :class="{ 'rotate-180': open }" />
             </button>
             <div x-show="open" x-collapse class="mt-2">
-                <div class="card bg-base-200">
+                <div class="card bg-base-200 border border-base-300">
                     <div class="card-body p-4">
                         <div class="flex items-center justify-between mb-2">
                             <span class="text-xs text-base-content/50">Settings JSON</span>

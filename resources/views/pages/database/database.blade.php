@@ -2,20 +2,20 @@
     <x-tardis::page-header title="Database Explorer" description="Create and manage database tables and columns" />
 
     @if ($error)
-        <div class="alert alert-error mb-4 shadow-sm">
+        <div class="alert alert-error mb-4">
             <span>{{ $error }}</span>
         </div>
     @endif
 
     @if (session('message'))
-        <div class="alert alert-success mb-4 shadow-sm">
+        <div class="alert alert-success mb-4">
             <x-tardis::icon name="check-circle" class="w-3 h-3" />
             <span>{{ session('message') }}</span>
         </div>
     @endif
 
     <!-- Table List -->
-    <div class="card bg-base-100 shadow-sm">
+    <div class="card bg-base-100 border border-base-300">
         <div class="card-body p-4">
             <div class="flex items-center justify-between mb-3">
                 <h3 class="card-title text-sm">
@@ -33,8 +33,8 @@
                 <table class="table">
                     <thead>
                         <tr>
-                            <th>Table</th>
-                            <th class="text-right">Actions</th>
+                            <th scope="col">Table</th>
+                            <th class="text-right" scope="col">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -68,8 +68,8 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="2" class="text-center py-12 opacity-50">
-                                    <x-tardis::icon name="database" class="w-16 h-16 mx-auto opacity-20" />
+                                <td colspan="2" class="text-center py-12 text-base-content/50">
+                                    <x-tardis::icon name="database" class="w-16 h-16 mx-auto text-base-content/20" />
                                     <p class="mt-2">No tables found</p>
                                 </td>
                             </tr>
@@ -102,11 +102,11 @@
                     <table class="table table-xs">
                         <thead>
                             <tr>
-                                <th>Field</th>
-                                <th>Type</th>
-                                <th>Null</th>
-                                <th>Default</th>
-                                <th>Key</th>
+                                <th scope="col">Field</th>
+                                <th scope="col">Type</th>
+                                <th scope="col">Null</th>
+                                <th scope="col">Default</th>
+                                <th scope="col">Key</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -126,7 +126,7 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="5" class="text-center py-8 opacity-50">No columns found</td>
+                                    <td colspan="5" class="text-center py-8 text-base-content/50">No columns found</td>
                                 </tr>
                             @endforelse
                         </tbody>

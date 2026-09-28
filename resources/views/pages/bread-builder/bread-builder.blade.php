@@ -25,20 +25,20 @@
         <x-slot:action>
             <label class="label cursor-pointer justify-start gap-2">
                 <input type="checkbox" wire:model.live="focusMode" class="toggle toggle-primary toggle-sm" />
-                <span class="label-text">Focus mode</span>
+                <span class="text-base-content">Focus mode</span>
             </label>
         </x-slot:action>
     </x-tardis::page-header>
 
     @if (session('error'))
-        <div class="alert alert-error mb-4 shadow-sm">
+        <div class="alert alert-error mb-4">
             <x-tardis::icon name="exclamation-triangle" class="w-5 h-5" />
             <span>{{ session('error') }}</span>
         </div>
     @endif
 
     @if ($errors->any())
-        <div class="alert alert-error mb-4 shadow-sm">
+        <div class="alert alert-error mb-4">
             <x-tardis::icon name="exclamation-triangle" class="w-5 h-5" />
             <div>
                 <p class="font-semibold">Please fix the following before saving:</p>
@@ -69,16 +69,16 @@
 
     <!-- Step 1: Select Model -->
     @if ($step === 1)
-        <div class="card bg-base-100 shadow-sm">
+        <div class="card bg-base-100 border border-base-300">
             <div class="card-body">
                 <h2 class="card-title">Step 1: Select Model</h2>
                 <p class="text-base-content/60">Choose an Eloquent model to create a BREAD for.</p>
 
-                <div class="form-control mt-4">
+                <div class="flex flex-col gap-2 mt-4">
                     <label class="label">
-                        <span class="label-text">Model Class</span>
+                        <span class="text-base-content">Model Class</span>
                     </label>
-                    <select wire:model.change.live="model" class="select select-bordered w-full">
+                    <select wire:model.change.live="model" class="select w-full">
                         <option value="">Select a model...</option>
                         @foreach ($this->getModelOptions() as $class => $name)
                             <option value="{{ $class }}">{{ $name }}</option>
@@ -86,7 +86,7 @@
                     </select>
                     @if (! $focusMode)
                         <label class="label">
-                            <span class="label-text-alt text-base-content/50">
+                            <span class="text-base-content/50">
                                 Fields are read from the model's <code>$fillable</code> array.
                             </span>
                         </label>
@@ -94,7 +94,7 @@
                 </div>
 
                 @if ($model !== '' && $modelTable !== '')
-                    <div class="stats stats-vertical sm:stats-horizontal shadow-sm mt-4 bg-base-200">
+                    <div class="stats stats-vertical sm:stats-horizontal mt-4 bg-base-200">
                         <div class="stat py-3">
                             <div class="stat-title text-xs">Table</div>
                             <div class="stat-value text-lg">{{ $modelTable }}</div>
@@ -115,7 +115,7 @@
 
     <!-- Step 2: Review Fields & Relationships -->
     @if ($step === 2)
-        <div class="card bg-base-100 shadow-sm">
+        <div class="card bg-base-100 border border-base-300">
             <div class="card-body">
                 <div class="tabs tabs-box mb-4">
                     <button wire:click="$set('activeTab', 'fields')" role="tab" class="tab {{ ($activeTab ?? 'fields') === 'fields' ? 'tab-active' : '' }}">
@@ -135,14 +135,14 @@
                             <p class="text-base-content/60">Review and configure the detected fields.</p>
                         </div>
 
-                        <label class="input input-bordered input-sm flex items-center gap-2 w-full sm:w-64">
-                            <x-tardis::icon name="magnifying-glass" class="w-4 h-4 opacity-60" />
+                        <label class="input input-sm flex items-center gap-2 w-full sm:w-64">
+                            <x-tardis::icon name="magnifying-glass" class="w-4 h-4 text-base-content/60" />
                             <input type="text" wire:model.live.debounce.300ms="fieldSearch" class="grow" placeholder="Filter fields..." />
                         </label>
                     </div>
 
                     <div class="flex flex-wrap items-center gap-2 mt-4 p-3 rounded-box bg-base-200">
-                        <span class="text-xs font-semibold uppercase tracking-wide opacity-60">Set all</span>
+                        <span class="text-xs font-semibold uppercase tracking-wide text-base-content/60">Set all</span>
                         @foreach (['browse' => 'B', 'read' => 'R', 'edit' => 'E', 'add' => 'A'] as $flag => $letter)
                             <button wire:click="toggleAllFields('{{ $flag }}', true)" class="btn btn-xs btn-outline">
                                 {{ $letter }} on
@@ -157,15 +157,15 @@
                         <table class="table table-sm">
                             <thead>
                                 <tr>
-                                    <th class="w-10"></th>
-                                    <th>Field</th>
-                                    <th>Type</th>
-                                    <th class="text-center">Browse</th>
-                                    <th class="text-center">Read</th>
-                                    <th class="text-center">Edit</th>
-                                    <th class="text-center">Add</th>
+                                    <th class="w-10" aria-hidden="true"></th>
+                                    <th scope="col">Field</th>
+                                    <th scope="col">Type</th>
+                                    <th class="text-center" scope="col">Browse</th>
+                                    <th class="text-center" scope="col">Read</th>
+                                    <th class="text-center" scope="col">Edit</th>
+                                    <th class="text-center" scope="col">Add</th>
                                     @unless ($focusMode)
-                                        <th>Validation</th>
+                                        <th scope="col">Validation</th>
                                     @endunless
                                 </tr>
                             </thead>
@@ -185,10 +185,10 @@
                                         </td>
                                         <td class="font-medium">
                                             {{ $field['label'] ?? $key }}
-                                            <span class="block text-xs font-normal opacity-50">{{ $key }}</span>
+                                            <span class="block text-xs font-normal text-base-content/50">{{ $key }}</span>
                                         </td>
                                         <td>
-                                            <select wire:model.live="fieldConfig.{{ $key }}.type" class="select select-bordered select-xs">
+                                            <select wire:model.live="fieldConfig.{{ $key }}.type" class="select select-xs">
                                                 @foreach ($fieldGroups as $group => $types)
                                                     <optgroup label="{{ $group }}">
                                                         @foreach ($types as $type)
@@ -217,7 +217,7 @@
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="{{ $focusMode ? 8 : 9 }}" class="text-center py-8 opacity-50">
+                                        <td colspan="{{ $focusMode ? 8 : 9 }}" class="text-center py-8 text-base-content/50">
                                             @if ($fieldSearch !== '')
                                                 No fields match "{{ $fieldSearch }}".
                                             @else
@@ -234,7 +234,7 @@
                     <p class="text-base-content/60">Configure how relationships are displayed in BREAD.</p>
 
                     @if (empty($relationshipConfig))
-                        <div class="text-center py-8 opacity-50">
+                        <div class="text-center py-8 text-base-content/50">
                             <p>No relationships detected in this model.</p>
                         </div>
                     @else
@@ -242,10 +242,10 @@
                             <table class="table table-sm">
                                 <thead>
                                     <tr>
-                                        <th>Relation</th>
-                                        <th>Type</th>
-                                        <th>Related Model</th>
-                                        <th>Display Type</th>
+                                        <th scope="col">Relation</th>
+                                        <th scope="col">Type</th>
+                                        <th scope="col">Related Model</th>
+                                        <th scope="col">Display Type</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -255,7 +255,7 @@
                                             <td><span class="badge badge-ghost badge-sm">{{ $rel['type'] }}</span></td>
                                             <td>{{ class_basename($rel['model']) }}</td>
                                             <td>
-                                                <select wire:model.live="relationshipConfig.{{ $name }}.display_type" class="select select-bordered select-xs">
+                                                <select wire:model.live="relationshipConfig.{{ $name }}.display_type" class="select select-xs">
                                                     <option value="select">Select</option>
                                                     <option value="checkbox">Checkbox</option>
                                                     <option value="table">Table</option>
@@ -275,7 +275,7 @@
 
     <!-- Step 3: Configure -->
     @if ($step === 3)
-        <div class="card bg-base-100 shadow-sm">
+        <div class="card bg-base-100 border border-base-300">
             <div class="card-body">
                 <div class="tabs tabs-box mb-4">
                     <button wire:click="$set('activeTab', 'general')" role="tab" class="tab {{ ($activeTab ?? 'general') === 'general' ? 'tab-active' : '' }}">General</button>
@@ -288,37 +288,37 @@
                     <h2 class="card-title">General Settings</h2>
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-                        <div class="form-control">
+                        <div class="flex flex-col gap-2">
                             <label class="label">
-                                <span class="label-text">Slug (URL) *</span>
+                                <span class="text-base-content">Slug (URL) *</span>
                                 @php [$slugClass, $slugLabel] = $slugBadges[$this->slugStatus]; @endphp
                                 <span class="badge badge-sm {{ $slugClass }}">{{ $slugLabel }}</span>
                             </label>
-                            <input type="text" wire:model="slug" class="input input-bordered font-mono" placeholder="e.g., posts" />
+                            <input type="text" wire:model="slug" class="input font-mono" placeholder="e.g., posts" />
                             @unless ($focusMode)
                                 <label class="label">
-                                    <span class="label-text-alt text-base-content/50">
+                                    <span class="text-base-content/50">
                                         Generated from the plural name until you type one by hand.
                                     </span>
                                 </label>
                             @endunless
                         </div>
 
-                        <div class="form-control">
-                            <label class="label"><span class="label-text">Name *</span></label>
-                            <input type="text" wire:model="name" class="input input-bordered" placeholder="e.g., Post" />
+                        <div class="flex flex-col gap-2">
+                            <label class="label"><span class="text-base-content">Name *</span></label>
+                            <input type="text" wire:model="name" class="input" placeholder="e.g., Post" />
                         </div>
 
-                        <div class="form-control">
-                            <label class="label"><span class="label-text">Name (Plural)</span></label>
-                            <input type="text" wire:model="namePlural" class="input input-bordered" placeholder="e.g., Posts" />
+                        <div class="flex flex-col gap-2">
+                            <label class="label"><span class="text-base-content">Name (Plural)</span></label>
+                            <input type="text" wire:model="namePlural" class="input" placeholder="e.g., Posts" />
                         </div>
 
-                        <div class="form-control">
-                            <label class="label"><span class="label-text">Icon</span></label>
+                        <div class="flex flex-col gap-2">
+                            <label class="label"><span class="text-base-content">Icon</span></label>
                             <div class="flex gap-2">
-                                <div class="flex-1 flex items-center gap-2 input input-bordered">
-                                    <x-tardis::icon :name="$icon ?: 'swatch'" class="w-4 h-4 opacity-60" />
+                                <div class="flex-1 flex items-center gap-2 input">
+                                    <x-tardis::icon :name="$icon ?: 'swatch'" class="w-4 h-4 text-base-content/60" />
                                     <span class="truncate font-mono text-sm">{{ $icon ?: 'none' }}</span>
                                 </div>
                                 <button type="button" wire:click="$set('showIconPicker', true)" class="btn btn-outline">
@@ -333,41 +333,41 @@
                             </div>
                         </div>
 
-                        <div class="form-control md:col-span-2">
-                            <label class="label"><span class="label-text">Description</span></label>
-                            <textarea wire:model="description" class="textarea textarea-bordered" rows="2"></textarea>
+                        <div class="flex flex-col gap-2 md:col-span-2">
+                            <label class="label"><span class="text-base-content">Description</span></label>
+                            <textarea wire:model="description" class="textarea" rows="2"></textarea>
                         </div>
 
-                        <div class="form-control">
-                            <label class="label"><span class="label-text">Search Key</span></label>
-                            <input type="text" wire:model="searchKey" class="input input-bordered" placeholder="Field for global search" />
+                        <div class="flex flex-col gap-2">
+                            <label class="label"><span class="text-base-content">Search Key</span></label>
+                            <input type="text" wire:model="searchKey" class="input" placeholder="Field for global search" />
                         </div>
 
-                        <div class="form-control">
-                            <label class="label"><span class="label-text">Order Column</span></label>
-                            <input type="text" wire:model="orderColumn" class="input input-bordered" placeholder="e.g., created_at" />
+                        <div class="flex flex-col gap-2">
+                            <label class="label"><span class="text-base-content">Order Column</span></label>
+                            <input type="text" wire:model="orderColumn" class="input" placeholder="e.g., created_at" />
                         </div>
 
-                        <div class="form-control">
-                            <label class="label"><span class="label-text">Order Direction</span></label>
-                            <select wire:model="orderDirection" class="select select-bordered">
+                        <div class="flex flex-col gap-2">
+                            <label class="label"><span class="text-base-content">Order Direction</span></label>
+                            <select wire:model="orderDirection" class="select">
                                 <option value="asc">Ascending</option>
                                 <option value="desc">Descending</option>
                             </select>
                         </div>
 
-                        <div class="form-control">
+                        <div class="flex flex-col gap-2">
                             <label class="label cursor-pointer justify-start gap-3">
                                 <input type="checkbox" wire:model.live="softDelete" class="toggle toggle-primary" />
-                                <span class="label-text">Enable Soft Delete</span>
+                                <span class="text-base-content">Enable Soft Delete</span>
                             </label>
                             @if ($modelHasSoftDeletes)
                                 <label class="label">
-                                    <span class="label-text-alt text-warning">This model already uses SoftDeletes.</span>
+                                    <span class="text-warning">This model already uses SoftDeletes.</span>
                                 </label>
                             @else
                                 <label class="label">
-                                    <span class="label-text-alt text-base-content/50">Allow restoring deleted items</span>
+                                    <span class="text-base-content/50">Allow restoring deleted items</span>
                                 </label>
                             @endif
                         </div>
@@ -382,10 +382,10 @@
                         <table class="table table-sm">
                             <thead>
                                 <tr>
-                                    <th>Field</th>
-                                    <th class="text-center">Visible</th>
-                                    <th class="text-center">Sortable</th>
-                                    <th class="text-center">Searchable</th>
+                                    <th scope="col">Field</th>
+                                    <th class="text-center" scope="col">Visible</th>
+                                    <th class="text-center" scope="col">Sortable</th>
+                                    <th class="text-center" scope="col">Searchable</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -398,7 +398,7 @@
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="4" class="text-center py-8 opacity-50">No fields to lay out yet.</td>
+                                        <td colspan="4" class="text-center py-8 text-base-content/50">No fields to lay out yet.</td>
                                     </tr>
                                 @endforelse
                             </tbody>
@@ -426,13 +426,13 @@
                                 </button>
                             </div>
                         @empty
-                            <p class="text-sm opacity-50 py-4 text-center">No fields in the read layout.</p>
+                            <p class="text-sm text-base-content/50 py-4 text-center">No fields in the read layout.</p>
                         @endforelse
                     </div>
 
                     @if (count($readLayout) < count($this->orderedFieldKeys))
                         <div class="mt-4">
-                            <p class="text-xs uppercase tracking-wide opacity-60 mb-2">Add fields</p>
+                            <p class="text-xs uppercase tracking-wide text-base-content/60 mb-2">Add fields</p>
                             <div class="flex flex-wrap gap-1">
                                 @foreach ($this->orderedFieldKeys as $key)
                                     @continue(in_array($key, $readLayout, true))
@@ -459,10 +459,10 @@
                         </div>
 
                         @forelse ($editTabs as $tabIndex => $tab)
-                            <div wire:key="tab-{{ $tabIndex }}" class="card bg-base-200 mb-3">
+                            <div wire:key="tab-{{ $tabIndex }}" class="card bg-base-200 mb-3 border border-base-300">
                                 <div class="card-body p-4">
                                     <div class="flex items-center gap-2 mb-3">
-                                        <input type="text" wire:model="editTabs.{{ $tabIndex }}.name" class="input input-bordered input-sm flex-1" placeholder="Tab name" />
+                                        <input type="text" wire:model="editTabs.{{ $tabIndex }}.name" class="input input-sm flex-1" placeholder="Tab name" />
                                         <button wire:click="removeEditTab({{ $tabIndex }})" class="btn btn-ghost btn-xs text-error">
                                             <x-tardis::icon name="x-mark" class="w-4 h-4" />
                                         </button>
@@ -478,7 +478,7 @@
                                 </div>
                             </div>
                         @empty
-                            <p class="text-sm opacity-50">No tabs configured. Fields will appear in a single form.</p>
+                            <p class="text-sm text-base-content/50">No tabs configured. Fields will appear in a single form.</p>
                         @endforelse
                     </div>
                 @endif
@@ -490,7 +490,7 @@
     @if ($step === 4)
         <div class="space-y-4">
             @if (count($this->reviewWarnings) > 0)
-                <div class="card bg-base-100 shadow-sm">
+                <div class="card bg-base-100 border border-base-300">
                     <div class="card-body">
                         <h2 class="card-title text-base">Before you save</h2>
                         <ul class="space-y-2">
@@ -513,7 +513,7 @@
                 </div>
             @endif
 
-            <div class="card bg-base-100 shadow-sm">
+            <div class="card bg-base-100 border border-base-300">
                 <div class="card-body">
                     <h2 class="card-title">Summary</h2>
 
@@ -521,22 +521,22 @@
                         <table class="table">
                             <tbody>
                                 <tr>
-                                    <th class="w-48">Slug</th>
+                                    <th class="w-48" scope="row">Slug</th>
                                     <td class="font-mono">{{ $this->reviewSummary['slug'] ?: '—' }}</td>
                                 </tr>
                                 <tr>
-                                    <th>Model</th>
+                                    <th scope="row">Model</th>
                                     <td>
                                         {{ class_basename($this->reviewSummary['model'] ?: '') ?: '—' }}
                                         <span class="badge badge-ghost badge-sm ml-2">{{ $this->reviewSummary['table'] ?: 'no table' }}</span>
                                     </td>
                                 </tr>
                                 <tr>
-                                    <th>Names</th>
-                                    <td>{{ $this->reviewSummary['name'] ?: '—' }} <span class="opacity-50">/</span> {{ $this->reviewSummary['name_plural'] ?: '—' }}</td>
+                                    <th scope="row">Names</th>
+                                    <td>{{ $this->reviewSummary['name'] ?: '—' }} <span class="text-base-content/50">/</span> {{ $this->reviewSummary['name_plural'] ?: '—' }}</td>
                                 </tr>
                                 <tr>
-                                    <th>Icon</th>
+                                    <th scope="row">Icon</th>
                                     <td>
                                         @if ($this->reviewSummary['icon'])
                                             <x-tardis::icon :name="$this->reviewSummary['icon']" class="w-4 h-4 inline" />
@@ -547,7 +547,7 @@
                                     </td>
                                 </tr>
                                 <tr>
-                                    <th>Fields</th>
+                                    <th scope="row">Fields</th>
                                     <td>
                                         <span class="badge badge-sm">{{ $this->reviewSummary['total_fields'] }} total</span>
                                         <span class="badge badge-sm badge-ghost ml-1">{{ $this->reviewSummary['browse_fields'] ? count($this->reviewSummary['browse_fields']) : 0 }} in browse</span>
@@ -558,7 +558,7 @@
                                 </tr>
                                 @if ($this->reviewSummary['browse_fields'])
                                     <tr>
-                                        <th>Browse columns</th>
+                                        <th scope="row">Browse columns</th>
                                         <td class="flex flex-wrap gap-1">
                                             @foreach ($this->reviewSummary['browse_fields'] as $key)
                                                 <span class="badge badge-outline badge-sm">{{ $fieldConfig[$key]['label'] ?? $key }}</span>
@@ -567,15 +567,15 @@
                                     </tr>
                                 @endif
                                 <tr>
-                                    <th>Relationships</th>
+                                    <th scope="row">Relationships</th>
                                     <td>{{ $this->reviewSummary['relationships'] }}</td>
                                 </tr>
                                 <tr>
-                                    <th>Search key</th>
+                                    <th scope="row">Search key</th>
                                     <td class="font-mono">{{ $this->reviewSummary['search_key'] ?: '—' }}</td>
                                 </tr>
                                 <tr>
-                                    <th>Ordering</th>
+                                    <th scope="row">Ordering</th>
                                     <td class="font-mono">
                                         {{ $this->reviewSummary['order_column'] ?: 'none' }}
                                         @if ($this->reviewSummary['order_column'])
@@ -584,7 +584,7 @@
                                     </td>
                                 </tr>
                                 <tr>
-                                    <th>Soft delete</th>
+                                    <th scope="row">Soft delete</th>
                                     <td>
                                         @if ($this->reviewSummary['soft_delete'])
                                             <span class="badge badge-success badge-sm">Enabled</span>
@@ -615,7 +615,7 @@
 
             <div class="flex items-center gap-2">
                 @if ($step < 4)
-                    <span class="text-xs opacity-50 hidden sm:inline">
+                    <span class="text-xs text-base-content/50 hidden sm:inline">
                         Step {{ $step }} of 4
                     </span>
                 @endif
@@ -652,8 +652,8 @@
                 <div class="modal-box w-full max-w-2xl">
                     <h3 class="font-bold text-lg mb-4">Select Icon</h3>
 
-                    <label class="input input-bordered flex items-center gap-2 w-full mb-4">
-                        <x-tardis::icon name="magnifying-glass" class="w-4 h-4 opacity-60" />
+                    <label class="input flex items-center gap-2 w-full mb-4">
+                        <x-tardis::icon name="magnifying-glass" class="w-4 h-4 text-base-content/60" />
                         <input type="text" wire:model.live.debounce.300ms="iconSearch" class="grow" placeholder="Search icons..." autofocus />
                     </label>
 
@@ -678,7 +678,7 @@
                                 <span class="text-[10px] truncate w-full text-center">{{ $iconName }}</span>
                             </button>
                         @empty
-                            <p class="col-span-full text-center py-8 opacity-50">No icons match "{{ $iconSearch }}".</p>
+                            <p class="col-span-full text-center py-8 text-base-content/50">No icons match "{{ $iconSearch }}".</p>
                         @endforelse
                     </div>
 

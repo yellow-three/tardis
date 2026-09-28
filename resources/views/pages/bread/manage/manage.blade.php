@@ -12,19 +12,19 @@
     </x-tardis::page-header>
 
     @if (session('message'))
-        <div class="alert alert-success mb-4 shadow-sm">
+        <div class="alert alert-success mb-4">
             <span>{{ session('message') }}</span>
         </div>
     @endif
 
     @if (session('error'))
-        <div class="alert alert-error mb-4 shadow-sm">
+        <div class="alert alert-error mb-4">
             <span>{{ session('error') }}</span>
         </div>
     @endif
 
     @if ($this->hasLegacyDefinitions)
-        <div class="alert alert-warning mb-6 shadow-sm">
+        <div class="alert alert-warning mb-6">
             <x-tardis::icon name="information-circle" class="w-5 h-5 shrink-0" />
             <div class="flex-1">
                 <h3 class="font-semibold">Legacy config definitions detected</h3>
@@ -38,9 +38,9 @@
     @endif
 
     @if ($this->breads->isEmpty())
-        <div class="card bg-base-100 shadow">
+        <div class="card bg-base-100 border border-base-300">
             <div class="card-body text-center py-12">
-                <x-tardis::icon name="table-cells" class="w-16 h-16 mx-auto opacity-30" />
+                <x-tardis::icon name="table-cells" class="w-16 h-16 mx-auto text-base-content/30" />
                 <h3 class="text-lg font-semibold mt-4">No BREAD definitions found</h3>
                 <p class="text-base-content/60 mt-2">
                     Create a BREAD definition to get started
@@ -48,15 +48,15 @@
             </div>
         </div>
     @else
-        <div class="card bg-base-100 shadow">
+        <div class="card bg-base-100 border border-base-300">
             <div class="overflow-x-auto">
                 <table class="table">
                     <thead>
                         <tr>
-                            <th>Name</th>
-                            <th>Slug</th>
-                            <th>Source</th>
-                            <th class="text-right">Actions</th>
+                            <th scope="col">Name</th>
+                            <th scope="col">Slug</th>
+                            <th scope="col">Source</th>
+                            <th class="text-right" scope="col">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -86,7 +86,7 @@
                                                     </li>
                                                 @empty
                                                     <li>
-                                                        <span class="px-2 py-1 text-sm opacity-60">
+                                                        <span class="px-2 py-1 text-sm text-base-content/60">
                                                             No backups yet
                                                         </span>
                                                     </li>

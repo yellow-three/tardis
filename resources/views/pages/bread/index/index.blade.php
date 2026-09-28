@@ -11,22 +11,22 @@
         </x-slot:action>
     </x-tardis::page-header>
 
-    <div class="card bg-base-100 shadow-sm mb-6">
+    <div class="card bg-base-100 mb-6 border border-base-300">
         <div class="card-body">
-            <div class="form-control max-w-md">
+            <div class="flex flex-col gap-2 max-w-md">
                 <label class="label">
-                    <span class="label-text">Search</span>
+                    <span class="text-base-content">Search</span>
                 </label>
-                <input type="search" wire:model.live.debounce.300ms="search" class="input input-bordered" placeholder="Search {{ $bread['name_plural'] ?? ucfirst($slug) }}…" aria-label="Search {{ $bread['name_plural'] ?? ucfirst($slug) }}" autocomplete="off" />
+                <input type="search" wire:model.live.debounce.300ms="search" class="input" placeholder="Search {{ $bread['name_plural'] ?? ucfirst($slug) }}…" aria-label="Search {{ $bread['name_plural'] ?? ucfirst($slug) }}" autocomplete="off" />
             </div>
         </div>
     </div>
 
-    <div class="card bg-base-100 shadow-sm">
+    <div class="card bg-base-100 border border-base-300">
         <div class="overflow-x-auto">
             @if ($this->rows->isEmpty())
                 <div class="card-body text-center py-12">
-                    <x-tardis::icon name="table-cells" class="w-16 h-16 mx-auto opacity-30" />
+                    <x-tardis::icon name="table-cells" class="w-16 h-16 mx-auto text-base-content/30" />
                     <h3 class="text-lg font-semibold mt-4">No records found</h3>
                     <p class="text-base-content/60 mt-2">Create the first item for this resource.</p>
                 </div>
@@ -35,9 +35,9 @@
                     <thead>
                         <tr>
                             @foreach ($this->visibleFields as $field)
-                                <th>{{ $field['label'] ?? ucfirst((string) ($field['name'] ?? '')) }}</th>
+                                <th scope="col">{{ $field['label'] ?? ucfirst((string) ($field['name'] ?? '')) }}</th>
                             @endforeach
-                            <th class="text-right">Actions</th>
+                            <th class="text-right" scope="col">Actions</th>
                         </tr>
                     </thead>
                     <tbody>

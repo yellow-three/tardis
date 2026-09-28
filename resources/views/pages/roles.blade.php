@@ -106,16 +106,16 @@ new #[Title('Roles')] #[Layout('tardis::layouts.admin')] class extends Component
 
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         @forelse ($roles as $role)
-            <div class="card bg-base-100 shadow-sm">
+            <div class="card bg-base-100 border border-base-300">
                 <div class="card-body">
                     <h3 class="card-title">{{ $role['name'] }}</h3>
-                    <p class="text-sm opacity-60">{{ $role['slug'] }}</p>
+                    <p class="text-sm text-base-content/60">{{ $role['slug'] }}</p>
                     <div class="flex flex-wrap gap-1 mt-2">
                         @foreach ($role['permissions'] as $perm)
                             <span class="badge badge-ghost badge-xs">{{ $perm['slug'] }}</span>
                         @endforeach
                         @if (empty($role['permissions']))
-                            <span class="text-xs opacity-40">No permissions</span>
+                            <span class="text-xs text-base-content/40">No permissions</span>
                         @endif
                     </div>
                     <div class="card-actions justify-end mt-4">
@@ -129,10 +129,10 @@ new #[Title('Roles')] #[Layout('tardis::layouts.admin')] class extends Component
                 </div>
             </div>
         @empty
-            <div class="col-span-full card bg-base-100 shadow-sm">
+            <div class="col-span-full card bg-base-100">
                 <div class="card-body text-center py-12">
                     <h3 class="text-lg font-semibold">No roles found</h3>
-                    <p class="opacity-60">Create a role to get started</p>
+                    <p class="text-base-content/60">Create a role to get started</p>
                 </div>
             </div>
         @endforelse
@@ -143,8 +143,8 @@ new #[Title('Roles')] #[Layout('tardis::layouts.admin')] class extends Component
             <div class="modal-box">
                 <h3 class="font-bold text-lg">Add Role</h3>
                 <form wire:submit="createRole" class="space-y-4 py-4">
-                    <input type="text" wire:model="newName" class="input input-bordered w-full" placeholder="Role name" />
-                    <input type="text" wire:model="newSlug" class="input input-bordered w-full" placeholder="Slug (e.g., editor)" />
+                    <input type="text" wire:model="newName" class="input w-full" placeholder="Role name" />
+                    <input type="text" wire:model="newSlug" class="input w-full" placeholder="Slug (e.g., editor)" />
                 </form>
                 <div class="modal-action">
                     <button wire:click="$set('showAddModal', false)" class="btn btn-ghost">Cancel</button>
@@ -165,7 +165,7 @@ new #[Title('Roles')] #[Layout('tardis::layouts.admin')] class extends Component
                             <input type="checkbox" wire:model="editRolePermissions" value="{{ $perm['id'] }}" class="checkbox checkbox-sm checkbox-primary" />
                             <div>
                                 <span class="font-medium">{{ $perm['name'] }}</span>
-                                <span class="text-xs opacity-50 ml-2">{{ $perm['slug'] }}</span>
+                                <span class="text-xs text-base-content/50 ml-2">{{ $perm['slug'] }}</span>
                             </div>
                         </label>
                     @endforeach

@@ -6,11 +6,11 @@
         <x-tardis::page-header title="Media Library" description="Manage your media files">
             <x-slot:action>
                 <div class="flex gap-2">
-                    <button wire:click="$set('showNewDirModal', true)" class="btn btn-outline gap-2 shadow-sm">
+                    <button wire:click="$set('showNewDirModal', true)" class="btn btn-outline gap-2">
                         <x-tardis::icon name="folder" class="w-4 h-4" />
                         Create folder
                     </button>
-                    <label class="btn btn-primary gap-2 shadow-sm cursor-pointer">
+                    <label class="btn btn-primary gap-2 cursor-pointer">
                         <x-tardis::icon name="plus" class="w-4 h-4" />
                         Upload
                         <input type="file" wire:key="media-upload-{{ $uploadInputKey }}" wire:model.live="newUploads" class="hidden" multiple />
@@ -21,14 +21,14 @@
 
         {{-- Session Messages --}}
         @if (session('message'))
-            <div class="alert alert-success shadow-sm">
+            <div class="alert alert-success">
                 <x-tardis::icon name="check-circle" class="w-5 h-5" />
                 <span>{{ session('message') }}</span>
             </div>
         @endif
 
         @if (session('error'))
-            <div class="alert alert-error shadow-sm">
+            <div class="alert alert-error">
                 <x-tardis::icon name="exclamation-circle" class="w-5 h-5" />
                 <span>{{ session('error') }}</span>
             </div>
@@ -36,14 +36,14 @@
 
         {{-- Upload Progress --}}
         @if (!empty($newUploads))
-            <div class="alert alert-info shadow-sm">
+            <div class="alert alert-info">
                 <span class="loading loading-spinner loading-sm"></span>
                 <span>Uploading {{ is_array($newUploads) ? count($newUploads).' files' : '1 file' }}...</span>
             </div>
         @endif
 
         {{-- Breadcrumbs --}}
-        <div class="flex justify-between items-center bg-base-100 p-2 rounded-xl border border-base-200 shadow-sm">
+        <div class="flex justify-between items-center bg-base-100 p-2 rounded-xl border border-base-200">
             <div class="text-sm breadcrumbs px-2 text-base-content/70">
                 <ul>
                     @foreach ($this->getBreadcrumbs() as $crumb)
@@ -68,19 +68,19 @@
             {{-- Search --}}
             <div class="relative flex-1 min-w-[200px]">
                 <x-tardis::icon name="magnifying-glass" class="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-base-content/50" />
-                <input type="text" wire:model.live.debounce.300ms="searchQuery" placeholder="Search files or folder by name" class="input input-bordered w-full pl-10 bg-base-100 shadow-sm" />
+                <input type="text" wire:model.live.debounce.300ms="searchQuery" placeholder="Search files or folder by name" class="input w-full pl-10 bg-base-100" />
             </div>
 
             {{-- Filter Dropdown --}}
             <div class="dropdown dropdown-end">
-                <button tabindex="0" class="btn btn-outline bg-base-100 border-base-300 shadow-sm gap-2">
+                <button tabindex="0" class="btn btn-outline bg-base-100 border-base-300 gap-2">
                     <x-tardis::icon name="funnel" class="w-4 h-4" />
                     Filter
                 </button>
                 <ul tabindex="0" class="dropdown-content menu p-4 shadow bg-base-100 rounded-box w-72 z-10 border border-base-200 mt-1">
                     <li class="menu-title text-xs">Date</li>
                     <li>
-                        <select wire:model.live="dateFilter" class="select select-bordered select-sm w-full">
+                        <select wire:model.live="dateFilter" class="select select-sm w-full">
                             <option value="">Any time</option>
                             <option value="today">Today</option>
                             <option value="week">This week</option>
@@ -90,7 +90,7 @@
                     </li>
                     <li class="menu-title text-xs mt-2">Size</li>
                     <li>
-                        <select wire:model.live="sizeFilter" class="select select-bordered select-sm w-full">
+                        <select wire:model.live="sizeFilter" class="select select-sm w-full">
                             <option value="">Any size</option>
                             <option value="small">< 1 MB</option>
                             <option value="medium">1-10 MB</option>
@@ -100,7 +100,7 @@
                     </li>
                     <li class="menu-title text-xs mt-2">Type</li>
                     <li>
-                        <select wire:model.live="mimeTypeFilter" class="select select-bordered select-sm w-full">
+                        <select wire:model.live="mimeTypeFilter" class="select select-sm w-full">
                             <option value="">All types</option>
                             <option value="image">Images</option>
                             <option value="video">Videos</option>
@@ -112,7 +112,7 @@
 
             {{-- Sort Dropdown --}}
             <div class="dropdown dropdown-end">
-                <button tabindex="0" class="btn btn-outline bg-base-100 border-base-300 shadow-sm gap-2">
+                <button tabindex="0" class="btn btn-outline bg-base-100 border-base-300 gap-2">
                     <x-tardis::icon name="chevron-up-down" class="w-4 h-4" />
                     Sort
                 </button>
@@ -133,7 +133,7 @@
             </div>
 
             {{-- View Toggle --}}
-            <div class="join border border-base-300 shadow-sm rounded-lg bg-base-100">
+            <div class="join border border-base-300 rounded-lg bg-base-100">
                 <button wire:click="$set('viewMode', 'grid')" class="btn btn-ghost join-item px-3 {{ $viewMode === 'grid' ? 'btn-active' : '' }}">
                     <x-tardis::icon name="table-cells" class="w-5 h-5" />
                 </button>
@@ -156,10 +156,10 @@
             <div class="flex items-center gap-2 px-4 py-3 bg-primary/5 border border-primary/20 rounded-xl">
                 <span class="text-sm font-medium">{{ count($selectedFiles) }} file(s) selected</span>
                 <div class="ml-auto flex gap-2">
-                    <button wire:click="downloadSelected" class="btn btn-primary btn-sm gap-1 shadow-sm">
+                    <button wire:click="downloadSelected" class="btn btn-primary btn-sm gap-1">
                         <x-tardis::icon name="arrow-down-tray" class="w-4 h-4" /> Download
                     </button>
-                    <button wire:click="bulkDelete" class="btn btn-error btn-sm gap-1 shadow-sm">
+                    <button wire:click="bulkDelete" class="btn btn-error btn-sm gap-1">
                         <x-tardis::icon name="x-mark" class="w-4 h-4" /> Delete
                     </button>
                     <button wire:click="deselectAll" class="btn btn-ghost btn-sm">Clear</button>
@@ -180,9 +180,9 @@
         {{-- Files --}}
         @if (empty($files))
             {{-- Empty State --}}
-            <div class="card bg-base-100 shadow-sm border border-base-200">
+            <div class="card bg-base-100 border border-base-300">
                 <div class="card-body text-center py-16">
-                    <x-tardis::icon name="photo" class="w-20 h-20 mx-auto opacity-20" />
+                    <x-tardis::icon name="photo" class="w-20 h-20 mx-auto text-base-content/20" />
                     <h3 class="text-lg font-semibold mt-4">
                         @if ($searchQuery || $mimeTypeFilter || $dateFilter || $sizeFilter)
                             No matching files
@@ -214,19 +214,19 @@
                         @else
                             wire:click="showFileInfo('{{ $file['relative_path'] }}')"
                         @endif
-                        class="group relative aspect-square rounded-2xl overflow-hidden cursor-pointer shadow-sm border-2 transition-all duration-200 bg-base-100
+                        class="group relative aspect-square rounded-2xl overflow-hidden cursor-pointer  border-2 transition-all duration-200 bg-base-100
                             {{ $showInfoModal && $infoFile && ($infoFile['relative_path'] ?? '') === $file['relative_path'] ? 'border-primary ring-2 ring-primary/30' : 'border-transparent hover:border-base-300 hover:shadow-md' }}">
 
                         {{-- File Preview --}}
                         @if ($file['type'] === 'directory')
                             <div class="w-full h-full flex items-center justify-center bg-base-200">
-                                <x-tardis::icon name="folder" class="w-16 h-16 text-primary opacity-60" />
+                                <x-tardis::icon name="folder" class="w-16 h-16 text-primary/60" />
                             </div>
                         @elseif (str_starts_with($file['type'], 'image/'))
                             <img src="{{ $file['url'] }}" alt="{{ $file['name'] }}" class="object-cover w-full h-full" loading="lazy" />
                         @else
                             <div class="w-full h-full flex items-center justify-center bg-base-200">
-                                <x-tardis::icon name="document-text" class="w-12 h-12 opacity-30" />
+                                <x-tardis::icon name="document-text" class="w-12 h-12 text-base-content/30" />
                             </div>
                         @endif
 
@@ -259,17 +259,17 @@
             </div>
         @else
             {{-- List View (Table) --}}
-            <div class="card bg-base-100 shadow-sm border border-base-200">
+            <div class="card bg-base-100 border border-base-300">
                 <div class="overflow-x-auto">
                     <table class="table table-sm">
                         <thead>
                             <tr>
-                                <th class="w-10"></th>
-                                <th>Name</th>
-                                <th>Type</th>
-                                <th>Size</th>
-                                <th>Modified</th>
-                                <th class="w-20"></th>
+                                <th class="w-10" aria-hidden="true"></th>
+                                <th scope="col">Name</th>
+                                <th scope="col">Type</th>
+                                <th scope="col">Size</th>
+                                <th scope="col">Modified</th>
+                                <th class="w-20" aria-hidden="true"></th>
                             </tr>
                         </thead>
                         <tbody>
@@ -290,9 +290,9 @@
                                             <span class="font-medium">{{ $file['name'] }}</span>
                                         @endif
                                     </td>
-                                    <td class="text-sm opacity-60">{{ $file['type'] }}</td>
-                                    <td class="text-sm opacity-60">{{ $file['type'] !== 'directory' ? $this->formatSize($file['size']) : '-' }}</td>
-                                    <td class="text-sm opacity-60">
+                                    <td class="text-sm text-base-content/60">{{ $file['type'] }}</td>
+                                    <td class="text-sm text-base-content/60">{{ $file['type'] !== 'directory' ? $this->formatSize($file['size']) : '-' }}</td>
+                                    <td class="text-sm text-base-content/60">
                                         @if ($file['last_modified'] ?? null)
                                             {{ \Carbon\Carbon::createFromTimestamp($file['last_modified'])->format('M d, Y') }}
                                         @endif
@@ -328,7 +328,7 @@
     {{-- Right Sidebar: File Info Panel (DaisyUI card) --}}
     @if ($showInfoModal && $infoFile)
         <div class="w-80 flex-shrink-0">
-            <div class="card bg-base-100 border border-base-200 shadow-sm sticky top-20">
+            <div class="card bg-base-100 border border-base-300 sticky top-20">
                 <div class="card-body p-5 gap-4">
 
                     {{-- Preview Image --}}
@@ -394,7 +394,7 @@
                         </div>
                         <div class="collapse-content px-0">
                             <div class="join w-full">
-                                <input type="text" placeholder="New tag" class="input input-sm input-bordered join-item flex-1" />
+                                <input type="text" placeholder="New tag" class="input input-sm join-item flex-1" />
                                 <button class="btn btn-primary btn-sm join-item">Save</button>
                             </div>
                         </div>
@@ -435,10 +435,10 @@
         <div class="modal-box">
             <h3 class="font-bold text-lg">Create New Folder</h3>
             <form wire:submit="createDirectory" class="py-4">
-                <input type="text" wire:model="newDirectoryName" class="input input-bordered w-full" placeholder="Folder name" autofocus />
+                <input type="text" wire:model="newDirectoryName" class="input w-full" placeholder="Folder name" autofocus />
                 @error('newDirectoryName')
                     <label class="label">
-                        <span class="label-text-alt text-error">{{ $message }}</span>
+                        <span class="text-error">{{ $message }}</span>
                     </label>
                 @enderror
             </form>
@@ -459,10 +459,10 @@
         <div class="modal-box">
             <h3 class="font-bold text-lg">Rename</h3>
             <form wire:submit="renameFile" class="py-4">
-                <input type="text" wire:model="renameNewName" class="input input-bordered w-full" autofocus />
+                <input type="text" wire:model="renameNewName" class="input w-full" autofocus />
                 @error('renameNewName')
                     <label class="label">
-                        <span class="label-text-alt text-error">{{ $message }}</span>
+                        <span class="text-error">{{ $message }}</span>
                     </label>
                 @enderror
             </form>

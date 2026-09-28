@@ -15,7 +15,7 @@ new #[Title('UI Components')] #[Layout('tardis::layouts.admin')] class extends C
     </div>
 
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-    <div class="card bg-base-100 shadow">
+    <div class="card bg-base-100 border border-base-300">
         <div class="card-body">
             <h2 class="card-title">Buttons</h2>
             <div class="flex flex-wrap gap-2 mt-2">
@@ -36,7 +36,7 @@ new #[Title('UI Components')] #[Layout('tardis::layouts.admin')] class extends C
         </div>
     </div>
 
-    <div class="card bg-base-100 shadow">
+    <div class="card bg-base-100 border border-base-300">
         <div class="card-body">
             <h2 class="card-title">Alerts</h2>
             <div class="flex flex-col gap-2 mt-2">
@@ -48,15 +48,15 @@ new #[Title('UI Components')] #[Layout('tardis::layouts.admin')] class extends C
         </div>
     </div>
 
-    <div class="card bg-base-100 shadow">
+    <div class="card bg-base-100 border border-base-300">
         <div class="card-body">
             <h2 class="card-title">Form Elements</h2>
             <div class="flex flex-col gap-3 mt-2">
-                <label class="input input-bordered flex items-center gap-2">
+                <label class="input flex items-center gap-2">
                     Text
                     <input type="text" class="grow" placeholder="Type here" />
                 </label>
-                <select class="select select-bordered">
+                <select class="select">
                     <option>Option 1</option>
                     <option>Option 2</option>
                 </select>
@@ -69,12 +69,12 @@ new #[Title('UI Components')] #[Layout('tardis::layouts.admin')] class extends C
                     Radio
                 </label>
                 <input type="range" class="range" />
-                <input type="text" placeholder="Disabled" class="input input-bordered" disabled />
+                <input type="text" placeholder="Disabled" class="input" disabled />
             </div>
         </div>
     </div>
 
-    <div class="card bg-base-100 shadow">
+    <div class="card bg-base-100 border border-base-300">
         <div class="card-body">
             <h2 class="card-title">Badges</h2>
             <div class="flex flex-wrap gap-2 mt-2">
@@ -98,7 +98,7 @@ new #[Title('UI Components')] #[Layout('tardis::layouts.admin')] class extends C
         </div>
     </div>
 
-    <div class="card bg-base-100 shadow">
+    <div class="card bg-base-100 border border-base-300">
         <div class="card-body">
             <h2 class="card-title">Loading</h2>
             <div class="flex flex-wrap gap-2 mt-2 items-center">
@@ -117,7 +117,7 @@ new #[Title('UI Components')] #[Layout('tardis::layouts.admin')] class extends C
         </div>
     </div>
 
-    <div class="card bg-base-100 shadow">
+    <div class="card bg-base-100 border border-base-300">
         <div class="card-body">
             <h2 class="card-title">Toggles</h2>
             <div class="flex flex-wrap gap-2 mt-2 items-center">
@@ -131,7 +131,7 @@ new #[Title('UI Components')] #[Layout('tardis::layouts.admin')] class extends C
         </div>
     </div>
 
-    <div class="card bg-base-100 shadow">
+    <div class="card bg-base-100 border border-base-300">
         <div class="card-body">
             <h2 class="card-title">Progress</h2>
             <div class="flex flex-col gap-2 mt-2">
@@ -147,10 +147,10 @@ new #[Title('UI Components')] #[Layout('tardis::layouts.admin')] class extends C
         </div>
     </div>
 
-    <div class="card bg-base-100 shadow">
+    <div class="card bg-base-100 border border-base-300">
         <div class="card-body">
             <h2 class="card-title">Stats</h2>
-            <div class="stats shadow mt-2">
+            <div class="stats mt-2">
                 <div class="stat">
                     <div class="stat-title">Total Users</div>
                     <div class="stat-value">1,234</div>

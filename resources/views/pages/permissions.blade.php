@@ -76,15 +76,15 @@ new #[Title('Permissions')] #[Layout('tardis::layouts.admin')] class extends Com
         </x-slot:action>
     </x-tardis::page-header>
 
-    <div class="card bg-base-100 shadow-sm">
+    <div class="card bg-base-100 border border-base-300">
         <div class="overflow-x-auto">
             <table class="table">
                 <thead>
                     <tr>
-                        <th>Name</th>
-                        <th>Slug</th>
-                        <th>Group</th>
-                        <th class="text-right">Actions</th>
+                        <th scope="col">Name</th>
+                        <th scope="col">Slug</th>
+                        <th scope="col">Group</th>
+                        <th class="text-right" scope="col">Actions</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -101,7 +101,7 @@ new #[Title('Permissions')] #[Layout('tardis::layouts.admin')] class extends Com
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="4" class="text-center py-8 opacity-50">No permissions found</td>
+                            <td colspan="4" class="text-center py-8 text-base-content/50">No permissions found</td>
                         </tr>
                     @endforelse
                 </tbody>
@@ -114,9 +114,9 @@ new #[Title('Permissions')] #[Layout('tardis::layouts.admin')] class extends Com
             <div class="modal-box">
                 <h3 class="font-bold text-lg">Add Permission</h3>
                 <form wire:submit="createPermission" class="space-y-4 py-4">
-                    <input type="text" wire:model="newName" class="input input-bordered w-full" placeholder="Permission name" />
-                    <input type="text" wire:model="newSlug" class="input input-bordered w-full" placeholder="Slug (e.g., browse posts)" />
-                    <input type="text" wire:model="newGroup" class="input input-bordered w-full" placeholder="Group (optional)" />
+                    <input type="text" wire:model="newName" class="input w-full" placeholder="Permission name" />
+                    <input type="text" wire:model="newSlug" class="input w-full" placeholder="Slug (e.g., browse posts)" />
+                    <input type="text" wire:model="newGroup" class="input w-full" placeholder="Group (optional)" />
                 </form>
                 <div class="modal-action">
                     <button wire:click="$set('showAddModal', false)" class="btn btn-ghost">Cancel</button>

@@ -65,9 +65,9 @@ new #[Title('Reset Password')] #[Layout('tardis::layouts.auth')] class extends C
         <form wire:submit="resetPassword" class="space-y-4">
             <input type="hidden" wire:model="token" />
 
-            <div class="form-control">
+            <div class="flex flex-col gap-2">
                 <label class="label" for="email">
-                    <span class="label-text">Email address</span>
+                    <span class="text-base-content">Email address</span>
                 </label>
                 <input
                     type="email"
@@ -75,18 +75,18 @@ new #[Title('Reset Password')] #[Layout('tardis::layouts.auth')] class extends C
                     wire:model="email"
                     required
                     placeholder="email@example.com"
-                    class="input input-bordered w-full"
+                    class="input w-full"
                 />
                 @error('email')
                     <label class="label">
-                        <span class="label-text-alt text-error">{{ $message }}</span>
+                        <span class="text-error">{{ $message }}</span>
                     </label>
                 @enderror
             </div>
 
-            <div class="form-control">
+            <div class="flex flex-col gap-2">
                 <label class="label" for="password">
-                    <span class="label-text">New Password</span>
+                    <span class="text-base-content">New Password</span>
                 </label>
                 <input
                     type="password"
@@ -94,18 +94,18 @@ new #[Title('Reset Password')] #[Layout('tardis::layouts.auth')] class extends C
                     wire:model="password"
                     required
                     placeholder="••••••••"
-                    class="input input-bordered w-full"
+                    class="input w-full"
                 />
                 @error('password')
                     <label class="label">
-                        <span class="label-text-alt text-error">{{ $message }}</span>
+                        <span class="text-error">{{ $message }}</span>
                     </label>
                 @enderror
             </div>
 
-            <div class="form-control">
+            <div class="flex flex-col gap-2">
                 <label class="label" for="password_confirmation">
-                    <span class="label-text">Confirm Password</span>
+                    <span class="text-base-content">Confirm Password</span>
                 </label>
                 <input
                     type="password"
@@ -113,7 +113,7 @@ new #[Title('Reset Password')] #[Layout('tardis::layouts.auth')] class extends C
                     wire:model="passwordConfirmation"
                     required
                     placeholder="••••••••"
-                    class="input input-bordered w-full"
+                    class="input w-full"
                 />
             </div>
 

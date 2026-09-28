@@ -6,7 +6,7 @@
         </div>
     </div>
 
-    <form wire:submit="save" class="card bg-base-100 shadow-sm">
+    <form wire:submit="save" class="card bg-base-100 border border-base-300">
         <div class="card-body space-y-5">
             @foreach ($this->fields as $field)
                 @php($name = $field['name'] ?? '')
@@ -15,9 +15,9 @@
                 @php($translatable = ! empty($field['translatable']))
                 @php($translatableLocales = $translatable ? \Tardis\Classes\Translation::locales($field['locales'] ?? null) : [])
 
-                <div class="form-control">
+                <div class="flex flex-col gap-2">
                     <label class="label">
-                        <span class="label-text font-medium">{{ $label }}</span>
+                        <span class="text-base-content font-medium">{{ $label }}</span>
                     </label>
 
                     @if ($type === 'textarea')
@@ -25,34 +25,34 @@
                             @foreach ($translatableLocales as $locale)
                                 <div class="mb-2">
                                     <span class="badge badge-ghost badge-sm uppercase mr-2">{{ $locale }}</span>
-                                    <textarea wire:model="form.{{ $name }}.{{ $locale }}" class="textarea textarea-bordered w-full" rows="4"></textarea>
+                                    <textarea wire:model="form.{{ $name }}.{{ $locale }}" class="textarea w-full" rows="4"></textarea>
                                 </div>
                             @endforeach
                         @else
-                            <textarea wire:model="form.{{ $name }}" class="textarea textarea-bordered" rows="4"></textarea>
+                            <textarea wire:model="form.{{ $name }}" class="textarea" rows="4"></textarea>
                         @endif
                     @elseif ($type === 'toggle')
                         <label class="label cursor-pointer justify-start gap-3">
                             <input type="checkbox" wire:model="form.{{ $name }}" class="checkbox" />
-                            <span class="label-text">{{ $label }}</span>
+                            <span class="text-base-content">{{ $label }}</span>
                         </label>
                     @elseif ($type === 'select')
-                        <select wire:model="form.{{ $name }}" class="select select-bordered w-full">
+                        <select wire:model="form.{{ $name }}" class="select w-full">
                             <option value="">—</option>
                             @foreach (($field['options'] ?? []) as $optionValue => $optionLabel)
                                 <option value="{{ $optionValue }}">{{ $optionLabel }}</option>
                             @endforeach
                         </select>
                     @elseif ($type === 'password')
-                        <input type="password" wire:model="form.{{ $name }}" class="input input-bordered" autocomplete="new-password" />
+                        <input type="password" wire:model="form.{{ $name }}" class="input" autocomplete="new-password" />
                     @elseif ($type === 'file')
-                        <input type="file" wire:model="form.{{ $name }}" class="file-input file-input-bordered w-full" />
+                        <input type="file" wire:model="form.{{ $name }}" class="file-input w-full" />
                     @elseif ($type === 'belongs_to_many')
                         <input
                             type="search"
                             wire:model.live.debounce.300ms="relationSearch.{{ $name }}"
                             placeholder="Search {{ $label }}..."
-                            class="input input-bordered input-sm w-full mb-2"
+                            class="input input-sm w-full mb-2"
                         />
                         <div class="border border-base-300 rounded-lg max-h-48 overflow-y-auto">
                             @forelse (($this->relationResults[$name] ?? []) as $optionValue => $optionLabel)
@@ -73,11 +73,11 @@
                             @foreach ($translatableLocales as $locale)
                                 <div class="mb-2">
                                     <span class="badge badge-ghost badge-sm uppercase mr-2">{{ $locale }}</span>
-                                    <input type="{{ $type === 'number' ? 'number' : 'text' }}" wire:model="form.{{ $name }}.{{ $locale }}" class="input input-bordered w-full" />
+                                    <input type="{{ $type === 'number' ? 'number' : 'text' }}" wire:model="form.{{ $name }}.{{ $locale }}" class="input w-full" />
                                 </div>
                             @endforeach
                         @else
-                            <input type="{{ $type === 'number' ? 'number' : 'text' }}" wire:model="form.{{ $name }}" class="input input-bordered" />
+                            <input type="{{ $type === 'number' ? 'number' : 'text' }}" wire:model="form.{{ $name }}" class="input" />
                         @endif
                     @endif
                 </div>

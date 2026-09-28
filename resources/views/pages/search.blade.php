@@ -91,13 +91,13 @@ new #[Title('Search')] #[Layout('tardis::layouts.admin')] class extends Componen
     <x-tardis::page-header title="Search" description="Search across all BREADs" />
 
     <!-- Search Input -->
-    <div class="card bg-base-100 shadow-sm mb-6">
+    <div class="card bg-base-100 mb-6 border border-base-300">
         <div class="card-body p-4">
             <div class="flex gap-2">
                 <input
                     type="text"
                     wire:model.live.debounce.300ms="query"
-                    class="input input-bordered flex-1"
+                    class="input flex-1"
                     placeholder="Search for anything…"
                     aria-label="Search across BREAD resources"
                     autocomplete="off"
@@ -118,9 +118,9 @@ new #[Title('Search')] #[Layout('tardis::layouts.admin')] class extends Componen
     <!-- Results -->
     @if ($showResults)
         @if (empty($results))
-            <div class="card bg-base-100 shadow-sm" aria-live="polite">
+            <div class="card bg-base-100 border border-base-300" aria-live="polite">
                 <div class="card-body text-center py-12">
-                    <x-tardis::icon name="document-text" class="w-16 h-16 mx-auto opacity-20" />
+                    <x-tardis::icon name="document-text" class="w-16 h-16 mx-auto text-base-content/20" />
                     <h3 class="text-lg font-semibold mt-4">No results found</h3>
                     <p class="text-base-content/60 mt-2">Try a different search term</p>
                 </div>
@@ -128,7 +128,7 @@ new #[Title('Search')] #[Layout('tardis::layouts.admin')] class extends Componen
         @else
             <div class="space-y-4">
                 @foreach ($results as $result)
-                    <div class="card bg-base-100 shadow-sm">
+                    <div class="card bg-base-100 border border-base-300">
                         <div class="card-body">
                             <h3 class="card-title text-lg">{{ $result['name'] }}</h3>
                             <div class="divide-y divide-base-200">
@@ -136,7 +136,7 @@ new #[Title('Search')] #[Layout('tardis::layouts.admin')] class extends Componen
                                     <a href="{{ $item['url'] }}" class="flex items-center gap-3 py-3 hover:bg-base-200 px-2 rounded transition-colors">
                                         <x-tardis::icon name="database" class="w-4 h-4 text-primary" />
                                         <span class="font-medium">{{ $item['title'] }}</span>
-                                        <span class="text-xs opacity-40 ml-auto">#{{ $item['id'] }}</span>
+                                        <span class="text-xs text-base-content/40 ml-auto">#{{ $item['id'] }}</span>
                                     </a>
                                 @endforeach
                             </div>

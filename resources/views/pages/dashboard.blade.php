@@ -59,7 +59,7 @@ new #[Title('Dashboard')] #[Layout('tardis::layouts.admin')] class extends Compo
 
     <!-- Stats Cards -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        <div class="card bg-base-100 shadow-sm">
+        <div class="card bg-base-100 border border-base-300">
             <div class="card-body">
                 <div class="flex items-center gap-4">
                     <div class="p-3 rounded-box bg-primary/10 text-primary">
@@ -67,13 +67,13 @@ new #[Title('Dashboard')] #[Layout('tardis::layouts.admin')] class extends Compo
                     </div>
                     <div>
                         <p class="text-3xl font-bold">{{ $totalUsers }}</p>
-                        <p class="text-sm opacity-60">Users</p>
+                        <p class="text-sm text-base-content/60">Users</p>
                     </div>
                 </div>
             </div>
         </div>
 
-        <div class="card bg-base-100 shadow-sm">
+        <div class="card bg-base-100 border border-base-300">
             <div class="card-body">
                 <div class="flex items-center gap-4">
                     <div class="p-3 rounded-box bg-secondary/10 text-secondary">
@@ -81,13 +81,13 @@ new #[Title('Dashboard')] #[Layout('tardis::layouts.admin')] class extends Compo
                     </div>
                     <div>
                         <p class="text-3xl font-bold">{{ $totalBreads }}</p>
-                        <p class="text-sm opacity-60">BREADs</p>
+                        <p class="text-sm text-base-content/60">BREADs</p>
                     </div>
                 </div>
             </div>
         </div>
 
-        <div class="card bg-base-100 shadow-sm">
+        <div class="card bg-base-100 border border-base-300">
             <div class="card-body">
                 <div class="flex items-center gap-4">
                     <div class="p-3 rounded-box bg-accent/10 text-accent">
@@ -95,13 +95,13 @@ new #[Title('Dashboard')] #[Layout('tardis::layouts.admin')] class extends Compo
                     </div>
                     <div>
                         <p class="text-3xl font-bold">{{ $totalMedia }}</p>
-                        <p class="text-sm opacity-60">Media Files</p>
+                        <p class="text-sm text-base-content/60">Media Files</p>
                     </div>
                 </div>
             </div>
         </div>
 
-        <div class="card bg-base-100 shadow-sm">
+        <div class="card bg-base-100 border border-base-300">
             <div class="card-body">
                 <div class="flex items-center gap-4">
                     <div class="p-3 rounded-box bg-info/10 text-info">
@@ -109,7 +109,7 @@ new #[Title('Dashboard')] #[Layout('tardis::layouts.admin')] class extends Compo
                     </div>
                     <div>
                         <p class="text-3xl font-bold">{{ $totalActivities }}</p>
-                        <p class="text-sm opacity-60">Activities</p>
+                        <p class="text-sm text-base-content/60">Activities</p>
                     </div>
                 </div>
             </div>
@@ -117,7 +117,7 @@ new #[Title('Dashboard')] #[Layout('tardis::layouts.admin')] class extends Compo
     </div>
 
     <!-- Recent Activities -->
-    <div class="card bg-base-100 shadow-sm">
+    <div class="card bg-base-100 border border-base-300">
         <div class="card-body">
             <h2 class="card-title">Recent Activity</h2>
             @if (empty($recentActivities))
@@ -126,11 +126,11 @@ new #[Title('Dashboard')] #[Layout('tardis::layouts.admin')] class extends Compo
                 <div class="divide-y divide-base-200">
                     @foreach ($recentActivities as $activity)
                         <div class="flex items-center gap-3 py-3">
-                            <span class="badge badge-{{ match($activity->action) { 'created' => 'success', 'updated' => 'info', 'deleted' => 'error', default => 'ghost' } }} badge-sm">
+                            <span class="badge badge-{{ match($activity->action) { 'created' => 'success', 'updated' 'info', 'deleted' 'error', default 'ghost' } }} badge-sm">
                                 {{ $activity->action }}
                             </span>
                             <span class="text-sm">{{ class_basename($activity->model_type) }} #{{ $activity->model_id }}</span>
-                            <span class="text-xs opacity-40 ml-auto">{{ $activity->created_at }}</span>
+                            <span class="text-xs text-base-content/40 ml-auto">{{ $activity->created_at }}</span>
                         </div>
                     @endforeach
                 </div>

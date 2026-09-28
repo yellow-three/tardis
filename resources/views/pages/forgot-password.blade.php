@@ -42,9 +42,9 @@ new #[Title('Forgot Password')] #[Layout('tardis::layouts.auth')] class extends 
     <p class="text-base-content/60 mb-4">Enter your email address and we'll send you a link to reset your password.</p>
 
     <form wire:submit="sendResetLink" class="space-y-4">
-        <div class="form-control">
+        <div class="flex flex-col gap-2">
             <label class="label" for="email">
-                <span class="label-text">Email address</span>
+                <span class="text-base-content">Email address</span>
             </label>
             <input
                 type="email"
@@ -53,11 +53,11 @@ new #[Title('Forgot Password')] #[Layout('tardis::layouts.auth')] class extends 
                 required
                 autofocus
                 placeholder="email@example.com"
-                class="input input-bordered w-full"
+                class="input w-full"
             />
             @error('email')
                 <label class="label">
-                    <span class="label-text-alt text-error">{{ $message }}</span>
+                    <span class="text-error">{{ $message }}</span>
                 </label>
             @enderror
         </div>
