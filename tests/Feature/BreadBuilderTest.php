@@ -511,3 +511,105 @@ test('edit mode may save over its own definition', function () {
 
     expect(app(BreadManager::class)->find('bread-builder-test')->name)->toBe('Renamed Test');
 });
+
+/**
+ * Point app_path() at a throwaway tree holding real App\Models classes.
+ *
+ * The classes are require()d rather than autoloaded so the fixture does not
+ * depend on composer's class map, and they must extend Model because
+ * ModelReflector calls getTable()/getFillable() on them in edit mode.
+ *
+ * Returns a cleanup callback — call it in a finally block.
+ */
+function withModelFixtures(array $classes): Closure
+{
+    $original = app()->path();
+    $appPath = sys_get_temp_dir().'/tardis-models-'.uniqid();
+
+    File::makeDirectory($appPath.'/Models', 0755, true);
+    app()->useAppPath($appPath);
+
+    foreach ($classes as $class) {
+        $file = $appPath."/Models/{$class}.php";
+        File::put($file, "<?php\n\nnamespace App\\Models;\n\nclass {$class} extends \\Illuminate\\Database\\Eloquent\\Model {}\n");
+        require $file;
+    }
+
+    return function () use ($original, $appPath): void {
+        app()->useAppPath($original);
+        File::deleteDirectory($appPath);
+    };
+}
+
+test('the model picker hides models that already have a BREAD', function () {
+    $cleanup = withModelFixtures(['FreeModel', 'ClaimedModel']);
+
+    try {
+        app(BreadManager::class)->save([
+            'slug' => 'claimed-bread',
+            'model' => 'App\\Models\\ClaimedModel',
+            'name' => 'Claimed',
+            'name_plural' => 'Claimeds',
+            'fields' => [],
+            'relationships' => [],
+        ]);
+
+        $options = Livewire::test('tardis::pages.bread-builder')->instance()->getModelOptions();
+
+        // A model that already drives a BREAD is edited through that BREAD;
+        // offering it here would only create duplicates.
+        expect($options)->toHaveKey('App\\Models\\FreeModel')
+            ->and($options)->not->toHaveKey('App\\Models\\ClaimedModel');
+    } finally {
+        $cleanup();
+    }
+});
+
+test('a BREAD stored without a namespace still claims its model', function () {
+    $cleanup = withModelFixtures(['BareModel', 'OtherFreeModel']);
+
+    try {
+        app(BreadManager::class)->save([
+            'slug' => 'bare-bread',
+            'model' => 'BareModel',
+            'name' => 'Bare',
+            'name_plural' => 'Bares',
+            'fields' => [],
+            'relationships' => [],
+        ]);
+
+        $options = Livewire::test('tardis::pages.bread-builder')->instance()->getModelOptions();
+
+        // Definitions persist a bare class name, so the matcher has to compare
+        // basenames as well as fully qualified names.
+        expect($options)->not->toHaveKey('App\\Models\\BareModel')
+            ->and($options)->toHaveKey('App\\Models\\OtherFreeModel');
+    } finally {
+        $cleanup();
+    }
+});
+
+test('editing a BREAD keeps its own model selectable', function () {
+    $cleanup = withModelFixtures(['EditableModel']);
+
+    try {
+        app(BreadManager::class)->save([
+            'slug' => 'editable-bread',
+            'model' => 'App\\Models\\EditableModel',
+            'name' => 'Editable',
+            'name_plural' => 'Editables',
+            'fields' => [],
+            'relationships' => [],
+        ]);
+
+        $options = Livewire::test('tardis::pages.bread-builder', ['slug' => 'editable-bread'])
+            ->instance()
+            ->getModelOptions();
+
+        // Without the edit-mode exception the model behind the open BREAD
+        // disappears from the picker and the definition can never be re-saved.
+        expect($options)->toHaveKey('App\\Models\\EditableModel');
+    } finally {
+        $cleanup();
+    }
+});

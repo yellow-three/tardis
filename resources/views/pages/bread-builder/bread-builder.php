@@ -223,18 +223,54 @@ new #[Title('BREAD Builder')] #[Layout('tardis::layouts.admin')] class extends C
     {
         $path = app_path('Models');
         $models = [];
+        $taken = $this->modelsWithBread();
 
         if (is_dir($path)) {
             foreach (glob($path.'/*.php') as $file) {
                 $name = pathinfo($file, PATHINFO_FILENAME);
                 $class = "App\\Models\\{$name}";
                 if (class_exists($class)) {
+                    // A model that already drives a BREAD is reached through that
+                    // BREAD, so listing it here would only create duplicates.
+                    if (isset($taken[$class]) || isset($taken[$name])) {
+                        continue;
+                    }
+
                     $models[$class] = $name;
                 }
             }
         }
 
         return $models;
+    }
+
+    /**
+     * Models that already have a BREAD, keyed both fully qualified and by
+     * basename — stored definitions may reference either form.
+     *
+     * The BREAD currently being edited is skipped: its own model has to stay
+     * selectable, otherwise the definition could never be re-saved.
+     *
+     * @return array<string, true>
+     */
+    protected function modelsWithBread(): array
+    {
+        $taken = [];
+
+        foreach (app(BreadManager::class)->all() as $slug => $bread) {
+            if ($this->editMode && $slug === $this->existingSlug) {
+                continue;
+            }
+
+            if ($bread->model === '') {
+                continue;
+            }
+
+            $taken[$bread->model] = true;
+            $taken[class_basename($bread->model)] = true;
+        }
+
+        return $taken;
     }
 
     public function addEditTab(): void
