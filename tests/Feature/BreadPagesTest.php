@@ -5,6 +5,7 @@ declare(strict_types=1);
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Schema;
 use Livewire\Livewire;
@@ -87,6 +88,29 @@ test('bread route names resolve to the dedicated management and builder paths', 
     expect(route('tardis.bread.manage'))->toEndWith('/admin/bread');
     expect(route('tardis.bread.create'))->toEndWith('/admin/bread/create');
     expect(route('tardis.bread.index', ['slug' => 'posts']))->toEndWith('/admin/posts');
+});
+
+test('the BREAD management table links every definition to the builder edit page', function () {
+    $path = sys_get_temp_dir().'/tardis-bread-manage-'.uniqid();
+    app()->instance(JsonBreadSource::class, new JsonBreadSource($path));
+
+    (new JsonBreadSource($path))->save([
+        'slug' => 'posts',
+        'model' => BreadPageCreateTestModel::class,
+        'name' => 'Posts',
+        'fields' => [
+            'title' => ['name' => 'title', 'type' => 'text', 'label' => 'Title', 'required' => true, 'browse' => true, 'read' => true, 'edit' => true, 'add' => true, 'validation' => []],
+        ],
+        'relationships' => [],
+    ]);
+
+    $html = Livewire::test('tardis::pages.bread.manage')->html();
+
+    // Without this the builder's edit mode is unreachable: the route exists but
+    // nothing on the management page ever pointed at it.
+    expect($html)->toContain(route('tardis.bread.edit', ['slug' => 'posts']));
+
+    File::deleteDirectory($path);
 });
 
 test('dynamic bread URLs resolve to Livewire page routes', function () {

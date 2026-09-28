@@ -93,6 +93,9 @@
                                                 @endforelse
                                             </ul>
                                         </div>
+                                        <a href="{{ route('tardis.bread.edit', ['slug' => $slug]) }}" class="btn btn-ghost btn-sm">
+                                            Edit
+                                        </a>
                                         <a href="{{ route('tardis.bread.index', ['slug' => $slug]) }}" class="btn btn-ghost btn-sm">
                                             Browse
                                         </a>
