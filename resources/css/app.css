@@ -65,6 +65,20 @@ body {
     display: none;
 }
 
+[x-cloak] {
+    display: none !important;
+}
+
+details.dropdown > summary {
+    list-style: none;
+}
+
+/* WebKit needs its own pseudo-element: setting only list-style above still
+   leaves the disclosure triangle visible on the account footer's summary. */
+details.dropdown > summary::-webkit-details-marker {
+    display: none;
+}
+
 .tardis-skip-link {
     position: fixed;
     top: 0.5rem;

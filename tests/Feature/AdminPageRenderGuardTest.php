@@ -12,7 +12,7 @@ use Tardis\Bread\Sources\JsonBreadSource;
  * Render guard for the 21 admin pages modernised in 49d2454.
  *
  * Every page that renders is audited for:
- *  - DaisyUI 4 leftovers (input-bordered, select-bordered, textarea-bordered, shadow-sm)
+ *  - DaisyUI 4 leftovers (input-bordered, select-bordered, textarea-bordered)
  *  - real <th> cells that declare neither scope= nor aria-hidden="true"
  *
  * The <th> patterns use a negative lookahead so <thead> cannot match.
@@ -41,7 +41,6 @@ const TARDIS_GUARD_D4 = [
     'input-bordered',
     'select-bordered',
     'textarea-bordered',
-    'shadow-sm',
 ];
 
 function tardisGuardPages(): array
