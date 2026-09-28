@@ -94,3 +94,19 @@ test('an active menu item carries aria-current and the accent bar', function ():
 test('the sidebar does not emit a shadow-sm class', function (): void {
     expect(tardisRenderSidebar())->not->toContain('shadow-sm');
 });
+
+test('the sidebar avoids drawer helpers that are scoped to drawer-content', function (): void {
+    // tardis-drawer-open-only / tardis-drawer-closed-only only match inside
+    // .drawer-content. The header's toggle icons rely on that; the sidebar lives
+    // in .drawer-side, so the same classes silently do nothing there and a
+    // collapsed drawer keeps rendering elements sized for the expanded width.
+    expect(tardisRenderSidebar())
+        ->not->toContain('tardis-drawer-open-only')
+        ->not->toContain('tardis-drawer-closed-only');
+});
+
+test('the collapsed drawer hides the full width menu search field', function (): void {
+    expect(tardisRenderSidebar())
+        ->toContain('Menüde ara')
+        ->toContain('is-drawer-close:hidden');
+});

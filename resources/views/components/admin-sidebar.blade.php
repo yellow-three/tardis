@@ -51,7 +51,7 @@
                 }
             }"
         >
-            <label class="tardis-drawer-open-only mb-2 flex items-center gap-2 rounded-lg border border-base-300 px-2.5 py-1.5 focus-within:border-primary">
+            <label class="is-drawer-close:hidden mb-2 flex items-center gap-2 rounded-lg border border-base-300 px-2.5 py-1.5 focus-within:border-primary">
                 <x-tardis::icon name="magnifying-glass" class="h-4 w-4 shrink-0 opacity-50" />
                 <input
                     type="search"
@@ -70,7 +70,7 @@
                 @if ($sectionName !== 'General')
                     <div
                         aria-hidden="true"
-                        class="tardis-drawer-closed-only mx-2 my-2 h-px bg-base-300/70"
+                        class="is-drawer-open:hidden mx-2 my-2 h-px bg-base-300/70"
                         x-show="typeof menuQuery === 'string' && menuQuery.trim() === ''"
                     ></div>
 
