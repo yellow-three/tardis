@@ -126,7 +126,7 @@ new #[Title('Dashboard')] #[Layout('tardis::layouts.admin')] class extends Compo
                 <div class="divide-y divide-base-200">
                     @foreach ($recentActivities as $activity)
                         <div class="flex items-center gap-3 py-3">
-                            <span class="badge badge-{{ match($activity->action) { 'created' => 'success', 'updated' 'info', 'deleted' 'error', default 'ghost' } }} badge-sm">
+                            <span class="badge badge-{{ match($activity->action) { 'created' => 'success', 'updated' => 'info', 'deleted' => 'error', default => 'ghost' } }} badge-sm">
                                 {{ $activity->action }}
                             </span>
                             <span class="text-sm">{{ class_basename($activity->model_type) }} #{{ $activity->model_id }}</span>
