@@ -45,6 +45,20 @@ class MenuItem
      */
     public string $activeMode = 'exact';
 
+    /**
+     * Explicit route names that mark this item active.
+     *
+     * Takes precedence over activeMode when set. Needed when a route name and
+     * its prefix are shared by unrelated screens: every BREAD resource uses
+     * `tardis.bread.index` with its own `{slug}`, and the BREAD builder pages
+     * sit under the same `tardis.bread.*` prefix while carrying the same
+     * `{slug}` — so no prefix heuristic can tell a resource screen apart from
+     * the builder screen for the definition of the same name.
+     *
+     * @var array<int, string>
+     */
+    public array $activeRouteNames = [];
+
     public bool $isDivider = false;
 
     public ?string $section = null;
@@ -117,6 +131,21 @@ class MenuItem
     }
 
     /**
+     * Set the exact route names that mark this item active.
+     *
+     * Use this instead of activeMode when a prefix match would also catch
+     * unrelated routes.
+     *
+     * @param  array<int, string>  $routeNames
+     */
+    public function activeOnRoutes(array $routeNames): self
+    {
+        $this->activeRouteNames = $routeNames;
+
+        return $this;
+    }
+
+    /**
      * Set the menu section/group label.
      * Sections are rendered as menu-title headers in grouped views.
      */
@@ -168,6 +197,10 @@ class MenuItem
     public function isActive(): bool
     {
         if ($this->routeName) {
+            if ($this->activeRouteNames !== []) {
+                return request()->routeIs($this->activeRouteNames) && $this->routeParamsMatch();
+            }
+
             if ($this->activeMode === 'prefix') {
                 $prefixRoute = $this->getParentRoute();
 

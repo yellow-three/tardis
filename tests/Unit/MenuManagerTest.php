@@ -176,3 +176,36 @@ test('menu items without route parameters keep matching on the route name alone'
     matchBreadRoute('/admin/dashboard');
     expect((new MenuItem('Dashboard'))->route('tardis.dashboard')->isActive())->toBeTrue();
 });
+
+test('a bread menu item is not active on the builder page for its own definition', function () {
+    saveBread($this->menuBreadPath, ['slug' => 'posts', 'name_plural' => 'Posts']);
+
+    $item = collectedMenu()->all()->firstWhere('title', 'Posts');
+
+    // /admin/bread/posts/edit is the builder editing the "posts" definition. It
+    // sits under the same tardis.bread.* prefix and carries slug=posts, so a
+    // prefix match lights up the Posts resource on a page that has nothing to
+    // do with the post records.
+    matchBreadRoute('/admin/bread/posts/edit');
+    expect($item->isActive())->toBeFalse();
+
+    matchBreadRoute('/admin/bread');
+    expect($item->isActive())->toBeFalse();
+});
+
+test('the BREAD manager stays active across the builder pages', function () {
+    $manager = collectedMenu()->all()->firstWhere('title', 'BREAD');
+
+    matchBreadRoute('/admin/bread');
+    expect($manager->isActive())->toBeTrue();
+
+    matchBreadRoute('/admin/bread/create');
+    expect($manager->isActive())->toBeTrue();
+
+    matchBreadRoute('/admin/bread/posts/edit');
+    expect($manager->isActive())->toBeTrue();
+
+    // The resource screens belong to the BREAD items, not the manager.
+    matchBreadRoute('/admin/posts');
+    expect($manager->isActive())->toBeFalse();
+});

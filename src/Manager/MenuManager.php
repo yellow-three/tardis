@@ -83,7 +83,14 @@ class MenuManager
             (new MenuItem('BREAD', 'heroicon-o-table-cells'))
                 ->route('tardis.bread.manage')
                 ->section('Management')
-                ->activeMode('exact')
+                // The builder screens share the tardis.bread.* prefix with the
+                // BREAD resource screens, so they are listed explicitly here
+                // instead of relying on a prefix match.
+                ->activeOnRoutes([
+                    'tardis.bread.manage',
+                    'tardis.bread.create',
+                    'tardis.bread.edit',
+                ])
                 ->order(50),
             MenuItem::makeDivider(),
             (new MenuItem('Permissions', 'heroicon-o-lock-closed'))
@@ -133,6 +140,11 @@ class MenuManager
      * (`tardis.bread.index` with the definition's slug), and stays active
      * across that resource's own create/read/edit routes.
      *
+     * The route names are listed explicitly rather than matched by prefix:
+     * `tardis.bread.*` also covers the BREAD builder pages, which carry the
+     * same `{slug}`, so a prefix match would highlight the "posts" resource
+     * while the posts *definition* was being edited.
+     *
      * @return array<int, MenuItem>
      */
     protected function breadMenuItems(): array
@@ -142,7 +154,12 @@ class MenuManager
             ->map(fn (BreadDefinition $bread) => (new MenuItem($bread->namePlural, $this->breadMenuIcon($bread->icon)))
                 ->route('tardis.bread.index', ['slug' => $bread->slug])
                 ->section('BREAD')
-                ->activeMode('prefix')
+                ->activeOnRoutes([
+                    'tardis.bread.index',
+                    'tardis.bread.add',
+                    'tardis.bread.read',
+                    'tardis.bread.edit.item',
+                ])
                 ->order(100))
             ->values()
             ->all();
