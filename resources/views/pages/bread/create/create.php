@@ -150,7 +150,7 @@ new #[Title('Create')] #[Layout('tardis::layouts.admin')] class extends Componen
             $schema = (new $modelClass)->getConnection()
                 ->getSchemaBuilder()
                 ->getColumns($table);
-        } catch (\Throwable) {
+        } catch (Throwable) {
             // A missing/renamed table is reported by the insert itself.
             return [];
         }

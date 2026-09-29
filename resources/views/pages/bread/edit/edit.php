@@ -171,7 +171,7 @@ new #[Title('Edit')] #[Layout('tardis::layouts.admin')] class extends Component
             $schema = (new $modelClass)->getConnection()
                 ->getSchemaBuilder()
                 ->getColumns($table);
-        } catch (\Throwable) {
+        } catch (Throwable) {
             // A missing/renamed table is reported by the update itself.
             return [];
         }
