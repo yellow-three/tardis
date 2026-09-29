@@ -132,6 +132,52 @@ new #[Title('Create')] #[Layout('tardis::layouts.admin')] class extends Componen
         return $rules;
     }
 
+    /**
+     * Columns the table declares NOT NULL without a default.
+     *
+     * A BREAD definition can mark such a field as optional (its validation
+     * list is empty), so an untouched field would otherwise be written as
+     * NULL and abort the whole insert with an opaque SQLSTATE 23000 — the
+     * user only sees a failed save, with no hint which field was at fault.
+     *
+     * @return array<int, string>
+     */
+    protected function requiredColumns(string $modelClass, array $fields): array
+    {
+        try {
+            $table = (new $modelClass)->getTable();
+
+            $schema = (new $modelClass)->getConnection()
+                ->getSchemaBuilder()
+                ->getColumns($table);
+        } catch (\Throwable) {
+            // A missing/renamed table is reported by the insert itself.
+            return [];
+        }
+
+        $inDefinition = array_map(
+            fn ($field) => $field->name,
+            $fields,
+        );
+
+        $required = [];
+
+        foreach ($schema as $column) {
+            // A column with a default can be omitted from the insert; a NULL
+            // default is still a default, so test the value and not just the
+            // key's presence (the MySQL schema always reports the key).
+            if (($column['nullable'] ?? true) || ($column['default'] ?? null) !== null) {
+                continue;
+            }
+
+            if (in_array($column['name'], $inDefinition, true)) {
+                $required[] = $column['name'];
+            }
+        }
+
+        return $required;
+    }
+
     public function save(): void
     {
         $this->validate($this->validationRules());
@@ -162,6 +208,26 @@ new #[Title('Create')] #[Layout('tardis::layouts.admin')] class extends Componen
             }
 
             $data[$field->name] = $field->transform($value);
+        }
+
+        // A field left blank in the form must not be written as NULL when the
+        // table refuses nulls, otherwise the whole insert dies on SQLSTATE
+        // 23000 and the user is told nothing about which field was missing.
+        $missing = [];
+
+        foreach ($this->requiredColumns($modelClass, $fields) as $column) {
+            if (! array_key_exists($column, $data) || blank($data[$column])) {
+                $missing[] = $column;
+            }
+        }
+
+        if ($missing !== []) {
+            $this->addError('form', sprintf(
+                'These fields are required by the database and cannot be left empty: %s.',
+                implode(', ', $missing),
+            ));
+
+            return;
         }
 
         $model = $modelClass::create($data);

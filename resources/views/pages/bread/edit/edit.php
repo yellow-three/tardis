@@ -155,6 +155,50 @@ new #[Title('Edit')] #[Layout('tardis::layouts.admin')] class extends Component
         return $rules;
     }
 
+    /**
+     * Columns the table declares NOT NULL without a default.
+     *
+     * Mirrors the create page: clearing such a field would otherwise be
+     * written as NULL and abort the whole update with SQLSTATE 23000.
+     *
+     * @return array<int, string>
+     */
+    protected function requiredColumns(string $modelClass, array $fields): array
+    {
+        try {
+            $table = (new $modelClass)->getTable();
+
+            $schema = (new $modelClass)->getConnection()
+                ->getSchemaBuilder()
+                ->getColumns($table);
+        } catch (\Throwable) {
+            // A missing/renamed table is reported by the update itself.
+            return [];
+        }
+
+        $inDefinition = array_map(
+            fn ($field) => $field->name,
+            $fields,
+        );
+
+        $required = [];
+
+        foreach ($schema as $column) {
+            // A column with a default can be omitted from the statement; a
+            // NULL default is still a default, so test the value and not just
+            // the key's presence (the MySQL schema always reports the key).
+            if (($column['nullable'] ?? true) || ($column['default'] ?? null) !== null) {
+                continue;
+            }
+
+            if (in_array($column['name'], $inDefinition, true)) {
+                $required[] = $column['name'];
+            }
+        }
+
+        return $required;
+    }
+
     public function save(): void
     {
         $this->validate($this->validationRules());
@@ -182,6 +226,26 @@ new #[Title('Edit')] #[Layout('tardis::layouts.admin')] class extends Component
                 }
 
                 $data[$field->name] = $field->transform($value);
+            }
+
+            // A field the user cleared must not be written as NULL when the
+            // table refuses nulls, otherwise the update dies on SQLSTATE 23000
+            // and nothing tells the user which field was at fault.
+            $missing = [];
+
+            foreach ($this->requiredColumns($modelClass, $fields) as $column) {
+                if (! array_key_exists($column, $data) || blank($data[$column])) {
+                    $missing[] = $column;
+                }
+            }
+
+            if ($missing !== []) {
+                $this->addError('form', sprintf(
+                    'These fields are required by the database and cannot be left empty: %s.',
+                    implode(', ', $missing),
+                ));
+
+                return;
             }
 
             $record->update($data);
