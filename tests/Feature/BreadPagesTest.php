@@ -41,6 +41,15 @@ class BreadPageEditTestModel extends Model
     public $timestamps = true;
 }
 
+class BreadPageTypesTestModel extends Model
+{
+    protected $table = 'bread_page_posts_types';
+
+    protected $guarded = [];
+
+    public $timestamps = true;
+}
+
 test('bread index page renders records from a configured model', function () {
     Schema::create('bread_page_posts', function (Blueprint $table) {
         $table->id();
@@ -305,6 +314,116 @@ test('clearing a field the database refuses to null keeps the stored value on ed
     // The update must be refused outright, not applied with a NULL that the
     // driver would have thrown on.
     expect($record->fresh()->image)->toBe('uploads/original.png');
+
+    File::deleteDirectory($path);
+});
+
+dataset('bread field type controls', [
+    'text' => ['text', '/<input type="text" wire:model="form\.f_field"/'],
+    'number' => ['number', '/<input type="number" wire:model="form\.f_field"/'],
+    'select' => ['select', '/<select wire:model="form\.f_field"/'],
+    'toggle' => ['toggle', '/<input type="checkbox" wire:model="form\.f_field"/'],
+    'date' => ['date', '/<input type="date" wire:model="form\.f_field"/'],
+    'datetime' => ['datetime', '/<input type="datetime-local" wire:model="form\.f_field"/'],
+    'time' => ['time', '/<input type="time" wire:model="form\.f_field"/'],
+    'textarea' => ['textarea', '/<textarea wire:model="form\.f_field" class="textarea w-full" rows="4"/'],
+    'password' => ['password', '/<input type="password" wire:model="form\.f_field"/'],
+    'file' => ['file', '/<input type="file" wire:model="form\.f_field"/'],
+    'checkbox' => ['checkbox', '/<input type="checkbox" wire:model="form\.f_field"/'],
+    'radio' => ['radio', '/<input type="radio" wire:model="form\.f_field"/'],
+    'slider' => ['slider', '/<input type="range" wire:model="form\.f_field"/'],
+    'slug' => ['slug', '/<input type="text" wire:model="form\.f_field" class="input"/'],
+    'tags' => ['tags', '/<input type="text" wire:model="form\.f_field" class="input w-full" placeholder="Comma separated"/'],
+    'markdown' => ['markdown', '/<textarea wire:model="form\.f_field" class="textarea w-full" rows="10"/'],
+    'code_editor' => ['code_editor', '/<textarea wire:model="form\.f_field" class="textarea w-full" rows="10"/'],
+    'belongs_to_many' => ['belongs_to_many', '/type="search"[^>]*relationSearch\.f_field/'],
+    'has_many' => ['has_many', '/Related items will be managed here\./'],
+]);
+
+test('each field type renders its own control on the create and edit forms', function (string $type, string $pattern) {
+    $path = sys_get_temp_dir().'/tardis-bread-types-'.uniqid();
+    app()->instance(JsonBreadSource::class, new JsonBreadSource($path));
+
+    Schema::create('bread_page_posts_types', function (Blueprint $table) {
+        $table->id();
+        $table->string('f_field')->nullable();
+        $table->timestamps();
+    });
+
+    $record = BreadPageTypesTestModel::create(['f_field' => 'seed']);
+
+    (new JsonBreadSource($path))->save([
+        'slug' => 'posts',
+        'model' => BreadPageTypesTestModel::class,
+        'name' => 'Posts',
+        'fields' => [
+            [
+                'name' => 'f_field',
+                'type' => $type,
+                'label' => 'Field',
+                'add' => true,
+                'edit' => true,
+                'validation' => [],
+                'options' => ['a' => 'A', 'b' => 'B'],
+                'min' => 0,
+                'max' => 10,
+                'step' => 1,
+            ],
+        ],
+        'relationships' => [],
+    ]);
+
+    $create = Livewire::test('tardis::pages.bread.create', ['slug' => 'posts'])->html();
+    $edit = Livewire::test('tardis::pages.bread.edit', ['slug' => 'posts', 'id' => $record->id])->html();
+
+    // Tying the control to this field's own wire:model keeps a shared marker
+    // (type="checkbox" is used by toggle, checkbox and belongs_to_many) from
+    // letting one branch stand in for another.
+    foreach (['create' => $create, 'edit' => $edit] as $page => $html) {
+        expect($html, "type '{$type}' must render its own control on the {$page} form")
+            ->toMatch($pattern);
+    }
+
+    File::deleteDirectory($path);
+})->with('bread field type controls');
+
+test('the edit form stores a replacement upload and persists its path', function () {
+    Storage::fake('public');
+
+    $path = sys_get_temp_dir().'/tardis-bread-edit-file-'.uniqid();
+    app()->instance(JsonBreadSource::class, new JsonBreadSource($path));
+
+    Schema::create('bread_page_posts_edit', function (Blueprint $table) {
+        $table->id();
+        $table->string('title')->nullable();
+        $table->string('image')->nullable();
+        $table->timestamps();
+    });
+
+    $record = BreadPageEditTestModel::create(['title' => 'Replace me', 'image' => 'uploads/old.png']);
+
+    (new JsonBreadSource($path))->save([
+        'slug' => 'posts',
+        'model' => BreadPageEditTestModel::class,
+        'name' => 'Posts',
+        'fields' => [
+            ['name' => 'title', 'type' => 'text', 'label' => 'Title', 'edit' => true, 'validation' => []],
+            ['name' => 'image', 'type' => 'file', 'label' => 'Image', 'edit' => true, 'validation' => []],
+        ],
+        'relationships' => [],
+    ]);
+
+    Livewire::test('tardis::pages.bread.edit', ['slug' => 'posts', 'id' => $record->id])
+        ->set('form.image', UploadedFile::fake()->image('replacement.png'))
+        ->call('save')
+        ->assertHasNoErrors();
+
+    $stored = $record->fresh()->image;
+
+    // The edit path must go through the same FileField::transform() as create,
+    // otherwise the UploadedFile object itself would land in the column.
+    expect($stored)->toBeString()->toStartWith('uploads/')->not->toBe('uploads/old.png');
+    Storage::disk('public')->assertExists($stored);
 
     File::deleteDirectory($path);
 });
