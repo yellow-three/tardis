@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Tardis\Manager;
 
 use Illuminate\Support\Collection;
+use Tardis\Bread\BreadDefinition;
+use Tardis\Bread\BreadManager;
 use Tardis\Classes\MenuItem;
 use Tardis\Classes\UserMenuItem;
 use Tardis\Contracts\Plugins\Features\Filter\FilterMenuItems;
@@ -81,7 +83,7 @@ class MenuManager
             (new MenuItem('BREAD', 'heroicon-o-table-cells'))
                 ->route('tardis.bread.manage')
                 ->section('Management')
-                ->activeMode('prefix')
+                ->activeMode('exact')
                 ->order(50),
             MenuItem::makeDivider(),
             (new MenuItem('Permissions', 'heroicon-o-lock-closed'))
@@ -93,6 +95,9 @@ class MenuManager
                 ->section('Access')
                 ->order(70),
         );
+
+        // Register a sidebar entry for every BREAD definition
+        $this->addItems(...$this->breadMenuItems());
 
         // Register default user menu items
         $this->addItems(
@@ -119,6 +124,49 @@ class MenuManager
 
         // Apply menu filters
         $this->applyFilters($plugins);
+    }
+
+    /**
+     * Build a sidebar menu item for every BREAD definition.
+     *
+     * Each item points at the resource's list screen
+     * (`tardis.bread.index` with the definition's slug), and stays active
+     * across that resource's own create/read/edit routes.
+     *
+     * @return array<int, MenuItem>
+     */
+    protected function breadMenuItems(): array
+    {
+        return app(BreadManager::class)
+            ->all()
+            ->map(fn (BreadDefinition $bread) => (new MenuItem($bread->namePlural, $this->breadMenuIcon($bread->icon)))
+                ->route('tardis.bread.index', ['slug' => $bread->slug])
+                ->section('BREAD')
+                ->activeMode('prefix')
+                ->order(100))
+            ->values()
+            ->all();
+    }
+
+    /**
+     * BREAD definitions store a short icon name (e.g. "link"), but the menu
+     * partial renders icons as Blade components, so the heroicon prefix has to
+     * be added to keep them resolvable.
+     */
+    protected function breadMenuIcon(?string $icon): string
+    {
+        $icon = trim((string) $icon);
+
+        if ($icon === '') {
+            return 'heroicon-o-table-cells';
+        }
+
+        // Already a fully qualified Blade component.
+        if (str_starts_with($icon, 'heroicon') || str_contains($icon, ':')) {
+            return $icon;
+        }
+
+        return 'heroicon-o-'.$icon;
     }
 
     /**

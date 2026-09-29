@@ -171,14 +171,14 @@ class MenuItem
             if ($this->activeMode === 'prefix') {
                 $prefixRoute = $this->getParentRoute();
 
-                if ($prefixRoute && request()->routeIs($prefixRoute.'.*')) {
+                if ($prefixRoute && request()->routeIs($prefixRoute.'.*') && $this->routeParamsMatch()) {
                     return true;
                 }
 
-                return request()->routeIs($this->routeName.'*');
+                return request()->routeIs($this->routeName.'*') && $this->routeParamsMatch();
             }
 
-            return request()->routeIs($this->routeName);
+            return request()->routeIs($this->routeName) && $this->routeParamsMatch();
         }
 
         if ($this->url && $this->url !== '#') {
@@ -240,6 +240,35 @@ class MenuItem
         }
 
         return $this->routeName;
+    }
+
+    /**
+     * Check whether the current request's route parameters match this item's
+     * route parameters.
+     *
+     * Menu items can share a route name and differ only by a parameter — every
+     * BREAD resource uses `tardis.bread.index` with its own `{slug}` — so the
+     * route name on its own cannot tell them apart.
+     */
+    protected function routeParamsMatch(): bool
+    {
+        if ($this->routeParams === []) {
+            return true;
+        }
+
+        $route = request()->route();
+
+        if ($route === null) {
+            return false;
+        }
+
+        foreach ($this->routeParams as $key => $value) {
+            if ((string) $route->parameter($key) !== (string) $value) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     protected function resolveAuthorization(?PluginManager $plugins = null): mixed
