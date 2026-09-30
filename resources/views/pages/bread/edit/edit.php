@@ -1,12 +1,12 @@
 <?php
 
-use Illuminate\Http\UploadedFile;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 use Tardis\Auth\BreadAuthorization;
 use Tardis\Bread\BreadManager;
+use Tardis\Bread\FieldValidationRules;
 use Tardis\Classes\Translation;
 use Tardis\Formfields\Types\BelongsToManyField;
 use Tardis\Manager\FormfieldManager;
@@ -130,32 +130,7 @@ new #[Title('Edit')] #[Layout('tardis::layouts.admin')] class extends Component
 
     protected function validationRules(): array
     {
-        $rules = [];
-
-        foreach ($this->fields as $field) {
-            $name = $field['name'] ?? null;
-
-            if (! $name) {
-                continue;
-            }
-
-            $fieldRules = $field['validation'] ?? [];
-            $rules['form.'.$name] = in_array('required', $fieldRules, true) ? 'required' : 'nullable';
-
-            if (($field['type'] ?? null) === 'file' && ($this->form[$name] ?? null) instanceof UploadedFile) {
-                $rules['form.'.$name] .= '|file';
-
-                if (! empty($field['mimes'])) {
-                    $rules['form.'.$name] .= '|mimes:'.implode(',', (array) $field['mimes']);
-                }
-
-                if (! empty($field['max_size'])) {
-                    $rules['form.'.$name] .= '|max:'.(int) $field['max_size'];
-                }
-            }
-        }
-
-        return $rules;
+        return FieldValidationRules::for($this->fields, $this->form);
     }
 
     /**
