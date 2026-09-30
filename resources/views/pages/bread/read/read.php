@@ -3,6 +3,7 @@
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
+use Tardis\Auth\BreadAuthorization;
 use Tardis\Bread\BreadManager;
 
 new #[Title('View')] #[Layout('tardis::layouts.admin')] class extends Component
@@ -26,6 +27,9 @@ new #[Title('View')] #[Layout('tardis::layouts.admin')] class extends Component
         }
 
         $this->bread = $definition->toArray();
+
+        app(BreadAuthorization::class)->authorize('read', $this->slug);
+
         $modelClass = $this->bread['model'] ?? null;
 
         if (! $modelClass || ! class_exists($modelClass)) {

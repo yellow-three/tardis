@@ -5,6 +5,7 @@ use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
 use Livewire\WithFileUploads;
+use Tardis\Auth\BreadAuthorization;
 use Tardis\Bread\BreadManager;
 use Tardis\Classes\Translation;
 use Tardis\Formfields\Types\BelongsToManyField;
@@ -44,6 +45,8 @@ new #[Title('Edit')] #[Layout('tardis::layouts.admin')] class extends Component
         if (! $modelClass || ! class_exists($modelClass)) {
             abort(404);
         }
+
+        app(BreadAuthorization::class)->authorize('edit', $this->slug);
 
         $record = $modelClass::findOrFail($id);
         $this->record = $record->toArray();

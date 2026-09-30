@@ -42,6 +42,12 @@ class TardisServiceProvider extends ServiceProvider
 
         $this->app->singleton(AssetManager::class);
 
+        // Plugin registrations must outlive the registration call: the manager
+        // is resolved again by every consumer (AdminMiddleware, MenuItem,
+        // BreadAuthorization), and a fresh instance each time would hand them
+        // an empty registry and silently disable every plugin.
+        $this->app->singleton(PluginManager::class);
+
         $this->app->singleton(ThemeManager::class, function ($app) {
             $manager = new ThemeManager;
 

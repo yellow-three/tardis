@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
+use Tardis\Auth\BreadAuthorization;
 use Tardis\Bread\BreadManager;
 use Tardis\Events\BreadDeleted;
 
@@ -29,6 +30,8 @@ new #[Title('BREAD')] #[Layout('tardis::layouts.admin')] class extends Component
         }
 
         $this->bread = $definition->toArray();
+
+        app(BreadAuthorization::class)->authorize('browse', $this->slug);
     }
 
     public function getRowsProperty()
@@ -95,6 +98,8 @@ new #[Title('BREAD')] #[Layout('tardis::layouts.admin')] class extends Component
 
     public function delete(int|string $id): void
     {
+        app(BreadAuthorization::class)->authorize('delete', $this->slug);
+
         $model = $this->bread['model'] ?? null;
 
         if (! $model || ! class_exists($model)) {

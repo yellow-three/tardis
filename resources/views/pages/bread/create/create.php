@@ -5,6 +5,7 @@ use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
 use Livewire\WithFileUploads;
+use Tardis\Auth\BreadAuthorization;
 use Tardis\Bread\BreadManager;
 use Tardis\Classes\Translation;
 use Tardis\Formfields\Types\BelongsToManyField;
@@ -34,6 +35,8 @@ new #[Title('Create')] #[Layout('tardis::layouts.admin')] class extends Componen
         }
 
         $this->bread = $definition->toArray();
+
+        app(BreadAuthorization::class)->authorize('add', $this->slug);
 
         $this->initTranslatableFields();
         $this->initRelationSearch();

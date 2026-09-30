@@ -60,6 +60,23 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Authorization Settings
+    |--------------------------------------------------------------------------
+    |
+    | BREAD pages ("{action} {slug}" abilities, e.g. "browse posts") are
+    | checked against the enabled AuthorizationPlugin. TardisAuthorizationPlugin
+    | reads the tardis_roles / tardis_permission_role / tardis_permissions
+    | tables, so roles you assign on the Roles page are what grant access.
+    |
+    | The roles listed below bypass every ability check.
+    |
+    */
+    'authorization' => [
+        'super_admin_roles' => ['super-admin'],
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Activity Log Settings
     |--------------------------------------------------------------------------
     */

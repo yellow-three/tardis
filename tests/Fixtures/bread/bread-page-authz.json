@@ -1,0 +1,32 @@
+{
+    "slug": "bread-page-authz",
+    "model": "BreadAuthzTestModel",
+    "name": "Authz Post",
+    "name_plural": "Authz Posts",
+    "fields": [
+        {
+            "name": "title",
+            "type": "text",
+            "label": "Title",
+            "browse": true,
+            "read": true,
+            "edit": true,
+            "add": true,
+            "validation": [
+                "required"
+            ]
+        },
+        {
+            "name": "content",
+            "type": "text",
+            "label": "Content",
+            "browse": true,
+            "read": true,
+            "edit": true,
+            "add": true,
+            "validation": [
+                "nullable"
+            ]
+        }
+    ]
+}
