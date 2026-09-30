@@ -1,5 +1,6 @@
 <?php
 
+use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
@@ -226,11 +227,17 @@ new #[Title('Edit')] #[Layout('tardis::layouts.admin')] class extends Component
                 return;
             }
 
-            $record->update($data);
+            // The columns are written before the relations, so a relation that
+            // dies mid-loop would otherwise leave the update committed with only
+            // part of the relation set applied. Only the database writes are
+            // wrapped: uploads were already moved to disk during transform().
+            DB::transaction(function () use ($record, $data, $relations) {
+                $record->update($data);
 
-            foreach ($relations as [$field, $value]) {
-                $field->updated($value, $record);
-            }
+                foreach ($relations as [$field, $value]) {
+                    $field->updated($value, $record);
+                }
+            });
         }
 
         session()->flash('message', 'Item updated successfully.');

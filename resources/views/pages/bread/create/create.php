@@ -1,5 +1,6 @@
 <?php
 
+use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
@@ -208,11 +209,19 @@ new #[Title('Create')] #[Layout('tardis::layouts.admin')] class extends Componen
             return;
         }
 
-        $model = $modelClass::create($data);
+        // The parent row is inserted before the relations are written, so a
+        // relation that dies mid-loop (a pivot wired to a schema it cannot
+        // satisfy, a second relation throwing after the first already synced)
+        // would otherwise leave a committed record carrying half its relations
+        // and no indication that the create failed. Only the database writes
+        // are wrapped: uploads were already moved to disk during transform().
+        DB::transaction(function () use ($modelClass, $data, $relations) {
+            $model = $modelClass::create($data);
 
-        foreach ($relations as [$field, $value]) {
-            $field->stored($value, $model);
-        }
+            foreach ($relations as [$field, $value]) {
+                $field->stored($value, $model);
+            }
+        });
 
         session()->flash('message', 'Item created successfully.');
         $this->redirect(url(trim(config('tardis.admin.prefix', 'admin'), '/').'/'.$this->slug));
