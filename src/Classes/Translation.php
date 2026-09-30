@@ -28,23 +28,37 @@ class Translation
     }
 
     /**
-     * Normalize any stored representation (locale-keyed array or JSON string)
-     * into a locale-keyed map with every resolved locale present.
+     * Normalize any stored representation (locale-keyed array, JSON string, or
+     * plain value) into a locale-keyed map with every resolved locale present.
      */
     public static function normalize(mixed $value, ?array $locales = null): array
     {
+        $locales = self::locales($locales);
+
         if (is_string($value)) {
             $decoded = json_decode($value, true);
-            $value = is_array($decoded) ? $decoded : [];
+
+            // Only an object or array decodes to a locale map. A plain value
+            // stored as text is kept as-is: treating it as broken JSON is what
+            // silently emptied a translatable field on the edit page, and
+            // "123" is the sharper case, since json_decode turns that into an
+            // int rather than failing.
+            $value = is_array($decoded) ? $decoded : $value;
+        }
+
+        // A plain scalar is the translation for the locale the field is being
+        // edited in, rather than a value to discard.
+        if (is_string($value) || is_int($value) || is_float($value)) {
+            return [$locales[0] => (string) $value] + array_fill_keys($locales, '');
         }
 
         if (! is_array($value)) {
-            $value = [];
+            return array_fill_keys($locales, '');
         }
 
         $normalized = [];
 
-        foreach (self::locales($locales) as $locale) {
+        foreach ($locales as $locale) {
             $normalized[$locale] = (string) ($value[$locale] ?? '');
         }
 
