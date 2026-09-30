@@ -7,6 +7,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class Permission extends Model
 {
+    protected $table = 'tardis_permissions';
+
     protected $fillable = ['name', 'slug', 'group'];
 
     public function roles(): BelongsToMany
