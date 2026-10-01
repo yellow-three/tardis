@@ -52,6 +52,44 @@ class AssetManager
     }
 
     /**
+     * Themes a visitor may pick, as declared by the themes manifest.
+     *
+     * Resolved from disk in production, and — when the Vite dev server is
+     * running — from the server first with the package copy as fallback, since
+     * the dev server may be unreachable from inside Docker / Lerd.
+     *
+     * Returns an empty list when no manifest is readable so callers degrade to
+     * the built-in theme-name defaults rather than failing.
+     *
+     * @return list<array<string, mixed>>
+     */
+    public static function availableThemes(): array
+    {
+        if (file_exists(self::packageHotPath())) {
+            $devUrl = rtrim((string) file_get_contents(self::packageHotPath()), '/');
+            $json = @file_get_contents($devUrl.'/tardis-assets/themes-manifest.json');
+
+            if ($json === false) {
+                $json = @file_get_contents(self::packageManifestPath());
+            }
+        } else {
+            $json = @file_get_contents(public_path('tardis-assets/themes-manifest.json'));
+        }
+
+        if ($json === false) {
+            return [];
+        }
+
+        $decoded = json_decode($json, true);
+
+        if (! is_array($decoded) || ! is_array($decoded['themes'] ?? null)) {
+            return [];
+        }
+
+        return array_values(array_filter($decoded['themes'], 'is_array'));
+    }
+
+    /**
      * Short content hash appended to the published CSS URL as `?v=` so that
      * republishing the bundle busts browser and CDN caches. Vite emits a fixed
      * filename (assets/[name][extname]), so the URL is otherwise identical

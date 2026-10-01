@@ -260,3 +260,134 @@ test('dev mode CSS URL is never given a content hash', function () {
         @unlink($hotPath);
     }
 });
+
+/**
+ * availableThemes() backs the blocking theme script, which cannot degrade to a
+ * warning or an exception: it runs inside <head> before first paint, so any
+ * failure there breaks every page. These tests pin the three resolution paths.
+ */
+test('availableThemes returns an empty list when no manifest is readable', function () {
+    @unlink(AssetManager::packageHotPath());
+
+    $prodPath = public_path('tardis-assets/themes-manifest.json');
+    $existed = is_file($prodPath);
+    $original = $existed ? file_get_contents($prodPath) : null;
+
+    if ($existed) {
+        @unlink($prodPath);
+    }
+
+    try {
+        expect(AssetManager::availableThemes())->toBe([]);
+    } finally {
+        if ($existed) {
+            file_put_contents($prodPath, $original);
+        }
+    }
+});
+
+test('availableThemes reads the published manifest', function () {
+    @unlink(AssetManager::packageHotPath());
+
+    $prodPath = public_path('tardis-assets/themes-manifest.json');
+    $dir = dirname($prodPath);
+    $createdDir = ! is_dir($dir);
+
+    if ($createdDir) {
+        mkdir($dir, 0755, true);
+    }
+
+    $existed = is_file($prodPath);
+    $original = $existed ? file_get_contents($prodPath) : null;
+
+    $themes = [
+        ['name' => 'winter', 'colorScheme' => 'light'],
+        ['name' => 'dark', 'colorScheme' => 'dark'],
+    ];
+
+    file_put_contents($prodPath, json_encode(['themes' => $themes]));
+
+    try {
+        expect(AssetManager::availableThemes())->toBe($themes);
+    } finally {
+        if ($existed) {
+            file_put_contents($prodPath, $original);
+        } else {
+            @unlink($prodPath);
+        }
+
+        if ($createdDir) {
+            @rmdir($dir);
+        }
+    }
+});
+
+test('availableThemes drops malformed theme entries instead of emitting them', function () {
+    @unlink(AssetManager::packageHotPath());
+
+    $prodPath = public_path('tardis-assets/themes-manifest.json');
+    $dir = dirname($prodPath);
+    $createdDir = ! is_dir($dir);
+
+    if ($createdDir) {
+        mkdir($dir, 0755, true);
+    }
+
+    $existed = is_file($prodPath);
+    $original = $existed ? file_get_contents($prodPath) : null;
+
+    // A hand-edited manifest can contain scalars or nulls where theme objects are
+    // expected. `pick()` reads .colorScheme off each entry, so a stray scalar would
+    // throw inside the blocking script and take the whole page's styling with it.
+    file_put_contents($prodPath, json_encode([
+        'themes' => ['not-an-object', null, ['name' => 'dark', 'colorScheme' => 'dark']],
+    ]));
+
+    try {
+        expect(AssetManager::availableThemes())->toBe([['name' => 'dark', 'colorScheme' => 'dark']]);
+    } finally {
+        if ($existed) {
+            file_put_contents($prodPath, $original);
+        } else {
+            @unlink($prodPath);
+        }
+
+        if ($createdDir) {
+            @rmdir($dir);
+        }
+    }
+});
+
+test('availableThemes falls back to the package manifest when the dev server is unreachable', function () {
+    $hotPath = AssetManager::packageHotPath();
+    $hotDir = dirname($hotPath);
+
+    if (! is_dir($hotDir)) {
+        mkdir($hotDir, 0755, true);
+    }
+
+    // Loopback discard port: nothing listens there, so the dev-server read fails
+    // immediately and the package copy must take over. The Vite server is often
+    // unreachable from inside Docker / Lerd even when the hot file exists.
+    file_put_contents($hotPath, 'http://127.0.0.1:9');
+
+    $packageManifest = AssetManager::packageManifestPath();
+    $packageExisted = is_file($packageManifest);
+    $packageOriginal = $packageExisted ? file_get_contents($packageManifest) : null;
+
+    $themes = [['name' => 'package-light', 'colorScheme' => 'light']];
+
+    try {
+        file_put_contents($packageManifest, json_encode(['themes' => $themes]));
+
+        expect(AssetManager::availableThemes())->toBe($themes);
+    } finally {
+        if ($packageExisted) {
+            file_put_contents($packageManifest, $packageOriginal);
+        } else {
+            @unlink($packageManifest);
+        }
+
+        @unlink($hotPath);
+    }
+});

@@ -3,28 +3,45 @@
 declare(strict_types=1);
 
 /**
- * Guard for the theme FOUC fix in resources/views/layouts/admin.blade.php.
+ * Guard for the theme FOUC fix shared by the admin and auth layouts.
  *
- * The fix is a blocking <script> in <head> that resolves the stored theme and
- * writes data-theme before the first paint. Alpine boots only after the
- * stylesheet loads, so without it the static data-theme="dark" on <html> paints
- * first and light-theme users see a dark flash on every full page load.
+ * A blocking <script> in <head> resolves the stored theme and writes data-theme
+ * before the first paint. Alpine boots only after the stylesheet loads, so
+ * without it the static data-theme="dark" on <html> paints first and light-theme
+ * users see a dark flash on every full page load.
  *
- * Two things silently reintroduce that flash, so both are pinned here:
+ * That logic lives in exactly one place — <x-tardis::theme-boot /> — because the
+ * head script and the Alpine store must always resolve the same theme. Every
+ * failure mode below is silent, so each one is pinned:
  *
- *  - the blocking script drifting to after @tardisStyles — it stops blocking,
- *    the browser paints with the static attribute first, and the fix silently
- *    becomes a no-op while still looking correct in the template;
+ *  - a layout placing the component after @tardisStyles: it stops blocking, the
+ *    browser paints with the static attribute first, and the fix silently becomes
+ *    a no-op while still looking correct in the template;
  *
- *  - the blocking script and the Alpine store disagreeing on localStorage keys —
- *    the head script resolves one theme, the store resolves another on boot and
- *    overwrites it, producing a flash plus a wrong-theme frame.
+ *  - the component and the Alpine store disagreeing on localStorage keys: the head
+ *    script resolves one theme, the store resolves another on boot and overwrites
+ *    it, producing a flash plus a wrong-theme frame;
  *
- * These are template-source assertions rather than HTTP assertions because the
- * invariant is a *position within the template*: Livewire::test()->html()
- * renders the component only and never emits the layout.
+ *  - a layout quietly dropping the component: that page renders with the hardcoded
+ *    theme regardless of the visitor's choice. That is precisely how the auth
+ *    layout behaved before it adopted the component.
+ *
+ * Most of these are template-source assertions because the invariant is a
+ * *position within the template*: Livewire::test()->html() renders the component
+ * only and never emits the layout. The one behavioural test below renders the
+ * component for real, since no source assertion can catch a Blade typo or a
+ * missing PHP symbol — those would surface as a 500 inside <head>, on every page.
  */
+
+use Illuminate\Support\Facades\Blade;
+use Tardis\Manager\AssetManager;
+
 const TARDIS_ADMIN_LAYOUT = __DIR__.'/../../resources/views/layouts/admin.blade.php';
+const TARDIS_AUTH_LAYOUT = __DIR__.'/../../resources/views/layouts/auth.blade.php';
+const TARDIS_THEME_BOOT = __DIR__.'/../../resources/views/components/theme-boot.blade.php';
+
+/** Every layout that must apply the visitor's stored theme before first paint. */
+const TARDIS_LAYOUT_NAMES = ['admin', 'auth'];
 
 /** The line that writes the theme; its presence marks the blocking script. */
 const TARDIS_THEME_APPLY = "document.documentElement.setAttribute('data-theme', applied)";
@@ -32,85 +49,106 @@ const TARDIS_THEME_APPLY = "document.documentElement.setAttribute('data-theme', 
 /** Where the Alpine store begins. */
 const TARDIS_THEME_STORE = "Alpine.store('theme'";
 
-function tardisLayout(): string
+/** The shared component both layouts delegate to. */
+const TARDIS_BOOT_INCLUDE = '<x-tardis::theme-boot />';
+
+function tardisLayout(string $name = 'admin'): string
 {
-    $layout = file_get_contents(TARDIS_ADMIN_LAYOUT);
+    $paths = [
+        'admin' => TARDIS_ADMIN_LAYOUT,
+        'auth' => TARDIS_AUTH_LAYOUT,
+    ];
 
-    expect($layout)->toBeString();
-
-    return $layout;
+    return tardisSource($paths[$name]);
 }
 
-test('the blocking theme script runs before the stylesheets are linked', function (): void {
-    $layout = tardisLayout();
+function tardisSource(string $path): string
+{
+    $source = file_get_contents($path);
 
-    $apply = strpos($layout, TARDIS_THEME_APPLY);
-    $styles = strpos($layout, '@tardisStyles');
-    $livewireStyles = strpos($layout, '@livewireStyles');
+    expect($source)->toBeString();
 
-    expect($apply)->not->toBeFalse('blocking theme script is missing from the admin layout');
-    expect($styles)->not->toBeFalse('@tardisStyles is missing from the admin layout');
+    return $source;
+}
 
-    // Ordering is the whole point: a script placed after the stylesheet link is
-    // no longer blocking and the flash returns.
-    expect($apply)
-        ->toBeLessThan($styles, 'the blocking theme script must precede @tardisStyles or it no longer blocks paint')
-        ->toBeLessThan($livewireStyles, 'the blocking theme script must precede @livewireStyles');
+test('each layout applies the stored theme before the stylesheets are linked', function (string $layout): void {
+    $source = tardisLayout($layout);
+
+    $boot = strpos($source, TARDIS_BOOT_INCLUDE);
+    $styles = strpos($source, '@tardisStyles');
+    $livewireStyles = strpos($source, '@livewireStyles');
+
+    expect($boot)->not->toBeFalse("the theme-boot component is missing from the {$layout} layout");
+    expect($styles)->not->toBeFalse("@tardisStyles is missing from the {$layout} layout");
+    expect($livewireStyles)->not->toBeFalse("@livewireStyles is missing from the {$layout} layout");
+
+    // Ordering is the whole point: a component placed after the stylesheet link
+    // is no longer blocking and the flash returns.
+    expect($boot)
+        ->toBeLessThan($styles, "the theme-boot component must precede @tardisStyles in {$layout} or it no longer blocks paint")
+        ->toBeLessThan($livewireStyles, "the theme-boot component must precede @livewireStyles in {$layout}");
+})->with(TARDIS_LAYOUT_NAMES);
+
+test('the boot component renders the manifest and the apply call', function (): void {
+    // Rendered for real: a source assertion still passes when the component has a
+    // Blade typo or calls a symbol that does not exist, and that fails as a 500
+    // inside <head> on every page load.
+    @unlink(AssetManager::packageHotPath());
+
+    $html = Blade::render(TARDIS_BOOT_INCLUDE);
+
+    expect($html)
+        ->toContain('window.__TARDIS_THEMES__ =')
+        ->toContain(TARDIS_THEME_APPLY);
 });
 
-test('the theme manifest is resolved in head so the blocking script can read it', function (): void {
-    $layout = tardisLayout();
+test('the boot component emits the manifest before the script that reads it', function (): void {
+    $component = tardisSource(TARDIS_THEME_BOOT);
 
-    $manifest = strpos($layout, 'window.__TARDIS_THEMES__ =');
-    $headClose = strpos($layout, '</head>');
-    $apply = strpos($layout, TARDIS_THEME_APPLY);
+    $manifest = strpos($component, 'window.__TARDIS_THEMES__ =');
+    $apply = strpos($component, TARDIS_THEME_APPLY);
 
-    expect($manifest)->not->toBeFalse('window.__TARDIS_THEMES__ assignment is missing');
-    expect($headClose)->not->toBeFalse('the admin layout has no closing </head>');
+    expect($manifest)->not->toBeFalse('the boot component does not publish the themes manifest');
+    expect($apply)->not->toBeFalse('the boot component never writes data-theme');
 
-    // The blocking script resolves light/dark theme *names* from the manifest.
-    // If the manifest were still emitted in the body the head script would read
-    // undefined and fall back to 'winter'/'dark', flashing for any package that
-    // ships differently-named themes.
+    // The script resolves the light/dark theme *names* from the manifest. Published
+    // the other way round it reads undefined and falls back to 'winter'/'dark',
+    // flashing for any package that ships differently-named themes.
     expect($manifest)
-        ->toBeLessThan($headClose, 'the theme manifest must be emitted before </head>')
-        ->toBeLessThan($apply, 'the blocking theme script must be able to read the manifest');
+        ->toBeLessThan($apply, 'the manifest must be published before the script that reads it');
 });
 
-test('the blocking script and the Alpine store share the same localStorage keys', function (): void {
-    $layout = tardisLayout();
+test('the boot component and the Alpine store share the same localStorage keys', function (): void {
+    $admin = tardisLayout('admin');
+    $component = tardisSource(TARDIS_THEME_BOOT);
 
-    $storeAt = strpos($layout, TARDIS_THEME_STORE);
+    $storeAt = strpos($admin, TARDIS_THEME_STORE);
     expect($storeAt)->not->toBeFalse('the Alpine theme store is missing from the admin layout');
 
-    // Head script: everything before @tardisStyles. Store: from Alpine.store on.
-    $headScript = substr($layout, 0, strpos($layout, '@tardisStyles'));
-    $store = substr($layout, $storeAt);
+    $store = substr($admin, $storeAt);
 
-    preg_match_all("/'tardis-theme-[a-z]+'/", $headScript, $headKeys);
+    preg_match_all("/'tardis-theme-[a-z]+'/", $component, $componentKeys);
     preg_match_all("/'tardis-theme-[a-z]+'/", $store, $storeKeys);
 
-    $head = array_values(array_unique($headKeys[0]));
+    $bootUnique = array_values(array_unique($componentKeys[0]));
     $storeUnique = array_values(array_unique($storeKeys[0]));
 
-    expect($head)->not->toBe([], 'no localStorage theme keys found in the blocking script');
-    expect($head)->toBe($storeUnique);
+    expect($bootUnique)->not->toBe([], 'no localStorage theme keys found in the boot component');
+    expect($bootUnique)->toBe($storeUnique);
 });
 
-test('the blocking script resolves system mode through matchMedia', function (): void {
-    $headScript = substr(tardisLayout(), 0, strpos(tardisLayout(), '@tardisStyles'));
-
-    expect($headScript)
+test('the boot component resolves system mode through matchMedia', function (): void {
+    expect(tardisSource(TARDIS_THEME_BOOT))
         ->toContain("'system'")
         ->toContain('(prefers-color-scheme: dark)');
 });
 
-test('the static data-theme fallback stays for the no-JS path', function (): void {
-    // The blocking script is an enhancement, not the only source of the
-    // attribute: without JS the html element still needs a valid theme.
+test('the static data-theme fallback stays in every layout for the no-JS path', function (string $layout): void {
+    // The blocking script is an enhancement, not the only source of the attribute:
+    // without JS the html element still needs a valid theme.
     // Note: `[^\n]*` rather than `[^>]*` — the lang attribute interpolates
     // app()->getLocale(), whose -> contains a `>` that would end a tag-scoped
     // character class early.
-    expect(tardisLayout())
+    expect(tardisLayout($layout))
         ->toMatch('/<html[^\n]*\sdata-theme="dark"/');
-});
+})->with(TARDIS_LAYOUT_NAMES);

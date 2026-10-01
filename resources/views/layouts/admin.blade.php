@@ -7,65 +7,7 @@
 
     <title>{{ ($title ?? 'TARDIS Admin') }} - TARDIS</title>
 
-    @php
-        $hotPath = \Tardis\Manager\AssetManager::packageHotPath();
-        $manifestThemes = [];
-
-        if (file_exists($hotPath)) {
-            // Dev mode — try Vite dev server, fallback to package disk
-            $viteUrl = rtrim((string) file_get_contents($hotPath), '/');
-            $manifestJson = @file_get_contents($viteUrl.'/tardis-assets/themes-manifest.json');
-            if ($manifestJson === false) {
-                $packageManifest = \Tardis\Manager\AssetManager::packageManifestPath();
-                if (file_exists($packageManifest)) {
-                    $manifestJson = file_get_contents($packageManifest);
-                }
-            }
-            if ($manifestJson !== false) {
-                $manifestData = json_decode($manifestJson, true);
-                $manifestThemes = $manifestData['themes'] ?? [];
-            }
-        } else {
-            // Production — read from disk
-            $manifestPath = public_path('tardis-assets/themes-manifest.json');
-            if (file_exists($manifestPath)) {
-                $manifestData = json_decode(file_get_contents($manifestPath), true);
-                $manifestThemes = $manifestData['themes'] ?? [];
-            }
-        }
-    @endphp
-
-    <script>
-        window.__TARDIS_THEMES__ = @json($manifestThemes);
-    </script>
-
-    {{-- Tema ilk paint'ten ÖNCE uygulanmalı. Alpine, stil sayfası yüklendikten
-         sonra başlar; store'un init()'i çalışana kadar <html> üzerindeki statik
-         data-theme="dark" geçerli kalır ve light temada koyu flash (FOUC) görünür.
-         Bu blocking script localStorage + manifest'ten çözer, paint öncesi set eder.
-         Anahtar adları store ile birebir aynı olmalı — iki taraf ayrışırsa FOUC geri gelir. --}}
-    <script>
-        (function () {
-            var themes = window.__TARDIS_THEMES__ || [];
-            var pick = function (scheme) {
-                var match = themes.find(function (t) { return t.colorScheme === scheme; });
-                return match ? match.name : null;
-            };
-
-            var mode  = localStorage.getItem('tardis-theme-mode')  || 'dark';
-            var light = localStorage.getItem('tardis-theme-light') || pick('light') || 'winter';
-            var dark  = localStorage.getItem('tardis-theme-dark')  || pick('dark')  || 'dark';
-
-            var applied;
-            if (mode === 'system') {
-                applied = window.matchMedia('(prefers-color-scheme: dark)').matches ? dark : light;
-            } else {
-                applied = mode === 'dark' ? dark : light;
-            }
-
-            document.documentElement.setAttribute('data-theme', applied);
-        })();
-    </script>
+    <x-tardis::theme-boot />
 
     @tardisStyles
     @livewireStyles

@@ -7,6 +7,8 @@
 
     <title>{{ $title ?? 'Login' }} - TARDIS</title>
 
+    <x-tardis::theme-boot />
+
     @tardisStyles
     @livewireStyles
 </head>
