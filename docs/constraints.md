@@ -21,11 +21,21 @@ Yeni bir alan tipi eklerken önce `FieldType`'a, sonra manager'a eklemek gerekiy
 
 ---
 
-## BREAD — Tanım kaynağı iki yollu, ikisi de destekleniyor
+## BREAD — Çalışma zamanı kaynağı JSON; `config/bread` legacy okuma yolu
 
-`JsonBreadSource` ve `ConfigBreadSource` birlikte yaşar. `ConfigBreadSource` bir dizinden, slug başına bir dosya okuyor **ve** tanım yazabiliyor (`write` metodu).
+`BreadManager` tek bir kaynağa bağlı: `JsonBreadSource` (`src/Bread/BreadManager.php:13`). Tanım okuyan tüm yüzeyler (`find`/`all`/`save`/`backups`/`rollback`) bu kaynağa gider, `config/bread/`'e dokunmaz.
 
-**Sonuç**: "BREAD tanımları JSON mı PHP config mi?" sorusunun tek bir cevabı yok — ikisi de geçerli. `config/bread/` dizini henüz oluşturulmadığı için pratikte tanımlar JSON'da yaşıyor; migration planı `docs/backlog.md`'de.
+`ConfigBreadSource` hâlâ kayıtlı ve yazabiliyor (`save()`, `src/Bread/Sources/ConfigBreadSource.php:74`), ama **okuyan hiçbir çalışma zamanı yolu yok**. Yalnızca şu üç yer tutuyor:
+
+| Kullanım | Yer | Yön |
+|---|---|---|
+| `tardis:make-bread` tanım üretir | `src/Commands/TardisMakeBreadCommand.php:48` | JSON yazar |
+| `tardis:bread:migrate` | `src/Commands/TardisBreadMigrateCommand.php:19` | config/bread → JSON ("legacy" diye adlandırılır) |
+| Yönetim ekranı uyarısı | `resources/views/pages/bread/manage/manage.php:19` | config/bread doluysa migrasyon uyarısı gösterir |
+
+**Sonuç**: Pratikte BREAD tanımları JSON'da yaşıyor ve `config/bread` tek yönlü bir **legacy** kaynaktır — içeriği JSON'a taşınır, tersi yazılmaz. İki kaynak aynı `FieldType::fromValue()` kapısından geçtiği için alan tipi doğrulaması her iki yolda da aynıdır.
+
+Bu yön `.omo/plans/bread-php-config.md` (Karar A) ile **çelişiyor**: plan config/bread'i tek kaynak ister, `BreadManager`'ın `ConfigBreadSource`'a bağlanmasını ister. Plan kısmen uygulanmış (`DatabaseBreadSource`, `JsonBreadRepository`, `DataType`/`DataRow` silinmiş), ardından ana hedef tersine çevrilmiş. Yön `.omo/plans/` göz ardı edilerek belirlenir; açık karar `docs/notes.md` → B7.
 
 ---
 
