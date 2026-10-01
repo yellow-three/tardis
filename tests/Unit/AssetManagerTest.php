@@ -148,3 +148,115 @@ test('ThemePlugin styles are included', function () {
     $html = $assetManager->styles();
     expect($html)->toContain('.theme-style{background:blue;}');
 });
+
+test('published CSS URL carries a content hash so redeploys bust the cache', function () {
+    @unlink(AssetManager::packageHotPath());
+
+    $cssPath = public_path('vendor/tardis/assets/app.css');
+    $dir = dirname($cssPath);
+    $createdDir = ! is_dir($dir);
+
+    if ($createdDir) {
+        mkdir($dir, 0755, true);
+    }
+
+    file_put_contents($cssPath, '.tardis-test{color:red}');
+
+    try {
+        $manager = new AssetManager(app());
+        $html = $manager->styles();
+
+        expect($html)->toContain('vendor/tardis/assets/app.css?v=');
+        expect($html)->toContain('?v='.substr(md5_file($cssPath), 0, 8));
+    } finally {
+        @unlink($cssPath);
+
+        if ($createdDir) {
+            @rmdir($dir);
+        }
+    }
+});
+
+test('CSS URL stays bare when the bundle was never published', function () {
+    @unlink(AssetManager::packageHotPath());
+
+    $cssPath = public_path('vendor/tardis/assets/app.css');
+    $existed = is_file($cssPath);
+    $original = $existed ? file_get_contents($cssPath) : null;
+
+    if ($existed) {
+        @unlink($cssPath);
+    }
+
+    try {
+        $manager = new AssetManager(app());
+        $html = $manager->styles();
+
+        expect($html)->toContain('vendor/tardis/assets/app.css');
+        expect($html)->not->toContain('?v=');
+    } finally {
+        if ($existed) {
+            file_put_contents($cssPath, $original);
+        }
+    }
+});
+
+test('CSS content hash changes when the published bundle changes', function () {
+    @unlink(AssetManager::packageHotPath());
+
+    $cssPath = public_path('vendor/tardis/assets/app.css');
+    $dir = dirname($cssPath);
+    $createdDir = ! is_dir($dir);
+
+    if ($createdDir) {
+        mkdir($dir, 0755, true);
+    }
+
+    $existed = is_file($cssPath);
+    $original = $existed ? file_get_contents($cssPath) : null;
+
+    try {
+        file_put_contents($cssPath, '.a{color:red}');
+        $firstHtml = (new AssetManager(app()))->styles();
+
+        file_put_contents($cssPath, '.b{color:blue}');
+        $secondHtml = (new AssetManager(app()))->styles();
+
+        preg_match('/app\.css\?v=([a-f0-9]+)/', $firstHtml, $first);
+        preg_match('/app\.css\?v=([a-f0-9]+)/', $secondHtml, $second);
+
+        expect($first[1] ?? null)->not->toBeNull();
+        expect($second[1] ?? null)->not->toBeNull();
+        expect($first[1])->not->toBe($second[1]);
+    } finally {
+        if ($existed) {
+            file_put_contents($cssPath, $original);
+        } else {
+            @unlink($cssPath);
+        }
+
+        if ($createdDir) {
+            @rmdir($dir);
+        }
+    }
+});
+
+test('dev mode CSS URL is never given a content hash', function () {
+    $hotPath = AssetManager::packageHotPath();
+    $hotDir = dirname($hotPath);
+
+    if (! is_dir($hotDir)) {
+        mkdir($hotDir, 0755, true);
+    }
+
+    file_put_contents($hotPath, 'http://localhost:5173');
+
+    try {
+        $html = (new AssetManager(app()))->styles();
+
+        expect($html)->toContain('http://localhost:5173/resources/css/app.css');
+        expect($html)->not->toContain('?v=');
+    } finally {
+        @unlink($hotPath);
+    }
+});

@@ -51,6 +51,30 @@ class AssetManager
         return dirname(__DIR__, 2).'/public/tardis-assets/themes-manifest.json';
     }
 
+    /**
+     * Short content hash appended to the published CSS URL as `?v=` so that
+     * republishing the bundle busts browser and CDN caches. Vite emits a fixed
+     * filename (assets/[name][extname]), so the URL is otherwise identical
+     * across deploys and stale CSS can survive indefinitely.
+     *
+     * Returns null when the bundle is missing or unreadable — e.g. the host app
+     * never ran `vendor:publish --tag=tardis-assets`. Callers then emit the bare
+     * URL, degrading to the previous behaviour rather than advertising a version
+     * that does not exist.
+     */
+    protected function publishedCssVersion(): ?string
+    {
+        $path = public_path('vendor/tardis/assets/app.css');
+
+        if (! is_file($path)) {
+            return null;
+        }
+
+        $hash = md5_file($path);
+
+        return $hash === false ? null : substr($hash, 0, 8);
+    }
+
     public function styles(): string
     {
         if ($this->stylesRendered) {
@@ -65,6 +89,14 @@ class AssetManager
             $cssUrl = $this->viteDevUrl().'/resources/css/app.css';
         } else {
             $cssUrl = asset('vendor/tardis/assets/app.css');
+
+            // Cache-bust only when the bundle is actually published, so a host
+            // without `vendor:publish --tag=tardis-assets` keeps a valid URL.
+            $version = $this->publishedCssVersion();
+
+            if ($version !== null) {
+                $cssUrl .= '?v='.$version;
+            }
         }
         $html .= '<link rel="stylesheet" href="'.$cssUrl.'">'.PHP_EOL;
 

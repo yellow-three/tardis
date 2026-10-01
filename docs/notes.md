@@ -25,6 +25,7 @@ Bu turdaki asıl yeni bulgu, `registerType()` API'sinin **fiilen erişilemez** o
 |---|-------|---------|
 | B2 | **`FormfieldManager::field()` ölü stub** — `[]` döndürüyor, üretimde çağrılmıyor. Public API yüzeyinde olduğu için sessizce silmek BC kırılması. | `src/Manager/FormfieldManager.php` |
 | B3 | **Kullanılmayan bağımlılık** — `require` içinde `spatie/laravel-permission: ^6.0` duruyor, native seeder sonrası `src/` kullanmıyor. Kaldırmak BC kararı (host bunu doğrudan kullanıyor olabilir). | `composer.json` |
+| B8 | **`ThemePlugin::getStyles()` zorunlu contract** — interface metodu `getStyles(): string`; tema plugin'i CSS üretmek istemese bile uygulamak zorunda. Tek üretim çağrısı `AssetManager.php:110` (inline `<style>` bloğu), testte de bir fake uyguluyor. Host'un kendi tema plugin'leri bu metodu uyguladığı için kaldırmak BC kırılması. Seçenekler: (a) dokümana yazılı kalır, kod değişmez; (b) dönüş tipi `?string` yapılır — mevcut `: string` uygulamalar sorunsuz karşılanır, plugin'ler CSS üretmekle yükümlü olmaktan çıkar, `AssetManager` null'ı atlar; (c) interface'ten tamamen çıkarılır ve inline `<style>` bloğu silinir (breaking). **R10(a) bu kararı bekliyor; R10(b) ayrı ve tamamlandı.** | `src/Contracts/Plugins/ThemePlugin.php`, `src/Manager/AssetManager.php:110` |
 
 ## Düşük (LOW) — bilinen, kod değişikliği zorunlu değil
 
