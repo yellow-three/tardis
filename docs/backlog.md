@@ -29,13 +29,13 @@ Son güncelleme: 2026-10-01. ID'ler `R` = roadmap sırası; `notes.md` bulgular�
 | ID | Öncelik | İş | Durum | Commit | Yönlendirme |
 |----|---------|----|-------|--------|-------------|
 | R8 | P1 | **Tema paint öncesi uygulanmıyor (FOUC).** `Alpine.store('theme')` → `Alpine.data('theme')` + `$persist`, ve paint öncesi blocking `<script>` ile `data-theme` set edilmeli. Doğrulandı: kod tabanında `Alpine.data('theme')` ve `$persist` **yok**. | ⏳ Açık | — | `.omo/plans/theme-fix-wire-navigate.md` |
-| R9 | P1 | **Voyager → Tardis özellik transferi.** BREAD audit turu bu planın parçası; 6 P0/P1 düzeltmesi landı. Kalan açık bulgular B1-B4. | 🔄 Devam ediyor | `e0d00ac`…`8bb20a3` | `docs/notes.md` + `.omo/plans/voyager-transfer.md` |
+| R9 | P1 | **Voyager → Tardis özellik transferi.** BREAD audit turu bu planın parçası; 6 P0/P1 düzeltmesi landı. Kalan açık bulgular B1-B5. | 🔄 Devam ediyor | `e0d00ac`…`8bb20a3` | `docs/notes.md` + `.omo/plans/voyager-transfer.md` |
 | R10 | P2 | **Asset iyileştirmeleri — kalan iki madde.** (a) `ThemePlugin::getStyles()` hâlâ var ve `AssetManager:78` kullanıyor; (b) content-hash ile otomatik versiyonlama `AssetManager`'da yok. | ⏳ Açık | — | `docs/constraints.md` → Tema sistemi |
 | R11 | P2 | **BREAD tanımlarını PHP config'e taşı.** Karar 2026-05-29'da verildi ("A — PHP config'e dön"). `ConfigBreadSource` yazma desteğiyle hazır, ama `config/bread/` dizini hiç oluşturulmadı — tanımlar hâlâ JSON. | ⏳ Açık | — | `docs/constraints.md` → Tanım kaynağı iki yollu |
 | R12 | P2 | **Voyager II kalan özellikler.** Plan survey sonrası revize edildi: kod tabanı ~%85 tamam, kalan %15. | ⏳ Açık (~%85) | — | `.omo/plans/voyager-ii-features.md` |
 | R13 | P2 | **Laravel Vite plugin entegrasyonu.** Plan hâlâ `status: draft`. | ⏳ Taslak | — | `.omo/plans/laravel-vite-plugin.md` |
 | R14 | P2 | **Graphify MCP'yi OpenCode'a bağla.** Doğrulandı: `~/.config/opencode/opencode.json` içinde `graphify` **yok**. Yalnızca araç/observability, ürün yüzeyi yok. | ⏳ Açık | — | `.omo/plans/graphify-mcp-setup.md` |
-| R15 | P1 | **BREAD açık bulguları (6 madde).** `registerType()` erişilemezliği, ölü `field()` stub, kullanılmayan Spatie bağımlılığı, untracked research çıktısı, `searchOptions()` filtresiz, fail-open authorization. | ⏳ Açık | — | `docs/notes.md` → B1-B6 |
+| R15 | P1 | **BREAD açık bulguları (5 madde).** `registerType()` erişilemezliği, ölü `field()` stub, kullanılmayan Spatie bağımlılığı, `searchOptions()` filtresiz, fail-open authorization. | ⏳ Açık | — | `docs/notes.md` → B1-B5 |
 
 ## Bağımlılık sırası notu
 

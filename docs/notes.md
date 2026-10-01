@@ -24,14 +24,13 @@ Bu turdaki asıl yeni bulgu, `registerType()` API'sinin **fiilen erişilemez** o
 |---|-------|---------|
 | B2 | **`FormfieldManager::field()` ölü stub** — `[]` döndürüyor, üretimde çağrılmıyor. Public API yüzeyinde olduğu için sessizce silmek BC kırılması. | `src/Manager/FormfieldManager.php` |
 | B3 | **Kullanılmayan bağımlılık** — `require` içinde `spatie/laravel-permission: ^6.0` duruyor, native seeder sonrası `src/` kullanmıyor. Kaldırmak BC kararı (host bunu doğrudan kullanıyor olabilir). | `composer.json` |
-| B4 | **Untracked research çıktısı** — aşağıdaki üç yol bilinçli bırakıldı. Risk: biri `git add research/` yaparsa yüzlerce VitePress build dosyası repoya girer. `.gitignore` kararı bekleniyor. | `docs/voyager-karsilastirma.md`, `research/voyager-1x-docs/`, `research/voyager-2x-docs/` |
 
 ## Düşük (LOW) — bilinen, kod değişikliği zorunlu değil
 
 | # | Bulgu | Kod ref |
 |---|-------|---------|
-| B5 | **`searchOptions()` filtresiz** — ilişki seçicide tüm kayıtlar listeleniyor. Yalnızca görüntüleme; yazma yolu güvenli. | `BelongsToManyField::searchOptions()` |
-| B6 | **Authorization plugin yoksa fail-open** — kasıtlı, `MenuItem::isVisible()` ile aynı davranış ve kodda belgeli. Değiştirilirse Menü ile tutarsızlaşır. | `src/Auth/BreadAuthorization.php` |
+| B4 | **`searchOptions()` filtresiz** — ilişki seçicide tüm kayıtlar listeleniyor. Yalnızca görüntüleme; yazma yolu güvenli. | `BelongsToManyField::searchOptions()` |
+| B5 | **Authorization plugin yoksa fail-open** — kasıtlı, `MenuItem::isVisible()` ile aynı davranış ve kodda belgeli. Değiştirilirse Menü ile tutarsızlaşır. | `src/Auth/BreadAuthorization.php` |
 
 *Çözülünce ilgili satır silinir.*
 

@@ -57,26 +57,33 @@ SELECT COUNT(*) AS tardis_roles FROM tardis_roles;
 
 ---
 
-## `research/` çıktısı gitignore değil — kazara commit riski
+## `research/` çıktısı gitignore edildi — kazara commit riski kapandı
 
-`.gitignore` yalnızca `/.omo` satırını içeriyor (satır 25, doğrulandı). `research/` **ignore edilmiyor** ve şu üç yol bilinçli olarak untracked bırakıldı:
+**Durum: uygulandı.** Başlangıçta `.gitignore` yalnızca `/.omo` satırını içeriyordu (satır 25) ve `research/` ignore edilmiyordu. Şu üç yol bilinçli olarak untracked bırakılmıştı:
 
-| Yol | İçerik | Risk |
-|---|---|---|
-| `research/voyager-1x-docs/` | Voyager 1.x doküman klonu + **VitePress build çıktısı** | Yüzlerce build dosyası |
-| `research/voyager-2x-docs/` | Voyager 2.x doküman klonu + **VitePress build çıktısı** | Yüzlerce build dosyası |
-| `docs/voyager-karsilastirma.md` | Eski, daha geniş kapsamlı Voyager raporu | Superseded |
+| Yol | İçerik | Risk | Durum |
+|---|---|---|---|
+| `research/voyager-1x-docs/` | Voyager 1.x doküman klonu + **VitePress build çıktısı** (37 dosya, 176K) | Build dosyaları | ✅ ignore |
+| `research/voyager-2x-docs/` | Voyager 2.x doküman klonu + **VitePress build çıktısı** (285 dosya, 2.9M) | Build dosyaları | ✅ ignore |
+| `docs/voyager-karsilastirma.md` | Eski, daha geniş kapsamlı Voyager raporu | Superseded | ✅ ignore |
 
-**Risk**: `git add research/` gibi geniş bir komut biri tarafından çalıştırılırsa yüzlerce build dosyası repoya girer.
+**Risk**: `git add research/` gibi geniş bir komut çalıştırılırsa 322 build dosyası (toplam ~3MB) repoya girecekti.
 
-### Koruma (karar bekleniyor)
+### Uygulanan kural
+
+`.gitignore`'a eklendi:
 
 ```gitignore
+# Voyager research: upstream doc clones + VitePress build output (~322 files, 3MB)
 /research/voyager-1x-docs/
 /research/voyager-2x-docs/
+# superseded by docs/voyager-tam-arsistirma.md
+/docs/voyager-karsilastirma.md
 ```
 
-Uygulanmadı — kullanıcı kararı bekliyor (`docs/notes.md` → B4). `.omo/` zaten ignore olduğu için session artefaktları (138 `run-continuation/*.json` + `boulder.json`) bu riskin dışında.
+`git check-ignore` üç yol için de doğrulandı; çalışma ağacı bu sayede ilk kez tamamen temiz.
+
+> Not: Dosyalar silinmedi, yalnızca ignore edildi. `docs/voyager-tam-arsistirma.md` commit'li ve supersede eden belge olarak duruyor. Yerel dosyalara erişim için: `git check-ignore -v research/voyager-2x-docs`
 
 ---
 

@@ -33,3 +33,8 @@ resources/hot
 .opencode
 # playwright-cli QA artifacts
 /.playwright-cli
+# Voyager research: upstream doc clones + VitePress build output (~322 files, 3MB)
+/research/voyager-1x-docs/
+/research/voyager-2x-docs/
+# superseded by docs/voyager-tam-arsistirma.md
+/docs/voyager-karsilastirma.md
