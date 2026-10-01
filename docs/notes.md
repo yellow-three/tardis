@@ -31,6 +31,7 @@ Bu turdaki asıl yeni bulgu, `registerType()` API'sinin **fiilen erişilemez** o
 |---|-------|---------|
 | B4 | **`searchOptions()` filtresiz** — ilişki seçicide tüm kayıtlar listeleniyor. Yalnızca görüntüleme; yazma yolu güvenli. | `BelongsToManyField::searchOptions()` |
 | B5 | **Authorization plugin yoksa fail-open** — kasıtlı, `MenuItem::isVisible()` ile aynı davranış ve kodda belgeli. Değiştirilirse Menü ile tutarsızlaşır. | `src/Auth/BreadAuthorization.php` |
+| B6 | **Auth layout'ı tema tercihini yok sayıyor** — `auth.blade.php:2` statik `data-theme="dark"` hardcode ve layout'ta tema/Alpine referansı yok. Admin'de light seçen kullanıcı giriş/logout sonrası her zaman dark görüyor; o sayfalarda toggle da bulunmadığı için geri de çeviremiyor. FOUC değil (tutarlı dark), ama admin ile tutarsız. `fce40c0`'daki blocking script'in auth layout kopyası + store eklenmesi çözer. | `resources/views/layouts/auth.blade.php:2` |
 
 *Çözülünce ilgili satır silinir.*
 
