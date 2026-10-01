@@ -7,32 +7,6 @@
 
     <title>{{ ($title ?? 'TARDIS Admin') }} - TARDIS</title>
 
-    @tardisStyles
-    @livewireStyles
-</head>
-<body class="min-h-screen bg-base-200">
-    <a href="#main-content" class="tardis-skip-link btn btn-primary btn-sm">İçeriğe geç</a>
-
-    <div class="drawer lg:drawer-open">
-        <input id="tardis-drawer" type="checkbox" class="drawer-toggle" />
-
-        <div class="drawer-content flex flex-col min-h-screen">
-            <x-tardis::admin-header :title="$title ?? 'TARDIS Admin'" />
-
-            <main id="main-content" tabindex="-1" class="flex-1 p-4 lg:p-6">
-                {{ $slot }}
-            </main>
-
-            <footer class="flex items-center justify-center border-t border-base-300 bg-base-100 px-4 py-3 text-xs text-base-content/50">
-                <p>© {{ date('Y') }} TARDIS</p>
-            </footer>
-        </div>
-
-        <x-tardis::admin-sidebar />
-    </div>
-
-    @tardisScripts
-
     @php
         $hotPath = \Tardis\Manager\AssetManager::packageHotPath();
         $manifestThemes = [];
@@ -64,6 +38,60 @@
     <script>
         window.__TARDIS_THEMES__ = @json($manifestThemes);
     </script>
+
+    {{-- Tema ilk paint'ten ÖNCE uygulanmalı. Alpine, stil sayfası yüklendikten
+         sonra başlar; store'un init()'i çalışana kadar <html> üzerindeki statik
+         data-theme="dark" geçerli kalır ve light temada koyu flash (FOUC) görünür.
+         Bu blocking script localStorage + manifest'ten çözer, paint öncesi set eder.
+         Anahtar adları store ile birebir aynı olmalı — iki taraf ayrışırsa FOUC geri gelir. --}}
+    <script>
+        (function () {
+            var themes = window.__TARDIS_THEMES__ || [];
+            var pick = function (scheme) {
+                var match = themes.find(function (t) { return t.colorScheme === scheme; });
+                return match ? match.name : null;
+            };
+
+            var mode  = localStorage.getItem('tardis-theme-mode')  || 'dark';
+            var light = localStorage.getItem('tardis-theme-light') || pick('light') || 'winter';
+            var dark  = localStorage.getItem('tardis-theme-dark')  || pick('dark')  || 'dark';
+
+            var applied;
+            if (mode === 'system') {
+                applied = window.matchMedia('(prefers-color-scheme: dark)').matches ? dark : light;
+            } else {
+                applied = mode === 'dark' ? dark : light;
+            }
+
+            document.documentElement.setAttribute('data-theme', applied);
+        })();
+    </script>
+
+    @tardisStyles
+    @livewireStyles
+</head>
+<body class="min-h-screen bg-base-200">
+    <a href="#main-content" class="tardis-skip-link btn btn-primary btn-sm">İçeriğe geç</a>
+
+    <div class="drawer lg:drawer-open">
+        <input id="tardis-drawer" type="checkbox" class="drawer-toggle" />
+
+        <div class="drawer-content flex flex-col min-h-screen">
+            <x-tardis::admin-header :title="$title ?? 'TARDIS Admin'" />
+
+            <main id="main-content" tabindex="-1" class="flex-1 p-4 lg:p-6">
+                {{ $slot }}
+            </main>
+
+            <footer class="flex items-center justify-center border-t border-base-300 bg-base-100 px-4 py-3 text-xs text-base-content/50">
+                <p>© {{ date('Y') }} TARDIS</p>
+            </footer>
+        </div>
+
+        <x-tardis::admin-sidebar />
+    </div>
+
+    @tardisScripts
 
     <script>
         document.addEventListener('alpine:init', () => {
