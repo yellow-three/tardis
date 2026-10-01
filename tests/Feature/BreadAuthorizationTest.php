@@ -124,6 +124,33 @@ function authzUser(): BreadAuthzTestUser
     return BreadAuthzTestUser::create(['name' => 'Ada', 'email' => 'ada@example.test']);
 }
 
+/**
+ * A host user carrying Spatie's HasRoles trait. TARDIS does not depend on
+ * spatie/laravel-permission — it probes for the trait at runtime — so this
+ * stands in for whatever the host installed, without needing the package here.
+ */
+class SpatieStyleAuthzTestUser extends BreadAuthzTestUser
+{
+    protected $table = 'users';
+
+    /** @var array<int, string> */
+    public array $askedAbilities = [];
+
+    public function __construct(array $attributes = [])
+    {
+        parent::__construct($attributes);
+
+        $this->exists = true;
+    }
+
+    public function hasPermissionTo($ability, $guardName = null): bool
+    {
+        $this->askedAbilities[] = $ability;
+
+        return true;
+    }
+}
+
 test('the bread index page asks the authorization plugin for the browse ability', function () {
     authzSchema();
     bindAuthzBread();
@@ -316,6 +343,22 @@ test('the authorization plugin grants abilities held by a tardis role', function
     $this->actingAs($user);
 
     expect(app(TardisAuthorizationPlugin::class)->can('browse bread-page-authz'))->toBeTrue();
+});
+
+test('a host HasRoles user answers for itself without touching the tardis tables', function () {
+    // The spatie/laravel-permission dependency was dropped; this is the path
+    // that makes that safe. A host's own role trait must keep winning, and must
+    // short-circuit before any schema probe, so a host on Spatie never gets a
+    // half-truth from TARDIS' native permission tables.
+    authzSchema();
+
+    $user = new SpatieStyleAuthzTestUser(['name' => 'Grace', 'email' => 'grace@example.test']);
+    $user->save();
+
+    $this->actingAs($user);
+
+    expect(app(TardisAuthorizationPlugin::class)->can('anything at all'))->toBeTrue()
+        ->and($user->askedAbilities)->toBe(['anything at all']);
 });
 
 test('the authorization plugin denies abilities the tardis role does not hold', function () {

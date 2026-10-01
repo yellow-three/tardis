@@ -53,7 +53,9 @@ SELECT COUNT(*) AS tardis_roles FROM tardis_roles;
 
 ### İlgili madde
 
-`composer.json` `require` içinde `spatie/laravel-permission: ^6.0` hâlâ duruyor (`src/` artık kullanmıyor). Kaldırılırsa host DB'lerindeki Spatie tabloları **silinmez** — dependency kaldırmak tabloyu düşürmek değildir. Karar: `docs/notes.md` → B3.
+`spatie/laravel-permission` `composer.json` `require`'dan **kaldırıldı** — paket hiçbir yerde Spatie'ye bağlı değildi, `TardisAuthorizationPlugin` ve `BasePolicy` yalnızca `method_exists($user, 'hasPermissionTo')` ile duck-typ ediyor (host'un kendi `HasRoles` trait'i varsa o cevaplar, yoksa TARDIS kendi native yetki kontrolüne düşer).
+
+Host için iki sonuç: (1) Spatie'yi kullanıyorsa **kendi `composer.json`'una eklemesi gerekir** — TARDIS artık transitif olarak getirmiyor; (2) DB'lerindeki Spatie tabloları **silinmez** — dependency kaldırmak tabloyu düşürmek değildir.
 
 ---
 
