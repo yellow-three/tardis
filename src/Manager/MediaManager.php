@@ -335,7 +335,8 @@ class MediaManager
         while ($storage->exists($path.$name)) {
             $count++;
             $pathinfo = pathinfo($file->getClientOriginalName());
-            $name = $pathinfo['filename'].'_'.$count.'.'.$pathinfo['extension'];
+            $extension = isset($pathinfo['extension']) ? '.'.$pathinfo['extension'] : '';
+            $name = $pathinfo['filename'].'_'.$count.$extension;
         }
 
         return $name;
