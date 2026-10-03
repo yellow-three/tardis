@@ -52,7 +52,7 @@ class TardisAuthorizationPlugin implements AuthorizationPlugin
     public function authorize(string $ability, mixed $model = null): void
     {
         if (! $this->can($ability, $model)) {
-            abort(403, 'Unauthorized.');
+            abort(403, __('tardis::shell.unauthorized'));
         }
     }
 

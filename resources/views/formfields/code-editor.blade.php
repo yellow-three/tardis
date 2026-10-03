@@ -5,4 +5,4 @@
     {!! $disabled ? 'disabled' : '' !!}
     {!! $readonly ? 'readonly' : '' !!}
 >{{ $value }}</textarea>
-<p class="text-xs text-base-content/50 mt-1">Language: {{ $language }}</p>
+<p class="text-xs text-base-content/50 mt-1">{{ __('tardis::fields.language', ['language' => $language]) }}</p>

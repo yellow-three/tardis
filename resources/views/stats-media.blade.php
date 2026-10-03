@@ -31,9 +31,9 @@ new class extends Component
             </div>
             <div>
                 <p class="text-3xl font-bold">{{ $count }}</p>
-                <p class="text-sm opacity-60">Media Files</p>
+                <p class="text-sm opacity-60">{{ __('tardis::misc.media_files') }}</p>
                 @if ($count > 0)
-                    <p class="text-xs opacity-40">{{ $totalSize }} total</p>
+                    <p class="text-xs opacity-40">{{ __('tardis::misc.total_size', ['size' => $totalSize]) }}</p>
                 @endif
             </div>
         </div>

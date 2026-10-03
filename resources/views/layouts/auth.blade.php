@@ -28,7 +28,7 @@
         </div>
 
         <p class="text-center text-sm text-base-content/50 mt-6">
-            Powered by TARDIS Framework
+            {{ __('tardis::misc.powered_by_tardis_framework') }}
         </p>
     </div>
 

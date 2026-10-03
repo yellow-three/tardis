@@ -52,7 +52,7 @@
                         <option value="{{ $panelLocale }}" @selected(app()->getLocale() === $panelLocale)>{{ \Tardis\Support\Locales::name($panelLocale) }}</option>
                     @endforeach
                 </select>
-                <noscript><button class="btn btn-ghost btn-sm" type="submit">OK</button></noscript>
+                <noscript><button class="btn btn-ghost btn-sm" type="submit">{{ __('tardis::misc.ok') }}</button></noscript>
             </form>
         @endif
 
@@ -93,7 +93,7 @@
                     <li>
                         <form method="POST" action="{{ route('tardis.logout') }}">
                             @csrf
-                            <button type="submit" class="w-full text-left">Logout</button>
+                            <button type="submit" class="w-full text-left">{{ __('tardis::menu.logout') }}</button>
                         </form>
                     </li>
                 @endforelse

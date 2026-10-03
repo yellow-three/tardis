@@ -1,32 +1,32 @@
 @php
     $fieldGroups = [
-        'Text & Content' => ['text', 'textarea', 'markdown', 'code_editor', 'slug', 'password'],
-        'Numbers' => ['number', 'slider'],
-        'Choice' => ['select', 'radio', 'checkbox', 'toggle', 'tags'],
-        'Date & Time' => ['date', 'datetime', 'time'],
-        'File' => ['file'],
-        'Relations' => ['belongs_to_many', 'has_many'],
+        __('tardis::builder.groups.text') => ['text', 'textarea', 'markdown', 'code_editor', 'slug', 'password'],
+        __('tardis::builder.groups.numbers') => ['number', 'slider'],
+        __('tardis::builder.groups.choice') => ['select', 'radio', 'checkbox', 'toggle', 'tags'],
+        __('tardis::builder.groups.date_time') => ['date', 'datetime', 'time'],
+        __('tardis::builder.groups.file') => ['file'],
+        __('tardis::builder.groups.relations') => ['belongs_to_many', 'has_many'],
     ];
 
     $slugBadges = [
         'available' => ['badge-success', 'Available'],
-        'current' => ['badge-info', 'Current slug'],
-        'taken' => ['badge-error', 'Already used'],
-        'invalid' => ['badge-warning', 'Lowercase letters, numbers and dashes only'],
-        'reserved' => ['badge-error', 'Reserved for a built-in screen'],
-        'empty' => ['badge-ghost', 'Not set yet'],
+        'current' => ['badge-info', __('tardis::builder.slug_status.current')],
+        'taken' => ['badge-error', __('tardis::builder.slug_status.taken')],
+        'invalid' => ['badge-warning', __('tardis::builder.slug_status.invalid')],
+        'reserved' => ['badge-error', __('tardis::builder.slug_status.reserved')],
+        'empty' => ['badge-ghost', __('tardis::builder.slug_status.empty')],
     ];
 @endphp
 
 <div>
     <x-tardis::page-header
-        :title="$editMode ? 'Edit BREAD' : 'Create BREAD'"
-        :description="$editMode ? 'Modify your BREAD definition' : 'Define a new Browse/Read/Edit/Add/Delete resource'"
+        :title="$editMode ? __('tardis::builder.edit_bread') : __('tardis::builder.create_bread')"
+        :description="$editMode ? __('tardis::builder.modify_definition') : __('tardis::builder.define_new_resource')"
     >
         <x-slot:action>
             <label class="label cursor-pointer justify-start gap-2">
                 <input type="checkbox" wire:model.live="focusMode" class="toggle toggle-primary toggle-sm" />
-                <span class="text-base-content">Focus mode</span>
+                <span class="text-base-content">{{ __('tardis::builder.focus_mode') }}</span>
             </label>
         </x-slot:action>
     </x-tardis::page-header>
@@ -42,7 +42,7 @@
         <div class="alert alert-error mb-4">
             <x-tardis::icon name="exclamation-triangle" class="w-5 h-5" />
             <div>
-                <p class="font-semibold">Please fix the following before saving:</p>
+                <p class="font-semibold">{{ __('tardis::builder.please_fix_the_following_before_saving') }}</p>
                 <ul class="list-disc list-inside text-sm">
                     @foreach ($errors->all() as $error)
                         <li>{{ $error }}</li>
@@ -55,13 +55,13 @@
     @if ($focusMode)
         <div class="alert mb-4 border-primary/30 bg-primary/5">
             <x-tardis::icon name="sparkles" class="w-5 h-5" />
-            <span class="text-sm">Focus mode hides read-only hints so you can move faster through the wizard.</span>
+            <span class="text-sm">{{ __('tardis::builder.focus_mode_hides_read_only_hints_854f') }}</span>
         </div>
     @endif
 
     <!-- Steps -->
     <ul class="steps steps-horizontal w-full mb-6">
-        @foreach ([1 => 'Model', 2 => 'Fields', 3 => 'Configure', 4 => 'Review'] as $index => $label)
+        @foreach ([1 => __('tardis::builder.steps.model'), 2 => __('tardis::builder.steps.fields'), 3 => __('tardis::builder.steps.configure'), 4 => __('tardis::builder.steps.review')] as $index => $label)
             <li wire:click="goToStep({{ $index }})" class="step cursor-pointer {{ $step >= $index ? 'step-primary' : '' }}">
                 {{ $label }}
             </li>
@@ -72,15 +72,15 @@
     @if ($step === 1)
         <div class="card bg-base-100 border border-base-300">
             <div class="card-body">
-                <h2 class="card-title">Step 1: Select Model</h2>
-                <p class="text-base-content/60">Choose an Eloquent model to create a BREAD for.</p>
+                <h2 class="card-title">{{ __('tardis::builder.step_1_select_model') }}</h2>
+                <p class="text-base-content/60">{{ __('tardis::builder.choose_an_eloquent_model_to_create_e1d4') }}</p>
 
                 <div class="flex flex-col gap-2 mt-4">
                     <label class="label">
-                        <span class="text-base-content">Model Class</span>
+                        <span class="text-base-content">{{ __('tardis::builder.model_class') }}</span>
                     </label>
                     <select wire:model.change.live="model" class="select w-full">
-                        <option value="">Select a model...</option>
+                        <option value="">{{ __('tardis::builder.select_a_model') }}</option>
                         @foreach ($this->getModelOptions() as $class => $name)
                             <option value="{{ $class }}">{{ $name }}</option>
                         @endforeach
@@ -88,7 +88,7 @@
                     @if (! $focusMode)
                         <label class="label">
                             <span class="text-base-content/50">
-                                Fields are read from the model's <code>$fillable</code> array.
+                                {!! __('tardis::builder.fields_from_fillable', ['property' => '<code>$fillable</code>']) !!}
                             </span>
                         </label>
                     @endif
@@ -97,15 +97,15 @@
                 @if ($model !== '' && $modelTable !== '')
                     <div class="stats stats-vertical sm:stats-horizontal mt-4 bg-base-200">
                         <div class="stat py-3">
-                            <div class="stat-title text-xs">Table</div>
+                            <div class="stat-title text-xs">{{ __('tardis::builder.table') }}</div>
                             <div class="stat-value text-lg">{{ $modelTable }}</div>
                         </div>
                         <div class="stat py-3">
-                            <div class="stat-title text-xs">Timestamps</div>
+                            <div class="stat-title text-xs">{{ __('tardis::builder.timestamps') }}</div>
                             <div class="stat-value text-lg">{{ $modelHasTimestamps ? 'Yes' : 'No' }}</div>
                         </div>
                         <div class="stat py-3">
-                            <div class="stat-title text-xs">Soft Deletes</div>
+                            <div class="stat-title text-xs">{{ __('tardis::builder.soft_deletes') }}</div>
                             <div class="stat-value text-lg">{{ $modelHasSoftDeletes ? 'Yes' : 'No' }}</div>
                         </div>
                     </div>
@@ -120,11 +120,11 @@
             <div class="card-body">
                 <div class="tabs tabs-box mb-4">
                     <button wire:click="$set('activeTab', 'fields')" role="tab" class="tab {{ ($activeTab ?? 'fields') === 'fields' ? 'tab-active' : '' }}">
-                        Fields
+                        {{ __('tardis::builder.fields') }}
                         <span class="badge badge-sm badge-ghost ml-1">{{ count($fieldConfig) }}</span>
                     </button>
                     <button wire:click="$set('activeTab', 'relationships')" role="tab" class="tab {{ ($activeTab ?? '') === 'relationships' ? 'tab-active' : '' }}">
-                        Relationships
+                        {{ __('tardis::builder.relationships') }}
                         <span class="badge badge-sm badge-ghost ml-1">{{ count($relationshipConfig) }}</span>
                     </button>
                 </div>
@@ -132,24 +132,24 @@
                 @if (($activeTab ?? 'fields') === 'fields')
                     <div class="flex flex-wrap items-end justify-between gap-3">
                         <div>
-                            <h2 class="card-title">Detected Fields</h2>
-                            <p class="text-base-content/60">Review and configure the detected fields.</p>
+                            <h2 class="card-title">{{ __('tardis::builder.detected_fields') }}</h2>
+                            <p class="text-base-content/60">{{ __('tardis::builder.review_and_configure_the_detected_fields') }}</p>
                         </div>
 
                         <label class="input input-sm flex items-center gap-2 w-full sm:w-64">
                             <x-tardis::icon name="magnifying-glass" class="w-4 h-4 text-base-content/60" />
-                            <input type="text" wire:model.live.debounce.300ms="fieldSearch" class="grow" placeholder="Filter fields..." />
+                            <input type="text" wire:model.live.debounce.300ms="fieldSearch" class="grow" placeholder="{{ __('tardis::builder.filter_fields') }}" />
                         </label>
                     </div>
 
                     <div class="flex flex-wrap items-center gap-2 mt-4 p-3 rounded-box bg-base-200">
-                        <span class="text-xs font-semibold uppercase tracking-wide text-base-content/60">Set all</span>
+                        <span class="text-xs font-semibold uppercase tracking-wide text-base-content/60">{{ __('tardis::builder.set_all') }}</span>
                         @foreach (['browse' => 'B', 'read' => 'R', 'edit' => 'E', 'add' => 'A'] as $flag => $letter)
                             <button wire:click="toggleAllFields('{{ $flag }}', true)" class="btn btn-xs btn-outline">
                                 {{ $letter }} on
                             </button>
                             <button wire:click="toggleAllFields('{{ $flag }}', false)" class="btn btn-xs btn-ghost">
-                                {{ $letter }} off
+                                {{ __('tardis::builder.all_off', ['flag' => $letter]) }}
                             </button>
                         @endforeach
                     </div>
@@ -159,14 +159,14 @@
                             <thead>
                                 <tr>
                                     <th class="w-10" aria-hidden="true"></th>
-                                    <th scope="col">Field</th>
-                                    <th scope="col">Type</th>
-                                    <th class="text-center" scope="col">Browse</th>
-                                    <th class="text-center" scope="col">Read</th>
-                                    <th class="text-center" scope="col">Edit</th>
-                                    <th class="text-center" scope="col">Add</th>
+                                    <th scope="col">{{ __('tardis::builder.field') }}</th>
+                                    <th scope="col">{{ __('tardis::builder.type') }}</th>
+                                    <th class="text-center" scope="col">{{ __('tardis::builder.browse') }}</th>
+                                    <th class="text-center" scope="col">{{ __('tardis::builder.read') }}</th>
+                                    <th class="text-center" scope="col">{{ __('tardis::builder.edit') }}</th>
+                                    <th class="text-center" scope="col">{{ __('tardis::builder.add') }}</th>
                                     @unless ($focusMode)
-                                        <th scope="col">Validation</th>
+                                        <th scope="col">{{ __('tardis::builder.validation') }}</th>
                                     @endunless
                                 </tr>
                             </thead>
@@ -176,10 +176,10 @@
                                     <tr wire:key="field-{{ $key }}">
                                         <td>
                                             <div class="join join-vertical">
-                                                <button wire:click="moveField('{{ $key }}', -1)" class="btn join-item btn-ghost btn-xs px-1" title="Move up">
+                                                <button wire:click="moveField('{{ $key }}', -1)" class="btn join-item btn-ghost btn-xs px-1" title="{{ __('tardis::builder.move_up') }}">
                                                     <x-tardis::icon name="chevron-up" class="w-3 h-3" />
                                                 </button>
-                                                <button wire:click="moveField('{{ $key }}', 1)" class="btn join-item btn-ghost btn-xs px-1" title="Move down">
+                                                <button wire:click="moveField('{{ $key }}', 1)" class="btn join-item btn-ghost btn-xs px-1" title="{{ __('tardis::builder.move_down') }}">
                                                     <x-tardis::icon name="chevron-down" class="w-3 h-3" />
                                                 </button>
                                             </div>
@@ -220,9 +220,9 @@
                                     <tr>
                                         <td colspan="{{ $focusMode ? 8 : 9 }}" class="text-center py-8 text-base-content/50">
                                             @if ($fieldSearch !== '')
-                                                No fields match "{{ $fieldSearch }}".
+                                                {{ __('tardis::builder.no_fields_match', ['query' => $fieldSearch]) }}
                                             @else
-                                                No fields detected. Add entries to the model's <code>$fillable</code> array.
+                                                {!! __('tardis::builder.no_fields_detected', ['property' => '<code>$fillable</code>']) !!}
                                             @endif
                                         </td>
                                     </tr>
@@ -231,22 +231,22 @@
                         </table>
                     </div>
                 @else
-                    <h2 class="card-title">Detected Relationships</h2>
-                    <p class="text-base-content/60">Configure how relationships are displayed in BREAD.</p>
+                    <h2 class="card-title">{{ __('tardis::builder.detected_relationships') }}</h2>
+                    <p class="text-base-content/60">{{ __('tardis::builder.configure_how_relationships_are_displaye_2234') }}</p>
 
                     @if (empty($relationshipConfig))
                         <div class="text-center py-8 text-base-content/50">
-                            <p>No relationships detected in this model.</p>
+                            <p>{{ __('tardis::builder.no_relationships_detected_in_this_model') }}</p>
                         </div>
                     @else
                         <div class="overflow-x-auto mt-4">
                             <table class="table table-sm">
                                 <thead>
                                     <tr>
-                                        <th scope="col">Relation</th>
-                                        <th scope="col">Type</th>
-                                        <th scope="col">Related Model</th>
-                                        <th scope="col">Display Type</th>
+                                        <th scope="col">{{ __('tardis::builder.relation') }}</th>
+                                        <th scope="col">{{ __('tardis::builder.type') }}</th>
+                                        <th scope="col">{{ __('tardis::builder.related_model') }}</th>
+                                        <th scope="col">{{ __('tardis::builder.display_type') }}</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -257,10 +257,10 @@
                                             <td>{{ class_basename($rel['model']) }}</td>
                                             <td>
                                                 <select wire:model.live="relationshipConfig.{{ $name }}.display_type" class="select select-xs">
-                                                    <option value="select">Select</option>
-                                                    <option value="checkbox">Checkbox</option>
-                                                    <option value="table">Table</option>
-                                                    <option value="hidden">Hidden</option>
+                                                    <option value="select">{{ __('tardis::builder.select') }}</option>
+                                                    <option value="checkbox">{{ __('tardis::builder.checkbox') }}</option>
+                                                    <option value="table">{{ __('tardis::builder.table') }}</option>
+                                                    <option value="hidden">{{ __('tardis::builder.hidden') }}</option>
                                                 </select>
                                             </td>
                                         </tr>
@@ -279,44 +279,44 @@
         <div class="card bg-base-100 border border-base-300">
             <div class="card-body">
                 <div class="tabs tabs-box mb-4">
-                    <button wire:click="$set('activeTab', 'general')" role="tab" class="tab {{ ($activeTab ?? 'general') === 'general' ? 'tab-active' : '' }}">General</button>
-                    <button wire:click="$set('activeTab', 'browse-layout')" role="tab" class="tab {{ ($activeTab ?? '') === 'browse-layout' ? 'tab-active' : '' }}">Browse Layout</button>
-                    <button wire:click="$set('activeTab', 'read-layout')" role="tab" class="tab {{ ($activeTab ?? '') === 'read-layout' ? 'tab-active' : '' }}">Read Layout</button>
-                    <button wire:click="$set('activeTab', 'edit-layout')" role="tab" class="tab {{ ($activeTab ?? '') === 'edit-layout' ? 'tab-active' : '' }}">Edit Layout</button>
+                    <button wire:click="$set('activeTab', 'general')" role="tab" class="tab {{ ($activeTab ?? 'general') === 'general' ? 'tab-active' : '' }}">{{ __('tardis::builder.general') }}</button>
+                    <button wire:click="$set('activeTab', 'browse-layout')" role="tab" class="tab {{ ($activeTab ?? '') === 'browse-layout' ? 'tab-active' : '' }}">{{ __('tardis::builder.browse_layout') }}</button>
+                    <button wire:click="$set('activeTab', 'read-layout')" role="tab" class="tab {{ ($activeTab ?? '') === 'read-layout' ? 'tab-active' : '' }}">{{ __('tardis::builder.read_layout') }}</button>
+                    <button wire:click="$set('activeTab', 'edit-layout')" role="tab" class="tab {{ ($activeTab ?? '') === 'edit-layout' ? 'tab-active' : '' }}">{{ __('tardis::builder.edit_layout') }}</button>
                 </div>
 
                 @if (($activeTab ?? 'general') === 'general')
-                    <h2 class="card-title">General Settings</h2>
+                    <h2 class="card-title">{{ __('tardis::builder.general_settings') }}</h2>
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                         <div class="flex flex-col gap-2">
                             <label class="label">
-                                <span class="text-base-content">Slug (URL) *</span>
+                                <span class="text-base-content">{{ __('tardis::builder.slug_url') }}</span>
                                 @php [$slugClass, $slugLabel] = $slugBadges[$this->slugStatus]; @endphp
                                 <span class="badge badge-sm {{ $slugClass }}">{{ $slugLabel }}</span>
                             </label>
-                            <input type="text" wire:model="slug" class="input font-mono" placeholder="e.g., posts" />
+                            <input type="text" wire:model="slug" class="input font-mono" placeholder="{{ __('tardis::builder.e_g_posts') }}" />
                             @unless ($focusMode)
                                 <label class="label">
                                     <span class="text-base-content/50">
-                                        Generated from the plural name until you type one by hand.
+                                        {{ __('tardis::builder.generated_from_the_plural_name_until_09c2') }}
                                     </span>
                                 </label>
                             @endunless
                         </div>
 
                         <div class="flex flex-col gap-2">
-                            <label class="label"><span class="text-base-content">Name *</span></label>
-                            <input type="text" wire:model="name" class="input" placeholder="e.g., Post" />
+                            <label class="label"><span class="text-base-content">{{ __('tardis::builder.name') }}</span></label>
+                            <input type="text" wire:model="name" class="input" placeholder="{{ __('tardis::builder.e_g_post') }}" />
                         </div>
 
                         <div class="flex flex-col gap-2">
-                            <label class="label"><span class="text-base-content">Name (Plural)</span></label>
-                            <input type="text" wire:model="namePlural" class="input" placeholder="e.g., Posts" />
+                            <label class="label"><span class="text-base-content">{{ __('tardis::builder.name_plural') }}</span></label>
+                            <input type="text" wire:model="namePlural" class="input" placeholder="{{ __('tardis::builder.e_g_posts_2') }}" />
                         </div>
 
                         <div class="flex flex-col gap-2">
-                            <label class="label"><span class="text-base-content">Icon</span></label>
+                            <label class="label"><span class="text-base-content">{{ __('tardis::builder.icon') }}</span></label>
                             <div class="flex gap-2">
                                 <div class="flex-1 flex items-center gap-2 input">
                                     <x-tardis::icon :name="$icon ?: 'swatch'" class="w-4 h-4 text-base-content/60" />
@@ -324,10 +324,10 @@
                                 </div>
                                 <button type="button" wire:click="$set('showIconPicker', true)" class="btn btn-outline">
                                     <x-tardis::icon name="swatch" class="w-4 h-4" />
-                                    Pick
+                                    {{ __('tardis::builder.pick') }}
                                 </button>
                                 @if ($icon)
-                                    <button type="button" wire:click="$set('icon', null)" class="btn btn-ghost" title="Clear icon">
+                                    <button type="button" wire:click="$set('icon', null)" class="btn btn-ghost" title="{{ __('tardis::builder.clear_icon') }}">
                                         <x-tardis::icon name="x-mark" class="w-4 h-4" />
                                     </button>
                                 @endif
@@ -335,40 +335,40 @@
                         </div>
 
                         <div class="flex flex-col gap-2 md:col-span-2">
-                            <label class="label"><span class="text-base-content">Description</span></label>
+                            <label class="label"><span class="text-base-content">{{ __('tardis::builder.description') }}</span></label>
                             <textarea wire:model="description" class="textarea" rows="2"></textarea>
                         </div>
 
                         <div class="flex flex-col gap-2">
-                            <label class="label"><span class="text-base-content">Search Key</span></label>
-                            <input type="text" wire:model="searchKey" class="input" placeholder="Field for global search" />
+                            <label class="label"><span class="text-base-content">{{ __('tardis::builder.search_key') }}</span></label>
+                            <input type="text" wire:model="searchKey" class="input" placeholder="{{ __('tardis::builder.field_for_global_search') }}" />
                         </div>
 
                         <div class="flex flex-col gap-2">
-                            <label class="label"><span class="text-base-content">Order Column</span></label>
-                            <input type="text" wire:model="orderColumn" class="input" placeholder="e.g., created_at" />
+                            <label class="label"><span class="text-base-content">{{ __('tardis::builder.order_column') }}</span></label>
+                            <input type="text" wire:model="orderColumn" class="input" placeholder="{{ __('tardis::builder.e_g_created_at') }}" />
                         </div>
 
                         <div class="flex flex-col gap-2">
-                            <label class="label"><span class="text-base-content">Order Direction</span></label>
+                            <label class="label"><span class="text-base-content">{{ __('tardis::builder.order_direction') }}</span></label>
                             <select wire:model="orderDirection" class="select">
-                                <option value="asc">Ascending</option>
-                                <option value="desc">Descending</option>
+                                <option value="asc">{{ __('tardis::builder.ascending') }}</option>
+                                <option value="desc">{{ __('tardis::builder.descending') }}</option>
                             </select>
                         </div>
 
                         <div class="flex flex-col gap-2">
                             <label class="label cursor-pointer justify-start gap-3">
                                 <input type="checkbox" wire:model.live="softDelete" class="toggle toggle-primary" />
-                                <span class="text-base-content">Enable Soft Delete</span>
+                                <span class="text-base-content">{{ __('tardis::builder.enable_soft_delete') }}</span>
                             </label>
                             @if ($modelHasSoftDeletes)
                                 <label class="label">
-                                    <span class="text-warning">This model already uses SoftDeletes.</span>
+                                    <span class="text-warning">{{ __('tardis::builder.this_model_already_uses_softdeletes') }}</span>
                                 </label>
                             @else
                                 <label class="label">
-                                    <span class="text-base-content/50">Allow restoring deleted items</span>
+                                    <span class="text-base-content/50">{{ __('tardis::builder.allow_restoring_deleted_items') }}</span>
                                 </label>
                             @endif
                         </div>
@@ -376,17 +376,17 @@
                 @endif
 
                 @if (($activeTab ?? '') === 'browse-layout')
-                    <h2 class="card-title">Browse Layout</h2>
-                    <p class="text-base-content/60">Configure which columns appear in the browse table.</p>
+                    <h2 class="card-title">{{ __('tardis::builder.browse_layout') }}</h2>
+                    <p class="text-base-content/60">{{ __('tardis::builder.configure_which_columns_appear_in_the_1952') }}</p>
 
                     <div class="overflow-x-auto mt-4">
                         <table class="table table-sm">
                             <thead>
                                 <tr>
-                                    <th scope="col">Field</th>
-                                    <th class="text-center" scope="col">Visible</th>
-                                    <th class="text-center" scope="col">Sortable</th>
-                                    <th class="text-center" scope="col">Searchable</th>
+                                    <th scope="col">{{ __('tardis::builder.field') }}</th>
+                                    <th class="text-center" scope="col">{{ __('tardis::builder.visible') }}</th>
+                                    <th class="text-center" scope="col">{{ __('tardis::builder.sortable') }}</th>
+                                    <th class="text-center" scope="col">{{ __('tardis::builder.searchable') }}</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -399,7 +399,7 @@
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="4" class="text-center py-8 text-base-content/50">No fields to lay out yet.</td>
+                                        <td colspan="4" class="text-center py-8 text-base-content/50">{{ __('tardis::builder.no_fields_to_lay_out_yet') }}</td>
                                     </tr>
                                 @endforelse
                             </tbody>
@@ -408,32 +408,32 @@
                 @endif
 
                 @if (($activeTab ?? '') === 'read-layout')
-                    <h2 class="card-title">Read Layout</h2>
-                    <p class="text-base-content/60">Choose the order fields appear in on the detail view.</p>
+                    <h2 class="card-title">{{ __('tardis::builder.read_layout') }}</h2>
+                    <p class="text-base-content/60">{{ __('tardis::builder.choose_the_order_fields_appear_in_1e2c') }}</p>
 
                     <div class="mt-4 space-y-2">
                         @forelse ($readLayout as $position => $key)
                             <div wire:key="read-{{ $key }}" class="flex items-center gap-3 p-2 rounded-box bg-base-200">
                                 <span class="badge badge-neutral badge-sm">{{ $position + 1 }}</span>
                                 <span class="font-medium flex-1">{{ $fieldConfig[$key]['label'] ?? $key }}</span>
-                                <button wire:click="moveReadField('{{ $key }}', -1)" class="btn btn-ghost btn-xs px-1" title="Move up">
+                                <button wire:click="moveReadField('{{ $key }}', -1)" class="btn btn-ghost btn-xs px-1" title="{{ __('tardis::builder.move_up') }}">
                                     <x-tardis::icon name="chevron-up" class="w-3 h-3" />
                                 </button>
-                                <button wire:click="moveReadField('{{ $key }}', 1)" class="btn btn-ghost btn-xs px-1" title="Move down">
+                                <button wire:click="moveReadField('{{ $key }}', 1)" class="btn btn-ghost btn-xs px-1" title="{{ __('tardis::builder.move_down') }}">
                                     <x-tardis::icon name="chevron-down" class="w-3 h-3" />
                                 </button>
-                                <button wire:click="toggleReadField('{{ $key }}')" class="btn btn-ghost btn-xs text-error" title="Remove">
+                                <button wire:click="toggleReadField('{{ $key }}')" class="btn btn-ghost btn-xs text-error" title="{{ __('tardis::builder.remove') }}">
                                     <x-tardis::icon name="x-mark" class="w-3 h-3" />
                                 </button>
                             </div>
                         @empty
-                            <p class="text-sm text-base-content/50 py-4 text-center">No fields in the read layout.</p>
+                            <p class="text-sm text-base-content/50 py-4 text-center">{{ __('tardis::builder.no_fields_in_the_read_layout') }}</p>
                         @endforelse
                     </div>
 
                     @if (count($readLayout) < count($this->orderedFieldKeys))
                         <div class="mt-4">
-                            <p class="text-xs uppercase tracking-wide text-base-content/60 mb-2">Add fields</p>
+                            <p class="text-xs uppercase tracking-wide text-base-content/60 mb-2">{{ __('tardis::builder.add_fields') }}</p>
                             <div class="flex flex-wrap gap-1">
                                 @foreach ($this->orderedFieldKeys as $key)
                                     @continue(in_array($key, $readLayout, true))
@@ -448,14 +448,14 @@
                 @endif
 
                 @if (($activeTab ?? '') === 'edit-layout')
-                    <h2 class="card-title">Edit Layout</h2>
-                    <p class="text-base-content/60">Configure tabs and field grouping for the edit form.</p>
+                    <h2 class="card-title">{{ __('tardis::builder.edit_layout') }}</h2>
+                    <p class="text-base-content/60">{{ __('tardis::builder.configure_tabs_and_field_grouping_for_fee0') }}</p>
 
                     <div class="mt-4">
                         <div class="flex items-center gap-2 mb-4">
                             <button wire:click="addEditTab" class="btn btn-outline btn-sm gap-1">
                                 <x-tardis::icon name="plus" class="w-4 h-4" />
-                                Add Tab
+                                {{ __('tardis::builder.add_tab') }}
                             </button>
                         </div>
 
@@ -463,7 +463,7 @@
                             <div wire:key="tab-{{ $tabIndex }}" class="card bg-base-200 mb-3 border border-base-300">
                                 <div class="card-body p-4">
                                     <div class="flex items-center gap-2 mb-3">
-                                        <input type="text" wire:model="editTabs.{{ $tabIndex }}.name" class="input input-sm flex-1" placeholder="Tab name" />
+                                        <input type="text" wire:model="editTabs.{{ $tabIndex }}.name" class="input input-sm flex-1" placeholder="{{ __('tardis::builder.tab_name') }}" />
                                         <button wire:click="removeEditTab({{ $tabIndex }})" class="btn btn-ghost btn-xs text-error">
                                             <x-tardis::icon name="x-mark" class="w-4 h-4" />
                                         </button>
@@ -479,7 +479,7 @@
                                 </div>
                             </div>
                         @empty
-                            <p class="text-sm text-base-content/50">No tabs configured. Fields will appear in a single form.</p>
+                            <p class="text-sm text-base-content/50">{{ __('tardis::builder.no_tabs_configured_fields_will_appear_ad40') }}</p>
                         @endforelse
                     </div>
                 @endif
@@ -493,7 +493,7 @@
             @if (count($this->reviewWarnings) > 0)
                 <div class="card bg-base-100 border border-base-300">
                     <div class="card-body">
-                        <h2 class="card-title text-base">Before you save</h2>
+                        <h2 class="card-title text-base">{{ __('tardis::builder.before_you_save') }}</h2>
                         <ul class="space-y-2">
                             @foreach ($this->reviewWarnings as $warning)
                                 @php
@@ -516,28 +516,28 @@
 
             <div class="card bg-base-100 border border-base-300">
                 <div class="card-body">
-                    <h2 class="card-title">Summary</h2>
+                    <h2 class="card-title">{{ __('tardis::builder.summary') }}</h2>
 
                     <div class="overflow-x-auto">
                         <table class="table">
                             <tbody>
                                 <tr>
-                                    <th class="w-48" scope="row">Slug</th>
+                                    <th class="w-48" scope="row">{{ __('tardis::builder.slug') }}</th>
                                     <td class="font-mono">{{ $this->reviewSummary['slug'] ?: '—' }}</td>
                                 </tr>
                                 <tr>
-                                    <th scope="row">Model</th>
+                                    <th scope="row">{{ __('tardis::builder.model') }}</th>
                                     <td>
                                         {{ class_basename($this->reviewSummary['model'] ?: '') ?: '—' }}
                                         <span class="badge badge-ghost badge-sm ml-2">{{ $this->reviewSummary['table'] ?: 'no table' }}</span>
                                     </td>
                                 </tr>
                                 <tr>
-                                    <th scope="row">Names</th>
+                                    <th scope="row">{{ __('tardis::builder.names') }}</th>
                                     <td>{{ $this->reviewSummary['name'] ?: '—' }} <span class="text-base-content/50">/</span> {{ $this->reviewSummary['name_plural'] ?: '—' }}</td>
                                 </tr>
                                 <tr>
-                                    <th scope="row">Icon</th>
+                                    <th scope="row">{{ __('tardis::builder.icon') }}</th>
                                     <td>
                                         @if ($this->reviewSummary['icon'])
                                             <x-tardis::icon :name="$this->reviewSummary['icon']" class="w-4 h-4 inline" />
@@ -548,18 +548,18 @@
                                     </td>
                                 </tr>
                                 <tr>
-                                    <th scope="row">Fields</th>
+                                    <th scope="row">{{ __('tardis::builder.fields') }}</th>
                                     <td>
-                                        <span class="badge badge-sm">{{ $this->reviewSummary['total_fields'] }} total</span>
-                                        <span class="badge badge-sm badge-ghost ml-1">{{ $this->reviewSummary['browse_fields'] ? count($this->reviewSummary['browse_fields']) : 0 }} in browse</span>
-                                        <span class="badge badge-sm badge-ghost ml-1">{{ count($this->reviewSummary['read_fields']) }} in read</span>
-                                        <span class="badge badge-sm badge-ghost ml-1">{{ $this->reviewSummary['add_fields'] }} addable</span>
-                                        <span class="badge badge-sm badge-ghost ml-1">{{ $this->reviewSummary['edit_fields'] }} editable</span>
+                                        <span class="badge badge-sm">{{ __('tardis::builder.summary_total', ['count' => $this->reviewSummary['total_fields']]) }}</span>
+                                        <span class="badge badge-sm badge-ghost ml-1">{{ __('tardis::builder.summary_browse', ['count' => $this->reviewSummary['browse_fields'] ? count($this->reviewSummary['browse_fields']) : 0]) }}</span>
+                                        <span class="badge badge-sm badge-ghost ml-1">{{ __('tardis::builder.summary_read', ['count' => count($this->reviewSummary['read_fields'])]) }}</span>
+                                        <span class="badge badge-sm badge-ghost ml-1">{{ __('tardis::builder.summary_add', ['count' => $this->reviewSummary['add_fields']]) }}</span>
+                                        <span class="badge badge-sm badge-ghost ml-1">{{ __('tardis::builder.summary_edit', ['count' => $this->reviewSummary['edit_fields']]) }}</span>
                                     </td>
                                 </tr>
                                 @if ($this->reviewSummary['browse_fields'])
                                     <tr>
-                                        <th scope="row">Browse columns</th>
+                                        <th scope="row">{{ __('tardis::builder.browse_columns') }}</th>
                                         <td class="flex flex-wrap gap-1">
                                             @foreach ($this->reviewSummary['browse_fields'] as $key)
                                                 <span class="badge badge-outline badge-sm">{{ $fieldConfig[$key]['label'] ?? $key }}</span>
@@ -568,15 +568,15 @@
                                     </tr>
                                 @endif
                                 <tr>
-                                    <th scope="row">Relationships</th>
+                                    <th scope="row">{{ __('tardis::builder.relationships') }}</th>
                                     <td>{{ $this->reviewSummary['relationships'] }}</td>
                                 </tr>
                                 <tr>
-                                    <th scope="row">Search key</th>
+                                    <th scope="row">{{ __('tardis::builder.search_key_2') }}</th>
                                     <td class="font-mono">{{ $this->reviewSummary['search_key'] ?: '—' }}</td>
                                 </tr>
                                 <tr>
-                                    <th scope="row">Ordering</th>
+                                    <th scope="row">{{ __('tardis::builder.ordering') }}</th>
                                     <td class="font-mono">
                                         {{ $this->reviewSummary['order_column'] ?: 'none' }}
                                         @if ($this->reviewSummary['order_column'])
@@ -585,12 +585,12 @@
                                     </td>
                                 </tr>
                                 <tr>
-                                    <th scope="row">Soft delete</th>
+                                    <th scope="row">{{ __('tardis::builder.soft_delete') }}</th>
                                     <td>
                                         @if ($this->reviewSummary['soft_delete'])
-                                            <span class="badge badge-success badge-sm">Enabled</span>
+                                            <span class="badge badge-success badge-sm">{{ __('tardis::builder.enabled') }}</span>
                                         @else
-                                            <span class="badge badge-ghost badge-sm">Disabled</span>
+                                            <span class="badge badge-ghost badge-sm">{{ __('tardis::builder.disabled') }}</span>
                                         @endif
                                     </td>
                                 </tr>
@@ -609,7 +609,7 @@
                 @if ($step > 1)
                     <button wire:click="goToStep({{ $step - 1 }})" class="btn btn-ghost">
                         <x-tardis::icon name="arrow-left" class="w-4 h-4" />
-                        Back
+                        {{ __('tardis::builder.back') }}
                     </button>
                 @endif
             </div>
@@ -617,29 +617,29 @@
             <div class="flex items-center gap-2">
                 @if ($step < 4)
                     <span class="text-xs text-base-content/50 hidden sm:inline">
-                        Step {{ $step }} of 4
+                        {{ __('tardis::builder.step_of', ['step' => $step, 'total' => 4]) }}
                     </span>
                 @endif
 
                 @if ($step === 1)
                     <button wire:click="detectFields" class="btn btn-primary" {{ empty($model) ? 'disabled' : '' }}>
-                        Next: Detect Fields
+                        {{ __('tardis::builder.next_detect_fields') }}
                         <x-tardis::icon name="arrow-right" class="w-4 h-4" />
                     </button>
                 @elseif ($step === 2)
                     <button wire:click="goToStep(3)" class="btn btn-primary" {{ empty($fieldConfig) ? 'disabled' : '' }}>
-                        Next: Configure
+                        {{ __('tardis::builder.next_configure') }}
                         <x-tardis::icon name="arrow-right" class="w-4 h-4" />
                     </button>
                 @elseif ($step === 3)
                     <button wire:click="goToStep(4)" class="btn btn-primary">
-                        Next: Review
+                        {{ __('tardis::builder.next_review') }}
                         <x-tardis::icon name="arrow-right" class="w-4 h-4" />
                     </button>
                 @else
                     <button wire:click="save" class="btn btn-primary btn-wide">
                         <x-tardis::icon name="check-circle" class="w-4 h-4" />
-                        {{ $editMode ? 'Update BREAD' : 'Save BREAD' }}
+                        {{ $editMode ? __('tardis::builder.update_bread') : __('tardis::builder.save_bread') }}
                     </button>
                 @endif
             </div>
@@ -651,11 +651,11 @@
         <div wire:key="icon-picker">
             <dialog class="modal modal-open" @click.self="$set('showIconPicker', false)">
                 <div class="modal-box w-full max-w-2xl">
-                    <h3 class="font-bold text-lg mb-4">Select Icon</h3>
+                    <h3 class="font-bold text-lg mb-4">{{ __('tardis::builder.select_icon') }}</h3>
 
                     <label class="input flex items-center gap-2 w-full mb-4">
                         <x-tardis::icon name="magnifying-glass" class="w-4 h-4 text-base-content/60" />
-                        <input type="text" wire:model.live.debounce.300ms="iconSearch" class="grow" placeholder="Search icons..." autofocus />
+                        <input type="text" wire:model.live.debounce.300ms="iconSearch" class="grow" placeholder="{{ __('tardis::builder.search_icons') }}" autofocus />
                     </label>
 
                     @php
@@ -679,15 +679,15 @@
                                 <span class="text-[10px] truncate w-full text-center">{{ $iconName }}</span>
                             </button>
                         @empty
-                            <p class="col-span-full text-center py-8 text-base-content/50">No icons match "{{ $iconSearch }}".</p>
+                            <p class="col-span-full text-center py-8 text-base-content/50">{{ __('tardis::builder.no_icons_match', ['query' => $iconSearch]) }}</p>
                         @endforelse
                     </div>
 
                     <div class="modal-action">
-                        <button type="button" wire:click="$set('showIconPicker', false)" class="btn btn-ghost">Close</button>
+                        <button type="button" wire:click="$set('showIconPicker', false)" class="btn btn-ghost">{{ __('tardis::builder.close') }}</button>
                     </div>
                 </div>
-                <button type="button" class="modal-backdrop" wire:click="$set('showIconPicker', false)">close</button>
+                <button type="button" class="modal-backdrop" wire:click="$set('showIconPicker', false)">{{ __('tardis::builder.close_2') }}</button>
             </dialog>
         </div>
     @endif

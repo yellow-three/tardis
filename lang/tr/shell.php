@@ -19,4 +19,5 @@ return [
     'language' => 'Dil',
     'footer' => '© :year TARDIS',
     'admin_fallback' => 'Yönetici',
+    'unauthorized' => 'Yetkiniz yok.',
 ];

@@ -44,4 +44,5 @@ return [
     'item_updated' => 'Item updated successfully.',
     'item_deleted' => 'Item deleted successfully.',
     'restored_from_backup' => 'BREAD [:slug] restored from a backup.',
+    'model_class_unknown' => 'Unable to determine model class.',
 ];

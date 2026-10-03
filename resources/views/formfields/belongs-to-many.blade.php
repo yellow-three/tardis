@@ -11,4 +11,4 @@
         @endforeach
     @endif
 </select>
-<p class="text-xs text-base-content/50 mt-1">Hold Ctrl/Cmd to select multiple</p>
+<p class="text-xs text-base-content/50 mt-1">{{ __('tardis::fields.hold_ctrl_cmd_to_select_multiple') }}</p>

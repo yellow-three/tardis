@@ -156,7 +156,7 @@ new #[Title('BREAD Builder')] #[Layout('tardis::layouts.admin')] class extends C
         ]);
 
         if (! class_exists($this->model)) {
-            session()->flash('error', 'Model class not found.');
+            session()->flash('error', __('tardis::builder.model_not_found'));
 
             return;
         }
@@ -209,7 +209,7 @@ new #[Title('BREAD Builder')] #[Layout('tardis::layouts.admin')] class extends C
         ]);
 
         if (ReservedSlugs::has($this->slug)) {
-            $this->addError('slug', 'This slug is reserved for a built-in admin screen.');
+            $this->addError('slug', __('tardis::builder.errors.slug_reserved'));
 
             return;
         }
@@ -218,7 +218,7 @@ new #[Title('BREAD Builder')] #[Layout('tardis::layouts.admin')] class extends C
 
         // Guard against silently overwriting a different BREAD definition.
         if ($repo->find($this->slug) !== null && $this->existingSlug !== $this->slug) {
-            $this->addError('slug', 'This slug is already used by another BREAD definition.');
+            $this->addError('slug', __('tardis::builder.errors.slug_taken'));
 
             return;
         }
@@ -252,7 +252,7 @@ new #[Title('BREAD Builder')] #[Layout('tardis::layouts.admin')] class extends C
 
         $repo->save($bread);
 
-        session()->flash('message', 'BREAD definition saved successfully.');
+        session()->flash('message', __('tardis::builder.saved'));
         $this->redirect(route('tardis.bread.manage'));
     }
 
@@ -587,15 +587,15 @@ new #[Title('BREAD Builder')] #[Layout('tardis::layouts.admin')] class extends C
         $warnings = [];
 
         if ($this->slug === '') {
-            $warnings[] = ['level' => 'error', 'message' => 'Slug is empty — set it on the Configure step.'];
+            $warnings[] = ['level' => 'error', 'message' => __('tardis::builder.warnings.slug_empty')];
         } elseif ($this->getSlugStatusProperty() === 'taken') {
-            $warnings[] = ['level' => 'error', 'message' => 'Slug "'.$this->slug.'" already belongs to another BREAD definition.'];
+            $warnings[] = ['level' => 'error', 'message' => __('tardis::builder.warnings.slug_taken', ['slug' => $this->slug])];
         }
 
         if ($this->fieldConfig === []) {
             $warnings[] = [
                 'level' => 'error',
-                'message' => 'No fields were detected. Add entries to the model\'s $fillable property and start over.',
+                'message' => __('tardis::builder.warnings.no_fields'),
             ];
         }
 
@@ -606,28 +606,28 @@ new #[Title('BREAD Builder')] #[Layout('tardis::layouts.admin')] class extends C
             );
 
             if ($visibleBrowse === []) {
-                $warnings[] = ['level' => 'warning', 'message' => 'No visible browse columns — the listing table would be empty.'];
+                $warnings[] = ['level' => 'warning', 'message' => __('tardis::builder.warnings.no_browse_columns')];
             }
 
             $addable = array_filter($this->fieldConfig, fn ($field) => (bool) ($field['add'] ?? false));
             $editable = array_filter($this->fieldConfig, fn ($field) => (bool) ($field['edit'] ?? false));
 
             if ($addable === []) {
-                $warnings[] = ['level' => 'warning', 'message' => 'No field is marked "Add" — records cannot be created.'];
+                $warnings[] = ['level' => 'warning', 'message' => __('tardis::builder.warnings.no_add_field')];
             }
 
             if ($editable === []) {
-                $warnings[] = ['level' => 'warning', 'message' => 'No field is marked "Edit" — records cannot be modified.'];
+                $warnings[] = ['level' => 'warning', 'message' => __('tardis::builder.warnings.no_edit_field')];
             }
 
             if ($this->readLayout === []) {
-                $warnings[] = ['level' => 'warning', 'message' => 'Read layout is empty — the detail view would be empty.'];
+                $warnings[] = ['level' => 'warning', 'message' => __('tardis::builder.warnings.empty_read_layout')];
             }
 
             if ($this->searchKey !== '' && ! ($this->browseColumns[$this->searchKey]['searchable'] ?? false)) {
                 $warnings[] = [
                     'level' => 'warning',
-                    'message' => 'Search key "'.$this->searchKey.'" is not flagged searchable in the browse layout.',
+                    'message' => __('tardis::builder.warnings.search_key_not_searchable', ['key' => $this->searchKey]),
                 ];
             }
         }
@@ -636,7 +636,7 @@ new #[Title('BREAD Builder')] #[Layout('tardis::layouts.admin')] class extends C
             if (($tab['fields'] ?? []) === []) {
                 $warnings[] = [
                     'level' => 'info',
-                    'message' => 'Edit tab "'.($tab['name'] ?? 'Tab '.($index + 1)).'" has no fields assigned.',
+                    'message' => __('tardis::builder.warnings.tab_without_fields', ['tab' => $tab['name'] ?? __('tardis::builder.tab_n', ['number' => $index + 1])]),
                 ];
             }
         }
@@ -644,7 +644,7 @@ new #[Title('BREAD Builder')] #[Layout('tardis::layouts.admin')] class extends C
         if ($this->modelHasSoftDeletes && ! $this->softDelete) {
             $warnings[] = [
                 'level' => 'info',
-                'message' => 'The model uses SoftDeletes but soft delete is disabled for this BREAD.',
+                'message' => __('tardis::builder.warnings.soft_delete_disabled'),
             ];
         }
 

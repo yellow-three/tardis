@@ -44,4 +44,5 @@ return [
     'item_updated' => 'Kayıt başarıyla güncellendi.',
     'item_deleted' => 'Kayıt başarıyla silindi.',
     'restored_from_backup' => 'BREAD [:slug] bir yedekten geri yüklendi.',
+    'model_class_unknown' => 'Model sınıfı belirlenemedi.',
 ];

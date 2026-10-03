@@ -19,4 +19,5 @@ return [
     'language' => 'Language',
     'footer' => '© :year TARDIS',
     'admin_fallback' => 'Admin',
+    'unauthorized' => 'Unauthorized.',
 ];

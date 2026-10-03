@@ -168,7 +168,7 @@ new #[Title('Create')] #[Layout('tardis::layouts.admin')] class extends Componen
         $modelClass = $this->bread['model'] ?? null;
 
         if (! $modelClass || ! class_exists($modelClass)) {
-            session()->flash('error', 'Unable to determine model class.');
+            session()->flash('error', __('tardis::bread.model_class_unknown'));
 
             return;
         }
