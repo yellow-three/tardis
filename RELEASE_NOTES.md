@@ -1,6 +1,6 @@
 # Tardis Release Notes
 
-Package version: `1.0.0` (`Tardis\Tardis::version()`). Branch `feat/modern-admin-redesign` carries the unreleased redesign work.
+Package version: `2.0.0` (`Tardis\Tardis::version()`), the breaking cleanup of the redesign. See [UPGRADE.md](UPGRADE.md) for every change you need to make.
 
 ## What the package includes
 
@@ -16,6 +16,16 @@ Package version: `1.0.0` (`Tardis\Tardis::version()`). Branch `feat/modern-admin
 ## Architecture decision
 
 Pages follow the Livewire 4 page-first convention: simple screens are SFC, large ones are MFC (`bread/*`, `bread-builder`, `database/*`, `media-browser`, `settings`), and routes are `Route::livewire` routes. Class-based components are not used.
+
+## 2.0 — the cleanup (Faz 0)
+
+- **Field types** come from the `FormfieldManager` registry; the closed `FieldType` enum is gone, so a host-registered type can be used in a BREAD definition.
+- **BREAD routes** are generated from the definitions (no `/{slug}` wildcard), so plugin routes are no longer swallowed. Definitions can carry `components`, `policy` and `scope`; slugs reserved for built-in screens are refused.
+- **JSON is the only BREAD source**; `config/bread` is a read-only importer.
+- **Lifecycle events** (`BreadSaved`, `BreadRemoved`, `BreadRecordCreated/Updated/Deleted`, `tardis.page`) with listeners for permissions and a working **activity log** (it was never written before).
+- **Authentication plugin** is used by the login form (`attempt()`), and `BasePolicy` answers through `BreadAuthorization`.
+- **Themes** supply validated CSS variables (`getTheme()`); `getStyles()` is removed. `Tardis::addCss()/addJs()` and `Asset` load extra files.
+- Config keys nothing read were removed; `tardis:make-plugin` generates a loadable plugin with a valid `composer.json`.
 
 ## Authorization, plugins and admin screens (2026-10-03)
 
@@ -43,16 +53,15 @@ Security and correctness fixes found in the code audit:
 ## Known limitations
 
 - With `tardis.authorization.enabled=false` and no other authorization plugin, any authenticated user can reach the panel.
-- The login form calls `auth()->attempt()` directly instead of the `AuthenticationPlugin`.
-- `tardis.admin.middleware`, `tardis.plugins.*`, `tardis.media.*`, `tardis.bread.soft_deletes/timestamps` and `tardis.activity_log.*` config keys are not read anywhere.
-- `registerType()` extension point is unreachable from BREAD definitions because `FieldType` is a closed enum.
-- Theme manifest loading happens during service-provider registration and logs rather than surfaces failures.
+- The create/edit pages draw field types with an inline `@if` chain, so a custom type's own `render()` view is not used yet (`docs/notes.md` → B16, phase 2).
+- With `route:cache`, a BREAD created afterwards needs the route cache rebuilt.
+- Theme manifest loading happens during service-provider registration and logs rather than surfaces failures (rebuilt in the theme phase).
 
 Open decisions and the roadmap live in [docs/notes.md](docs/notes.md) and [docs/backlog.md](docs/backlog.md).
 
 ## Verified quality
 
 ```bash
-composer test   # 561 passed (1391 assertions)
+composer test   # 603 passed (1546 assertions)
 composer lint   # clean
 ```

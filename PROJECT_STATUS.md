@@ -1,6 +1,6 @@
 # Tardis Project Status
 
-Last verified: 2026-10-03 — `composer test` → 561 passed (1391 assertions), `composer lint` clean.
+Last verified: 2026-10-03 — `composer test` → 603 passed (1546 assertions), `composer lint` clean.
 
 ## Overview
 
@@ -32,9 +32,9 @@ Only SFC and MFC are allowed (see `.claude/AGENTS.md`). Large pages are MFC: `br
 
 ## Roadmap
 
-The next release is **2.0.0**: a Voyager 1/2 parity plan in nine phases (`docs/backlog.md` → *Voyager parity planı*, R21–R30). Decided on 2026-10-03: JSON is the single BREAD source, the field-type enum is replaced by a registry + `FormfieldPlugin`, backwards compatibility may break once (with `UPGRADE.md`), translations stay in JSON columns, the menu builder stores `storage/tardis/menus.json`, and the panel gets `lang/en` + `lang/tr`.
+**Faz 0 (2.0.0 cleanup) is done** — see `UPGRADE.md`. Remaining phases are in `docs/backlog.md` → *Voyager parity planı* (R22–R33): panel i18n, design system (+ theme/CSS/JS architecture), field system (one field contract; fixes B16), BREAD list, layouts/builder UX, plugins (hash-served assets, JS API), media, menu builder/widgets/appearance, translated content, install/doctor/system tools.
 
-Still open and not part of a phase decision: `ThemeManager` boot-time I/O (R19).
+Known gaps: create/edit still draw field types with an inline `@if` chain (B16); `route:cache` needs a rebuild after creating a BREAD; theme loading still reads the manifest at register time (R31).
 
 ## Documentation map
 

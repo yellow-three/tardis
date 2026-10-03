@@ -6,36 +6,43 @@ Bu dosya **kalıcı** (silinmeyen) kısıtları ve API/davranış gerçeklerini 
 
 ---
 
-## BREAD — `FieldType` enum'u özel alan tiplerini kapatıyor
+## BREAD — alan tipleri `FormfieldManager` kayıt defterinden doğrulanır
 
-BREAD tanımındaki her `type` değeri, kaynak ne olursa olsun kapalı bir enum'a karşı doğrulanır. Enum'un dışındaki her değer `InvalidArgumentException` alır:
+BREAD tanımındaki her `type`, `FormfieldManager::assertRegistered()` ile kontrol edilir (JSON kaynak hem okurken hem yazarken). Kayıt defteri tek liste: yerleşik 19 tip + `registerType()` ile eklenenler; `image`, `email`, `simple_array` gibi dedektör adları `normalize()` ile kayıtlı tiplere eşlenir. Eski `FieldType` enum'u kaldırıldı.
 
-| Tanım kaynağı | Doğrulama yeri | Sonuç |
-|---|---|---|
-| JSON tanım | `src/Bread/Sources/JsonBreadSource.php:314` | `FieldType::fromValue()` → enum dışı değer patlar |
-| PHP config tanım | `src/Bread/Sources/ConfigBreadSource.php:122` | Aynı kapı |
-
-**Sonuç**: `FormfieldManager::registerType()` bir uzantı noktası gibi görünüyor ama **hiçbir BREAD sayfasında kullanılamıyor** — host kendi özel alan tipini ekleyemiyor. Enum'un kendi docblock'u iki kayıt defterini (`FieldType` case'leri ↔ `FormfieldManager::$registeredTypes`) elle eşit tutmayı şart koşuyor; bu iki liste sessizce ayrışabilir.
-
-Yeni bir alan tipi eklerken önce `FieldType`'a, sonra manager'a eklemek gerekiyor — tek taraflı ekleme çalışmıyor.
+**Sonuç**: Yeni bir alan tipi yalnızca `registerType()` ile eklenir ve BREAD tanımlarında hemen kullanılabilir — iki liste elle eşit tutulmaz. **Ancak** create/edit sayfaları tipi hâlâ satır içi `@if` zinciriyle çizer; özel tipin `render()` view'ı kullanılmaz (Faz 2, `docs/notes.md` → B16). `tests/Unit/FormfieldRegistryTest.php` her kayıtlı tipin örneklenebilir bir `Formfield` ve var olan bir view'a sahip olmasını pinler.
 
 ---
 
-## BREAD — Çalışma zamanı kaynağı JSON; `config/bread` legacy okuma yolu
+## BREAD — Çalışma zamanı kaynağı JSON; `config/bread` yalnızca içe aktarma
 
-`BreadManager` tek bir kaynağa bağlı: `JsonBreadSource` (`src/Bread/BreadManager.php:13`). Tanım okuyan tüm yüzeyler (`find`/`all`/`save`/`backups`/`rollback`) bu kaynağa gider, `config/bread/`'e dokunmaz.
+`BreadManager` tek kaynağa bağlı: `JsonBreadSource`. `config/bread/*.php` yalnızca `Bread\Legacy\LegacyConfigReader` ile **salt okunur** okunur; kullanan iki yer var: `tardis:bread:migrate` (config/bread → JSON) ve yönetim ekranındaki taşıma uyarısı. Hiçbir çalışma zamanı yolu config'ten BREAD okumaz ve hiçbir şey config'e yazmaz.
 
-`ConfigBreadSource` hâlâ kayıtlı ve yazabiliyor (`save()`, `src/Bread/Sources/ConfigBreadSource.php:74`), ama **okuyan hiçbir çalışma zamanı yolu yok**. Yalnızca şu üç yer tutuyor:
+**Sonuç**: BREAD tanımı eklerken/değiştirirken yalnızca JSON'a yaz (builder, `tardis:make-bread` veya `BreadManager::save()`).
 
-| Kullanım | Yer | Yön |
-|---|---|---|
-| `tardis:make-bread` tanım üretir | `src/Commands/TardisMakeBreadCommand.php:48` | JSON yazar |
-| `tardis:bread:migrate` | `src/Commands/TardisBreadMigrateCommand.php:19` | config/bread → JSON ("legacy" diye adlandırılır) |
-| Yönetim ekranı uyarısı | `resources/views/pages/bread/manage/manage.php:19` | config/bread doluysa migrasyon uyarısı gösterir |
+---
 
-**Sonuç**: Pratikte BREAD tanımları JSON'da yaşıyor ve `config/bread` tek yönlü bir **legacy** kaynaktır — içeriği JSON'a taşınır, tersi yazılmaz. İki kaynak aynı `FieldType::fromValue()` kapısından geçtiği için alan tipi doğrulaması her iki yolda da aynıdır.
+## BREAD — rotalar tanımdan üretilir, wildcard yoktur
 
-Bu yön `.omo/plans/bread-php-config.md` (Karar A) ile **çelişiyor**: plan config/bread'i tek kaynak ister, `BreadManager`'ın `ConfigBreadSource`'a bağlanmasını ister. Plan kısmen uygulanmış (`DatabaseBreadSource`, `JsonBreadRepository`, `DataType`/`DataRow` silinmiş), ardından ana hedef tersine çevrilmiş. Yön `.omo/plans/` göz ardı edilerek belirlenir; açık karar `docs/notes.md` → B7.
+`Tardis\Http\BreadRoutes::define()` (`routes/admin.php`'in sonunda) her tanım için browse/add/read/edit rotalarını, **var olan slug'larla kısıtlanmış** biçimde kaydeder; adlar herkes için aynıdır (`tardis.bread.index` + `slug`), slug listesi boşken bile kayıtlıdır. Tanım `components` ile bir aksiyonun Livewire bileşenini değiştirebilir: o slug için önce bir "literal" rota (`tardis.bread.index.{slug}`) kaydedilir. `ReservedSlugs` (settings, users, bread, media, database, login…) kaydedilemez ve yönlendirilmez. Liste rota yüklenirken okunur: `route:cache` varsa sonradan oluşturulan BREAD için önbellek yenilenmelidir.
+
+**Sonuç**: Plugin rotaları artık `/{slug}/{id}` tarafından yutulmaz. Test içinde tanım kaydettikten sonra gerçek rotaları görmek için `reloadAdminRoutes()` (tests/Pest.php) çağır. Yeni sabit bir yönetim sayfası eklerken adını `ReservedSlugs`'a ekle.
+
+---
+
+## BREAD — `policy` ve `scope` tanımın parçasıdır
+
+`policy` ability'lerin kurulduğu kelimeyi değiştirir (`browse {policy}`); sayfalar, sidebar, izin üretimi ve `BasePolicy` hepsi `BreadDefinition::permissionKey()` / `BreadAuthorization::keyFor()` üzerinden gider. `scope` model scope adıdır ve `BreadDefinition::query()` ile **listeye ve her kayıt aramasına** uygulanır (read/edit/delete); kapsam dışı bir kayıt id tahminiyle açılamaz.
+
+**Sonuç**: BREAD kaydı bulurken `Model::findOrFail()` değil `BreadDefinition::query()->findOrFail()` kullan.
+
+---
+
+## BREAD — yan etkiler olaylarla, listener'larla
+
+`BreadManager::save()` `BreadSaved`, `delete()` `BreadRemoved` fırlatır; create/edit/delete sayfaları `BreadRecordCreated/Updated/Deleted` fırlatır. İzin üretimi (`ProvisionBreadPermissions`) ve activity log (`LogBreadActivity`) ordinary listener'lardır; log `tardis.activity_log.enabled/log_events` ile yönetilir ve parola/gizli alanları yazmaz. `AdminMiddleware` yetkili her sayfada `tardis.page` olayını yayınlar.
+
+**Sonuç**: Yeni bir yan etki için yöneticinin içine kod ekleme, olayı dinle.
 
 ---
 
@@ -65,9 +72,9 @@ Authorization plugin'i yetenekleri `tardis_permissions` / `tardis_roles` üzerin
 
 ## Tema sistemi — CSS variable tabanlı, `Alpine.store` ile
 
-Tema, `CSS variable` anahtar-tokası üzerinden çalışıyor (`66c4ed7`). `ThemePlugin::getStyles()` hâlâ var ve `AssetManager.php:148` tarafından kullanılıyor — bu yüzden tema stilleri hem manifest hem inline `<style>` olarak üretiliyor.
+Tema, `CSS variable` anahtar-tokası üzerinden çalışıyor (`66c4ed7`). `ThemePlugin` yalnızca `getTheme()` (özel özellik → değer) sağlar; `AssetManager` adları/değerleri doğrulayıp `:root{…}` kuralını kendisi yazar, tema keyfi CSS enjekte edemez (`getStyles()` kaldırıldı).
 
-**Sonuç**: `ThemePlugin::getStyles()` kaldırılırsa `AssetManager`'ın inline style üretimi de kaldırılmalı; iki yol ikisini birden besliyor.
+**Sonuç**: Tema plugin'i CSS metni değil değişken verir; değerler yalnızca renk/uzunluk/sayı karakterleri taşıyabilir.
 
 **Tema çözümlemesinin tek kaynağı `<x-tardis::theme-boot />`**: `<head>`'de ilk paint'ten önce çalışan blocking script ile Alpine store aynı temayı çözmek zorunda — store boot'ta `data-theme`'i yeniden yazdığı için iki taraf ayrışırsa flash geri gelir. Bu mantık `resources/views/components/theme-boot.blade.php` içinde yaşar ve admin/auth layout'ları `<x-tardis::theme-boot />` çağırarak devralır. **Yeni bir layout eklerken blocking script'i kopyalama; bileşeni çağır.** Aynı şekilde localStorage anahtar adları (`tardis-theme-mode`, `tardis-theme-light`, `tardis-theme-dark`) store ile birebir aynı kalmalı. `ThemeFoucGuardTest` bu eşleşmeyi, bileşenin `@tardisStyles`'tan önce geldiğini ve gerçekten render edilebildiğini pinler.
 
