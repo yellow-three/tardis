@@ -82,6 +82,11 @@ class MenuManager
                 ->permission(Abilities::PLUGINS)
                 ->section(__('tardis::menu.sections.management'))
                 ->order(40),
+            (new MenuItem(__('tardis::menu.theme_editor'), 'heroicon-o-swatch'))
+                ->route('tardis.themes.index')
+                ->permission(Abilities::APPEARANCE)
+                ->section(__('tardis::menu.sections.management'))
+                ->order(43),
             (new MenuItem(__('tardis::menu.menu_builder'), 'heroicon-o-bars-3'))
                 ->route('tardis.menus.index')
                 ->permission(Abilities::MENUS)

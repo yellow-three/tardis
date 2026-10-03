@@ -20,4 +20,5 @@ return [
     'profile' => 'Profile',
     'logout' => 'Logout',
     'menu_builder' => 'Menu builder',
+    'theme_editor' => 'Themes',
 ];

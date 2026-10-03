@@ -85,3 +85,7 @@ Generated plugins from 1.x did not load: they imported `Tardis\Core\…` classes
 ## Provider\CSS / Provider\JS
 
 The return type is now `string|Asset|array`. A plugin that returns a string keeps working; implementations that declare `: string` stay valid. `@tardisStyles`/`@tardisScripts` take an optional scope (`@tardisStyles('auth')`) and `AssetManager::styles()/scripts()` take it as an argument (default `admin`).
+
+## New abilities
+
+`manage menus` (existing, now gates the menu builder), `manage dashboard` and `manage appearance` are new fixed abilities. A user who is not a super admin needs them granted on a role (re-run `php artisan db:seed --class="Tardis\\Database\\Seeders\\PermissionSeeder"` to create the rows). `MenuManager::all()` and `WidgetManager::all()` take an optional `$withHidden` argument; `Widget::$component` is now a Blade view name (`tardis::widgets.users`) instead of an unused label.
