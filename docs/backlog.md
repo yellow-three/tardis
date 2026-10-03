@@ -51,6 +51,8 @@ Son güncelleme: 2026-10-03 (Voyager parity planı eklendi). ID'ler `R` = roadma
 | R28 | P2 | **Faz 7 — Çok dilli içerik.** Form içinde locale sekmeleri, 'tüm diller / aktif dil' doğrulama modu, listede aktif dil, BREAD etiketleri + menü başlıkları çevrilebilir (JSON kolon biçimi korunur) | ⏳ Plan | — | Faz 7 |
 | R29 | P2 | **Faz 8 — Kurulum ve DX.** `tardis:install` (migrate + seed + ilk admin + asset publish), isteğe bağlı demo veri, `tardis:doctor`, güncellenmiş plugin iskeleti, `UPGRADE.md`, kapsamlı örnek | ⏳ Plan | — | Faz 8 |
 | R30 | P1 | **Kalite kapısı (her faz).** Önce test, tam sayfa istek testi, `boot()` yetki kapısı, `lang` anahtarı, `docs/` güncellemesi, faz başına yığılı PR | 🔄 Sürekli | — | Voyager parity planı → Kurallar |
+| R31 | P1 | **Faz 1b — Tasarım sistemi (ortak UI bileşenleri).** `x-tardis::card` (actions slotu), badge, slide-in çekmece, modal, dropdown, toast/bildirim (onay düğmeli), sayfa yükleme çubuğu, sidebar kullanıcı kartı + kalıcı durum, 3 durumlu tema anahtarı, marka ayarları (`appearance` grubu: başlık/logo/favicon/yükleme görseli), RTL değerlendirmesi | ⏳ Plan | — | `research/06` §3.9, §5 |
+| R32 | P1 | **Faz 3b — Layout + Builder UX.** BREAD tanımı `list`/`view` layout'ları, sürükle-bırak + 6'lık genişlik ızgarası, yan çekmecede alan seçenekleri, builder tablo listesi (layout sayıları + Backup), `legend`/bölüm başlığı | ⏳ Plan | — | `research/06` §3.4 |
 
 ## Bağımlılık sırası notu
 
@@ -81,13 +83,19 @@ Her faz bir öncekinin üstüne yığılmış ayrı PR'dır; sıra bağımlılı
 |---|---|---|---|
 | **0 — 2.0.0 temizliği** (R21) | Registry'ye geçiş, `ConfigBreadSource` kaldırma, `getStyles()` kaldırma, `field()` stub'ı, ölü config (B13), `BasePolicy` (B11), login → plugin (B12), `Routes` contract (B14), `UPGRADE.md` | Sonraki fazların hepsi bu API yüzeyine yazılır; BC bir kez kırılır | L |
 | **1 — Panel i18n** (R22) | `lang/en`, `lang/tr`, `__()` her yerde, locale seçici | Her sonraki ekran çeviri anahtarıyla yazılmalı; sonradan taşımak ucuz değil | M |
+| **1b — Tasarım sistemi** (R31) | Ortak Blade bileşenleri (Card/Badge/SlideIn/Modal/Dropdown/Toast), yükleme çubuğu, kullanıcı kartı, tema anahtarı, marka ayarları | Sonraki tüm ekranlar bu bileşenlerle yazılır; i18n anahtarlarıyla birlikte gelir | M |
 | **2 — Alan sistemi** (R23) | `FormfieldPlugin`, lifecycle, add/edit kuralları, çevrilebilir mesajlar, eksik tipler | BREAD sayfaları, liste ve media picker buna dayanır | L |
-| **3 — BREAD liste** (R24) | Aksiyonlar (satır/toplu), sunucu taraflı sırala/filtre, ilişki kolonları, soft-delete, aksiyon bazlı layout | Aksiyon + izin yapısını kullanır; alan `browse()` lifecycle'ı gerekir | L |
+| **3 — BREAD liste** (R24) | Aksiyonlar (satır/toplu), sunucu taraflı sırala/sütun-içi arama/**adlandırılmış filtre rozetleri**, sayfa başına, "filtreleri temizle", ilişki hücresi (+n daha, `link_to`), üç durumlu soft-delete, yeniden kullanılabilir liste (ilişki seçici), sıralama sayfası | Aksiyon + izin yapısını kullanır; alan `browse()` lifecycle'ı gerekir | L |
+| **3b — Layout + Builder UX** (R32) | `list`/`view` layout'ları, sürükle-bırak builder, genişlik ızgarası, yan çekmece, builder liste ekranı | Liste (Faz 3) ve alan sözleşmesi (Faz 2) üstüne; BREAD şemasını genişletir | L |
 | **4 — Plugin** (R25) | Routes, ayar ekranı, preferences, Filter contract'ları, `tardis:plugins` | Faz 0'daki Routes bağlantısının üstüne; Faz 6 widget filtreleri buna dayanır | M |
 | **5 — Media** (R26) | `media_picker`, thumbnail/kırpma, ad şablonu, ortak yükleme doğrulaması | `media_picker` bir formfield (Faz 2), media filter bir plugin contract'ı (Faz 4) | M |
 | **6 — Menü builder + widget + görünüm** (R27) | `menus.json` bindirme + sürükle-bırak, widget izinleri/yerleşim, varsayılan tema, özel CSS/JS | Menü başlıkları ve widget etiketleri i18n (Faz 1) gerektirir; widget filtreleri Faz 4 | L |
 | **7 — Çok dilli içerik** (R28) | Locale sekmeleri, doğrulama modu, listede aktif dil, çevrilebilir etiketler | Alan lifecycle'ı (Faz 2) + liste (Faz 3) + menü (Faz 6) | M |
 | **8 — Kurulum/DX** (R29) | `tardis:install`, `tardis:doctor`, demo veri, rehberler | Önceki fazların hepsini tek komutta toplar; en sonda | S |
+
+### Görünüm notları (2026-10-03)
+
+Voyager 1.7 ve 2.x kaynakları sayfa/bileşen düzeyinde incelendi: `research/06-voyager-gorunum-ve-blade-notlari.md`. Plana giren ilkeler: sunucu render + Alpine/Livewire kalır (SPA yok); tek formfield sözleşmesi çok bağlamda (browse/read/edit/add/query) çalışır, V1'in tip zinciri geri gelmez; BREAD tanımı `list`/`view` layout'ları taşır; ortak bileşen kütüphanesi (Card+actions, Badge, SlideIn, Modal, Toast); marka ayarları `appearance` grubunda; V1 Compass'in komut çalıştırıcısı **alınmaz**.
 
 ### Voyager'dan neyin alındığı
 
