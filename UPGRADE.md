@@ -118,4 +118,4 @@ The command runner is **disabled by default**, and turning it on is not enough o
 
 Allowed entries are options only (`--flag` or `--option=value`); positional arguments are not supported.
 
-There is no arbitrary command execution: the allowlist is checked again at submit time, not trusted from the form. Every run that is allowed through is written to the activity log.
+There is no arbitrary command execution: the allowlist is checked again at submit time, not trusted from the form. Every attempt is written to the activity log (`tardis.command`, action `executed` or `denied`, with the command, its options and the exit code), refused ones included, unless `tardis.activity_log.enabled` is false.

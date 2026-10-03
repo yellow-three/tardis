@@ -80,9 +80,10 @@ new #[Title('tardis::system.command_runner')] #[Layout('tardis::layouts.admin')]
         $allowlist = app(CommandAllowlist::class);
 
         // Re-checked here rather than trusted from the form: the config may have
-        // been changed since the page was opened.
+        // been changed since the page opened.
         if (! $allowlist->allows($this->command, $this->arguments)) {
             $this->denied = true;
+            $this->audit('denied');
 
             return;
         }
@@ -95,12 +96,31 @@ new #[Title('tardis::system.command_runner')] #[Layout('tardis::layouts.admin')]
             $this->exitCode = null;
         }
 
-        app(ActivityLogger::class)->log(
-            'tardis.command',
-            $this->command,
-            'executed',
-            newValues: ['arguments' => $this->arguments, 'exit_code' => $this->exitCode],
-        );
+        $this->audit('executed', ['exit_code' => $this->exitCode]);
+    }
+
+    /**
+     * Record an attempt, refused ones included: a probe for a command that is
+     * not on the allowlist is exactly what an audit trail is for.
+     *
+     * The request values are bounded and stored as data in new_values; the
+     * activity log's model_id column is numeric, so it carries 0 here.
+     *
+     * @param  array<string, mixed>  $extra
+     */
+    protected function audit(string $action, array $extra = []): void
+    {
+        if (! config('tardis.activity_log.enabled', true)) {
+            return;
+        }
+
+        app(ActivityLogger::class)->log('tardis.command', 0, $action, newValues: [
+            'command' => mb_substr($this->command, 0, 200),
+            'arguments' => array_map(
+                fn ($argument) => mb_substr((string) $argument, 0, 200),
+                array_slice(array_values($this->arguments), 0, 20),
+            ),
+        ] + $extra);
     }
 
     public function resetRun(): void
