@@ -5,6 +5,7 @@ declare(strict_types=1);
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
+use Tardis\Auth\Abilities;
 use Tardis\Database\Seeders\PermissionSeeder;
 use Tardis\Models\Permission;
 
@@ -100,9 +101,11 @@ test('the seeder is idempotent', function () {
     (new PermissionSeeder)->run();
     (new PermissionSeeder)->run();
 
-    expect(DB::table('tardis_permissions')->count())->toBe(13)
+    $expected = count(Abilities::admin()) + count(Abilities::media());
+
+    expect(DB::table('tardis_permissions')->count())->toBe($expected)
         ->and(DB::table('tardis_roles')->count())->toBe(1)
-        ->and(DB::table('tardis_permission_role')->count())->toBe(13);
+        ->and(DB::table('tardis_permission_role')->count())->toBe($expected);
 });
 
 test('the seeder exposes bread permissions through the native model', function () {

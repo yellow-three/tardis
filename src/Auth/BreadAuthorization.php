@@ -48,6 +48,27 @@ class BreadAuthorization
         }
     }
 
+    /**
+     * Check a fixed ability (see Abilities) rather than a BREAD action.
+     */
+    public function allowsAbility(string $ability): bool
+    {
+        $auth = $this->plugin();
+
+        if (! $auth instanceof AuthorizationPlugin) {
+            return true;
+        }
+
+        return $auth->can($ability, null);
+    }
+
+    public function authorizeAbility(string $ability): void
+    {
+        if (! $this->allowsAbility($ability)) {
+            abort(403, 'Unauthorized.');
+        }
+    }
+
     protected function plugin(): ?AuthorizationPlugin
     {
         $this->plugins ??= app(PluginManager::class);

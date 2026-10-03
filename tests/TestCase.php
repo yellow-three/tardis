@@ -33,6 +33,10 @@ abstract class TestCase extends OrchestraTestCase
             'prefix' => '',
         ]);
 
+        // Most tests exercise pages as an anonymous caller; authorization has its
+        // own tests (AdminAccessTest, BreadAuthorizationTest) that switch it on.
+        $app['config']->set('tardis.authorization.enabled', false);
+
         $app['config']->set('cache.default', 'array');
         $app['config']->set('cache.stores.array', [
             'driver' => 'array',

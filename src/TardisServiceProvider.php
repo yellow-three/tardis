@@ -8,7 +8,9 @@ use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\ServiceProvider;
 use Livewire\Livewire;
+use Tardis\Auth\TardisAuthorizationPlugin;
 use Tardis\Bread\Sources\ConfigBreadSource;
+use Tardis\Commands\TardisAdminCommand;
 use Tardis\Commands\TardisBreadExportCommand;
 use Tardis\Commands\TardisBreadMigrateCommand;
 use Tardis\Commands\TardisMakeBreadCommand;
@@ -119,6 +121,7 @@ class TardisServiceProvider extends ServiceProvider
             return '<?php echo app(\\Tardis\\Manager\\AssetManager::class)->scripts(); ?>';
         });
 
+        $this->registerDefaultAuthorization();
         $this->registerLivewireNamespaces();
         $this->registerViews();
 
@@ -163,6 +166,22 @@ class TardisServiceProvider extends ServiceProvider
         $manager = $this->app->make(PluginManager::class);
         $manager->register('tardis-auth', AuthenticationPlugin::class);
         $manager->enableByDefault('tardis-auth');
+
+    }
+
+    /**
+     * Registered in boot(), not register(): it reads host configuration, which
+     * is only final once every provider has registered.
+     */
+    protected function registerDefaultAuthorization(): void
+    {
+        if (! config('tardis.authorization.enabled', true)) {
+            return;
+        }
+
+        $manager = $this->app->make(PluginManager::class);
+        $manager->register('tardis-authorization', TardisAuthorizationPlugin::class);
+        $manager->enableByDefault('tardis-authorization');
     }
 
     protected function registerLivewireNamespaces(): void
@@ -236,6 +255,7 @@ class TardisServiceProvider extends ServiceProvider
     {
         if ($this->app->runningInConsole()) {
             $this->commands([
+                TardisAdminCommand::class,
                 TardisBreadExportCommand::class,
                 TardisBreadMigrateCommand::class,
                 TardisMakeBreadCommand::class,

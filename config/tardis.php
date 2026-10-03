@@ -72,6 +72,13 @@ return [
     |
     */
     'authorization' => [
+        // When true (default) TardisAuthorizationPlugin is registered and enabled:
+        // a logged-in user needs the "access admin" ability — through a role — to
+        // open the panel. Create the first administrator with
+        // `php artisan tardis:admin you@example.com`. Set to false only if you
+        // register your own AuthorizationPlugin or protect the panel another way:
+        // with no authorization plugin every authenticated user is allowed in.
+        'enabled' => true,
         'super_admin_roles' => ['super-admin'],
     ],
 
