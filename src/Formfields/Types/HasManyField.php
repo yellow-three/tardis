@@ -7,6 +7,8 @@ use Tardis\Formfields\Formfield;
 
 class HasManyField extends Formfield
 {
+    protected array $configurable = ['relation', 'model'];
+
     public ?string $relation = null;
 
     public ?string $model = null;
@@ -81,11 +83,11 @@ class HasManyField extends Formfield
         return 'tardis::formfields.has-many';
     }
 
-    public function viewData(): array
+    protected function extraViewData(): array
     {
-        return array_merge(parent::viewData(), [
+        return [
             'relation' => $this->relation,
-            'model' => $this->model,
-        ]);
+            'relatedModel' => $this->model,
+        ];
     }
 }

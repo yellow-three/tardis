@@ -8,4 +8,5 @@ return [
     'slug_will_be_auto_generated_from_4e67' => 'Kısa ad kaynak alandan otomatik üretilecek',
     'add_tag' => 'Etiket ekle...',
     'add' => 'Ekle',
+    'allowed_types' => 'İzin verilen: :types',
 ];

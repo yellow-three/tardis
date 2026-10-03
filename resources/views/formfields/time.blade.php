@@ -1,8 +1,1 @@
-<input
-    type="time"
-    name="{{ $name }}"
-    value="{{ $value }}"
-    class="input input-bordered w-full"
-    {!! $disabled ? 'disabled' : '' !!}
-    {!! $readonly ? 'readonly' : '' !!}
-/>
+<input type="time" id="{{ $id }}" wire:model="{{ $model }}" @disabled($disabled) @readonly($readonly) placeholder="{{ $placeholder }}" class="input w-full"  @foreach ($extraAttributes as $attr => $attrValue) {{ $attr }}="{{ $attrValue }}" @endforeach />

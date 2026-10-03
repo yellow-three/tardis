@@ -8,4 +8,5 @@ return [
     'slug_will_be_auto_generated_from_4e67' => 'Slug will be auto-generated from the source field',
     'add_tag' => 'Add tag...',
     'add' => 'Add',
+    'allowed_types' => 'Allowed: :types',
 ];

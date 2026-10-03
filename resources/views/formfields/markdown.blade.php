@@ -1,7 +1,1 @@
-<textarea
-    name="{{ $name }}"
-    class="textarea textarea-bordered w-full font-mono text-sm"
-    rows="10"
-    {!! $disabled ? 'disabled' : '' !!}
-    {!! $readonly ? 'readonly' : '' !!}
->{{ $value }}</textarea>
+<textarea id="{{ $id }}" wire:model="{{ $model }}" @disabled($disabled) @readonly($readonly) placeholder="{{ $placeholder }}" rows="10" class="textarea w-full" @foreach ($extraAttributes as $attr => $attrValue) {{ $attr }}="{{ $attrValue }}" @endforeach></textarea>

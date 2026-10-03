@@ -6,6 +6,8 @@ use Tardis\Formfields\Formfield;
 
 class SelectField extends Formfield
 {
+    protected array $configurable = ['options'];
+
     public array $options = [];
 
     public function options(array $options = []): self|array
@@ -29,10 +31,10 @@ class SelectField extends Formfield
         return 'tardis::formfields.select';
     }
 
-    public function viewData(): array
+    protected function extraViewData(): array
     {
-        return array_merge(parent::viewData(), [
+        return [
             'options' => $this->options,
-        ]);
+        ];
     }
 }

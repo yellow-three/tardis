@@ -33,6 +33,9 @@ abstract class Formfield
 
     public array $locales = [];
 
+    /** @var array<int|string, string> definition key => property */
+    protected array $configurable = [];
+
     public function __construct(string $name, ?string $label = null)
     {
         $this->name = $name;
@@ -171,21 +174,60 @@ abstract class Formfield
         $this->stored($value, $model);
     }
 
-    public function viewData(): array
+    /**
+     * Read the type-specific keys of a BREAD definition ($configurable maps a
+     * definition key onto a public property, or lists a key that is also the
+     * property name).
+     */
+    public function configure(array $definition): void
     {
-        return [
+        foreach ($this->configurable as $key => $property) {
+            $key = is_int($key) ? $property : $key;
+
+            if (! array_key_exists($key, $definition)) {
+                continue;
+            }
+
+            $value = $definition[$key];
+            $current = $this->{$property};
+
+            $this->{$property} = match (true) {
+                is_int($current) => (int) $value,
+                is_bool($current) => (bool) $value,
+                is_array($current) => (array) $value,
+                default => $value,
+            };
+        }
+    }
+
+    /**
+     * Everything a field view needs. `model` is the Livewire property path the
+     * control binds to; a page may override it (and add its own keys) through
+     * $context, e.g. one path per locale of a translatable field.
+     */
+    public function viewData(array $context = []): array
+    {
+        $model = $context['model'] ?? 'form.'.$this->name;
+
+        return array_merge([
             'field' => $this,
             'name' => $this->name,
             'label' => $this->label,
-            'value' => old($this->name, $this->default),
-            'error' => $errors ?? null,
+            'model' => $model,
+            'id' => 'field_'.str_replace('.', '_', $model),
             'helpText' => $this->helpText,
             'placeholder' => $this->placeholder,
             'disabled' => $this->disabled,
             'readonly' => $this->readonly,
-            'attributes' => $this->attributes,
-            'required' => in_array('required', $this->rules),
-        ];
+            'extraAttributes' => $this->attributes,
+            'required' => in_array('required', $this->rules, true),
+        ], $this->extraViewData(), $context);
+    }
+
+    /** @return array<string, mixed> */
+    protected function extraViewData(): array
+    {
+        return [];
     }
 
     abstract public function type(): string;

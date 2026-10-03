@@ -7,6 +7,8 @@ use Tardis\Formfields\Formfield;
 
 class BelongsToManyField extends Formfield
 {
+    protected array $configurable = ['relation', 'model', 'label_column' => 'labelColumn'];
+
     public ?string $relation = null;
 
     public ?string $model = null;
@@ -134,12 +136,12 @@ class BelongsToManyField extends Formfield
         return 'tardis::formfields.belongs-to-many';
     }
 
-    public function viewData(): array
+    protected function extraViewData(): array
     {
-        return array_merge(parent::viewData(), [
+        return [
             'relation' => $this->relation,
-            'model' => $this->model,
+            'relatedModel' => $this->model,
             'labelColumn' => $this->labelColumn,
-        ]);
+        ];
     }
 }

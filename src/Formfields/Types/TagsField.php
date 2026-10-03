@@ -6,6 +6,8 @@ use Tardis\Formfields\Formfield;
 
 class TagsField extends Formfield
 {
+    protected array $configurable = ['suggestions'];
+
     public array $suggestions = [];
 
     public function suggestions(array $suggestions): self
@@ -25,10 +27,10 @@ class TagsField extends Formfield
         return 'tardis::formfields.tags';
     }
 
-    public function viewData(): array
+    protected function extraViewData(): array
     {
-        return array_merge(parent::viewData(), [
+        return [
             'suggestions' => $this->suggestions,
-        ]);
+        ];
     }
 }

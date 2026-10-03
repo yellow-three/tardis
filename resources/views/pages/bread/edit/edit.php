@@ -12,6 +12,7 @@ use Tardis\Bread\BreadManager;
 use Tardis\Bread\FieldValidationRules;
 use Tardis\Classes\Translation;
 use Tardis\Events\BreadRecordUpdated;
+use Tardis\Formfields\Formfield;
 use Tardis\Formfields\Types\BelongsToManyField;
 use Tardis\Manager\FormfieldManager;
 
@@ -125,6 +126,16 @@ new #[Title('Edit')] #[Layout('tardis::layouts.admin')] class extends Component
             (string) ($this->relationSearch[$fieldName] ?? ''),
             (array) ($this->form[$fieldName] ?? []),
         );
+    }
+
+    /**
+     * The field objects behind the form; each one renders its own control.
+     *
+     * @return array<int, Formfield>
+     */
+    public function getFormfieldsProperty(): array
+    {
+        return app(FormfieldManager::class)->fields($this->fields);
     }
 
     public function getFieldsProperty(): array

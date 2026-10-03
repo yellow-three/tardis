@@ -1,8 +1,1 @@
-<textarea
-    name="{{ $name }}"
-    class="textarea textarea-bordered w-full font-mono text-sm"
-    rows="15"
-    {!! $disabled ? 'disabled' : '' !!}
-    {!! $readonly ? 'readonly' : '' !!}
->{{ $value }}</textarea>
-<p class="text-xs text-base-content/50 mt-1">{{ __('tardis::fields.language', ['language' => $language]) }}</p>
+<textarea id="{{ $id }}" wire:model="{{ $model }}" @disabled($disabled) @readonly($readonly) placeholder="{{ $placeholder }}" rows="10" class="textarea w-full font-mono text-sm" @foreach ($extraAttributes as $attr => $attrValue) {{ $attr }}="{{ $attrValue }}" @endforeach></textarea>

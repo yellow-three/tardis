@@ -7,6 +7,8 @@ use Tardis\Formfields\Formfield;
 
 class FileField extends Formfield
 {
+    protected array $configurable = ['mimes', 'max_size' => 'maxSize', 'disk', 'directory'];
+
     public array $mimes = [];
 
     public int $maxSize = 0;
@@ -62,11 +64,11 @@ class FileField extends Formfield
         return 'tardis::formfields.file';
     }
 
-    public function viewData(): array
+    protected function extraViewData(): array
     {
-        return array_merge(parent::viewData(), [
+        return [
             'mimes' => $this->mimes,
             'maxSize' => $this->maxSize,
-        ]);
+        ];
     }
 }
