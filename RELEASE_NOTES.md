@@ -90,3 +90,11 @@ composer lint   # clean
 - **File assets**: `Asset::file($path)` ships a stylesheet or script from inside a package. Tardis serves it at `/admin/_assets/{hash}.css|js` with `Cache-Control: public, max-age=31536000, immutable` and an ETag; the hash comes from the file's content, so an update changes the URL and nothing needs publishing. The route resolves hashes only against registered assets (no request value becomes a path) and runs without middleware.
 - **Scope**: `->scope('admin'|'auth'|'both')`, `->routes('tardis.bread.*')` and `->ability('…')` declare where an asset is wanted; the others are not written. The login layout asks for `auth` assets.
 - `provideCSS()`/`provideJS()` may return an `Asset` or a list of them (mixed with inline text); plain strings still work.
+
+## 2.0 — plugin extensibility (Faz 4, rest)
+
+- **Routes**: plugins implementing `Provider\Routes` add routes inside the panel group (admin prefix, `tardis.` names, `web` + locale + `tardis.admin` middleware).
+- **Settings screen**: `Provider\SettingsComponent` names a Livewire component the Plugins page opens in a dialog.
+- **Formfield assets**: `Formfield::assets()` is written only on pages that render the field.
+- **CSP**: inline blocks carry a nonce (`tardis.csp.nonce` or Laravel's Vite nonce).
+- **Tooling**: `tardis:plugins [list|enable|disable]`; `tardis:make-plugin --with-assets` scaffolds CSS/JS sources, a Vite build and the `Asset::file()` wiring. The JavaScript surface is documented in [docs/JS.md](docs/JS.md).

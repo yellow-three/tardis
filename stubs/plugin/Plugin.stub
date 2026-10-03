@@ -6,8 +6,9 @@ use Tardis\Contracts\Plugins\GenericPlugin;
 {{MENU_IMPORT}}
 {{WIDGET_IMPORT}}
 {{SETTINGS_IMPORT}}
+{{ASSET_IMPORT}}
 
-class Tardis{{STUDLY_NAME}}Plugin implements GenericPlugin{{MENU_INTERFACE}}{{WIDGET_INTERFACE}}{{SETTINGS_INTERFACE}}
+class Tardis{{STUDLY_NAME}}Plugin implements GenericPlugin{{MENU_INTERFACE}}{{WIDGET_INTERFACE}}{{SETTINGS_INTERFACE}}{{ASSET_INTERFACE}}
 {
     public function name(): string
     {
@@ -21,4 +22,5 @@ class Tardis{{STUDLY_NAME}}Plugin implements GenericPlugin{{MENU_INTERFACE}}{{WI
 {{MENU_METHOD}}
 {{WIDGET_METHOD}}
 {{SETTINGS_METHOD}}
+{{ASSET_METHOD}}
 }

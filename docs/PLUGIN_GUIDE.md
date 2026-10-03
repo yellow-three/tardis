@@ -91,6 +91,7 @@ Authentication and authorization plugins are **locked**: they guard the panel, s
 
 - **Theme plugins** implement `ThemePlugin` and return CSS custom properties from `getTheme()` (`['--color-primary' => 'oklch(45% 0.2 260)']`). Names must be `--custom-properties` and values may only hold colour/length/number characters; Tardis writes the `:root` rule itself.
 - **Extra files:** call `Tardis::addCss()` / `Tardis::addJs()` with a URL or an `Asset` from your provider's `boot()`.
+- **Plugin assets, routes and a settings screen:** see [docs/JS.md](JS.md) (`Asset::file()`, `window.Tardis`, `Provider\Routes`, `SettingsComponent`, `tardis:make-plugin --with-assets`).
 - **Hooks:** listen to `BreadSaved`, `BreadRecordCreated|Updated|Deleted` and `tardis.page` instead of patching core code.
 - **Authentication plugins** implement `attempt(array $credentials, bool $remember): bool`; register after the built-in plugin and yours is used.
 

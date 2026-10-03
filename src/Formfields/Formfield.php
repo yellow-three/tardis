@@ -3,6 +3,7 @@
 namespace Tardis\Formfields;
 
 use Illuminate\Database\Eloquent\Model;
+use Tardis\Assets\Asset;
 use Tardis\Classes\Translation;
 
 abstract class Formfield
@@ -222,6 +223,17 @@ abstract class Formfield
             'extraAttributes' => $this->attributes,
             'required' => in_array('required', $this->rules, true),
         ], $this->extraViewData(), $context);
+    }
+
+    /**
+     * Scripts and styles this type needs. They are written only on a page that
+     * renders the field, so a heavy editor costs nothing elsewhere.
+     *
+     * @return array<int, Asset>
+     */
+    public function assets(): array
+    {
+        return [];
     }
 
     /** @return array<string, mixed> */

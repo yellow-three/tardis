@@ -5,6 +5,7 @@ use Livewire\Attributes\Title;
 use Livewire\Component;
 use Tardis\Auth\Abilities;
 use Tardis\Auth\BreadAuthorization;
+use Tardis\Contracts\Plugins\Features\Provider\SettingsComponent;
 use Tardis\Facades\Tardis;
 
 new #[Title('tardis::plugins.plugin_manager')] #[Layout('tardis::layouts.admin')] class extends Component
@@ -14,6 +15,9 @@ new #[Title('tardis::plugins.plugin_manager')] #[Layout('tardis::layouts.admin')
     public int $enabledCount = 0;
 
     public ?string $message = null;
+
+    /** Slug of the plugin whose settings dialog is open. */
+    public ?string $settingsFor = null;
 
     /**
      * Runs on every request, not only on mount: Livewire keeps component state
@@ -44,10 +48,36 @@ new #[Title('tardis::plugins.plugin_manager')] #[Layout('tardis::layouts.admin')
                 'enabled' => Tardis::plugins()->isEnabled($name),
                 'locked' => Tardis::plugins()->isLocked($name),
                 'version' => $info['version'] ?? null,
+                'settings' => $this->settingsComponentFor($name) !== null,
             ];
         })->toArray();
 
         $this->enabledCount = Tardis::plugins()->enabled()->count();
+    }
+
+    /**
+     * The settings component of an enabled plugin, resolved from the plugin
+     * itself: the name never comes from the request.
+     */
+    public function settingsComponentFor(string $slug): ?string
+    {
+        if (! Tardis::plugins()->isEnabled($slug)) {
+            return null;
+        }
+
+        $instance = Tardis::plugins()->get($slug);
+
+        return $instance instanceof SettingsComponent ? $instance->settingsComponent() : null;
+    }
+
+    public function openSettings(string $slug): void
+    {
+        $this->settingsFor = $this->settingsComponentFor($slug) !== null ? $slug : null;
+    }
+
+    public function closeSettings(): void
+    {
+        $this->settingsFor = null;
     }
 
     public function enable(string $name): void
@@ -151,6 +181,12 @@ $typeLabels = [
                                     @endif
                                 </td>
                                 <td class="text-right">
+                                    @if ($plugin['settings'])
+                                        <button type="button" wire:click="openSettings('{{ $plugin['slug'] }}')" class="btn btn-ghost btn-sm">
+                                            <x-tardis::icon name="cog-6-tooth" class="w-4 h-4" />
+                                            {{ __('tardis::plugins.settings') }}
+                                        </button>
+                                    @endif
                                     @if ($plugin['locked'])
                                         <span class="badge badge-ghost badge-sm gap-1">
                                             <x-tardis::icon name="lock-closed" class="w-3 h-3" />
@@ -178,6 +214,18 @@ $typeLabels = [
                         @endforeach
                     </tbody>
                 </table>
+            </div>
+        </div>
+    @endif
+
+    @if ($settingsFor && ($settingsName = $this->settingsComponentFor($settingsFor)))
+        <div class="modal modal-open" role="dialog" aria-modal="true" wire:keydown.escape.window="closeSettings">
+            <div class="modal-box max-w-3xl">
+                <livewire:dynamic-component :is="$settingsName" :key="'plugin-settings-'.$settingsFor" />
+
+                <div class="modal-action">
+                    <button type="button" wire:click="closeSettings" class="btn">{{ __('tardis::appearance.close') }}</button>
+                </div>
             </div>
         </div>
     @endif

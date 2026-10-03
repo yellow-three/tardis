@@ -122,3 +122,35 @@ test('the generated composer.json requires the real Tardis package and is valid'
         ->and($composer['require'])->not->toHaveKey('tardis/core')
         ->and($composer['require']['yellow-three/tardis'])->toStartWith('^');
 });
+
+test('--with-assets scaffolds sources, a build and the Asset wiring', function () {
+    test()->artisan('tardis:make-plugin', [
+        'name' => 'blog',
+        '--namespace' => 'Acme\\Blog',
+        '--package-dir' => $this->pluginRoot,
+        '--with-assets' => true,
+    ])->assertSuccessful();
+
+    $dir = $this->pluginRoot.'/Blog';
+
+    foreach (['resources/css/plugin.css', 'resources/js/plugin.js', 'vite.config.js', 'package.json'] as $file) {
+        expect(File::exists($dir.'/'.$file))->toBeTrue("missing {$file}");
+    }
+
+    $plugin = File::get($dir.'/src/TardisBlogPlugin.php');
+
+    expect($plugin)->toContain('Asset::file(__DIR__')->toContain('implements GenericPlugin, CSS, JS')
+        ->and(File::get($dir.'/resources/js/plugin.js'))->toContain("Tardis.component('blog'")
+        ->and(File::get($dir.'/resources/css/plugin.css'))->toContain('@layer tardis.plugins')->toContain('tp-blog-')
+        ->and(json_decode(File::get($dir.'/package.json'), true))->toBeArray();
+
+    exec('php -l '.escapeshellarg($dir.'/src/TardisBlogPlugin.php').' 2>&1', $out, $code);
+    expect($code)->toBe(0);
+});
+
+test('without --with-assets no asset files or interfaces are generated', function () {
+    $dir = generatePlugin($this->pluginRoot);
+
+    expect(File::exists($dir.'/resources/js/plugin.js'))->toBeFalse()
+        ->and(File::get($dir.'/src/TardisBlogPlugin.php'))->not->toContain('CSS');
+});

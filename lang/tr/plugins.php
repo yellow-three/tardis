@@ -23,4 +23,5 @@ return [
         'generic' => 'Genel',
         'unknown' => 'Bilinmeyen',
     ],
+    'settings' => 'Ayarlar',
 ];
