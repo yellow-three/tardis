@@ -6,6 +6,7 @@ namespace Tardis\Commands;
 
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\File;
+use Tardis\Bread\BreadManager;
 use Tardis\Bread\Sources\ConfigBreadSource;
 use Tardis\Bread\Sources\JsonBreadSource;
 
@@ -50,7 +51,7 @@ class TardisBreadMigrateCommand extends Command
                 continue;
             }
 
-            $json->save($definition);
+            app(BreadManager::class)->save($definition);
             $migrated++;
 
             if ($delete) {

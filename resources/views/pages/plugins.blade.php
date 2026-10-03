@@ -3,6 +3,8 @@
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
+use Tardis\Auth\Abilities;
+use Tardis\Auth\BreadAuthorization;
 use Tardis\Facades\Tardis;
 
 new #[Title('Plugin Manager')] #[Layout('tardis::layouts.admin')] class extends Component
@@ -10,6 +12,16 @@ new #[Title('Plugin Manager')] #[Layout('tardis::layouts.admin')] class extends 
     public array $plugins = [];
 
     public int $enabledCount = 0;
+
+    /**
+     * Runs on every request, not only on mount: Livewire keeps component state
+     * between updates, so a permission revoked after the page opened must
+     * still stop the next action.
+     */
+    public function boot(): void
+    {
+        app(BreadAuthorization::class)->authorizeAbility(Abilities::PLUGINS);
+    }
 
     public function mount(): void
     {

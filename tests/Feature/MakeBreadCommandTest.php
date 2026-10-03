@@ -5,6 +5,7 @@ declare(strict_types=1);
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Schema;
 use Tardis\Bread\Sources\JsonBreadSource;
+use Tardis\Models\Permission;
 
 class MakeBreadGuardArticle extends Model
 {
@@ -60,4 +61,14 @@ test('make-bread derives the required flag from column nullability', function ()
 test('make-bread fails for a model class that does not exist', function () {
     $this->artisan('tardis:make-bread', ['model' => 'App\\Models\\DoesNotExist'])
         ->assertFailed();
+});
+
+test('make-bread provisions the five BREAD permissions for the new resource', function () {
+    $this->artisan('migrate');
+
+    $this->artisan('tardis:make-bread', ['model' => MakeBreadGuardArticle::class, 'slug' => 'articles'])
+        ->assertSuccessful();
+
+    expect(Permission::where('group', 'BREAD')->pluck('slug')->sort()->values()->all())
+        ->toBe(['add articles', 'browse articles', 'delete articles', 'edit articles', 'read articles']);
 });

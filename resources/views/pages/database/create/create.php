@@ -5,6 +5,8 @@ use Illuminate\Support\Facades\Schema;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
+use Tardis\Auth\Abilities;
+use Tardis\Auth\BreadAuthorization;
 use Tardis\Database\Concerns\ManagesColumnDefinitions;
 use Tardis\Database\ModelGenerator;
 
@@ -24,6 +26,16 @@ new #[Title('Create Table')] #[Layout('tardis::layouts.admin')] class extends Co
     public bool $createModel = false;
 
     public ?string $error = null;
+
+    /**
+     * Runs on every request, not only on mount: Livewire keeps component state
+     * between updates, so a permission revoked after the page opened must
+     * still stop the next action.
+     */
+    public function boot(): void
+    {
+        app(BreadAuthorization::class)->authorizeAbility(Abilities::DATABASE);
+    }
 
     public function mount(): void
     {

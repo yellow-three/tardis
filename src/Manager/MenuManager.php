@@ -6,6 +6,8 @@ namespace Tardis\Manager;
 
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Route;
+use Tardis\Auth\Abilities;
+use Tardis\Auth\BreadAuthorization;
 use Tardis\Bread\BreadDefinition;
 use Tardis\Bread\BreadManager;
 use Tardis\Classes\MenuItem;
@@ -60,6 +62,7 @@ class MenuManager
                 ->order(0),
             (new MenuItem('Media', 'heroicon-o-photo'))
                 ->route('tardis.media')
+                ->permission(Abilities::MEDIA_BROWSE)
                 ->section('Overview')
                 ->activeMode('prefix')
                 ->order(10),
@@ -69,20 +72,24 @@ class MenuManager
                 ->order(20),
             (new MenuItem('Settings', 'heroicon-o-cog-6-tooth'))
                 ->route('tardis.settings.index')
+                ->permission(Abilities::SETTINGS)
                 ->section('Management')
                 ->activeMode('prefix')
                 ->order(30),
             (new MenuItem('Plugins', 'heroicon-o-puzzle-piece'))
                 ->route('tardis.plugins.index')
+                ->permission(Abilities::PLUGINS)
                 ->section('Management')
                 ->order(40),
             (new MenuItem('Database Explorer', 'heroicon-o-circle-stack'))
                 ->route('tardis.database.index')
+                ->permission(Abilities::DATABASE)
                 ->section('Management')
                 ->activeMode('prefix')
                 ->order(45),
             (new MenuItem('BREAD', 'heroicon-o-table-cells'))
                 ->route('tardis.bread.manage')
+                ->permission(Abilities::BREAD)
                 ->section('Management')
                 // The builder screens share the tardis.bread.* prefix with the
                 // BREAD resource screens, so they are listed explicitly here
@@ -96,10 +103,12 @@ class MenuManager
             MenuItem::makeDivider(),
             (new MenuItem('Permissions', 'heroicon-o-lock-closed'))
                 ->route('tardis.permissions')
+                ->permission(Abilities::ROLES)
                 ->section('Access')
                 ->order(60),
             (new MenuItem('Roles', 'heroicon-o-user-group'))
                 ->route('tardis.roles')
+                ->permission(Abilities::ROLES)
                 ->section('Access')
                 ->order(70),
         );
@@ -161,6 +170,7 @@ class MenuManager
             ->all()
             ->map(fn (BreadDefinition $bread) => (new MenuItem($bread->namePlural, $this->breadMenuIcon($bread->icon)))
                 ->route('tardis.bread.index', ['slug' => $bread->slug])
+                ->permission(BreadAuthorization::ability('browse', $bread->slug))
                 ->section('BREAD')
                 ->activeOnRoutes([
                     'tardis.bread.index',

@@ -3,6 +3,8 @@
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
+use Tardis\Auth\Abilities;
+use Tardis\Auth\BreadAuthorization;
 use Tardis\Models\Permission;
 
 new #[Title('Permissions')] #[Layout('tardis::layouts.admin')] class extends Component
@@ -20,6 +22,16 @@ new #[Title('Permissions')] #[Layout('tardis::layouts.admin')] class extends Com
     public ?int $deleteId = null;
 
     public bool $showDeleteModal = false;
+
+    /**
+     * Runs on every request, not only on mount: Livewire keeps component state
+     * between updates, so a permission revoked after the page opened must
+     * still stop the next action.
+     */
+    public function boot(): void
+    {
+        app(BreadAuthorization::class)->authorizeAbility(Abilities::ROLES);
+    }
 
     public function mount(): void
     {

@@ -5,6 +5,8 @@ use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
 use Livewire\WithFileUploads;
+use Tardis\Auth\Abilities;
+use Tardis\Auth\BreadAuthorization;
 use Tardis\Manager\MediaManager;
 
 new #[Title('Media')] #[Layout('tardis::layouts.admin')] class extends Component
@@ -68,6 +70,16 @@ new #[Title('Media')] #[Layout('tardis::layouts.admin')] class extends Component
     public ?array $infoFile = null;
 
     public bool $showInfoModal = false;
+
+    /**
+     * Runs on every request, not only on mount: Livewire keeps component state
+     * between updates, so a permission revoked after the page opened must
+     * still stop the next action.
+     */
+    public function boot(): void
+    {
+        app(BreadAuthorization::class)->authorizeAbility(Abilities::MEDIA_BROWSE);
+    }
 
     public function mount(): void
     {
@@ -203,6 +215,8 @@ new #[Title('Media')] #[Layout('tardis::layouts.admin')] class extends Component
 
     public function updatedNewUploads(): void
     {
+        app(BreadAuthorization::class)->authorizeAbility(Abilities::MEDIA_UPLOAD);
+
         $files = is_array($this->newUploads) ? $this->newUploads : [$this->newUploads];
 
         $allowed = implode(',', (array) config('tardis-media.allowed_mimes', []));
@@ -268,6 +282,8 @@ new #[Title('Media')] #[Layout('tardis::layouts.admin')] class extends Component
 
     public function createDirectory(): void
     {
+        app(BreadAuthorization::class)->authorizeAbility(Abilities::MEDIA_UPLOAD);
+
         $this->validate([
             'newDirectoryName' => ['required', 'string', 'max:255', 'not_regex:/\.\./', 'not_regex:/[\/\\\\]/'],
         ]);
@@ -282,6 +298,8 @@ new #[Title('Media')] #[Layout('tardis::layouts.admin')] class extends Component
 
     public function confirmRename(string $path): void
     {
+        app(BreadAuthorization::class)->authorizeAbility(Abilities::MEDIA_RENAME);
+
         $this->renamePath = $path;
         $this->renameNewName = basename($path);
         $this->showRenameModal = true;
@@ -289,6 +307,8 @@ new #[Title('Media')] #[Layout('tardis::layouts.admin')] class extends Component
 
     public function renameFile(): void
     {
+        app(BreadAuthorization::class)->authorizeAbility(Abilities::MEDIA_RENAME);
+
         $this->validate([
             'renameNewName' => ['required', 'string', 'max:255', 'not_regex:/\.\./', 'not_regex:/[\/\\\\]/'],
         ]);
@@ -303,6 +323,8 @@ new #[Title('Media')] #[Layout('tardis::layouts.admin')] class extends Component
 
     public function confirmDelete(string $path): void
     {
+        app(BreadAuthorization::class)->authorizeAbility(Abilities::MEDIA_DELETE);
+
         $this->deletePath = $path;
         $this->deleteIsDirectory = $this->isDirectory($path);
         $this->deleteIsBulk = false;
@@ -311,6 +333,8 @@ new #[Title('Media')] #[Layout('tardis::layouts.admin')] class extends Component
 
     public function deleteFile(): void
     {
+        app(BreadAuthorization::class)->authorizeAbility(Abilities::MEDIA_DELETE);
+
         $manager = app(MediaManager::class);
 
         if ($this->deleteIsBulk) {
@@ -352,6 +376,8 @@ new #[Title('Media')] #[Layout('tardis::layouts.admin')] class extends Component
 
     public function bulkDelete(): void
     {
+        app(BreadAuthorization::class)->authorizeAbility(Abilities::MEDIA_DELETE);
+
         if (empty($this->selectedFiles)) {
             return;
         }
