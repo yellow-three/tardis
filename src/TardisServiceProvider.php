@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\ServiceProvider;
 use Livewire\Livewire;
 use Tardis\Auth\TardisAuthorizationPlugin;
-use Tardis\Bread\Sources\ConfigBreadSource;
+use Tardis\Bread\Legacy\LegacyConfigReader;
 use Tardis\Commands\TardisAdminCommand;
 use Tardis\Commands\TardisBreadExportCommand;
 use Tardis\Commands\TardisBreadMigrateCommand;
@@ -240,8 +240,8 @@ class TardisServiceProvider extends ServiceProvider
             return new Tardis;
         });
 
-        $this->app->singleton(ConfigBreadSource::class, function () {
-            return new ConfigBreadSource(config_path('bread'));
+        $this->app->singleton(LegacyConfigReader::class, function () {
+            return new LegacyConfigReader(config_path('bread'));
         });
     }
 

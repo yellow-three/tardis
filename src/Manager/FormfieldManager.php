@@ -124,11 +124,6 @@ class FormfieldManager
         return new $class($name, $label);
     }
 
-    public function field(string $name, mixed $value = null): array
-    {
-        return [];
-    }
-
     public function fields(array $definitions): array
     {
         $fields = [];
