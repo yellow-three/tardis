@@ -23,4 +23,5 @@ return [
         'generic' => 'Generic',
         'unknown' => 'Unknown',
     ],
+    'settings' => 'Settings',
 ];
