@@ -111,9 +111,11 @@ The command runner is **disabled by default**, and turning it on is not enough o
     'environments' => ['local'],
     'allowlist' => [
         'cache:clear' => [],
-        'queue:retry' => ['id'],
+        'queue:work' => ['--once', '--queue=default'],
     ],
 ],
 ```
+
+Allowed entries are options only (`--flag` or `--option=value`); positional arguments are not supported.
 
 There is no arbitrary command execution: the allowlist is checked again at submit time, not trusted from the form. Every run that is allowed through is written to the activity log.
