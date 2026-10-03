@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tardis;
 
 use Illuminate\Support\Facades\Blade;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\ServiceProvider;
 use Livewire\Livewire;
@@ -16,7 +17,13 @@ use Tardis\Commands\TardisBreadMigrateCommand;
 use Tardis\Commands\TardisMakeBreadCommand;
 use Tardis\Commands\TardisMakeModelCommand;
 use Tardis\Commands\TardisMakePluginCommand;
+use Tardis\Events\BreadRecordCreated;
+use Tardis\Events\BreadRecordDeleted;
+use Tardis\Events\BreadRecordUpdated;
+use Tardis\Events\BreadSaved;
 use Tardis\Http\Middleware\AdminMiddleware;
+use Tardis\Listeners\LogBreadActivity;
+use Tardis\Listeners\ProvisionBreadPermissions;
 use Tardis\Manager\AssetManager;
 use Tardis\Manager\FormfieldManager;
 use Tardis\Manager\MenuManager;
@@ -135,6 +142,7 @@ class TardisServiceProvider extends ServiceProvider
         $this->registerPublishing();
         $this->registerMiddleware();
         $this->registerCommands();
+        $this->registerListeners();
         $this->loadDefaultSettings();
     }
 
@@ -249,6 +257,16 @@ class TardisServiceProvider extends ServiceProvider
     {
         $router = $this->app['router'];
         $router->aliasMiddleware('tardis.admin', AdminMiddleware::class);
+    }
+
+    protected function registerListeners(): void
+    {
+        Event::listen(BreadSaved::class, ProvisionBreadPermissions::class);
+
+        Event::listen(
+            [BreadRecordCreated::class, BreadRecordUpdated::class, BreadRecordDeleted::class],
+            LogBreadActivity::class
+        );
     }
 
     protected function registerCommands(): void

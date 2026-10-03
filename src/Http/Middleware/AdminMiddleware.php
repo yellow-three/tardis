@@ -6,6 +6,7 @@ namespace Tardis\Http\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Event;
 use Tardis\Auth\Abilities;
 use Tardis\Auth\BreadAuthorization;
 use Tardis\Contracts\Plugins\AuthenticationPlugin;
@@ -30,6 +31,9 @@ class AdminMiddleware
         // the request is authenticated it must also hold the access ability.
         $authorized = function (Request $request) use ($next): mixed {
             app(BreadAuthorization::class)->authorizeAbility(Abilities::ACCESS);
+
+            // Announce the page so plugins can hook the request lifecycle.
+            Event::dispatch('tardis.page', [$request]);
 
             return $next($request);
         };

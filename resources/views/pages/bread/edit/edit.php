@@ -11,6 +11,7 @@ use Tardis\Bread\BreadDefinition;
 use Tardis\Bread\BreadManager;
 use Tardis\Bread\FieldValidationRules;
 use Tardis\Classes\Translation;
+use Tardis\Events\BreadRecordUpdated;
 use Tardis\Formfields\Types\BelongsToManyField;
 use Tardis\Manager\FormfieldManager;
 
@@ -244,6 +245,17 @@ new #[Title('Edit')] #[Layout('tardis::layouts.admin')] class extends Component
                     $field->updated($value, $record);
                 }
             });
+
+            $changes = $record->getChanges();
+
+            if ($changes !== []) {
+                BreadRecordUpdated::dispatch(
+                    $this->slug,
+                    $record,
+                    array_intersect_key($record->getPrevious(), $changes),
+                    $changes,
+                );
+            }
         }
 
         session()->flash('message', 'Item updated successfully.');

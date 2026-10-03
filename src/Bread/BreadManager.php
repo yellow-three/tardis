@@ -5,10 +5,9 @@ declare(strict_types=1);
 namespace Tardis\Bread;
 
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Schema;
 use Tardis\Bread\Sources\JsonBreadSource;
-use Tardis\Models\Permission;
+use Tardis\Events\BreadRemoved;
+use Tardis\Events\BreadSaved;
 
 class BreadManager
 {
@@ -21,32 +20,13 @@ class BreadManager
      */
     public function save(array|BreadDefinition $bread): void
     {
-        $this->bread->save($bread);
-
         $definition = $bread instanceof BreadDefinition ? $bread : BreadDefinition::fromArray($bread);
 
-        $this->provisionPermissions($definition->permissionKey());
-    }
+        $wasNew = ! $this->bread->has($definition->slug);
 
-    /**
-     * Create the browse/read/edit/add/delete abilities for a resource so they
-     * show up on the Roles page the moment the BREAD exists (Voyager's
-     * generate_permissions). Skipped on an install that has not run the package
-     * migrations: saving a definition must not depend on them.
-     */
-    protected function provisionPermissions(string $slug): void
-    {
-        if ($slug === '') {
-            return;
-        }
+        $this->bread->save($bread);
 
-        try {
-            if (Schema::hasTable('tardis_permissions')) {
-                Permission::forBread($slug);
-            }
-        } catch (\Throwable $e) {
-            Log::warning('Could not provision BREAD permissions.', ['slug' => $slug, 'error' => $e->getMessage()]);
-        }
+        BreadSaved::dispatch($definition, $wasNew);
     }
 
     public function find(string $slug): ?BreadDefinition
@@ -66,7 +46,13 @@ class BreadManager
 
     public function delete(string $slug): bool
     {
-        return $this->bread->delete($slug);
+        $deleted = $this->bread->delete($slug);
+
+        if ($deleted) {
+            BreadRemoved::dispatch($slug);
+        }
+
+        return $deleted;
     }
 
     public function backup(string $slug): ?string

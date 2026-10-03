@@ -8,7 +8,7 @@ use Livewire\Component;
 use Tardis\Auth\BreadAuthorization;
 use Tardis\Bread\BreadDefinition;
 use Tardis\Bread\BreadManager;
-use Tardis\Events\BreadDeleted;
+use Tardis\Events\BreadRecordDeleted;
 
 new #[Title('BREAD')] #[Layout('tardis::layouts.admin')] class extends Component
 {
@@ -113,7 +113,7 @@ new #[Title('BREAD')] #[Layout('tardis::layouts.admin')] class extends Component
         $item = BreadDefinition::fromArray($this->bread)->query()->findOrFail($id);
         $item->delete();
 
-        BreadDeleted::dispatch($this->slug, $item);
+        BreadRecordDeleted::dispatch($this->slug, $item);
         session()->flash('message', 'Item deleted successfully.');
     }
 };
