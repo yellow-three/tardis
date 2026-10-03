@@ -114,39 +114,68 @@ test('styles uses production URL when hot file does not exist', function () {
     expect($html)->not->toContain('/resources/css/app.css');
 });
 
-test('ThemePlugin styles are included', function () {
-    $pluginManager = app(PluginManager::class);
-    app()->instance(PluginManager::class, $pluginManager);
+class ThemePluginFixture implements ThemePlugin
+{
+    /** @var array<string, string> */
+    public static array $variables = [];
 
-    $themePlugin = new class implements ThemePlugin
+    public function name(): string
     {
-        public function name(): string
-        {
-            return 'test-theme';
-        }
+        return 'test-theme';
+    }
 
-        public function description(): string
-        {
-            return 'Test theme';
-        }
+    public function description(): string
+    {
+        return 'Test theme';
+    }
 
-        public function getTheme(): array
-        {
-            return ['--primary' => '#ff0000'];
-        }
+    public function getTheme(): array
+    {
+        return static::$variables;
+    }
+}
 
-        public function getStyles(): string
-        {
-            return '.theme-style{background:blue;}';
-        }
-    };
+function themePluginFixture(array $variables): ThemePluginFixture
+{
+    ThemePluginFixture::$variables = $variables;
 
-    $pluginManager->register('test-theme', $themePlugin::class);
-    $pluginManager->enable('test-theme');
+    return new ThemePluginFixture;
+}
 
-    $assetManager = app(AssetManager::class);
-    $html = $assetManager->styles();
-    expect($html)->toContain('.theme-style{background:blue;}');
+test('a ThemePlugin contributes its CSS variables', function () {
+    $pluginManager = app(PluginManager::class);
+    $pluginManager->register('test-theme', themePluginFixture(['--color-primary' => '#ff0000', '--tardis-radius' => '0.5rem'])::class);
+    $pluginManager->enableByDefault('test-theme');
+
+    $html = app(AssetManager::class)->styles();
+
+    expect($html)->toContain(':root{')
+        ->toContain('--color-primary:#ff0000;')
+        ->toContain('--tardis-radius:0.5rem;');
+});
+
+test('theme variables that are not safe custom properties are dropped', function () {
+    $pluginManager = app(PluginManager::class);
+    $pluginManager->register('test-theme', themePluginFixture([
+        '--ok' => 'oklch(45% 0.2 260)',
+        'color' => 'red',
+        '--bad name' => 'red',
+        '--evil' => 'red;} body{display:none',
+        '--url' => 'url(javascript:alert(1))',
+        '--close' => '</style><script>x</script>',
+    ])::class);
+    $pluginManager->enableByDefault('test-theme');
+
+    $html = app(AssetManager::class)->styles();
+
+    expect($html)->toContain('--ok:oklch(45% 0.2 260);')
+        ->not->toContain('display:none')
+        ->not->toContain('javascript:')
+        ->not->toContain('<script>x')
+        ->not->toContain('--bad name')
+        ->not->toContain('--evil')
+        ->not->toContain('--url')
+        ->not->toContain('--close');
 });
 
 test('published CSS URL carries a content hash so redeploys bust the cache', function () {

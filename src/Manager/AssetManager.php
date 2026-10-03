@@ -148,9 +148,13 @@ class AssetManager
             $html .= '<style>'.$plugin->provideCSS().'</style>'.PHP_EOL;
         }
 
-        // 3. ThemePlugin styles
+        // 3. ThemePlugin variables
         foreach ($this->plugins()->enabledWith(ThemePlugin::class) as $theme) {
-            $html .= '<style>'.$theme->getStyles().'</style>'.PHP_EOL;
+            $rule = $this->themeRule($theme->getTheme());
+
+            if ($rule !== '') {
+                $html .= '<style>'.$rule.'</style>'.PHP_EOL;
+            }
         }
 
         return $html;
@@ -176,6 +180,33 @@ class AssetManager
         }
 
         return $html;
+    }
+
+    /**
+     * Turn theme variables into a :root rule. Names must be custom properties
+     * and values may only contain characters a colour, length or number needs,
+     * so a value cannot close the rule or the <style> element.
+     *
+     * @param  array<string, mixed>  $variables
+     */
+    private function themeRule(array $variables): string
+    {
+        $declarations = '';
+
+        foreach ($variables as $name => $value) {
+            $value = trim((string) $value);
+
+            if (preg_match('/^--[a-z0-9][a-z0-9_-]*$/i', (string) $name) !== 1
+                || preg_match('/^[#a-z0-9%.,()\/\s_+-]+$/i', $value) !== 1
+                || stripos($value, 'url(') !== false
+                || stripos($value, 'javascript') !== false) {
+                continue;
+            }
+
+            $declarations .= $name.':'.$value.';';
+        }
+
+        return $declarations === '' ? '' : ':root{'.$declarations.'}';
     }
 
     /**
