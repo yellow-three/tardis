@@ -3,75 +3,113 @@
 declare(strict_types=1);
 
 use Illuminate\Foundation\Auth\User as Authenticatable;
+use Tardis\Contracts\Plugins\AuthorizationPlugin;
+use Tardis\Manager\PluginManager;
 use Tardis\Policies\BasePolicy;
 
-/**
- * Stands in for a host policy. The slug is derived from the class name, so the
- * class name is part of the contract: a host seeds its Spatie permissions as
- * "browse PostPolicy" and this class has to ask for exactly that string.
- */
+/** A host policy: the BREAD slug is derived from the class name. */
 class PostPolicy extends BasePolicy {}
 
-/**
- * A host user carrying Spatie's HasRoles trait. TARDIS has no dependency on
- * spatie/laravel-permission — BasePolicy probes for the method at runtime — so
- * this stands in for whatever the host installed, without the package present.
- */
-class SpatieUser extends Authenticatable
+/** A host policy that names its BREAD explicitly. */
+class ArticlePolicy extends BasePolicy
+{
+    protected ?string $slug = 'news-articles';
+}
+
+class PolicyTestUser extends Authenticatable
 {
     protected $table = 'users';
+}
+
+class PolicyRecordingPlugin implements AuthorizationPlugin
+{
+    /** @var array<int, string> */
+    public static array $asked = [];
 
     /** @var array<int, string> */
-    public array $askedAbilities = [];
+    public static array $allowed = [];
 
-    public function __construct(array $attributes = [])
+    public function name(): string
     {
-        parent::__construct($attributes);
-
-        $this->exists = true;
+        return 'policy-recording';
     }
 
-    public function hasPermissionTo($ability, $guardName = null): bool
+    public function can(string $ability, mixed $model = null): bool
     {
-        $this->askedAbilities[] = $ability;
+        static::$asked[] = $ability;
 
-        return str_starts_with($ability, 'browse');
+        return in_array($ability, static::$allowed, true);
+    }
+
+    public function authorize(string $ability, mixed $model = null): void
+    {
+        $this->can($ability, $model) || abort(403);
     }
 }
 
-test('a policy asks the host for an ability named after the policy class', function () {
-    $user = new SpatieUser;
+function policyAllows(array $abilities): void
+{
+    PolicyRecordingPlugin::$asked = [];
+    PolicyRecordingPlugin::$allowed = $abilities;
 
-    expect((new PostPolicy)->browse($user, null))->toBeTrue()
-        ->and($user->askedAbilities)->toBe(['browse PostPolicy']);
-});
+    $manager = app(PluginManager::class);
+    $manager->register('policy-recording', PolicyRecordingPlugin::class);
+    $manager->enableByDefault('policy-recording');
+}
 
-test('every policy action reaches the host under its own ability string', function () {
+test('a policy asks the authorization plugin for the same ability a BREAD page does', function () {
+    policyAllows(['browse posts', 'read posts', 'edit posts', 'add posts', 'delete posts']);
+
     $policy = new PostPolicy;
+    $user = new PolicyTestUser;
 
-    $policy->browseAny($user = new SpatieUser);
-    $policy->browse($user, null);
-    $policy->read($user, null);
-    $policy->edit($user, null);
-    $policy->add($user);
-    $policy->delete($user, null);
-
-    expect($user->askedAbilities)->toBe([
-        'browse PostPolicy',
-        'browse PostPolicy',
-        'read PostPolicy',
-        'edit PostPolicy',
-        'add PostPolicy',
-        'delete PostPolicy',
-    ]);
+    expect($policy->browseAny($user))->toBeTrue()
+        ->and($policy->browse($user, null))->toBeTrue()
+        ->and($policy->read($user, null))->toBeTrue()
+        ->and($policy->edit($user, null))->toBeTrue()
+        ->and($policy->add($user))->toBeTrue()
+        ->and($policy->delete($user, null))->toBeTrue()
+        ->and(PolicyRecordingPlugin::$asked)->toBe([
+            'browse posts', 'browse posts', 'read posts', 'edit posts', 'add posts', 'delete posts',
+        ]);
 });
 
-test('a host denial is passed through instead of being overridden', function () {
-    // The interop branch is the host's answer, so it has to be returned as-is.
-    // Anything that treated "no ability string of ours was recognised" as
-    // permission would turn every Spatie policy into a blanket allow.
-    $user = new SpatieUser;
+test('a denial from the plugin is passed through', function () {
+    policyAllows(['browse posts']);
 
-    expect((new PostPolicy)->delete($user, null))->toBeFalse()
-        ->and((new PostPolicy)->read($user, null))->toBeFalse();
+    $policy = new PostPolicy;
+    $user = new PolicyTestUser;
+
+    expect($policy->browse($user, null))->toBeTrue()
+        ->and($policy->delete($user, null))->toBeFalse()
+        ->and($policy->read($user, null))->toBeFalse();
+});
+
+test('a policy can name its BREAD explicitly', function () {
+    policyAllows(['edit news-articles']);
+
+    expect((new ArticlePolicy)->edit(new PolicyTestUser, null))->toBeTrue()
+        ->and((new ArticlePolicy)->delete(new PolicyTestUser, null))->toBeFalse();
+});
+
+test('the derived slug is the plural snake name of the model the policy is for', function () {
+    policyAllows(['browse blog_posts']);
+
+    $policy = new class extends BasePolicy {};
+
+    // Anonymous classes have no usable name, so name the model through a subclass.
+    $named = new class extends BasePolicy
+    {
+        public function slugForTest(string $class): string
+        {
+            return $this->slugFromPolicyClass($class);
+        }
+    };
+
+    expect($named->slugForTest('App\\Policies\\BlogPostPolicy'))->toBe('blog_posts')
+        ->and($named->slugForTest('PostPolicy'))->toBe('posts');
+});
+
+test('without any authorization plugin a policy allows, like the BREAD pages do', function () {
+    expect((new PostPolicy)->browse(new PolicyTestUser, null))->toBeTrue();
 });
