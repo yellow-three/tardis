@@ -6,9 +6,9 @@ namespace Tardis\Http\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Event;
 use Tardis\Auth\Abilities;
 use Tardis\Auth\BreadAuthorization;
-use Tardis\Contracts\Plugins\AuthenticationPlugin;
 use Tardis\Manager\PluginManager;
 
 class AdminMiddleware
@@ -19,17 +19,15 @@ class AdminMiddleware
 
     public function handle(Request $request, Closure $next): mixed
     {
-        $authPlugins = $this->pluginManager->enabledWith(
-            AuthenticationPlugin::class
-        );
-
-        /** @var AuthenticationPlugin|null $auth */
-        $auth = $authPlugins->first();
+        $auth = $this->pluginManager->authenticationPlugin();
 
         // Being logged in is not enough: the panel is for administrators, so once
         // the request is authenticated it must also hold the access ability.
         $authorized = function (Request $request) use ($next): mixed {
             app(BreadAuthorization::class)->authorizeAbility(Abilities::ACCESS);
+
+            // Announce the page so plugins can hook the request lifecycle.
+            Event::dispatch('tardis.page', [$request]);
 
             return $next($request);
         };

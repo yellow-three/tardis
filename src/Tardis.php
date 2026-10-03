@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace Tardis;
 
+use Tardis\Assets\Asset;
 use Tardis\Bread\BreadManager;
+use Tardis\Manager\AssetManager;
 use Tardis\Manager\FormfieldManager;
 use Tardis\Manager\MenuManager;
 use Tardis\Manager\PluginManager;
@@ -55,8 +57,24 @@ class Tardis
         return $this->breadManager ??= app(BreadManager::class);
     }
 
+    /**
+     * Load a stylesheet (URL string or Asset) on every admin page.
+     */
+    public function addCss(Asset|string $asset): void
+    {
+        app(AssetManager::class)->addCss($asset);
+    }
+
+    /**
+     * Load a script (URL string or Asset) on every admin page.
+     */
+    public function addJs(Asset|string $asset): void
+    {
+        app(AssetManager::class)->addJs($asset);
+    }
+
     public static function version(): string
     {
-        return '1.0.0';
+        return '2.0.0';
     }
 }

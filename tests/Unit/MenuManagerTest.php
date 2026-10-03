@@ -91,6 +91,8 @@ function saveBread(string $path, array $attributes): void
 
 function matchBreadRoute(string $uri): void
 {
+    reloadAdminRoutes();
+
     $request = Request::create($uri, 'GET');
     $request->setRouteResolver(fn () => app('router')->getRoutes()->match($request));
     app()->instance('request', $request);
@@ -118,14 +120,14 @@ test('bread definitions appear in the menu linking to their list page', function
 
 test('bread menu icons are prefixed so the menu partial can render them', function () {
     saveBread($this->menuBreadPath, ['slug' => 'posts', 'name_plural' => 'Posts', 'icon' => 'link']);
-    saveBread($this->menuBreadPath, ['slug' => 'users', 'name_plural' => 'Users', 'icon' => 'user-group']);
+    saveBread($this->menuBreadPath, ['slug' => 'members', 'name_plural' => 'Members', 'icon' => 'user-group']);
     saveBread($this->menuBreadPath, ['slug' => 'pages', 'name_plural' => 'Pages', 'icon' => 'heroicon-o-document']);
     saveBread($this->menuBreadPath, ['slug' => 'notes', 'name_plural' => 'Notes']);
 
     $items = collectedMenu()->all();
 
     expect($items->firstWhere('title', 'Posts')->icon)->toBe('heroicon-o-link')
-        ->and($items->where('section', 'BREAD')->firstWhere('title', 'Users')->icon)->toBe('heroicon-o-user-group')
+        ->and($items->firstWhere('title', 'Members')->icon)->toBe('heroicon-o-user-group')
         // Already-qualified components are left untouched.
         ->and($items->firstWhere('title', 'Pages')->icon)->toBe('heroicon-o-document')
         // Definitions without an icon fall back rather than rendering nothing.
@@ -134,7 +136,7 @@ test('bread menu icons are prefixed so the menu partial can render them', functi
 
 test('only the bread menu item matching the current slug is active', function () {
     saveBread($this->menuBreadPath, ['slug' => 'posts', 'name_plural' => 'Posts']);
-    saveBread($this->menuBreadPath, ['slug' => 'users', 'name_plural' => 'Users']);
+    saveBread($this->menuBreadPath, ['slug' => 'members', 'name_plural' => 'Members']);
 
     $items = collectedMenu()->all();
     matchBreadRoute('/admin/posts');
@@ -142,7 +144,7 @@ test('only the bread menu item matching the current slug is active', function ()
     // Every BREAD shares tardis.bread.index, so without parameter matching both
     // items would light up on the same page.
     expect($items->firstWhere('title', 'Posts')->isActive())->toBeTrue()
-        ->and($items->firstWhere('title', 'Users')->isActive())->toBeFalse();
+        ->and($items->firstWhere('title', 'Members')->isActive())->toBeFalse();
 });
 
 test('a bread menu item stays active on its own create, read and edit routes', function () {
@@ -160,6 +162,7 @@ test('a bread menu item stays active on its own create, read and edit routes', f
 });
 
 test('the BREAD manager entry is not highlighted while a BREAD resource is open', function () {
+    saveBread($this->menuBreadPath, ['slug' => 'posts', 'name_plural' => 'Posts']);
     matchBreadRoute('/admin/posts');
 
     // tardis.bread.* also matches tardis.bread.index, so a prefix match here
@@ -194,6 +197,7 @@ test('a bread menu item is not active on the builder page for its own definition
 });
 
 test('the BREAD manager stays active across the builder pages', function () {
+    saveBread($this->menuBreadPath, ['slug' => 'posts', 'name_plural' => 'Posts']);
     $manager = collectedMenu()->all()->firstWhere('title', 'BREAD');
 
     matchBreadRoute('/admin/bread');

@@ -14,11 +14,15 @@ interface AuthenticationPlugin
     public function user(): mixed;
 
     /**
-     * Authenticate the incoming request.
+     * Try to sign a user in with the submitted credentials.
      *
-     * @return Request The request with the authenticated user
+     * The login form calls this instead of touching the guard itself, so a
+     * plugin can use another guard, a different credential check or SSO.
+     *
+     * @param  array<string, mixed>  $credentials
+     * @return bool whether the user is now signed in
      */
-    public function authenticate(Request $request): Request;
+    public function attempt(array $credentials, bool $remember = false): bool;
 
     /**
      * Logout the current user.

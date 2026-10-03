@@ -10,16 +10,12 @@ Bu dosya **yalnızca aktif/açık** bulguları, denemeleri ve açık işleri tut
 
 # GÜNCELLEME (2026-10-03) — Kod denetimi: düzeltilenler commit'te, açık kalanlar burada
 
-> Çözülenler (varsayılan yetkilendirme B9, BREAD dışı ekranların yetkisi B10, settings import B15) `RELEASE_NOTES.md`'de; bu tabloda yalnızca açık kalanlar var.
+> Çözülenler `RELEASE_NOTES.md`'de (varsayılan yetkilendirme, ekran yetkileri, settings import; Faz 0: B1, B2, B7, B8, B11, B12, B13, B14). Bu dosyada yalnızca açık kalanlar var.
 
 Bu turda bulunan ve düzeltilen hatalar (kilitli Livewire property'leri, search yetkisi, medya yükleme listesi, login throttle, doğrulama kurallarında `|`, slug path traversal, `make-plugin` stub'ları) `RELEASE_NOTES.md` ve `git log`'da. Aşağıdakiler **karar veya kapsam gerektirdiği için açık**:
 
 | # | Bulgu | Kod ref |
 |---|-------|---------|
-| B11 | **`BasePolicy` izin adı BREAD slug'ından türemiyor.** `$slug = class_basename($this)` → `"browse PostPolicy"`; BREAD sayfaları ise `"browse posts"` soruyor. Test (`BasePolicyTest`) bunu host sözleşmesi olarak sabitliyor ama iki taraf aynı izin adını kullanmıyor. `hasPermissionTo` yoksa `true` döner (fail-open). | `src/Policies/BasePolicy.php:12-17` |
-| B12 | **Login formu `AuthenticationPlugin`'i atlıyor.** `login.blade.php` doğrudan `auth()->attempt()` çağırıyor; özel bir auth plugin'inin `authenticate()` / `guard()` / `loginComponent()` değerleri login sırasında hiç kullanılmıyor. | `resources/views/pages/login.blade.php`, `src/Plugins/AuthenticationPlugin.php` |
-| B13 | **Kullanılmayan config anahtarları.** `tardis.admin.middleware`, `tardis.plugins.enabled/disabled`, `tardis.media.*`, `tardis.bread.soft_deletes/timestamps`, `tardis.activity_log.*` hiçbir yerde okunmuyor (medya `tardis-media.*` kullanıyor; route'lar `['web','tardis.admin']`'i sabit yazıyor). Host bu anahtarları değiştirip hiçbir etki görmez. | `config/tardis.php`, `routes/admin.php` |
-| B14 | **Plugin route'ları `/{slug}` wildcard'ına yenilebilir.** Core `/{slug}`, `/{slug}/{id}` rotalarını en sona koyuyor ama plugin provider'ı sonra yüklenirse `/admin/blog/posts` BREAD sayfasına düşer. Şu an yalnızca `docs/PLUGIN_GUIDE.md`'de uyarı var; sıra garanti edilmiyor. | `routes/admin.php:48-52` |
 
 # GÜNCELLEME (2026-10-01) — Create/edit atomikliği düzeltildi; `registerType()` erişilemezliği AÇIK (karar bekleniyor)
 
@@ -29,21 +25,18 @@ Bu turdaki asıl yeni bulgu, `registerType()` API'sinin **fiilen erişilemez** o
 
 | # | Bulgu | Kod ref |
 |---|-------|---------|
-| B1 | **`FieldType` enum'u özel alan tiplerini reddediyor.** Hem JSON hem config kaynağı her alanın `type` değerini kapalı enum'a karşı doğruluyor; enum dışındaki her değer `InvalidArgumentException` alıyor. `FormfieldManager::registerType()` bir uzantı noktası gibi görünüyor ama **hiçbir BREAD sayfasında kullanılamıyor** — host kendi özel alan tipini BREAD'e ekleyemiyor. Enum'un docblock'u iki kayıt defterini (`FieldType` case'leri ↔ `FormfieldManager::$registeredTypes`) elle eşit tutmayı şart koşuyor, **ayrışma artık testle engelli** (`tests/Unit/FieldTypeTest.php`: enum case'i → renderer, renderer → enum case'i, renderer → instantiable `Formfield`; kayma enjekte edilip testin gerçekten kırıldığı doğrulandı). Kırılma değil ama dokümante edilmiş uzantı noktasının erişilemez olması. **Karar (2026-10-03): enum kalkar, tipler `FormfieldManager` registry'sinden doğrulanır + `FormfieldPlugin` (Faz 0/2, R21/R23).** | `src/Bread/FieldType.php`, `src/Bread/Sources/JsonBreadSource.php:314`, `src/Bread/Sources/ConfigBreadSource.php:122` |
-| B7 | **Plan ile kod ters yönde: BREAD tanım kaynağı hangisi?** `.omo/plans/bread-php-config.md` (Karar A, 29 Mayıs 2026) tek kaynağın `config/bread/*.php` olmasını, `BreadManager`'ın `ConfigBreadSource`'a bağlanmasını (plan Adım 2) ve `JsonBreadSource`'un **silinmesini** (Adım 4) şart koşuyor. Kod bunun tersini yapıyor: `BreadManager` yalnızca `JsonBreadSource`'a bağlı (`src/Bread/BreadManager.php:13`), `tardis:make-bread` JSON üretiyor (`src/Commands/TardisMakeBreadCommand.php:48`), `tardis:bread:migrate` config/bread → JSON yönünde çalışıyor ve kaynağı `$legacy` diye adlandırıyor (`src/Commands/TardisBreadMigrateCommand.php:19`), yönetim ekranı `config/bread` doluysa "legacy" uyarısı veriyor (`resources/views/pages/bread/manage/manage.php:19`). Planın *silme* adımlarının bir kısmı uygulanmış (`DatabaseBreadSource`, `JsonBreadRepository`, `BreadRepositoryInterface`, `DataType`, `DataRow` yok; `src/Tardis.php` import'u düzeltilmiş), sonra ana hedef tersine çevrilmiş. Bu dosyanın ilgili satırları tek bir squashed commit'te (`bd783e7`) olduğu için **yönün kim/ne zaman tersine çevirdiği git geçmişinden belirlenemiyor** — kasıtlı bir karar mı yoksa yarım kalmış bir uygulama mı belli değil. **Karar (2026-10-03): JSON tek kaynak (R11/R21).** Eski iki seçenek: (a) JSON'u resmî kaynak onayla → `ConfigBreadSource` + `tardis:bread:migrate` kaldırılır ya da legacy olarak belgelenir, R11 kapanır; (b) Karar A'yı geri getir → `BreadManager` ve `tardis:make-bread` config'e döner, JSON legacy'ye çevrilir. **Kod yönü seçilmeden `config/bread`'e yeni tanım yazan hiçbir iş yapılmamalı.** | `src/Bread/BreadManager.php:13`, `src/Commands/TardisBreadMigrateCommand.php:19`, `.omo/plans/bread-php-config.md` |
 
 ## Orta (MEDIUM) — karar bekleniyor
 
 | # | Bulgu | Kod ref |
 |---|-------|---------|
-| B2 | **`FormfieldManager::field()` ölü stub** — `[]` döndürüyor, üretimde çağrılmıyor. Public API yüzeyinde olduğu için sessizce silmek BC kırılması. | `src/Manager/FormfieldManager.php` |
 
-| B8 | **`ThemePlugin::getStyles()` zorunlu contract** — interface metodu `getStyles(): string`; tema plugin'i CSS üretmek istemese bile uygulamak zorunda. Tek üretim çağrısı `AssetManager.php:148` (inline `<style>` bloğu), testte de bir fake uyguluyor. Host'un kendi tema plugin'leri bu metodu uyguladığı için kaldırmak BC kırılması. Seçenekler: (a) dokümana yazılı kalır, kod değişmez; (b) dönüş tipi `?string` yapılır — mevcut `: string` uygulamalar sorunsuz karşılanır, plugin'ler CSS üretmekle yükümlü olmaktan çıkar, `AssetManager` null'ı atlar; (c) interface'ten tamamen çıkarılır ve inline `<style>` bloğu silinir (breaking). **R10(a) bu kararı bekliyor; R10(b) ayrı ve tamamlandı.** | `src/Contracts/Plugins/ThemePlugin.php`, `src/Manager/AssetManager.php:148` |
 
 ## Düşük (LOW) — bilinen, kod değişikliği zorunlu değil
 
 | # | Bulgu | Kod ref |
 |---|-------|---------|
+| B16 | **Create/edit sayfaları alan tipini satır içi `@if` zinciriyle çiziyor; `resources/views/formfields/*.blade.php` ve `Formfield::render()/viewData()` kullanılmıyor.** Registry artık özel tipleri doğruluyor ama `create.blade.php`/`edit.blade.php`'nin `@else` dalı bilinmeyen tipi düz metin kutusu olarak çiziyor — host'un kaydettiği alan sınıfının `render()` view'ı hiçbir yerde kullanılmaz. Faz 2'de (tek alan sözleşmesi, çok bağlam) çözülür; `addAfterFormField` kancası da buna bağlı. | `resources/views/pages/bread/{create,edit}/*.blade.php`, `src/Formfields/Formfield.php` |
 | B4 | **`searchOptions()` filtresiz** — ilişki seçicide tüm kayıtlar listeleniyor. Yalnızca görüntüleme; yazma yolu güvenli. | `BelongsToManyField::searchOptions()` |
 | B5 | **Authorization plugin yoksa fail-open** — kasıtlı, `MenuItem::isVisible()` ile aynı davranış ve kodda belgeli. Değiştirilirse Menü ile tutarsızlaşır. | `src/Auth/BreadAuthorization.php` |
 

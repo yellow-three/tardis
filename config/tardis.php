@@ -9,7 +9,6 @@ return [
     */
     'admin' => [
         'prefix' => 'admin',
-        'middleware' => ['web', 'auth', 'verified'],
     ],
 
     /*
@@ -18,8 +17,6 @@ return [
     |--------------------------------------------------------------------------
     */
     'bread' => [
-        'soft_deletes' => true,
-        'timestamps' => true,
         // Directory where runtime BREAD definitions are stored as JSON files.
         // When null, defaults to storage_path('tardis/bread').
         'path' => null,
@@ -68,17 +65,6 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Media Settings
-    |--------------------------------------------------------------------------
-    */
-    'media' => [
-        'disk' => 'public',
-        'path' => 'media',
-        'max_size' => 10240, // KB
-    ],
-
-    /*
-    |--------------------------------------------------------------------------
     | Localization / Translation Settings
     |--------------------------------------------------------------------------
     */
@@ -86,16 +72,6 @@ return [
     // this list with its own "locales" key. When empty, translatable fields
     // fall back to the application's current locale.
     'locales' => [],
-
-    /*
-    |--------------------------------------------------------------------------
-    | Plugin Settings
-    |--------------------------------------------------------------------------
-    */
-    'plugins' => [
-        'enabled' => [],
-        'disabled' => [],
-    ],
 
     /*
     |--------------------------------------------------------------------------

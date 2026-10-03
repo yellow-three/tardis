@@ -55,10 +55,10 @@ All admin routes are Livewire page routes (`Route::livewire`) defined in `routes
   - `/admin/database` (database explorer: list / create / edit tables)
   - `/admin/permissions`, `/admin/roles`
   - `/admin/bread` (definitions), `/admin/bread/create` and `/admin/bread/{slug}/edit` (BREAD builder)
-- Dynamic BREAD resources, declared **last** so they never shadow a fixed screen
+- Dynamic BREAD resources, generated from the definitions after the fixed screens
   - `/admin/{slug}`, `/admin/{slug}/create`, `/admin/{slug}/{id}`, `/admin/{slug}/{id}/edit`
 
-Because `/admin/{slug}` is a wildcard, any route a plugin adds under the admin prefix must be registered **before** it, or the wildcard wins. Fixed screens also include `/admin/users`.
+BREAD routes are generated from the BREAD definitions and constrained to the slugs that exist, so there is no catch-all: a plugin route such as `/admin/blog/posts` is never swallowed. Slugs reserved for built-in screens (`settings`, `users`, `bread`, `media`, …) cannot be used for a BREAD. With `php artisan route:cache`, rebuild the cache after creating a BREAD. Fixed screens also include `/admin/users`.
 
 ## Authentication and authorization
 
@@ -246,10 +246,22 @@ composer test-coverage
 composer lint-fix
 ```
 
+## Extending
+
+- **Field types:** `Tardis::formfields()->registerType('my_type', MyField::class)` makes `my_type` valid in BREAD definitions. (Custom rendering in the create/edit pages arrives with phase 2.)
+- **Assets:** `Tardis::addCss('/vendor/host/extra.css')`, `Tardis::addJs(Asset::js('https://…', integrity: 'sha384-…'))` or `Asset::inlineCss(...)`. URLs must be http(s) or root-relative.
+- **Events:** listen to `BreadSaved`, `BreadRemoved`, `BreadRecordCreated`, `BreadRecordUpdated`, `BreadRecordDeleted` and the `tardis.page` event. Permissions and the activity log are listeners you can replace.
+- **Authentication:** register an `AuthenticationPlugin` after the built-in one; the login form and the middleware use the last registered, through `attempt()`.
+- **Policies:** extend `Tardis\Policies\BasePolicy` — it asks the same authorization plugin the BREAD pages do.
+- **Per-BREAD overrides:** a definition may set `components` (replace a page's Livewire component), `policy` (ability word) and `scope` (model scope for listings and lookups). Slugs such as `settings`, `users` or `bread` are reserved.
+
+See [UPGRADE.md](UPGRADE.md) when coming from 1.x.
+
 ## Documentation
 
 | File | What it covers |
 |---|---|
+| [UPGRADE.md](UPGRADE.md) | Moving from 1.x to 2.0 |
 | [PROJECT_STATUS.md](PROJECT_STATUS.md) | Current state, verification and open follow-ups |
 | [RELEASE_NOTES.md](RELEASE_NOTES.md) | What the package includes and what changed |
 | [docs/PLUGIN_GUIDE.md](docs/PLUGIN_GUIDE.md) | Writing and enabling plugins |

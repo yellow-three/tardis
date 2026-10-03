@@ -2,6 +2,8 @@
 
 namespace Tardis\Bread;
 
+use Illuminate\Database\Eloquent\Builder;
+
 class BreadDefinition
 {
     public function __construct(
@@ -20,7 +22,22 @@ class BreadDefinition
         public ?string $orderColumn = null,
         public string $orderDirection = 'asc',
         public ?string $searchKey = null,
+        /** @var array<string, string> action (browse|add|edit|read) => Livewire component replacing the stock page */
+        public array $components = [],
+        /** Ability prefix; defaults to the slug ("browse {policy}") */
+        public ?string $policy = null,
+        /** Model query scope applied to listings and record lookups */
+        public ?string $scope = null,
     ) {}
+
+    /**
+     * The word abilities are built from ("browse posts"): the policy when the
+     * definition sets one, otherwise the slug.
+     */
+    public function permissionKey(): string
+    {
+        return $this->policy !== null && $this->policy !== '' ? $this->policy : $this->slug;
+    }
 
     public static function fromArray(array $data): self
     {
@@ -40,6 +57,9 @@ class BreadDefinition
             orderColumn: $data['order_column'] ?? null,
             orderDirection: $data['order_direction'] ?? 'asc',
             searchKey: $data['search_key'] ?? null,
+            components: array_filter((array) ($data['components'] ?? []), fn ($component) => is_string($component) && $component !== ''),
+            policy: $data['policy'] ?? null,
+            scope: $data['scope'] ?? null,
         );
     }
 
@@ -61,7 +81,26 @@ class BreadDefinition
             'order_column' => $this->orderColumn,
             'order_direction' => $this->orderDirection,
             'search_key' => $this->searchKey,
+            'components' => $this->components,
+            'policy' => $this->policy,
+            'scope' => $this->scope,
         ];
+    }
+
+    /**
+     * A query on the BREAD's model with the definition's scope applied. Listings
+     * and every record lookup go through it, so a record the scope hides can
+     * neither be opened, edited nor deleted by guessing its id.
+     */
+    public function query(): Builder
+    {
+        $query = ($this->model)::query();
+
+        if ($this->scope !== null && $this->scope !== '') {
+            $query->scopes([$this->scope]);
+        }
+
+        return $query;
     }
 
     public function getField(string $name): ?array

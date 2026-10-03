@@ -7,7 +7,7 @@ use Livewire\Component;
 use Tardis\Auth\Abilities;
 use Tardis\Auth\BreadAuthorization;
 use Tardis\Bread\BreadManager;
-use Tardis\Bread\Sources\ConfigBreadSource;
+use Tardis\Bread\Legacy\LegacyConfigReader;
 
 new #[Title('BREAD Management')] #[Layout('tardis::layouts.admin')] class extends Component
 {
@@ -30,7 +30,7 @@ new #[Title('BREAD Management')] #[Layout('tardis::layouts.admin')] class extend
     #[Computed]
     public function hasLegacyDefinitions()
     {
-        return app(ConfigBreadSource::class)->all()->isNotEmpty();
+        return app(LegacyConfigReader::class)->all()->isNotEmpty();
     }
 
     public function backups(string $slug)

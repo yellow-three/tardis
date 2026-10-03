@@ -54,9 +54,67 @@ class FormfieldManager
         ];
     }
 
+    /**
+     * Legacy or semantic names detectors may report, mapped onto the registered
+     * type that renders them.
+     *
+     * @var array<string, string>
+     */
+    protected array $aliases = [
+        'image' => 'file',
+        'email' => 'text',
+        'simple_array' => 'tags',
+    ];
+
     public function registerType(string $type, string $fieldClass): void
     {
         $this->registeredTypes[$type] = $fieldClass;
+    }
+
+    /**
+     * Every registered type (name => Formfield class), built-in and host-added.
+     * This registry is the single list BREAD definitions are validated against.
+     *
+     * @return array<string, class-string<Formfield>>
+     */
+    public function types(): array
+    {
+        return $this->registeredTypes;
+    }
+
+    public function has(string $type): bool
+    {
+        return isset($this->registeredTypes[$type]);
+    }
+
+    public function registerAlias(string $alias, string $type): void
+    {
+        $this->aliases[$alias] = $type;
+    }
+
+    /**
+     * Map a detected type name onto a registered one; registered names and
+     * unknown names pass through unchanged.
+     */
+    public function normalize(string $type): string
+    {
+        if ($this->has($type)) {
+            return $type;
+        }
+
+        $mapped = $this->aliases[$type] ?? $type;
+
+        return $this->has($mapped) ? $mapped : $type;
+    }
+
+    /**
+     * @throws \InvalidArgumentException when no renderer is registered for the type
+     */
+    public function assertRegistered(string $type): void
+    {
+        if (! $this->has($type)) {
+            throw new \InvalidArgumentException(sprintf('Unsupported BREAD field type [%s].', $type));
+        }
     }
 
     public function make(string $type, string $name, ?string $label = null): Formfield
@@ -64,11 +122,6 @@ class FormfieldManager
         $class = $this->resolveType($type);
 
         return new $class($name, $label);
-    }
-
-    public function field(string $name, mixed $value = null): array
-    {
-        return [];
     }
 
     public function fields(array $definitions): array

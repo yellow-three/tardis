@@ -5,6 +5,7 @@ use Livewire\Attributes\Locked;
 use Livewire\Attributes\Title;
 use Livewire\Component;
 use Tardis\Auth\BreadAuthorization;
+use Tardis\Bread\BreadDefinition;
 use Tardis\Bread\BreadManager;
 
 new #[Title('View')] #[Layout('tardis::layouts.admin')] class extends Component
@@ -41,7 +42,7 @@ new #[Title('View')] #[Layout('tardis::layouts.admin')] class extends Component
             abort(404);
         }
 
-        $this->record = $modelClass::findOrFail($id)->toArray();
+        $this->record = BreadDefinition::fromArray($this->bread)->query()->findOrFail($id)->toArray();
     }
 
     public function getFieldsProperty(): array

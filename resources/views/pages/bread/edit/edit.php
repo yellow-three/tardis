@@ -7,9 +7,11 @@ use Livewire\Attributes\Title;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 use Tardis\Auth\BreadAuthorization;
+use Tardis\Bread\BreadDefinition;
 use Tardis\Bread\BreadManager;
 use Tardis\Bread\FieldValidationRules;
 use Tardis\Classes\Translation;
+use Tardis\Events\BreadRecordUpdated;
 use Tardis\Formfields\Types\BelongsToManyField;
 use Tardis\Manager\FormfieldManager;
 
@@ -54,7 +56,7 @@ new #[Title('Edit')] #[Layout('tardis::layouts.admin')] class extends Component
 
         app(BreadAuthorization::class)->authorize('edit', $this->slug);
 
-        $record = $modelClass::findOrFail($id);
+        $record = BreadDefinition::fromArray($this->bread)->query()->findOrFail($id);
         $this->record = $record->toArray();
         $this->form = $this->record;
 
@@ -190,7 +192,7 @@ new #[Title('Edit')] #[Layout('tardis::layouts.admin')] class extends Component
         $modelClass = $this->bread['model'] ?? null;
 
         if ($modelClass && class_exists($modelClass)) {
-            $record = $modelClass::findOrFail($this->id);
+            $record = BreadDefinition::fromArray($this->bread)->query()->findOrFail($this->id);
 
             $fields = app(FormfieldManager::class)->fields($this->fields);
             $data = [];
@@ -243,6 +245,17 @@ new #[Title('Edit')] #[Layout('tardis::layouts.admin')] class extends Component
                     $field->updated($value, $record);
                 }
             });
+
+            $changes = $record->getChanges();
+
+            if ($changes !== []) {
+                BreadRecordUpdated::dispatch(
+                    $this->slug,
+                    $record,
+                    array_intersect_key($record->getPrevious(), $changes),
+                    $changes,
+                );
+            }
         }
 
         session()->flash('message', 'Item updated successfully.');

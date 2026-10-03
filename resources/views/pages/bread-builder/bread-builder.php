@@ -8,8 +8,9 @@ use Tardis\Auth\Abilities;
 use Tardis\Auth\BreadAuthorization;
 use Tardis\Bread\BreadDefinition;
 use Tardis\Bread\BreadManager;
-use Tardis\Bread\FieldType;
 use Tardis\Bread\ModelReflector;
+use Tardis\Bread\ReservedSlugs;
+use Tardis\Manager\FormfieldManager;
 
 new #[Title('BREAD Builder')] #[Layout('tardis::layouts.admin')] class extends Component
 {
@@ -89,6 +90,18 @@ new #[Title('BREAD Builder')] #[Layout('tardis::layouts.admin')] class extends C
     public bool $modelHasTimestamps = true;
 
     /**
+     * Definition keys the builder has no form for. They are carried through a
+     * load/save round trip so editing a BREAD never drops them.
+     *
+     * @var array<string, string>
+     */
+    public array $components = [];
+
+    public ?string $policy = null;
+
+    public ?string $scope = null;
+
+    /**
      * Runs on every request, not only on mount: Livewire keeps component state
      * between updates, so a permission revoked after the page opened must
      * still stop the next action.
@@ -124,6 +137,9 @@ new #[Title('BREAD Builder')] #[Layout('tardis::layouts.admin')] class extends C
                 $this->editTabs = $bread->layout['edit'] ?? [];
                 $this->readLayout = $bread->layout['read'] ?? [];
                 $this->fieldOrder = $bread->layout['field_order'] ?? [];
+                $this->components = $bread->components;
+                $this->policy = $bread->policy;
+                $this->scope = $bread->scope;
                 $this->step = 3;
                 $this->activeTab = 'general';
 
@@ -192,6 +208,12 @@ new #[Title('BREAD Builder')] #[Layout('tardis::layouts.admin')] class extends C
             'name' => 'required|string|max:255',
         ]);
 
+        if (ReservedSlugs::has($this->slug)) {
+            $this->addError('slug', 'This slug is reserved for a built-in admin screen.');
+
+            return;
+        }
+
         $repo = app(BreadManager::class);
 
         // Guard against silently overwriting a different BREAD definition.
@@ -217,6 +239,9 @@ new #[Title('BREAD Builder')] #[Layout('tardis::layouts.admin')] class extends C
             'order_column' => $this->orderColumn,
             'order_direction' => $this->orderDirection,
             'soft_delete' => $this->softDelete,
+            'components' => $this->components,
+            'policy' => $this->policy,
+            'scope' => $this->scope,
             'layout' => [
                 'browse' => $this->browseColumns,
                 'edit' => $this->editTabs,
@@ -331,12 +356,16 @@ new #[Title('BREAD Builder')] #[Layout('tardis::layouts.admin')] class extends C
     }
 
     /**
-     * @return 'empty'|'invalid'|'taken'|'current'|'available'
+     * @return 'empty'|'invalid'|'reserved'|'taken'|'current'|'available'
      */
     public function getSlugStatusProperty(): string
     {
         if (trim($this->slug) === '') {
             return 'empty';
+        }
+
+        if (ReservedSlugs::has($this->slug)) {
+            return 'reserved';
         }
 
         if (! preg_match('/^[a-z0-9-]+$/', $this->slug)) {
@@ -430,17 +459,15 @@ new #[Title('BREAD Builder')] #[Layout('tardis::layouts.admin')] class extends C
 
     public function setFieldType(string $key, string $type): void
     {
-        $normalized = FieldType::tryFrom($type);
-
-        if ($normalized === null || ! isset($this->fieldConfig[$key])) {
+        if (! app(FormfieldManager::class)->has($type) || ! isset($this->fieldConfig[$key])) {
             return;
         }
 
-        $this->fieldConfig[$key]['type'] = $normalized->value;
+        $this->fieldConfig[$key]['type'] = $type;
     }
 
     /**
-     * Coerce every staged field type back onto the FieldType enum.
+     * Coerce every staged field type back onto a registered field type.
      *
      * The type <select> only ever offers registered values, but it binds
      * straight to fieldConfig.<key>.type, so a hand-crafted Livewire payload
@@ -450,23 +477,26 @@ new #[Title('BREAD Builder')] #[Layout('tardis::layouts.admin')] class extends C
      */
     protected function normalizeFieldTypes(): void
     {
+        $formfields = app(FormfieldManager::class);
+
         foreach ($this->fieldConfig as $key => $field) {
             if (! is_array($field)) {
                 continue;
             }
 
             $detected = $this->detectedFields[$key]['type'] ?? null;
-            $fallback = is_string($detected) ? FieldType::tryFrom($detected) : null;
+            $fallback = is_string($detected) && $formfields->has($detected) ? $detected : null;
 
-            // Run the staged value through FieldType::normalize() first so a
-            // legacy/semantic name (image, email, simple_array) still maps onto
-            // the enum instead of being discarded in favour of the detected type.
+            // Run the staged value through normalize() first so a legacy or
+            // semantic name (image, email, simple_array) still maps onto a
+            // registered type instead of being discarded in favour of the
+            // detected one.
             $current = $field['type'] ?? null;
-            $normalized = is_string($current)
-                ? FieldType::tryFrom(FieldType::normalize($current))
+            $normalized = is_string($current) && $formfields->has($formfields->normalize($current))
+                ? $formfields->normalize($current)
                 : null;
 
-            $this->fieldConfig[$key]['type'] = ($normalized ?? $fallback ?? FieldType::Text)->value;
+            $this->fieldConfig[$key]['type'] = $normalized ?? $fallback ?? 'text';
         }
     }
 

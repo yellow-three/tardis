@@ -112,3 +112,13 @@ test('enableByDefault enables a plugin nobody has disabled', function () {
 
     expect($manager->isEnabled('blog'))->toBeTrue();
 });
+
+test('the generated composer.json requires the real Tardis package and is valid', function () {
+    $dir = generatePlugin($this->pluginRoot);
+
+    $composer = json_decode(File::get($dir.'/composer.json'), true);
+
+    expect($composer['require'])->toHaveKey('yellow-three/tardis')
+        ->and($composer['require'])->not->toHaveKey('tardis/core')
+        ->and($composer['require']['yellow-three/tardis'])->toStartWith('^');
+});

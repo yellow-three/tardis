@@ -60,7 +60,9 @@ You can also build and edit definitions in the browser at `/admin/bread` (BREAD 
 
 Notes:
 
-- `fields[].type` must be one of the `Tardis\Bread\FieldType` values: `text`, `number`, `select`, `toggle`, `date`, `datetime`, `time`, `textarea`, `password`, `file`, `checkbox`, `radio`, `slider`, `slug`, `tags`, `markdown`, `code_editor`, `belongs_to_many`, `has_many`. Any other value is rejected when the definition is loaded.
+- `fields[].type` must be a type registered in `FormfieldManager`: the built-in `text`, `number`, `select`, `toggle`, `date`, `datetime`, `time`, `textarea`, `password`, `file`, `checkbox`, `radio`, `slider`, `slug`, `tags`, `markdown`, `code_editor`, `belongs_to_many`, `has_many`, plus anything a host registers with `registerType()`. Any other value is rejected when the definition is loaded or saved.
+- Optional definition keys: `components` (`{"browse": "acme::pages.post-list"}` replaces a page's Livewire component), `policy` (ability word, default the slug) and `scope` (model scope applied to listings and every record lookup).
+- Slugs reserved for built-in screens (`settings`, `users`, `bread`, `media`, `database`, `plugins`, `login`, …) cannot be used.
 - `validation` is a list of Laravel rules. A field without `required` is treated as nullable, so its other rules only apply when it has a value. Rules containing `|` (for example `regex:/^(a|b)$/`) are safe in the list form.
 - `browse` / `read` / `edit` / `add` choose where a field appears; each defaults to `true`.
 - Relation fields use `relation` (the Eloquent relation name); `translatable: true` stores a locale map (see `tardis.locales`).

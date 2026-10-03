@@ -10,6 +10,7 @@ use Tardis\Auth\BreadAuthorization;
 use Tardis\Bread\BreadManager;
 use Tardis\Bread\FieldValidationRules;
 use Tardis\Classes\Translation;
+use Tardis\Events\BreadRecordCreated;
 use Tardis\Formfields\Types\BelongsToManyField;
 use Tardis\Manager\FormfieldManager;
 
@@ -218,13 +219,17 @@ new #[Title('Create')] #[Layout('tardis::layouts.admin')] class extends Componen
         // would otherwise leave a committed record carrying half its relations
         // and no indication that the create failed. Only the database writes
         // are wrapped: uploads were already moved to disk during transform().
-        DB::transaction(function () use ($modelClass, $data, $relations) {
+        $created = DB::transaction(function () use ($modelClass, $data, $relations) {
             $model = $modelClass::create($data);
 
             foreach ($relations as [$field, $value]) {
                 $field->stored($value, $model);
             }
+
+            return $model;
         });
+
+        BreadRecordCreated::dispatch($this->slug, $created, $data);
 
         session()->flash('message', 'Item created successfully.');
         $this->redirect(url(trim(config('tardis.admin.prefix', 'admin'), '/').'/'.$this->slug));

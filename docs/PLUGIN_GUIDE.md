@@ -87,6 +87,13 @@ The generated provider registers a Livewire namespace for the plugin (`tardis-bl
 
 Authentication and authorization plugins are **locked**: they guard the panel, so the Plugins page shows "Required" instead of a Disable button and `PluginManager::disable()` throws for them.
 
+## Themes, assets and events
+
+- **Theme plugins** implement `ThemePlugin` and return CSS custom properties from `getTheme()` (`['--color-primary' => 'oklch(45% 0.2 260)']`). Names must be `--custom-properties` and values may only hold colour/length/number characters; Tardis writes the `:root` rule itself.
+- **Extra files:** call `Tardis::addCss()` / `Tardis::addJs()` with a URL or an `Asset` from your provider's `boot()`.
+- **Hooks:** listen to `BreadSaved`, `BreadRecordCreated|Updated|Deleted` and `tardis.page` instead of patching core code.
+- **Authentication plugins** implement `attempt(array $credentials, bool $remember): bool`; register after the built-in plugin and yours is used.
+
 ## 5. Best practices
 
 - keep plugin names stable and unique

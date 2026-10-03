@@ -1,0 +1,8 @@
+{
+    "preset": "laravel",
+    "exclude": [
+        "research",
+        "node_modules",
+        "vendor"
+    ]
+}

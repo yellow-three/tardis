@@ -8,7 +8,8 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Log;
 use Tardis\Bread\BreadDefinition;
-use Tardis\Bread\FieldType;
+use Tardis\Bread\ReservedSlugs;
+use Tardis\Manager\FormfieldManager;
 
 /**
  * Stores BREAD definitions as JSON files, one file per slug, under
@@ -115,6 +116,12 @@ class JsonBreadSource implements BreadSource
         }
 
         $this->assertValidSlug($slug);
+
+        if (ReservedSlugs::has($slug)) {
+            throw new \InvalidArgumentException(
+                sprintf('BREAD slug [%s] is reserved for a built-in admin screen.', $slug)
+            );
+        }
 
         $this->backup($slug);
 
@@ -343,7 +350,7 @@ class JsonBreadSource implements BreadSource
     {
         foreach ($fields as $field) {
             if (isset($field['type']) && is_string($field['type'])) {
-                FieldType::fromValue($field['type']);
+                app(FormfieldManager::class)->assertRegistered($field['type']);
             }
         }
     }
