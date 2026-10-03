@@ -3,17 +3,20 @@
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use Tardis\Http\BreadRoutes;
+use Tardis\Http\Controllers\LocaleController;
 
-Route::middleware(['web'])
+Route::middleware(['web', 'tardis.locale'])
     ->prefix(config('tardis.admin.prefix', 'admin'))
     ->name('tardis.')
     ->group(function () {
+        Route::post('/preferences/locale', LocaleController::class)->name('preferences.locale');
+
         Route::livewire('/login', 'tardis::pages.login')->name('login');
         Route::livewire('/forgot-password', 'tardis::pages.forgot-password')->name('password.request');
         Route::livewire('/reset-password/{token}', 'tardis::pages.reset-password')->name('password.reset');
     });
 
-Route::middleware(['web', 'tardis.admin'])
+Route::middleware(['web', 'tardis.locale', 'tardis.admin'])
     ->prefix(config('tardis.admin.prefix', 'admin'))
     ->name('tardis.')
     ->group(function () {

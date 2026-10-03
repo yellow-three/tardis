@@ -22,6 +22,7 @@ use Tardis\Events\BreadRecordDeleted;
 use Tardis\Events\BreadRecordUpdated;
 use Tardis\Events\BreadSaved;
 use Tardis\Http\Middleware\AdminMiddleware;
+use Tardis\Http\Middleware\SetPanelLocale;
 use Tardis\Listeners\LogBreadActivity;
 use Tardis\Listeners\ProvisionBreadPermissions;
 use Tardis\Manager\AssetManager;
@@ -32,6 +33,7 @@ use Tardis\Manager\SettingsManager;
 use Tardis\Manager\ThemeManager;
 use Tardis\Manager\WidgetManager;
 use Tardis\Plugins\AuthenticationPlugin;
+use Tardis\Support\UserPreferences;
 
 class TardisServiceProvider extends ServiceProvider
 {
@@ -53,6 +55,7 @@ class TardisServiceProvider extends ServiceProvider
         );
 
         $this->app->singleton(AssetManager::class);
+        $this->app->singleton(UserPreferences::class);
 
         // One instance per manager: pages resolve them with app(Class::class)
         // while host code goes through the Tardis facade, and anything
@@ -131,6 +134,7 @@ class TardisServiceProvider extends ServiceProvider
         $this->registerDefaultAuthorization();
         $this->registerLivewireNamespaces();
         $this->registerViews();
+        $this->registerTranslations();
 
         Blade::anonymousComponentPath(
             __DIR__.'/../resources/views/components',
@@ -200,6 +204,15 @@ class TardisServiceProvider extends ServiceProvider
         );
     }
 
+    protected function registerTranslations(): void
+    {
+        $this->loadTranslationsFrom(__DIR__.'/../lang', 'tardis');
+
+        $this->publishes([
+            __DIR__.'/../lang' => lang_path('vendor/tardis'),
+        ], 'tardis-lang');
+    }
+
     protected function registerViews(): void
     {
         $this->loadViewsFrom(__DIR__.'/../resources/views', 'tardis');
@@ -257,6 +270,7 @@ class TardisServiceProvider extends ServiceProvider
     {
         $router = $this->app['router'];
         $router->aliasMiddleware('tardis.admin', AdminMiddleware::class);
+        $router->aliasMiddleware('tardis.locale', SetPanelLocale::class);
     }
 
     protected function registerListeners(): void

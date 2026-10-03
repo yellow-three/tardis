@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <title>{{ ($title ?? 'TARDIS Admin') }} - TARDIS</title>
+    <title>{{ ($title ?? __('tardis::shell.brand.admin')) }} - {{ __('tardis::shell.brand.name') }}</title>
 
     <x-tardis::theme-boot />
 
@@ -13,20 +13,20 @@
     @livewireStyles
 </head>
 <body class="min-h-screen bg-base-200">
-    <a href="#main-content" class="tardis-skip-link btn btn-primary btn-sm">İçeriğe geç</a>
+    <a href="#main-content" class="tardis-skip-link btn btn-primary btn-sm">{{ __('tardis::shell.skip_to_content') }}</a>
 
     <div class="drawer lg:drawer-open">
         <input id="tardis-drawer" type="checkbox" class="drawer-toggle" />
 
         <div class="drawer-content flex flex-col min-h-screen">
-            <x-tardis::admin-header :title="$title ?? 'TARDIS Admin'" />
+            <x-tardis::admin-header :title="$title ?? __('tardis::shell.brand.admin')" />
 
             <main id="main-content" tabindex="-1" class="flex-1 p-4 lg:p-6">
                 {{ $slot }}
             </main>
 
             <footer class="flex items-center justify-center border-t border-base-300 bg-base-100 px-4 py-3 text-xs text-base-content/50">
-                <p>© {{ date('Y') }} TARDIS</p>
+                <p>{{ __('tardis::shell.footer', ['year' => date('Y')]) }}</p>
             </footer>
         </div>
 

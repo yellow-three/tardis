@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <title>{{ $title ?? 'Login' }} - TARDIS</title>
+    <title>{{ $title ?? __('tardis::auth.login.title') }} - {{ __('tardis::shell.brand.name') }}</title>
 
     <x-tardis::theme-boot />
 
@@ -18,7 +18,7 @@
             <div class="inline-flex items-center justify-center w-16 h-16 bg-primary rounded-2xl mb-4">
                 <span class="text-primary-content text-2xl font-bold">T</span>
             </div>
-            <h1 class="text-2xl font-bold">TARDIS Admin</h1>
+            <h1 class="text-2xl font-bold">{{ __('tardis::shell.brand.admin') }}</h1>
         </div>
 
         <div class="card bg-base-100 shadow-xl">

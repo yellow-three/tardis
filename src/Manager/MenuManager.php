@@ -56,41 +56,41 @@ class MenuManager
 
         // Register default sidebar menu items
         $this->addItems(
-            (new MenuItem('Dashboard', 'heroicon-o-home'))
+            (new MenuItem(__('tardis::menu.dashboard'), 'heroicon-o-home'))
                 ->route('tardis.dashboard')
-                ->section('Overview')
+                ->section(__('tardis::menu.sections.overview'))
                 ->order(0),
-            (new MenuItem('Media', 'heroicon-o-photo'))
+            (new MenuItem(__('tardis::menu.media'), 'heroicon-o-photo'))
                 ->route('tardis.media')
                 ->permission(Abilities::MEDIA_BROWSE)
-                ->section('Overview')
+                ->section(__('tardis::menu.sections.overview'))
                 ->activeMode('prefix')
                 ->order(10),
-            (new MenuItem('UI Components', 'heroicon-o-squares-2x2'))
+            (new MenuItem(__('tardis::menu.ui_components'), 'heroicon-o-squares-2x2'))
                 ->route('tardis.ui-components')
-                ->section('Overview')
+                ->section(__('tardis::menu.sections.overview'))
                 ->order(20),
-            (new MenuItem('Settings', 'heroicon-o-cog-6-tooth'))
+            (new MenuItem(__('tardis::menu.settings'), 'heroicon-o-cog-6-tooth'))
                 ->route('tardis.settings.index')
                 ->permission(Abilities::SETTINGS)
-                ->section('Management')
+                ->section(__('tardis::menu.sections.management'))
                 ->activeMode('prefix')
                 ->order(30),
-            (new MenuItem('Plugins', 'heroicon-o-puzzle-piece'))
+            (new MenuItem(__('tardis::menu.plugins'), 'heroicon-o-puzzle-piece'))
                 ->route('tardis.plugins.index')
                 ->permission(Abilities::PLUGINS)
-                ->section('Management')
+                ->section(__('tardis::menu.sections.management'))
                 ->order(40),
-            (new MenuItem('Database Explorer', 'heroicon-o-circle-stack'))
+            (new MenuItem(__('tardis::menu.database_explorer'), 'heroicon-o-circle-stack'))
                 ->route('tardis.database.index')
                 ->permission(Abilities::DATABASE)
-                ->section('Management')
+                ->section(__('tardis::menu.sections.management'))
                 ->activeMode('prefix')
                 ->order(45),
-            (new MenuItem('BREAD', 'heroicon-o-table-cells'))
+            (new MenuItem(__('tardis::menu.bread'), 'heroicon-o-table-cells'))
                 ->route('tardis.bread.manage')
                 ->permission(Abilities::BREAD)
-                ->section('Management')
+                ->section(__('tardis::menu.sections.management'))
                 // The builder screens share the tardis.bread.* prefix with the
                 // BREAD resource screens, so they are listed explicitly here
                 // instead of relying on a prefix match.
@@ -101,20 +101,20 @@ class MenuManager
                 ])
                 ->order(50),
             MenuItem::makeDivider(),
-            (new MenuItem('Permissions', 'heroicon-o-lock-closed'))
+            (new MenuItem(__('tardis::menu.permissions'), 'heroicon-o-lock-closed'))
                 ->route('tardis.permissions')
                 ->permission(Abilities::ROLES)
-                ->section('Access')
+                ->section(__('tardis::menu.sections.access'))
                 ->order(60),
-            (new MenuItem('Users', 'heroicon-o-users'))
+            (new MenuItem(__('tardis::menu.users'), 'heroicon-o-users'))
                 ->route('tardis.users.index')
                 ->permission(Abilities::USERS)
-                ->section('Access')
+                ->section(__('tardis::menu.sections.access'))
                 ->order(55),
-            (new MenuItem('Roles', 'heroicon-o-user-group'))
+            (new MenuItem(__('tardis::menu.roles'), 'heroicon-o-user-group'))
                 ->route('tardis.roles')
                 ->permission(Abilities::ROLES)
-                ->section('Access')
+                ->section(__('tardis::menu.sections.access'))
                 ->order(70),
         );
 
@@ -126,14 +126,14 @@ class MenuManager
         // Fortify...), so the link is only offered when that route exists.
         if (Route::has('profile.edit')) {
             $this->addItems(
-                (new UserMenuItem('Profile', 'heroicon-o-user'))
+                (new UserMenuItem(__('tardis::menu.profile'), 'heroicon-o-user'))
                     ->route('profile.edit')
                     ->order(0),
             );
         }
 
         $this->addItems(
-            (new UserMenuItem('Logout', 'heroicon-o-arrow-left-on-rectangle'))
+            (new UserMenuItem(__('tardis::menu.logout'), 'heroicon-o-arrow-left-on-rectangle'))
                 ->route('tardis.logout')
                 ->method('POST')
                 ->divider()
@@ -176,7 +176,7 @@ class MenuManager
             ->map(fn (BreadDefinition $bread) => (new MenuItem($bread->namePlural, $this->breadMenuIcon($bread->icon)))
                 ->route('tardis.bread.index', ['slug' => $bread->slug])
                 ->permission(BreadAuthorization::ability('browse', $bread->permissionKey()))
-                ->section('BREAD')
+                ->section(__('tardis::menu.sections.bread'))
                 ->activeOnRoutes([
                     'tardis.bread.index',
                     'tardis.bread.add',
