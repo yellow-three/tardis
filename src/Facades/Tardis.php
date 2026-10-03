@@ -13,6 +13,8 @@ use Illuminate\Support\Facades\Facade;
  * @method static \Tardis\Manager\SettingsManager settings()
  * @method static \Tardis\Manager\FormfieldManager formfields()
  * @method static \Tardis\Manager\BreadManager bread()
+ * @method static void addCss(\Tardis\Assets\Asset|string \$asset)
+ * @method static void addJs(\Tardis\Assets\Asset|string \$asset)
  * @method static string version()
  *
  * @see \Tardis\Tardis

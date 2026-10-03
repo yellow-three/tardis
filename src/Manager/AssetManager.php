@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tardis\Manager;
 
 use Illuminate\Contracts\Foundation\Application;
+use Tardis\Assets\Asset;
 use Tardis\Contracts\Plugins\Features\Provider\CSS;
 use Tardis\Contracts\Plugins\Features\Provider\JS;
 use Tardis\Contracts\Plugins\ThemePlugin;
@@ -14,6 +15,9 @@ class AssetManager
     protected bool $stylesRendered = false;
 
     protected bool $scriptsRendered = false;
+
+    /** @var list<Asset> */
+    protected array $added = [];
 
     public function __construct(
         private Application $app
@@ -138,9 +142,9 @@ class AssetManager
         }
         $html .= '<link rel="stylesheet" href="'.$cssUrl.'">'.PHP_EOL;
 
-        // 1b. Host-configured stylesheets
-        foreach ($this->configuredAssets('css') as $url) {
-            $html .= '<link rel="stylesheet" href="'.e($url).'">'.PHP_EOL;
+        // 1a. Assets registered through Tardis::addCss()
+        foreach ($this->added('css') as $asset) {
+            $html .= $this->render($asset);
         }
 
         // 2. Plugin CSS providers (CSS interface)
@@ -157,6 +161,11 @@ class AssetManager
             }
         }
 
+        // 4. Host-configured stylesheets come last so they can override the rest
+        foreach ($this->configuredAssets('css') as $url) {
+            $html .= '<link rel="stylesheet" href="'.e($url).'">'.PHP_EOL;
+        }
+
         return $html;
     }
 
@@ -169,14 +178,19 @@ class AssetManager
 
         $html = '<!-- TARDIS Scripts -->'.PHP_EOL;
 
-        // 0. Host-configured scripts
-        foreach ($this->configuredAssets('js') as $url) {
-            $html .= '<script src="'.e($url).'" defer></script>'.PHP_EOL;
+        // 0a. Assets registered through Tardis::addJs()
+        foreach ($this->added('js') as $asset) {
+            $html .= $this->render($asset);
         }
 
         // 1. Plugin JS providers
         foreach ($this->plugins()->enabledWith(JS::class) as $plugin) {
             $html .= '<script>'.$plugin->provideJS().'</script>'.PHP_EOL;
+        }
+
+        // 2. Host-configured scripts
+        foreach ($this->configuredAssets('js') as $url) {
+            $html .= '<script src="'.e($url).'" defer></script>'.PHP_EOL;
         }
 
         return $html;
@@ -222,6 +236,64 @@ class AssetManager
             array_map('strval', (array) config('tardis.assets.'.$type, [])),
             fn (string $url) => preg_match('#^(https?://|/(?!/))#i', $url) === 1
         ));
+    }
+
+    /**
+     * Register a stylesheet. A plain string is a URL.
+     */
+    public function addCss(Asset|string $asset): void
+    {
+        $this->added[] = is_string($asset) ? Asset::css($asset) : $asset;
+    }
+
+    /**
+     * Register a script. A plain string is a URL.
+     */
+    public function addJs(Asset|string $asset): void
+    {
+        $this->added[] = is_string($asset) ? Asset::js($asset) : $asset;
+    }
+
+    /**
+     * @return list<Asset>
+     */
+    private function added(string $type): array
+    {
+        return array_values(array_filter($this->added, fn (Asset $asset) => $asset->type === $type));
+    }
+
+    private function render(Asset $asset): string
+    {
+        if ($asset->inline !== null) {
+            // An inline block must not be able to close its own element.
+            $body = str_ireplace(['</style', '</script'], ['<\\/style', '<\\/script'], $asset->inline);
+
+            return ($asset->type === 'css' ? '<style>'.$body.'</style>' : '<script>'.$body.'</script>').PHP_EOL;
+        }
+
+        if ($asset->url === null || ! $this->isSafeUrl($asset->url)) {
+            return '';
+        }
+
+        if ($asset->type === 'css') {
+            return '<link rel="stylesheet" href="'.e($asset->url).'"'.$this->integrityAttributes($asset).'>'.PHP_EOL;
+        }
+
+        return '<script src="'.e($asset->url).'"'.($asset->defer ? ' defer' : '').$this->integrityAttributes($asset).'></script>'.PHP_EOL;
+    }
+
+    private function isSafeUrl(string $url): bool
+    {
+        return preg_match('#^(https?://|/(?!/))#i', $url) === 1;
+    }
+
+    private function integrityAttributes(Asset $asset): string
+    {
+        if ($asset->integrity === null || preg_match('/^sha(256|384|512)-[A-Za-z0-9+\/=]+$/', $asset->integrity) !== 1) {
+            return '';
+        }
+
+        return ' integrity="'.$asset->integrity.'" crossorigin="anonymous"';
     }
 
     private function plugins(): PluginManager
