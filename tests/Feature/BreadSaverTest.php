@@ -16,6 +16,8 @@ class SaverNote extends Model
     protected $table = 'saver_notes';
 
     protected $guarded = [];
+
+    protected $casts = ['pinned' => 'boolean'];
 }
 
 beforeEach(function () {
@@ -57,7 +59,7 @@ test('update returns only what changed and announces it once', function () {
     expect($changes)->toHaveKey('title')->not->toHaveKey('pinned');
     Event::assertDispatchedTimes(BreadRecordUpdated::class, 1);
 
-    $none = app(BreadSaver::class)->update('notes', $note->refresh(), $this->fields, ['title' => 'New', 'pinned' => false]);
+    $none = app(BreadSaver::class)->update('notes', SaverNote::find($note->id), $this->fields, ['title' => 'New', 'pinned' => false]);
     expect($none)->toBe([]);
     Event::assertDispatchedTimes(BreadRecordUpdated::class, 1);
 });
