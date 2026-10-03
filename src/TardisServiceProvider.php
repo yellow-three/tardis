@@ -120,6 +120,7 @@ class TardisServiceProvider extends ServiceProvider
         $this->registerPublishing();
         $this->registerMiddleware();
         $this->registerCommands();
+        $this->loadDefaultSettings();
     }
 
     /**

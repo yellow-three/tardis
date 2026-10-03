@@ -26,16 +26,6 @@ class BreadGuardPostModel extends Model
     public $timestamps = true;
 }
 
-/**
- * Pages that cannot render because of defects that predate 49d2454.
- * `tardis::pages.settings` fails Blade compilation: resources/views/pages/settings.blade.php:1044
- * passes `:class="{ 'rotate-180': open }"` to a component, which compiles to
- * `'class' => { 'rotate-180': open }` and raises a parse error.
- */
-const TARDIS_GUARD_BLOCKED = [
-    'tardis::pages.settings' => 'pre-existing Blade parse error at settings.blade.php:1044',
-];
-
 /** DaisyUI 4 utilities removed in the v5 migration. */
 const TARDIS_GUARD_D4 = [
     'input-bordered',
@@ -59,6 +49,7 @@ function tardisGuardPages(): array
         'tardis::pages.permissions' => [],
         'tardis::pages.roles' => [],
         'tardis::pages.search' => [],
+        'tardis::pages.settings' => [],
         'tardis::pages.ui-components' => [],
         'tardis::pages.bread.manage' => [],
         'tardis::pages.bread-builder' => [],
@@ -120,7 +111,7 @@ beforeEach(function (): void {
 });
 
 test('every modernised admin page is covered by the render guard', function (): void {
-    $pages = tardisGuardPages() + TARDIS_GUARD_BLOCKED;
+    $pages = tardisGuardPages();
 
     expect(array_keys($pages))->toHaveCount(21);
 });
@@ -155,10 +146,4 @@ test('every table header on a modernised admin page declares scope or aria-hidde
     }
 
     expect($failures)->toBe([]);
-});
-
-test('the blocked page list still matches the pre-existing settings defect', function (): void {
-    expect(TARDIS_GUARD_BLOCKED)->toHaveKey('tardis::pages.settings');
-    expect(file_get_contents(__DIR__.'/../../resources/views/pages/settings.blade.php'))
-        ->toContain(":class=\"{ 'rotate-180': open }\"");
 });
