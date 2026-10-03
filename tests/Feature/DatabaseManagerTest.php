@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use Illuminate\Support\Facades\Schema;
+use Livewire\Features\SupportLockedProperties\CannotUpdateLockedPropertyException;
 use Livewire\Livewire;
 
 beforeEach(function () {
@@ -308,4 +309,50 @@ test('dropTable drops the table and redirects to the explorer', function () {
         ->assertRedirect(route('tardis.database.index'));
 
     expect(Schema::hasTable('widgets'))->toBeFalse();
+});
+
+test('framework and package tables are hidden from the explorer', function () {
+    Schema::create('widgets', function ($table) {
+        $table->id();
+    });
+    Schema::create('migrations', function ($table) {
+        $table->id();
+    });
+    Schema::create('tardis_roles', function ($table) {
+        $table->id();
+    });
+
+    $names = collect(Livewire::test('tardis::pages.database')->get('tables'))->pluck('name')->all();
+
+    expect($names)->toContain('widgets')->not->toContain('migrations')->not->toContain('tardis_roles');
+
+    Schema::dropIfExists('migrations');
+    Schema::dropIfExists('tardis_roles');
+});
+
+test('a hidden table cannot be selected, viewed, edited or dropped', function () {
+    Schema::create('migrations', function ($table) {
+        $table->id();
+    });
+
+    Livewire::test('tardis::pages.database')
+        ->call('selectTable', 'migrations')
+        ->assertSet('selectedTable', null);
+
+    Livewire::test('tardis::pages.database.edit', ['table' => 'migrations'])->assertNotFound();
+
+    expect(Schema::hasTable('migrations'))->toBeTrue();
+
+    Schema::dropIfExists('migrations');
+});
+
+test('the table being edited cannot be swapped by the client', function () {
+    Schema::create('widgets', function ($table) {
+        $table->id();
+    });
+
+    $component = Livewire::test('tardis::pages.database.edit', ['table' => 'widgets']);
+
+    expect(fn () => $component->set('selectedTable', 'users'))
+        ->toThrow(CannotUpdateLockedPropertyException::class);
 });

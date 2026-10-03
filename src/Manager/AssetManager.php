@@ -138,6 +138,11 @@ class AssetManager
         }
         $html .= '<link rel="stylesheet" href="'.$cssUrl.'">'.PHP_EOL;
 
+        // 1b. Host-configured stylesheets
+        foreach ($this->configuredAssets('css') as $url) {
+            $html .= '<link rel="stylesheet" href="'.e($url).'">'.PHP_EOL;
+        }
+
         // 2. Plugin CSS providers (CSS interface)
         foreach ($this->plugins()->enabledWith(CSS::class) as $plugin) {
             $html .= '<style>'.$plugin->provideCSS().'</style>'.PHP_EOL;
@@ -160,12 +165,32 @@ class AssetManager
 
         $html = '<!-- TARDIS Scripts -->'.PHP_EOL;
 
+        // 0. Host-configured scripts
+        foreach ($this->configuredAssets('js') as $url) {
+            $html .= '<script src="'.e($url).'" defer></script>'.PHP_EOL;
+        }
+
         // 1. Plugin JS providers
         foreach ($this->plugins()->enabledWith(JS::class) as $plugin) {
             $html .= '<script>'.$plugin->provideJS().'</script>'.PHP_EOL;
         }
 
         return $html;
+    }
+
+    /**
+     * URLs from tardis.assets.{css,js}. Only http(s) and root-relative URLs are
+     * emitted, so a malformed or hostile config value (javascript:, data:)
+     * cannot become executable markup.
+     *
+     * @return list<string>
+     */
+    private function configuredAssets(string $type): array
+    {
+        return array_values(array_filter(
+            array_map('strval', (array) config('tardis.assets.'.$type, [])),
+            fn (string $url) => preg_match('#^(https?://|/(?!/))#i', $url) === 1
+        ));
     }
 
     private function plugins(): PluginManager

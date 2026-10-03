@@ -52,6 +52,8 @@ new #[Title('Settings')] #[Layout('tardis::layouts.admin')] class extends Compon
 
     public bool $showImportModal = false;
 
+    public ?string $importError = null;
+
     public bool $showExportModal = false;
 
     public bool $showJsonPanel = false;
@@ -312,7 +314,15 @@ new #[Title('Settings')] #[Layout('tardis::layouts.admin')] class extends Compon
             'importJson' => 'required|json',
         ]);
 
-        $count = Tardis::settings()->import($this->importJson);
+        try {
+            Tardis::settings()->import($this->importJson);
+        } catch (RuntimeException $e) {
+            $this->importError = $e->getMessage();
+
+            return;
+        }
+
+        $this->importError = null;
         $this->showImportModal = false;
         $this->loadSettings();
         $this->saved = true;

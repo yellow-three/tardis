@@ -391,3 +391,27 @@ test('availableThemes falls back to the package manifest when the dev server is 
         @unlink($hotPath);
     }
 });
+
+test('configured additional css and js are emitted after the package assets', function () {
+    config()->set('tardis.assets.css', ['https://cdn.example.test/extra.css', '/vendor/host/extra.css']);
+    config()->set('tardis.assets.js', ['/vendor/host/extra.js']);
+
+    $manager = app(AssetManager::class);
+    $styles = $manager->styles();
+    $scripts = $manager->scripts();
+
+    expect($styles)->toContain('<link rel="stylesheet" href="https://cdn.example.test/extra.css">')
+        ->toContain('<link rel="stylesheet" href="/vendor/host/extra.css">')
+        ->and(strpos($styles, 'extra.css'))->toBeGreaterThan(strpos($styles, 'app.css'))
+        ->and($scripts)->toContain('<script src="/vendor/host/extra.js" defer></script>');
+});
+
+test('configured assets that are not http or root-relative urls are dropped', function () {
+    config()->set('tardis.assets.css', ['javascript:alert(1)', 'data:text/css,body{}', '//evil.test/x.css', '"><script>x</script>']);
+    config()->set('tardis.assets.js', ['javascript:alert(1)']);
+
+    $manager = app(AssetManager::class);
+
+    expect($manager->styles())->not->toContain('javascript:')->not->toContain('data:text')->not->toContain('evil.test')->not->toContain('<script>x')
+        ->and($manager->scripts())->not->toContain('javascript:');
+});

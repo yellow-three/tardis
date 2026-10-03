@@ -4,6 +4,7 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\Locked;
 use Livewire\Attributes\Title;
 use Livewire\Component;
 use Tardis\Auth\Abilities;
@@ -15,6 +16,7 @@ new #[Title('Edit Table')] #[Layout('tardis::layouts.admin')] class extends Comp
 {
     use ManagesColumnDefinitions;
 
+    #[Locked]
     public string $selectedTable = '';
 
     /** @var array<int, array<string, mixed>> */
@@ -65,7 +67,7 @@ new #[Title('Edit Table')] #[Layout('tardis::layouts.admin')] class extends Comp
     {
         $connection = config('database.default');
 
-        if (! Schema::connection($connection)->hasTable($table)) {
+        if ($this->isHiddenTable($table) || ! Schema::connection($connection)->hasTable($table)) {
             abort(404);
         }
 

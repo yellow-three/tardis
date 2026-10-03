@@ -58,6 +58,11 @@ new #[Title('Database Explorer')] #[Layout('tardis::layouts.admin')] class exten
                 ? Schema::connection($connection)->getTables(DB::connection($connection)->getDatabaseName())
                 : Schema::connection($connection)->getTables();
 
+            $tables = array_values(array_filter(
+                $tables,
+                fn (array $table) => ! $this->isHiddenTable($table['name'])
+            ));
+
             $this->tables = array_map(function (array $table) {
                 $table['has_model'] = app(ModelGenerator::class)->modelExists($table['name']);
 
@@ -71,6 +76,10 @@ new #[Title('Database Explorer')] #[Layout('tardis::layouts.admin')] class exten
 
     public function selectTable(string $table): void
     {
+        if ($this->isHiddenTable($table)) {
+            return;
+        }
+
         $this->selectedTable = $table;
         $this->loadTableData();
     }
@@ -98,6 +107,10 @@ new #[Title('Database Explorer')] #[Layout('tardis::layouts.admin')] class exten
 
     public function viewTable(string $table): void
     {
+        if ($this->isHiddenTable($table)) {
+            return;
+        }
+
         $this->selectTable($table);
         $this->selectedTableHasModel = app(ModelGenerator::class)->modelExists($table);
         $this->showTableInfoModal = true;

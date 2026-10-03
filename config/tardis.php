@@ -29,6 +29,45 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Database Explorer
+    |--------------------------------------------------------------------------
+    |
+    | Tables the explorer never lists, opens, alters or drops. Tables whose name
+    | starts with "tardis_" belong to this package and are always hidden too.
+    |
+    */
+    'database' => [
+        'hidden_tables' => [
+            'migrations',
+            'password_resets',
+            'password_reset_tokens',
+            'failed_jobs',
+            'sessions',
+            'cache',
+            'cache_locks',
+            'jobs',
+            'job_batches',
+            'personal_access_tokens',
+        ],
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Additional assets
+    |--------------------------------------------------------------------------
+    |
+    | Extra stylesheet and script URLs loaded on every admin page, after the
+    | package's own assets (Voyager's additional_css / additional_js). Plugins can
+    | still provide inline CSS/JS through the CSS and JS provider contracts.
+    |
+    */
+    'assets' => [
+        'css' => [],
+        'js' => [],
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Media Settings
     |--------------------------------------------------------------------------
     */
