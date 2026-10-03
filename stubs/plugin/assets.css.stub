@@ -1,0 +1,12 @@
+/*
+ * Plugin styles. Wrap them in the tardis.plugins layer so they never override
+ * Tardis' own components by accident, and prefix your classes with tp-{{LOWERCASE_NAME}}-.
+ * DaisyUI components and the theme variables (--color-primary, ...) are available.
+ */
+@layer tardis.plugins {
+    .tp-{{LOWERCASE_NAME}}-box {
+        border: 1px solid var(--color-base-300);
+        border-radius: var(--radius-box);
+        padding: 1rem;
+    }
+}

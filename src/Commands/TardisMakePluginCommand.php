@@ -15,6 +15,7 @@ class TardisMakePluginCommand extends Command
         {--with-menu : Include MenuItems trait}
         {--with-widgets : Include Widgets trait}
         {--with-settings : Include Settings trait}
+        {--with-assets : Add CSS/JS sources, a Vite build and the Asset::file() wiring}
         {--with-migration : Create a migration file}
         {--with-model : Create an Eloquent model}';
 
@@ -40,6 +41,13 @@ class TardisMakePluginCommand extends Command
         $this->generateFromStub("{$stubPath}/Plugin.stub", "{$pluginDir}/src/Tardis{$studlyName}Plugin.php", $replacements);
         $this->generateFromStub("{$stubPath}/routes.stub", "{$pluginDir}/routes/web.php", $replacements);
         $this->generateFromStub("{$stubPath}/SFC-page.stub", "{$pluginDir}/resources/views/pages/admin/{$lowercaseName}.blade.php", $replacements);
+
+        if ($this->option('with-assets')) {
+            $this->generateFromStub("{$stubPath}/assets.css.stub", "{$pluginDir}/resources/css/plugin.css", $replacements);
+            $this->generateFromStub("{$stubPath}/assets.js.stub", "{$pluginDir}/resources/js/plugin.js", $replacements);
+            $this->generateFromStub("{$stubPath}/vite.config.stub", "{$pluginDir}/vite.config.js", $replacements);
+            $this->generateFromStub("{$stubPath}/package.json.stub", "{$pluginDir}/package.json", $replacements);
+        }
 
         if ($this->option('with-model')) {
             $this->generateFromStub("{$stubPath}/Model.stub", "{$pluginDir}/src/Models/{$studlyName}.php", $replacements);
@@ -78,6 +86,11 @@ class TardisMakePluginCommand extends Command
             "{$pluginDir}/routes",
         ];
 
+        if ($this->option('with-assets')) {
+            $directories[] = "{$pluginDir}/resources/css";
+            $directories[] = "{$pluginDir}/resources/js";
+        }
+
         foreach ($directories as $directory) {
             File::ensureDirectoryExists($directory);
         }
@@ -98,6 +111,10 @@ class TardisMakePluginCommand extends Command
             '{{MENU_METHOD}}' => '',
             '{{WIDGET_METHOD}}' => '',
             '{{SETTINGS_METHOD}}' => '',
+            '{{CAMEL_NAME}}' => Str::camel($lowercaseName),
+            '{{ASSET_IMPORT}}' => '',
+            '{{ASSET_INTERFACE}}' => '',
+            '{{ASSET_METHOD}}' => '',
         ];
 
         if ($this->option('with-menu')) {
@@ -116,6 +133,12 @@ class TardisMakePluginCommand extends Command
             $replacements['{{SETTINGS_IMPORT}}'] = 'use Tardis\Contracts\Plugins\Features\Provider\Settings;';
             $replacements['{{SETTINGS_INTERFACE}}'] = ', Settings';
             $replacements['{{SETTINGS_METHOD}}'] = $this->getSettingsMethod();
+        }
+
+        if ($this->option('with-assets')) {
+            $replacements['{{ASSET_IMPORT}}'] = "use Tardis\\Assets\\Asset;\nuse Tardis\\Contracts\\Plugins\\Features\\Provider\\CSS;\nuse Tardis\\Contracts\\Plugins\\Features\\Provider\\JS;";
+            $replacements['{{ASSET_INTERFACE}}'] = ', CSS, JS';
+            $replacements['{{ASSET_METHOD}}'] = $this->getAssetMethods();
         }
 
         return $replacements;
@@ -170,6 +193,24 @@ PHP;
         return [
             //
         ];
+    }
+PHP;
+    }
+
+    protected function getAssetMethods(): string
+    {
+        return <<<'PHP'
+
+    // Built by `npm run build` in the package; served by Tardis from a hashed URL.
+    // Add ->routes('tardis.bread.*') or ->ability('...') to load them only where needed.
+    public function provideCSS(): Asset
+    {
+        return Asset::file(__DIR__.'/../dist/plugin.css');
+    }
+
+    public function provideJS(): Asset
+    {
+        return Asset::file(__DIR__.'/../dist/plugin.js');
     }
 PHP;
     }
