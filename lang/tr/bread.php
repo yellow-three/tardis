@@ -63,4 +63,5 @@ return [
     'bulk_done' => ':title: :count kayıt.',
     'selected_count' => ':count seçili',
     'select' => 'Seç',
+    'fallback_locale' => ':locale çevirisi henüz yok, bu yüzden onun yerine bu gösteriliyor.',
 ];

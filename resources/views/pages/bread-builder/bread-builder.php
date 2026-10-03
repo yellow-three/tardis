@@ -10,6 +10,7 @@ use Tardis\Bread\BreadDefinition;
 use Tardis\Bread\BreadManager;
 use Tardis\Bread\ModelReflector;
 use Tardis\Bread\ReservedSlugs;
+use Tardis\Classes\Translation;
 use Tardis\Manager\FormfieldManager;
 
 new #[Title('BREAD Builder')] #[Layout('tardis::layouts.admin')] class extends Component
@@ -102,6 +103,24 @@ new #[Title('BREAD Builder')] #[Layout('tardis::layouts.admin')] class extends C
     public ?string $scope = null;
 
     /**
+     * Locale maps loaded from the definition for the three translatable labels.
+     *
+     * The form edits one resolved string at a time, so the raw map is kept
+     * aside and written back untouched unless the user actually retyped the
+     * label. Without this, saving a BREAD would silently flatten every locale
+     * to the single string currently shown in the input.
+     *
+     * @var array<string, string>
+     */
+    public array $nameTranslations = [];
+
+    /** @var array<string, string> */
+    public array $namePluralTranslations = [];
+
+    /** @var array<string, string> */
+    public array $descriptionTranslations = [];
+
+    /**
      * Runs on every request, not only on mount: Livewire keeps component state
      * between updates, so a permission revoked after the page opened must
      * still stop the next action.
@@ -123,10 +142,13 @@ new #[Title('BREAD Builder')] #[Layout('tardis::layouts.admin')] class extends C
                 $this->slug = $bread->slug;
                 $this->slugTouched = true;
                 $this->model = $bread->model;
-                $this->name = $bread->name;
-                $this->namePlural = $bread->namePlural;
+                $this->nameTranslations = $this->toTranslationMap($bread->name);
+                $this->name = $bread->resolvedName();
+                $this->namePluralTranslations = $this->toTranslationMap($bread->namePlural);
+                $this->namePlural = $bread->resolvedNamePlural();
                 $this->icon = $bread->icon;
-                $this->description = $bread->description;
+                $this->descriptionTranslations = $this->toTranslationMap($bread->description);
+                $this->description = $bread->resolvedDescription();
                 $this->fieldConfig = $bread->fields;
                 $this->relationshipConfig = $bread->relationships;
                 $this->searchKey = $bread->searchKey ?? '';
@@ -229,12 +251,12 @@ new #[Title('BREAD Builder')] #[Layout('tardis::layouts.admin')] class extends C
         $bread = BreadDefinition::fromArray([
             'slug' => $this->slug,
             'model' => $this->model,
-            'name' => $this->name,
-            'name_plural' => $this->namePlural,
+            'name' => $this->labelPayload($this->name, $this->nameTranslations),
+            'name_plural' => $this->labelPayload($this->namePlural, $this->namePluralTranslations),
             'fields' => $this->fieldConfig,
             'relationships' => $this->relationshipConfig,
             'icon' => $this->icon,
-            'description' => $this->description,
+            'description' => $this->labelPayload($this->description, $this->descriptionTranslations),
             'search_key' => $this->searchKey ?: null,
             'order_column' => $this->orderColumn,
             'order_direction' => $this->orderDirection,
@@ -254,6 +276,42 @@ new #[Title('BREAD Builder')] #[Layout('tardis::layouts.admin')] class extends C
 
         session()->flash('message', __('tardis::builder.saved'));
         $this->redirect(route('tardis.bread.manage'));
+    }
+
+    /**
+     * The locale map behind a definition label, or an empty array when the
+     * label is a plain string and therefore not translatable.
+     *
+     * @return array<string, string>
+     */
+    protected function toTranslationMap(mixed $value): array
+    {
+        if (is_array($value)) {
+            return array_map(strval(...), $value);
+        }
+
+        if (! is_string($value) || $value === '') {
+            return [];
+        }
+
+        $decoded = json_decode($value, true);
+
+        return is_array($decoded) ? array_map(strval(...), $decoded) : [];
+    }
+
+    /**
+     * Keep a definition's locale map when its resolved label was not retyped.
+     *
+     * A deliberate edit replaces the map with the single string now shown in
+     * the input, so what gets stored is exactly what the form displayed.
+     */
+    protected function labelPayload(?string $edited, array $translations): string|array|null
+    {
+        if ($translations === []) {
+            return $edited;
+        }
+
+        return $edited === Translation::label($translations) ? $translations : $edited;
     }
 
     public function getModelOptions(): array

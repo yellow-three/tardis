@@ -90,3 +90,42 @@ test('the create page stores a plain string body as a locale map instead of null
     expect($post)->not->toBeNull()
         ->and($post->body)->toBe(['en' => 'Hello', 'tr' => '']);
 });
+
+test('label resolves a locale map for the active locale', function () {
+    expect(Translation::label(['en' => 'Title', 'tr' => 'Başlık'], ['en', 'tr'], 'tr'))->toBe('Başlık');
+});
+
+test('label leaves a plain string untouched instead of reading it as a map', function () {
+    expect(Translation::label('Title', ['en', 'tr'], 'tr'))->toBe('Title');
+});
+
+test('label falls back to a filled locale when the active one is empty', function () {
+    expect(Translation::label(['en' => 'Title', 'tr' => ''], ['en', 'tr'], 'tr'))->toBe('Title');
+});
+
+test('label resolves a JSON encoded locale map', function () {
+    expect(Translation::label('{"en":"Title","tr":"Başlık"}', ['en', 'tr'], 'tr'))->toBe('Başlık');
+});
+
+test('sourceLocale is null when the locale has a translation of its own', function () {
+    expect(Translation::sourceLocale(['en' => 'Hello', 'tr' => 'Merhaba'], ['en', 'tr'], 'tr'))->toBeNull();
+});
+
+test('sourceLocale names the locale a value was borrowed from', function () {
+    expect(Translation::sourceLocale(['en' => 'Hello', 'tr' => ''], ['en', 'tr'], 'tr'))->toBe('en');
+});
+
+test('sourceLocale is null when there is nothing to fall back to', function () {
+    expect(Translation::sourceLocale(['en' => '', 'tr' => ''], ['en', 'tr'], 'tr'))->toBeNull();
+});
+
+test('sourceLocale attributes a plain string to the first locale', function () {
+    expect(Translation::sourceLocale('Hello', ['en', 'tr'], 'tr'))->toBe('en');
+});
+
+test('value and sourceLocale agree on which locale answered', function () {
+    $value = ['en' => 'Hello', 'tr' => ''];
+
+    expect(Translation::value($value, ['en', 'tr'], 'tr'))->toBe('Hello')
+        ->and(Translation::sourceLocale($value, ['en', 'tr'], 'tr'))->toBe('en');
+});

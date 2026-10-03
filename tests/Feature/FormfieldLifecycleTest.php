@@ -5,6 +5,7 @@ declare(strict_types=1);
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
@@ -453,4 +454,221 @@ test('Translation helper normalizes raw values and falls back to the first non-e
         ->and(Translation::normalize('{"en":"Hi","tr":"Selam"}', ['en', 'tr']))->toBe(['en' => 'Hi', 'tr' => 'Selam'])
         ->and(Translation::value(['en' => '', 'tr' => 'Selam'], ['en', 'tr'], 'en'))->toBe('Selam')
         ->and(Translation::value(['en' => 'Hi', 'tr' => 'Selam'], ['en', 'tr'], 'en'))->toBe('Hi');
+});
+
+test('read page badges a label and a value borrowed from another locale', function () {
+    $path = sys_get_temp_dir().'/tardis-bread-read-fallback-'.uniqid();
+    app()->instance(JsonBreadSource::class, new JsonBreadSource($path));
+
+    (new JsonBreadSource($path))->save([
+        'slug' => 'translatable-posts',
+        'model' => BreadPageTranslatablePostModel::class,
+        'name' => 'Translatable Post',
+        'fields' => [
+            ['name' => 'title', 'type' => 'text', 'label' => 'Title', 'read' => true],
+            [
+                'name' => 'body',
+                'type' => 'text',
+                'label' => ['en' => 'Body', 'tr' => ''],
+                'read' => true,
+                'translatable' => true,
+                'locales' => ['en', 'tr'],
+            ],
+        ],
+        'relationships' => [],
+    ]);
+
+    createTranslatableSchema();
+
+    $post = BreadPageTranslatablePostModel::create([
+        'title' => 'Borrowed',
+        'body' => ['en' => 'Hello'],
+    ]);
+
+    app()->setLocale('tr');
+
+    $html = Livewire::test('tardis::pages.bread.read', [
+        'slug' => 'translatable-posts',
+        'id' => $post->id,
+    ])->html();
+
+    // Both the Turkish label and the Turkish body are missing, so both answers
+    // are the English ones — and both have to admit it rather than pass as if
+    // they were written in Turkish.
+    expect($html)->toContain('Body')
+        ->and($html)->toContain('Hello')
+        ->and($html)->toContain('badge badge-ghost badge-xs uppercase')
+        ->and($html)->toContain('badge badge-warning badge-sm uppercase')
+        ->and($html)->toContain(__('tardis::bread.fallback_locale', ['locale' => 'en']));
+
+    File::deleteDirectory($path);
+});
+
+test('read page shows no fallback badge when the active locale has the text', function () {
+    $path = sys_get_temp_dir().'/tardis-bread-read-own-locale-'.uniqid();
+    app()->instance(JsonBreadSource::class, new JsonBreadSource($path));
+
+    (new JsonBreadSource($path))->save([
+        'slug' => 'translatable-posts',
+        'model' => BreadPageTranslatablePostModel::class,
+        'name' => 'Translatable Post',
+        'fields' => [
+            [
+                'name' => 'body',
+                'type' => 'text',
+                'label' => ['en' => 'Body', 'tr' => 'Govde'],
+                'read' => true,
+                'translatable' => true,
+                'locales' => ['en', 'tr'],
+            ],
+        ],
+        'relationships' => [],
+    ]);
+
+    createTranslatableSchema();
+
+    $post = BreadPageTranslatablePostModel::create([
+        'title' => 'Own locale',
+        'body' => ['en' => 'Hello', 'tr' => 'Merhaba'],
+    ]);
+
+    app()->setLocale('tr');
+
+    $html = Livewire::test('tardis::pages.bread.read', [
+        'slug' => 'translatable-posts',
+        'id' => $post->id,
+    ])->html();
+
+    // Both answers come from the active locale, so no badge may appear at all.
+    expect($html)->toContain('Govde')
+        ->and($html)->toContain('Merhaba')
+        ->and($html)->not->toContain('badge-warning')
+        ->and($html)->not->toContain('badge-ghost');
+
+    File::deleteDirectory($path);
+});
+
+/**
+ * A definition with one translatable field, for the tab and validation modes.
+ *
+ * @param  array<int, string>  $validation
+ * @param  array<string, mixed>  $extra  field keys merged over the defaults
+ */
+function saveTranslatableBodyBread(string $path, array $validation = ['nullable'], array $extra = []): void
+{
+    (new JsonBreadSource($path))->save([
+        'slug' => 'translatable-posts',
+        'model' => BreadPageTranslatablePostModel::class,
+        'name' => 'Translatable Post',
+        'fields' => [
+            [
+                'name' => 'title',
+                'type' => 'text',
+                'label' => 'Title',
+                'add' => true,
+                'validation' => ['required'],
+            ],
+            [
+                'name' => 'body',
+                'type' => 'text',
+                'label' => 'Body',
+                'add' => true,
+                'translatable' => true,
+                'locales' => ['en', 'tr'],
+                'validation' => $validation,
+                ...$extra,
+            ],
+        ],
+        'relationships' => [],
+    ]);
+
+    app()->instance(JsonBreadSource::class, new JsonBreadSource($path));
+}
+
+test('a translatable field shows one locale at a time behind tabs', function () {
+    $path = sys_get_temp_dir().'/tardis-formfield-tabs-'.uniqid();
+    saveTranslatableBodyBread($path);
+    createTranslatableSchema();
+
+    $html = Livewire::test('tardis::pages.bread.create', ['slug' => 'translatable-posts'])->html();
+
+    // One control bound to the locale being edited, rather than a stacked
+    // control per locale that doubles the height of the form.
+    expect($html)->toContain('role="tablist"')
+        ->and($html)->toContain('wire:key="body-tab-en"')
+        ->and($html)->toContain('wire:key="body-tab-tr"')
+        ->and($html)->toContain('wire:model="form.body.en"')
+        ->and($html)->not->toContain('wire:model="form.body.tr"');
+
+    File::deleteDirectory($path);
+});
+
+test('choosing another locale tab rebinds the control to that locale', function () {
+    $path = sys_get_temp_dir().'/tardis-formfield-tab-switch-'.uniqid();
+    saveTranslatableBodyBread($path);
+    createTranslatableSchema();
+
+    $html = Livewire::test('tardis::pages.bread.create', ['slug' => 'translatable-posts'])
+        ->call('setActiveLocale', 'tr')
+        ->assertSet('activeLocale', 'tr')
+        ->html();
+
+    expect($html)->toContain('wire:model="form.body.tr"')
+        ->and($html)->not->toContain('wire:model="form.body.en"');
+
+    File::deleteDirectory($path);
+});
+
+test('turning tabs off renders every locale at once, each labelled', function () {
+    $path = sys_get_temp_dir().'/tardis-formfield-no-tabs-'.uniqid();
+    config(['tardis.translation.tabs' => false]);
+    saveTranslatableBodyBread($path);
+    createTranslatableSchema();
+
+    $html = Livewire::test('tardis::pages.bread.create', ['slug' => 'translatable-posts'])->html();
+
+    // Without tabs there is no single active locale, so all of them show and
+    // each control says which language it is for.
+    expect($html)->not->toContain('role="tablist"')
+        ->and($html)->toContain('wire:key="body-locale-en"')
+        ->and($html)->toContain('wire:key="body-locale-tr"')
+        ->and($html)->toContain('wire:model="form.body.en"')
+        ->and($html)->toContain('wire:model="form.body.tr"');
+
+    File::deleteDirectory($path);
+});
+
+test('all-locales validation reports an empty translation and names its tab', function () {
+    $path = sys_get_temp_dir().'/tardis-formfield-validate-all-'.uniqid();
+    saveTranslatableBodyBread($path, ['required']);
+    createTranslatableSchema();
+
+    $component = Livewire::test('tardis::pages.bread.create', ['slug' => 'translatable-posts'])
+        ->set('form.body.en', 'Hello')
+        ->call('save')
+        ->assertHasErrors(['form.body.tr']);
+
+    // Only the English tab is on screen, so the Turkish failure has to be
+    // reachable: the tab button plus the error's link to it.
+    expect(substr_count($component->html(), "setActiveLocale('tr')"))->toBe(2);
+
+    File::deleteDirectory($path);
+});
+
+test('active-locale validation ignores a translation the user is not editing', function () {
+    $path = sys_get_temp_dir().'/tardis-formfield-validate-active-'.uniqid();
+    saveTranslatableBodyBread($path, ['required'], ['validation_mode' => 'active']);
+    createTranslatableSchema();
+
+    // Editing English with Turkish empty is a normal half-finished draft; the
+    // rule must not block a save over the tab nobody is looking at.
+    Livewire::test('tardis::pages.bread.create', ['slug' => 'translatable-posts'])
+        ->set('form.title', 'Hello')
+        ->set('form.body.en', 'Hello')
+        ->call('save')
+        ->assertHasNoErrors();
+
+    expect(BreadPageTranslatablePostModel::first()->body)->toBe(['en' => 'Hello', 'tr' => '']);
+
+    File::deleteDirectory($path);
 });

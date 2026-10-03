@@ -3,21 +3,22 @@
 namespace Tardis\Bread;
 
 use Illuminate\Database\Eloquent\Builder;
+use Tardis\Classes\Translation;
 
 class BreadDefinition
 {
     public function __construct(
         public string $slug,
         public string $model,
-        public string $name,
-        public string $namePlural,
+        public string|array $name,
+        public string|array $namePlural,
         public array $fields = [],
         public array $relationships = [],
         public array $layout = ['browse' => [], 'edit' => [], 'read' => []],
         public array $actions = [],
         public array $validation = [],
         public ?string $icon = null,
-        public ?string $description = null,
+        public string|array|null $description = null,
         public bool $softDelete = false,
         public ?string $orderColumn = null,
         public string $orderDirection = 'asc',
@@ -37,6 +38,59 @@ class BreadDefinition
     public function permissionKey(): string
     {
         return $this->policy !== null && $this->policy !== '' ? $this->policy : $this->slug;
+    }
+
+    /**
+     * The singular label for the active locale.
+     *
+     * A definition may store a plain string or a locale map; only the locale
+     * map is translated, so a plain name comes back verbatim.
+     */
+    public function resolvedName(?string $locale = null): string
+    {
+        return Translation::label($this->name, null, $locale);
+    }
+
+    /**
+     * The plural label for the active locale, falling back to the singular.
+     */
+    public function resolvedNamePlural(?string $locale = null): string
+    {
+        return Translation::label(
+            $this->namePlural === [] ? $this->name : $this->namePlural,
+            null,
+            $locale
+        );
+    }
+
+    /**
+     * The description for the active locale.
+     */
+    public function resolvedDescription(?string $locale = null): ?string
+    {
+        if ($this->description === null || $this->description === '') {
+            return null;
+        }
+
+        return Translation::label($this->description, null, $locale);
+    }
+
+    /**
+     * The definition with its labels resolved for display.
+     *
+     * Runtime pages consume this so `ucfirst()` and Blade interpolation keep
+     * receiving plain strings, while `toArray()` stays raw and keeps the
+     * locale maps intact for the JSON save round-trip.
+     *
+     * @return array<string, mixed>
+     */
+    public function toDisplayArray(): array
+    {
+        return array_merge($this->toArray(), [
+            'name' => $this->resolvedName(),
+            'name_plural' => $this->resolvedNamePlural(),
+            'description' => $this->resolvedDescription(),
+        ]);
     }
 
     public static function fromArray(array $data): self

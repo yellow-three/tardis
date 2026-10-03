@@ -196,7 +196,9 @@ class MenuManager
     protected function customMenuItems(): array
     {
         return array_map(function (array $link) {
-            $item = (new MenuItem((string) $link['title'], $link['icon'] ?? 'heroicon-o-link'))
+            $title = $link['title'] ?? '';
+
+            $item = (new MenuItem(is_array($title) ? $title : (string) $title, $link['icon'] ?? 'heroicon-o-link'))
                 ->url((string) $link['url'])
                 ->section($link['section'] ?? null)
                 ->order((int) ($link['order'] ?? 90));
@@ -254,7 +256,7 @@ class MenuManager
     {
         return app(BreadManager::class)
             ->all()
-            ->map(fn (BreadDefinition $bread) => (new MenuItem($bread->namePlural, $this->breadMenuIcon($bread->icon)))
+            ->map(fn (BreadDefinition $bread) => (new MenuItem($bread->resolvedNamePlural(), $this->breadMenuIcon($bread->icon)))
                 ->route('tardis.bread.index', ['slug' => $bread->slug])
                 ->permission(BreadAuthorization::ability('browse', $bread->permissionKey()))
                 ->section(__('tardis::menu.sections.bread'))

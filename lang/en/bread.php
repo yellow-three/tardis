@@ -63,4 +63,5 @@ return [
     'bulk_done' => ':title: :count record(s).',
     'selected_count' => ':count selected',
     'select' => 'Select',
+    'fallback_locale' => 'There is no :locale translation yet, so this one is shown instead.',
 ];

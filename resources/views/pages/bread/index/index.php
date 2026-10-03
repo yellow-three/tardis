@@ -54,7 +54,7 @@ new #[Title('BREAD')] #[Layout('tardis::layouts.admin')] class extends Component
             abort(404);
         }
 
-        $this->bread = $definition->toArray();
+        $this->bread = $definition->toDisplayArray();
 
         app(BreadAuthorization::class)->authorize('browse', $this->slug);
     }

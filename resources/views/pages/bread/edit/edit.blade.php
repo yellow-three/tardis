@@ -21,7 +21,7 @@
     <form wire:submit="save" class="card bg-base-100 border border-base-300">
         <div class="card-body space-y-5">
             @foreach ($this->formfields as $field)
-                <x-tardis::form-field :field="$field" :context="['relationOptions' => $this->relationResults[$field->name] ?? []]" />
+                <x-tardis::form-field :field="$field" :active-locale="$activeLocale" :context="['relationOptions' => $this->relationResults[$field->name] ?? []]" />
             @endforeach
 
             <div class="card-actions justify-end">

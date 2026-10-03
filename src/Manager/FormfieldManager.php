@@ -121,7 +121,7 @@ class FormfieldManager
         }
     }
 
-    public function make(string $type, string $name, ?string $label = null): Formfield
+    public function make(string $type, string $name, string|array|null $label = null): Formfield
     {
         $class = $this->resolveType($type);
 
@@ -136,7 +136,12 @@ class FormfieldManager
             $type = $definition['type'];
             $name = $definition['name'];
             // A definition without a label is shown as a readable name, not the raw column.
-            $label = $definition['label'] ?? ucfirst(str_replace(['_', '-'], ' ', (string) $name));
+            $label = $definition['label'] ?? null;
+
+            // An empty locale map resolves to nothing, so it falls back too.
+            if ($label === null || $label === '' || $label === []) {
+                $label = ucfirst(str_replace(['_', '-'], ' ', (string) $name));
+            }
 
             $field = $this->make($type, $name, $label);
 

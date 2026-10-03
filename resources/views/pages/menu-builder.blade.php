@@ -32,7 +32,11 @@ new #[Title('tardis::menu_builder.title')] #[Layout('tardis::layouts.admin')] cl
     /**
      * Every item the user may see, including those the overlay hides, in order.
      *
-     * @return array<int, array{id: string, title: string, section: ?string, hidden: bool, custom: bool, icon: ?string}>
+     * "title" is what the row shows for the active locale; "rawTitle" is the
+     * title as stored, so rename() can write a locale back into a map instead
+     * of flattening it.
+     *
+     * @return array<int, array{id: string, title: string, rawTitle: string|array, section: ?string, hidden: bool, custom: bool, icon: ?string}>
      */
     public function rows(): array
     {
@@ -46,7 +50,8 @@ new #[Title('tardis::menu_builder.title')] #[Layout('tardis::layouts.admin')] cl
             ->reject(fn ($item) => $item->isDivider)
             ->map(fn ($item) => [
                 'id' => $item->id(),
-                'title' => $item->title,
+                'title' => $item->resolvedTitle(),
+                'rawTitle' => $item->title,
                 'section' => $item->section,
                 'hidden' => $item->overlayHidden,
                 'custom' => str_starts_with($item->id(), 'custom-'),
@@ -63,9 +68,34 @@ new #[Title('tardis::menu_builder.title')] #[Layout('tardis::layouts.admin')] cl
         app(MenuOverlay::class)->change($id, ['hidden' => ! $current]);
     }
 
+    /**
+     * Retitle an item.
+     *
+     * A title stored as a locale map is written back as a map with only the
+     * active locale replaced, so renaming in one language leaves the other
+     * translations standing instead of collapsing them to that one string.
+     */
     public function rename(string $id, string $title): void
     {
-        app(MenuOverlay::class)->change($id, ['title' => $title]);
+        $raw = collect($this->rows())->firstWhere('id', $id)['rawTitle'] ?? null;
+
+        if (! is_array($raw)) {
+            app(MenuOverlay::class)->change($id, ['title' => $title]);
+
+            return;
+        }
+
+        $map = [];
+
+        foreach ($raw as $locale => $translation) {
+            if (is_scalar($translation)) {
+                $map[(string) $locale] = (string) $translation;
+            }
+        }
+
+        $map[app()->getLocale()] = $title;
+
+        app(MenuOverlay::class)->change($id, ['title' => $map]);
     }
 
     public function resection(string $id, string $section): void

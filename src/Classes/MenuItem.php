@@ -11,7 +11,7 @@ use Tardis\Manager\PluginManager;
 
 class MenuItem
 {
-    public string $title;
+    public string|array $title;
 
     public ?string $icon = null;
 
@@ -73,11 +73,23 @@ class MenuItem
     /** Explicit stable id; see id(). */
     public ?string $key = null;
 
-    public function __construct(string $title, ?string $icon = null)
+    public function __construct(string|array $title, ?string $icon = null)
     {
         $this->title = $title;
         $this->icon = $icon;
         $this->children = new Collection;
+    }
+
+    /**
+     * The title for the active locale.
+     *
+     * A title may be a plain string, a translation key or a locale map; only
+     * the map and the key are translated, so an already-resolved title comes
+     * back verbatim.
+     */
+    public function resolvedTitle(?string $locale = null): string
+    {
+        return Translation::label($this->title, null, $locale);
     }
 
     /**
@@ -95,7 +107,27 @@ class MenuItem
             return $this->routeName.($this->routeParams === [] ? '' : ':'.implode(',', array_map('strval', $this->routeParams)));
         }
 
-        return Str::slug($this->url ?? $this->title);
+        return Str::slug($this->url ?? $this->stableTitle());
+    }
+
+    /**
+     * The title as stored, never resolved for the active locale.
+     *
+     * id() persists into menus.json, so it has to come out the same in every
+     * locale: a title resolved per request would orphan the overlay entry an
+     * administrator saved under another language. A locale map therefore falls
+     * back to its first translation, which is fixed by the definition rather
+     * than by the active locale.
+     */
+    protected function stableTitle(): string
+    {
+        if (! is_array($this->title)) {
+            return $this->title;
+        }
+
+        $first = reset($this->title);
+
+        return is_scalar($first) ? (string) $first : '';
     }
 
     public static function makeDivider(): self

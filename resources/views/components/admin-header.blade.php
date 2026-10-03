@@ -79,7 +79,7 @@
                                     @if ($userItem->icon)
                                         <x-dynamic-component :component="$userItem->icon" class="w-4 h-4" />
                                     @endif
-                                    {{ $userItem->title }}
+                                    {{ $userItem->resolvedTitle() }}
                                 </button>
                             </form>
                         @else
@@ -87,7 +87,7 @@
                                 @if ($userItem->icon)
                                     <x-dynamic-component :component="$userItem->icon" class="w-4 h-4" />
                                 @endif
-                                {{ $userItem->title }}
+                                {{ $userItem->resolvedTitle() }}
                             </a>
                         @endif
                     </li>

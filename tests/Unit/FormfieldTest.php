@@ -298,3 +298,38 @@ test('has many field fluent relation and model methods', function () {
     expect($field->relation)->toBe('comments')
         ->and($field->model)->toBe('App\Models\Comment');
 });
+
+test('field keeps a locale map label as stored', function () {
+    $field = (new TextField('title', ['en' => 'Title', 'tr' => 'Başlık']))->locales(['en', 'tr']);
+
+    expect($field->label)->toBe(['en' => 'Title', 'tr' => 'Başlık']);
+});
+
+test('field resolves a locale map label for the active locale', function () {
+    $field = (new TextField('title', ['en' => 'Title', 'tr' => 'Başlık']))->locales(['en', 'tr']);
+
+    expect($field->resolvedLabel('tr'))->toBe('Başlık')
+        ->and($field->resolvedLabel('en'))->toBe('Title');
+});
+
+test('field label falls back to a filled locale when the active one is empty', function () {
+    $field = (new TextField('title', ['en' => 'Title', 'tr' => '']))->locales(['en', 'tr']);
+
+    expect($field->resolvedLabel('tr'))->toBe('Title');
+});
+
+test('field leaves a plain string label untouched', function () {
+    expect((new TextField('title', 'Title'))->resolvedLabel('tr'))->toBe('Title');
+});
+
+test('field with no label resolves to its own name', function () {
+    expect((new TextField('title'))->resolvedLabel('tr'))->toBe('title');
+});
+
+test('field view data carries the resolved label rather than the raw map', function () {
+    app()->setLocale('tr');
+
+    $field = (new TextField('title', ['en' => 'Title', 'tr' => 'Başlık']))->locales(['en', 'tr']);
+
+    expect($field->viewData()['label'])->toBe('Başlık');
+});

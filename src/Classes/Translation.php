@@ -66,25 +66,147 @@ class Translation
     }
 
     /**
+     * Resolve a translatable label — a BREAD name, a field label, a menu title.
+     *
+     * Three shapes are accepted, in this order:
+     *
+     *  - a locale-keyed map (or its JSON encoding), resolved like any other
+     *    translatable value: the requested locale, then the first non-empty;
+     *  - a translation key, resolved through __() when the key exists;
+     *  - anything else, returned as plain text.
+     *
+     * Plain strings stay plain strings, so a definition that predates
+     * translatable labels keeps rendering exactly as before.
+     */
+    public static function label(mixed $value, ?array $locales = null, ?string $locale = null): string
+    {
+        if (is_array($value)) {
+            return self::value($value, $locales, $locale);
+        }
+
+        if (! is_string($value)) {
+            return is_scalar($value) ? (string) $value : '';
+        }
+
+        // Only a locale map is translated; "Hello" must not be treated as one.
+        $decoded = json_decode($value, true);
+
+        if (is_array($decoded)) {
+            return self::value($decoded, $locales, $locale);
+        }
+
+        return self::key($value);
+    }
+
+    /**
+     * Resolve a translation key, leaving text that is not a key untouched.
+     *
+     * __() returns its own argument when the key is missing, so a literal
+     * label comes back verbatim and needs no special case here.
+     */
+    public static function key(string $value, array $replace = []): string
+    {
+        return (string) __($value, $replace);
+    }
+
+    /**
+     * Whether a translatable value actually carries per-locale translations.
+     * A label stored as a plain string is not translatable and must not be
+     * rendered as a single-locale tab.
+     */
+    public static function isTranslatable(mixed $value): bool
+    {
+        if (is_array($value)) {
+            return $value !== [];
+        }
+
+        if (is_string($value)) {
+            return is_array(json_decode($value, true));
+        }
+
+        return false;
+    }
+
+    /**
      * Resolve the display value for the current (or given) locale, falling
      * back to the first non-empty translation when that locale is missing
      * or empty.
      */
     public static function value(mixed $value, ?array $locales = null, ?string $locale = null): string
     {
-        $normalized = self::normalize($value, $locales);
         $locale = $locale ?: app()->getLocale();
+        $normalized = self::normalize($value, self::localesFor($locales, $locale));
 
-        if (isset($normalized[$locale]) && $normalized[$locale] !== '') {
+        if (($normalized[$locale] ?? '') !== '') {
             return (string) $normalized[$locale];
         }
 
-        foreach ($normalized as $translation) {
+        $filled = self::firstFilled($normalized);
+
+        return $filled === null ? '' : $filled[1];
+    }
+
+    /**
+     * The locale a resolved value was actually taken from, when the requested
+     * locale had nothing of its own: null when it did, or when there is nothing
+     * to fall back to.
+     *
+     * Lets a screen say where a borrowed translation came from instead of
+     * showing it as if it were written in the current language.
+     */
+    public static function sourceLocale(mixed $value, ?array $locales = null, ?string $locale = null): ?string
+    {
+        $locale = $locale ?: app()->getLocale();
+        $normalized = self::normalize($value, self::localesFor($locales, $locale));
+
+        if (($normalized[$locale] ?? '') !== '') {
+            return null;
+        }
+
+        $filled = self::firstFilled($normalized);
+
+        return $filled === null ? null : $filled[0];
+    }
+
+    /**
+     * The locales to normalize a lookup against: the configured ones, plus the
+     * requested locale itself.
+     *
+     * normalize() projects a value onto the locales it is given and drops the
+     * rest, so with an empty tardis.locales the only locale kept is the app
+     * one. A caller that asks for a different locale — a menu title rendered
+     * for a language other than the current one — would then be answered with
+     * another language's text, and sourceLocale() would name that language as
+     * the source. Appending the requested locale keeps the answer in the
+     * language that was asked for.
+     *
+     * @return array<int, string>
+     */
+    protected static function localesFor(?array $fieldLocales, string $locale): array
+    {
+        $locales = self::locales($fieldLocales);
+
+        if (! in_array($locale, $locales, true)) {
+            $locales[] = $locale;
+        }
+
+        return $locales;
+    }
+
+    /**
+     * The first non-empty translation in a normalized map, as [locale, text].
+     *
+     * @param  array<string, string>  $normalized
+     * @return array{0: string, 1: string}|null
+     */
+    protected static function firstFilled(array $normalized): ?array
+    {
+        foreach ($normalized as $locale => $translation) {
             if ($translation !== '') {
-                return (string) $translation;
+                return [(string) $locale, (string) $translation];
             }
         }
 
-        return '';
+        return null;
     }
 }

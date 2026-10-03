@@ -10,7 +10,14 @@ abstract class Formfield
 {
     public string $name;
 
-    public string $label;
+    /**
+     * A plain string, or a locale-keyed map (['en' => 'Title', 'tr' => 'Başlık'])
+     * that resolves per locale. Kept raw so a definition survives a save without
+     * losing its other languages; resolvedLabel() renders it.
+     *
+     * @var string|array<string, string>
+     */
+    public string|array $label;
 
     public mixed $default = null;
 
@@ -37,7 +44,7 @@ abstract class Formfield
     /** @var array<int|string, string> definition key => property */
     protected array $configurable = [];
 
-    public function __construct(string $name, ?string $label = null)
+    public function __construct(string $name, string|array|null $label = null)
     {
         $this->name = $name;
         $this->label = $label ?? $name;
@@ -118,6 +125,15 @@ abstract class Formfield
         $this->locales = array_values(array_filter(array_unique(array_map('strval', $locales))));
 
         return $this;
+    }
+
+    /**
+     * The label as shown for a locale: a locale map resolved through the
+     * field's locales, a translation key translated, a plain string unchanged.
+     */
+    public function resolvedLabel(?string $locale = null): string
+    {
+        return Translation::label($this->label, $this->locales ?: null, $locale);
     }
 
     /**
@@ -213,7 +229,7 @@ abstract class Formfield
         return array_merge([
             'field' => $this,
             'name' => $this->name,
-            'label' => $this->label,
+            'label' => $this->resolvedLabel(),
             'model' => $model,
             'id' => 'field_'.str_replace('.', '_', $model),
             'helpText' => $this->helpText,
