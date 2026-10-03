@@ -105,6 +105,13 @@
                 this.setMode(this.applied === this.dark || this.mode === 'dark' ? 'light' : 'dark');
             },
 
+            // light -> dark -> system -> light
+            cycle: function () {
+                var order = ['light', 'dark', 'system'];
+
+                this.setMode(order[(order.indexOf(this.mode) + 1) % order.length]);
+            },
+
             // Apply at once, then tell the server (debounced). A failed save is
             // not worth interrupting the user for: the choice still holds for this page.
             changed: function (patch) {

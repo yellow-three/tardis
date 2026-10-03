@@ -9,6 +9,7 @@ use Tardis\Contracts\Plugins\Features\Provider\JS;
 use Tardis\Contracts\Plugins\ThemePlugin;
 use Tardis\Manager\AssetManager;
 use Tardis\Manager\PluginManager;
+use Tardis\Manager\SettingsManager;
 
 test('styles returns HTML with link tag', function () {
     $hotPath = AssetManager::packageHotPath();
@@ -312,4 +313,14 @@ test('configured assets that are not http or root-relative urls are dropped', fu
 
     expect($manager->styles())->not->toContain('javascript:')->not->toContain('data:text')->not->toContain('evil.test')->not->toContain('<script>x')
         ->and($manager->scripts())->not->toContain('javascript:');
+});
+
+test('custom CSS from the appearance settings is injected and cannot close its style tag', function () {
+    $settings = app(SettingsManager::class);
+    $settings->loadPreset(__DIR__.'/../../resources/presets/settings.json');
+    $settings->set('appearance.custom_css', 'body{color:red}</style><script>alert(1)</script>', false);
+
+    $html = app(AssetManager::class)->styles();
+
+    expect($html)->toContain('id="tardis-custom-css"')->toContain('body{color:red}')->not->toContain('</style><script>');
 });

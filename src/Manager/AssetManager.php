@@ -104,6 +104,14 @@ class AssetManager
             $html .= '<style id="tardis-themes">'.$themeCss.'</style>'.PHP_EOL;
         }
 
+        // 1a. Custom CSS from Settings → appearance. Only the closing tag could
+        // break out of the <style> element, so that is all that is removed.
+        $custom = app(SettingsManager::class)->get('appearance.custom_css');
+
+        if (is_string($custom) && trim($custom) !== '') {
+            $html .= '<style id="tardis-custom-css">'.preg_replace('#</style#i', '', $custom).'</style>'.PHP_EOL;
+        }
+
         // 1b. Assets registered through Tardis::addCss()
         foreach ($this->added('css') as $asset) {
             $html .= $this->render($asset);

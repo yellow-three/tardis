@@ -33,12 +33,15 @@
             <x-tardis::icon name="ui.bell" class="w-5 h-5" />
         </button>
 
-        <button class="btn btn-ghost btn-circle btn-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary" @click="$store.theme.toggle()" aria-label="{{ __('tardis::shell.toggle_theme') }}">
-            <template x-if="$store.theme.applied === $store.theme.dark">
+        <button class="btn btn-ghost btn-circle btn-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary" @click="$store.theme.cycle()" aria-label="{{ __('tardis::shell.toggle_theme') }}" :title="$store.theme.mode">
+            <template x-if="$store.theme.mode === 'light'">
                 <x-tardis::icon name="ui.sun" class="w-5 h-5" />
             </template>
-            <template x-if="$store.theme.applied !== $store.theme.dark">
+            <template x-if="$store.theme.mode === 'dark'">
                 <x-tardis::icon name="ui.moon" class="w-5 h-5" />
+            </template>
+            <template x-if="$store.theme.mode === 'system'">
+                <x-tardis::icon name="computer-desktop" class="w-5 h-5" />
             </template>
         </button>
 
