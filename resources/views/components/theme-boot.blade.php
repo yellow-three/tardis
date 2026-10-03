@@ -1,42 +1,33 @@
 {{--
-    Applies the visitor's stored theme before the first paint.
+    Hands the resolved theme to the page.
 
-    Alpine boots only after the stylesheet loads, so without this the static
-    data-theme="dark" on <html> paints first and light-theme users see a dark
-    flash (FOUC) on every full page load. This resolves from localStorage plus
-    the themes manifest and writes data-theme synchronously, while the parser is
-    still inside <head>.
-
-    Shared by the admin and auth layouts deliberately. The head script and the
-    Alpine store must resolve the SAME theme, so the resolution logic has to have
-    exactly one home — duplicating it per layout is how the two drift apart, and a
-    drifting store overwrites this on boot and brings the flash back.
-
-    The localStorage key names must stay byte-identical to the Alpine store in the
-    admin layout. That pairing is pinned by ThemeFoucGuardTest.
+    The server already wrote data-theme on <html> from the user's saved choice (or
+    the administrator's default), so the first paint is correct without any script.
+    This component adds the data the core script needs (themes, choice, where to
+    save it) and, only for "system" mode, a blocking one-liner that picks the light
+    or dark theme from the operating system before paint, because that is the one
+    thing the server cannot know.
 --}}
+@php
+    $tardisChoice = app(\Tardis\Theme\ThemePreference::class)->resolve(auth()->id());
+    $tardisBoot = [
+        'version' => \Tardis\Tardis::version(),
+        'theme' => $tardisChoice + [
+            'themes' => app(\Tardis\Manager\ThemeManager::class)->all()->map->toArray()->values()->all(),
+            'saveUrl' => route('tardis.preferences.theme'),
+            'csrf' => csrf_token(),
+            'persist' => auth()->check(),
+        ],
+    ];
+@endphp
 <script>
-    window.__TARDIS_THEMES__ = @json(\Tardis\Manager\AssetManager::availableThemes());
+    window.__TARDIS__ = @json($tardisBoot);
 </script>
-<script>
-    (function () {
-        var themes = window.__TARDIS_THEMES__ || [];
-        var pick = function (scheme) {
-            var match = themes.find(function (t) { return t.colorScheme === scheme; });
-            return match ? match.name : null;
-        };
-
-        var mode  = localStorage.getItem('tardis-theme-mode')  || 'dark';
-        var light = localStorage.getItem('tardis-theme-light') || pick('light') || 'winter';
-        var dark  = localStorage.getItem('tardis-theme-dark')  || pick('dark')  || 'dark';
-
-        var applied;
-        if (mode === 'system') {
-            applied = window.matchMedia('(prefers-color-scheme: dark)').matches ? dark : light;
-        } else {
-            applied = mode === 'dark' ? dark : light;
-        }
-
-        document.documentElement.setAttribute('data-theme', applied);
-    })();
-</script>
+@if ($tardisChoice['mode'] === 'system')
+    <script>
+        (function () {
+            var t = window.__TARDIS__.theme;
+            document.documentElement.setAttribute('data-theme', window.matchMedia('(prefers-color-scheme: dark)').matches ? t.dark : t.light);
+        })();
+    </script>
+@endif

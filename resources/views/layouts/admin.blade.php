@@ -1,5 +1,6 @@
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" x-data x-init="$store.theme.init()" data-theme="dark" :data-theme="$store.theme.applied">
+@php($tardisTheme = app(\Tardis\Theme\ThemePreference::class)->resolve(auth()->id()))
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" data-theme="{{ $tardisTheme['mode'] === 'light' ? $tardisTheme['light'] : $tardisTheme['dark'] }}">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -34,56 +35,6 @@
     </div>
 
     @tardisScripts
-
-    <script>
-        document.addEventListener('alpine:init', () => {
-            Alpine.store('theme', {
-                mode: localStorage.getItem('tardis-theme-mode') || 'dark',
-                light: localStorage.getItem('tardis-theme-light') || (window.__TARDIS_THEMES__?.find(t => t.colorScheme === 'light')?.name || 'winter'),
-                dark: localStorage.getItem('tardis-theme-dark') || (window.__TARDIS_THEMES__?.find(t => t.colorScheme === 'dark')?.name || 'dark'),
-
-                get applied() {
-                    if (this.mode === 'system') {
-                        return window.matchMedia('(prefers-color-scheme: dark)').matches ? this.dark : this.light
-                    }
-
-                    return this.mode === 'dark' ? this.dark : this.light
-                },
-
-                get availableThemes() {
-                    return window.__TARDIS_THEMES__ || [];
-                },
-
-                get lightThemes() {
-                    return this.availableThemes.filter(t => t.colorScheme === 'light');
-                },
-
-                get darkThemes() {
-                    return this.availableThemes.filter(t => t.colorScheme === 'dark');
-                },
-
-                init() {
-                    this.apply()
-
-                    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
-                        if (this.mode === 'system') this.apply()
-                    })
-                },
-
-                apply() {
-                    document.documentElement.setAttribute('data-theme', this.applied)
-                    localStorage.setItem('tardis-theme-mode', this.mode)
-                    localStorage.setItem('tardis-theme-light', this.light)
-                    localStorage.setItem('tardis-theme-dark', this.dark)
-                },
-
-                toggle() {
-                    this.mode = this.mode === 'dark' ? 'light' : 'dark'
-                    this.apply()
-                },
-            })
-        })
-    </script>
 
     @livewireScripts
 </body>

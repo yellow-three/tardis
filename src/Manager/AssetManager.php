@@ -44,56 +44,6 @@ class AssetManager
     }
 
     /**
-     * Path to the themes manifest in the package's own public/ directory.
-     * In dev mode the Vite plugin writes the manifest here AND serves it via
-     * middleware, so PHP can always read it from disk without needing to make
-     * an HTTP request to the Vite dev server (which may not be reachable from
-     * within Docker / Lerd).
-     */
-    public static function packageManifestPath(): string
-    {
-        return dirname(__DIR__, 2).'/public/tardis-assets/themes-manifest.json';
-    }
-
-    /**
-     * Themes a visitor may pick, as declared by the themes manifest.
-     *
-     * Resolved from disk in production, and — when the Vite dev server is
-     * running — from the server first with the package copy as fallback, since
-     * the dev server may be unreachable from inside Docker / Lerd.
-     *
-     * Returns an empty list when no manifest is readable so callers degrade to
-     * the built-in theme-name defaults rather than failing.
-     *
-     * @return list<array<string, mixed>>
-     */
-    public static function availableThemes(): array
-    {
-        if (file_exists(self::packageHotPath())) {
-            $devUrl = rtrim((string) file_get_contents(self::packageHotPath()), '/');
-            $json = @file_get_contents($devUrl.'/tardis-assets/themes-manifest.json');
-
-            if ($json === false) {
-                $json = @file_get_contents(self::packageManifestPath());
-            }
-        } else {
-            $json = @file_get_contents(public_path('tardis-assets/themes-manifest.json'));
-        }
-
-        if ($json === false) {
-            return [];
-        }
-
-        $decoded = json_decode($json, true);
-
-        if (! is_array($decoded) || ! is_array($decoded['themes'] ?? null)) {
-            return [];
-        }
-
-        return array_values(array_filter($decoded['themes'], 'is_array'));
-    }
-
-    /**
      * Short content hash appended to the published CSS URL as `?v=` so that
      * republishing the bundle busts browser and CDN caches. Vite emits a fixed
      * filename (assets/[name][extname]), so the URL is otherwise identical
@@ -106,7 +56,12 @@ class AssetManager
      */
     protected function publishedCssVersion(): ?string
     {
-        $path = public_path('vendor/tardis/assets/app.css');
+        return $this->publishedVersion('app.css');
+    }
+
+    protected function publishedVersion(string $file): ?string
+    {
+        $path = public_path('vendor/tardis/assets/'.$file);
 
         if (! is_file($path)) {
             return null;
@@ -142,7 +97,14 @@ class AssetManager
         }
         $html .= '<link rel="stylesheet" href="'.$cssUrl.'">'.PHP_EOL;
 
-        // 1a. Assets registered through Tardis::addCss()
+        // 1a. Runtime themes (the built-in ones are in the stylesheet)
+        $themeCss = app(ThemeManager::class)->css();
+
+        if ($themeCss !== '') {
+            $html .= '<style id="tardis-themes">'.$themeCss.'</style>'.PHP_EOL;
+        }
+
+        // 1b. Assets registered through Tardis::addCss()
         foreach ($this->added('css') as $asset) {
             $html .= $this->render($asset);
         }
@@ -177,6 +139,11 @@ class AssetManager
         $this->scriptsRendered = true;
 
         $html = '<!-- TARDIS Scripts -->'.PHP_EOL;
+
+        // 0. The core script. It must run before Livewire starts Alpine, so it is a
+        // plain (non-deferred) script placed ahead of @livewireScripts; it also copes
+        // with Alpine having started already.
+        $html .= $this->coreScript();
 
         // 0a. Assets registered through Tardis::addJs()
         foreach ($this->added('js') as $asset) {
@@ -236,6 +203,18 @@ class AssetManager
             array_map('strval', (array) config('tardis.assets.'.$type, [])),
             fn (string $url) => preg_match('#^(https?://|/(?!/))#i', $url) === 1
         ));
+    }
+
+    private function coreScript(): string
+    {
+        if ($this->isViteDevMode()) {
+            return '<script type="module" src="'.e($this->viteDevUrl().'/resources/js/app.js').'"></script>'.PHP_EOL;
+        }
+
+        $url = asset('vendor/tardis/assets/app.js');
+        $version = $this->publishedVersion('app.js');
+
+        return '<script src="'.e($url.($version !== null ? '?v='.$version : '')).'"></script>'.PHP_EOL;
     }
 
     /**

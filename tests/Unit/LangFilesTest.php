@@ -50,7 +50,12 @@ test('every translation key the code asks for exists in English', function () {
         preg_match_all("/(?:__|trans|trans_choice)\\(\\s*'tardis::([a-z0-9_.\\-]+)'/i", file_get_contents($file), $matches);
 
         foreach ($matches[1] as $key) {
-            if (! isset($english[$key])) {
+            // 'tardis::group.prefix.' . $variable is a family of keys: some key must live under it.
+            $exists = str_ends_with($key, '.')
+                ? collect(array_keys($english))->contains(fn (string $known) => str_starts_with($known, $key))
+                : isset($english[$key]);
+
+            if (! $exists) {
                 $missing[] = $key.' ('.basename($file).')';
             }
         }
