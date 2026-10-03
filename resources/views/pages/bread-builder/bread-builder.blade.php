@@ -1,6 +1,6 @@
 @php
     $fieldGroups = [
-        __('tardis::builder.groups.text') => ['text', 'textarea', 'markdown', 'code_editor', 'slug', 'password'],
+        __('tardis::builder.groups.text') => ['text', 'textarea', 'markdown', 'code_editor', 'slug', 'password', 'color', 'hidden'],
         __('tardis::builder.groups.numbers') => ['number', 'slider'],
         __('tardis::builder.groups.choice') => ['select', 'radio', 'checkbox', 'toggle', 'tags'],
         __('tardis::builder.groups.date_time') => ['date', 'datetime', 'time'],

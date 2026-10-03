@@ -6,10 +6,12 @@ use Tardis\Formfields\Formfield;
 use Tardis\Formfields\Types\BelongsToManyField;
 use Tardis\Formfields\Types\CheckboxField;
 use Tardis\Formfields\Types\CodeEditorField;
+use Tardis\Formfields\Types\ColorField;
 use Tardis\Formfields\Types\DateField;
 use Tardis\Formfields\Types\DateTimeField;
 use Tardis\Formfields\Types\FileField;
 use Tardis\Formfields\Types\HasManyField;
+use Tardis\Formfields\Types\HiddenField;
 use Tardis\Formfields\Types\MarkdownField;
 use Tardis\Formfields\Types\NumberField;
 use Tardis\Formfields\Types\PasswordField;
@@ -49,6 +51,8 @@ class FormfieldManager
             'tags' => TagsField::class,
             'markdown' => MarkdownField::class,
             'code_editor' => CodeEditorField::class,
+            'color' => ColorField::class,
+            'hidden' => HiddenField::class,
             'belongs_to_many' => BelongsToManyField::class,
             'has_many' => HasManyField::class,
         ];

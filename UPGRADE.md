@@ -69,3 +69,11 @@ Generated plugins from 1.x did not load: they imported `Tardis\Core\…` classes
 | `AssetManager::availableThemes()` | `ThemeManager::all()` / `find()` / `names()` |
 | inline Alpine theme store in the admin layout | `window.Tardis.theme` from the core script; run `npm run build` to refresh `dist/` |
 | hard-coded English strings | `tardis::` translations. Publish `tardis-lang` to override; `#[Title]` attributes now hold translation keys |
+
+## Formfield views
+
+| Was | Now |
+|---|---|
+| `Formfield::viewData()` overridden by subclasses with `array_merge(parent::viewData(), …)` | Override `extraViewData()`; `viewData(array $context = [])` adds `model` (the Livewire path, `form.<name>` by default), `id` and `extraAttributes` (was `attributes`) |
+| field views bound `wire:model="<name>"` and drew their own label | A field view renders **only the control** bound to `$model`; label, help text, error and per-locale repetition come from `x-tardis::form-field`. `BelongsToManyField`/`HasManyField` expose the related class as `relatedModel` (was `model`) |
+| options of radio/checkbox and slider limits ignored by BREAD pages | `Formfield::$configurable` maps definition keys onto properties |

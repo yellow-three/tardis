@@ -11,6 +11,9 @@
     $errorKey = 'form.'.$field->name;
 @endphp
 
+@if ($field->type() === 'hidden')
+    @include($field->render(), $field->viewData($context))
+@else
 <div class="flex flex-col gap-2 w-full {{ $field->wrapperClass }}">
     <label class="label" for="field_form_{{ $field->name }}">
         <span class="text-base-content font-medium">
@@ -40,3 +43,4 @@
         <span class="text-error text-sm">{{ $message }}</span>
     @enderror
 </div>
+@endif

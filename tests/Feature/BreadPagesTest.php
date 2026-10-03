@@ -343,6 +343,8 @@ dataset('bread field type controls', [
     'tags' => ['tags', '/<input type="text"[^>]*wire:model="form\.f_field"/'],
     'markdown' => ['markdown', '/<textarea[^>]*wire:model="form\.f_field"/'],
     'code_editor' => ['code_editor', '/<textarea[^>]*wire:model="form\.f_field"/'],
+    'color' => ['color', '/<input type="color"[^>]*wire:model\.live="form\.f_field"/'],
+    'hidden' => ['hidden', '/<input type="hidden"[^>]*wire:model="form\.f_field"/'],
     'belongs_to_many' => ['belongs_to_many', '/type="search"[^>]*relationSearch\.f_field/'],
     'has_many' => ['has_many', '/Related items will be managed here\./'],
 ]);
