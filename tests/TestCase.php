@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Tests;
 
+use BladeUI\Heroicons\BladeHeroiconsServiceProvider;
+use BladeUI\Icons\BladeIconsServiceProvider;
 use Illuminate\Cache\CacheServiceProvider;
 use Livewire\LivewireServiceProvider;
 use Orchestra\Testbench\TestCase as OrchestraTestCase;
@@ -15,6 +17,8 @@ abstract class TestCase extends OrchestraTestCase
     {
         return [
             CacheServiceProvider::class,
+            BladeIconsServiceProvider::class,
+            BladeHeroiconsServiceProvider::class,
             LivewireServiceProvider::class,
             TardisServiceProvider::class,
         ];

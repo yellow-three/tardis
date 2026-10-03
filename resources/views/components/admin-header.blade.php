@@ -2,6 +2,7 @@
 
 @php
     $menuManager = app(\Tardis\Manager\MenuManager::class);
+    $menuManager->collectFromPlugins(app(\Tardis\Manager\PluginManager::class));
     $userMenuItems = $menuManager->userMenu();
     $userName = auth()->user()?->name ?: auth()->user()?->email ?: 'Admin';
     $userInitial = mb_strtoupper(mb_substr($userName, 0, 1));
@@ -75,9 +76,8 @@
                     </li>
                 @empty
                     <li class="menu-title truncate">{{ $userName }}</li>
-                    <li><a href="{{ route('profile.edit') }}">Settings</a></li>
                     <li>
-                        <form method="POST" action="{{ route('logout') }}">
+                        <form method="POST" action="{{ route('tardis.logout') }}">
                             @csrf
                             <button type="submit" class="w-full text-left">Logout</button>
                         </form>

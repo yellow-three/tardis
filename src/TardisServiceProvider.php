@@ -16,9 +16,12 @@ use Tardis\Commands\TardisMakeModelCommand;
 use Tardis\Commands\TardisMakePluginCommand;
 use Tardis\Http\Middleware\AdminMiddleware;
 use Tardis\Manager\AssetManager;
+use Tardis\Manager\FormfieldManager;
+use Tardis\Manager\MenuManager;
 use Tardis\Manager\PluginManager;
 use Tardis\Manager\SettingsManager;
 use Tardis\Manager\ThemeManager;
+use Tardis\Manager\WidgetManager;
 use Tardis\Plugins\AuthenticationPlugin;
 
 class TardisServiceProvider extends ServiceProvider
@@ -41,6 +44,15 @@ class TardisServiceProvider extends ServiceProvider
         );
 
         $this->app->singleton(AssetManager::class);
+
+        // One instance per manager: pages resolve them with app(Class::class)
+        // while host code goes through the Tardis facade, and anything
+        // registered on one copy (a menu item, a field type, a widget) would be
+        // invisible to the other.
+        $this->app->singleton(MenuManager::class);
+        $this->app->singleton(WidgetManager::class);
+        $this->app->singleton(SettingsManager::class);
+        $this->app->singleton(FormfieldManager::class);
 
         // Plugin registrations must outlive the registration call: the manager
         // is resolved again by every consumer (AdminMiddleware, MenuItem,

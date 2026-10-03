@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tardis\Manager;
 
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Route;
 use Tardis\Bread\BreadDefinition;
 use Tardis\Bread\BreadManager;
 use Tardis\Classes\MenuItem;
@@ -107,10 +108,17 @@ class MenuManager
         $this->addItems(...$this->breadMenuItems());
 
         // Register default user menu items
+        // The profile screen belongs to the host application (Breeze, Jetstream,
+        // Fortify...), so the link is only offered when that route exists.
+        if (Route::has('profile.edit')) {
+            $this->addItems(
+                (new UserMenuItem('Profile', 'heroicon-o-user'))
+                    ->route('profile.edit')
+                    ->order(0),
+            );
+        }
+
         $this->addItems(
-            (new UserMenuItem('Profile', 'heroicon-o-user'))
-                ->route('profile.edit')
-                ->order(0),
             (new UserMenuItem('Logout', 'heroicon-o-arrow-left-on-rectangle'))
                 ->route('tardis.logout')
                 ->method('POST')
