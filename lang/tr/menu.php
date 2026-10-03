@@ -21,4 +21,7 @@ return [
     'logout' => 'Çıkış',
     'menu_builder' => 'Menü oluşturucu',
     'theme_editor' => 'Temalar',
+    'system' => 'Sistem',
+    'system_logs' => 'Loglar',
+    'system_commands' => 'Komutlar',
 ];

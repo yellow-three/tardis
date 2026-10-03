@@ -36,6 +36,12 @@ final class Abilities
 
     public const APPEARANCE = 'manage appearance';
 
+    public const SYSTEM = 'view system';
+
+    public const LOGS = 'view logs';
+
+    public const COMMANDS = 'run commands';
+
     public const MEDIA_BROWSE = 'browse media';
 
     public const MEDIA_UPLOAD = 'upload media';
@@ -64,6 +70,9 @@ final class Abilities
             self::MENUS,
             self::DASHBOARD,
             self::APPEARANCE,
+            self::SYSTEM,
+            self::LOGS,
+            self::COMMANDS,
         ];
     }
 

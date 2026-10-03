@@ -87,6 +87,9 @@ test('each fixed screen refuses a user who lacks its ability', function (string 
     'permissions' => ['tardis::pages.permissions', [], Abilities::ROLES],
     'activity log' => ['tardis::pages.activity-log', [], Abilities::ACTIVITY],
     'media' => ['tardis::pages.media-browser', [], Abilities::MEDIA_BROWSE],
+    'system' => ['tardis::pages.system', [], Abilities::SYSTEM],
+    'system logs' => ['tardis::pages.system.logs', [], Abilities::LOGS],
+    'system commands' => ['tardis::pages.system.commands', [], Abilities::COMMANDS],
 ]);
 
 test('each fixed screen opens for a user who holds its ability', function (string $page, array $params, string $ability) {
@@ -108,6 +111,9 @@ test('each fixed screen opens for a user who holds its ability', function (strin
     'permissions' => ['tardis::pages.permissions', [], Abilities::ROLES],
     'activity log' => ['tardis::pages.activity-log', [], Abilities::ACTIVITY],
     'media' => ['tardis::pages.media-browser', [], Abilities::MEDIA_BROWSE],
+    'system' => ['tardis::pages.system', [], Abilities::SYSTEM],
+    'system logs' => ['tardis::pages.system.logs', [], Abilities::LOGS],
+    'system commands' => ['tardis::pages.system.commands', [], Abilities::COMMANDS],
 ]);
 
 test('losing the ability after the page opened blocks the next action', function () {
@@ -121,6 +127,51 @@ test('losing the ability after the page opened blocks the next action', function
     // guard has to run on every update, not only on mount.
     $component->call('save')->assertForbidden();
 });
+
+test('losing a system ability after the page opened blocks the next action', function (string $page, array $abilities, string $action) {
+    gateAllows($abilities);
+
+    $component = Livewire::test($page)->assertOk();
+
+    ScreenGatePlugin::$allowed = [];
+
+    $component->call($action)->assertForbidden();
+})->with([
+    'diagnostics' => ['tardis::pages.system', [Abilities::SYSTEM], '$refresh'],
+    'log viewer' => ['tardis::pages.system.logs', [Abilities::LOGS], 'refresh'],
+    'command runner' => ['tardis::pages.system.commands', [Abilities::COMMANDS], 'run'],
+]);
+
+test('each system screen reaches the sidebar on its own ability', function (array $abilities) {
+    // The menu is cached, so each case needs a rebuilt instance to be re-filtered.
+    app()->forgetInstance(MenuManager::class);
+
+    gateAllows([Abilities::ACCESS, ...$abilities]);
+
+    $html = $this->get('/admin/dashboard')->assertOk()->getContent();
+
+    // Siblings rather than a group: a screen appears exactly when its own
+    // ability is held, and a sibling's ability must never strand it.
+    $screens = [
+        'tardis.system.index' => Abilities::SYSTEM,
+        'tardis.system.logs' => Abilities::LOGS,
+        'tardis.system.commands' => Abilities::COMMANDS,
+    ];
+
+    foreach ($screens as $routeName => $ability) {
+        $link = 'href="'.route($routeName).'"';
+
+        in_array($ability, $abilities, true)
+            ? expect($html)->toContain($link)
+            : expect($html)->not->toContain($link);
+    }
+})->with([
+    'nothing granted' => [[]],
+    'diagnostics only' => [[Abilities::SYSTEM]],
+    'log viewer only' => [[Abilities::LOGS]],
+    'command runner only' => [[Abilities::COMMANDS]],
+    'all three' => [[Abilities::SYSTEM, Abilities::LOGS, Abilities::COMMANDS]],
+]);
 
 test('media write actions need their own ability on top of browsing', function () {
     gateAllows([Abilities::MEDIA_BROWSE]);

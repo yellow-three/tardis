@@ -98,6 +98,26 @@ class MenuManager
                 ->section(__('tardis::menu.sections.management'))
                 ->activeMode('prefix')
                 ->order(45),
+            (new MenuItem(__('tardis::menu.system'), 'heroicon-o-wrench-screwdriver'))
+                ->route('tardis.system.index')
+                ->permission(Abilities::SYSTEM)
+                ->section(__('tardis::menu.sections.management'))
+                ->order(47),
+            // Siblings rather than children of the entry above: a parent with
+            // visible children renders as a toggle without an href, which
+            // strands the diagnostics link as soon as either sub-screen is
+            // allowed. Siblings also let a user who holds only logs or only
+            // commands reach the one screen they can actually open.
+            (new MenuItem(__('tardis::menu.system_logs'), 'heroicon-o-document-text'))
+                ->route('tardis.system.logs')
+                ->permission(Abilities::LOGS)
+                ->section(__('tardis::menu.sections.management'))
+                ->order(48),
+            (new MenuItem(__('tardis::menu.system_commands'), 'heroicon-o-command-line'))
+                ->route('tardis.system.commands')
+                ->permission(Abilities::COMMANDS)
+                ->section(__('tardis::menu.sections.management'))
+                ->order(49),
             (new MenuItem(__('tardis::menu.bread'), 'heroicon-o-table-cells'))
                 ->route('tardis.bread.manage')
                 ->permission(Abilities::BREAD)

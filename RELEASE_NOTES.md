@@ -106,3 +106,12 @@ composer lint   # clean
 - **Roles**: the permission picker shows groups and BREAD resources with toggle-all.
 - **Theme editor** (`manage appearance`): create, edit and delete custom themes; built-ins can be duplicated.
 - New abilities: `manage dashboard`, `manage appearance` (`manage menus` now has a screen). Run the permission seeder to create them.
+
+## 2.0 — install, diagnostics and system tools (Faz 8)
+
+- **`tardis:install`** — idempotent installer: migrate, seed permissions, publish assets, optionally create the first admin (`--email`, `--force`). Re-running it is safe; without `--force` the publish step leaves existing files alone.
+- **`tardis:doctor`** — install health report (PHP/Laravel versions, storage, `tardis_*` tables, published assets, route cache, authorization plugin, theme manifest, plugins, BREAD definitions). Prints a table, `--json` for scripts, and exits non-zero on failure so it can gate a deploy.
+- **Three system screens**, each behind its own ability rather than one collapsible group: diagnostics (`view system`), a read-only log viewer (`view logs`) and an allowlisted command runner (`run commands`). Every screen re-checks its ability in `boot()`, so a revoked permission takes effect on the next request instead of the next mount.
+- **Log viewer** reads only files under `tardis.system.logs.path` whose name matches `filename_pattern`, capped at `max_bytes`, and seeks to the end of the file rather than loading it.
+- **Command runner** is disabled by default and stays closed unless the environment is in `environments` (default `local`) *and* the command is in `allowlist` with its permitted arguments. The allowlist is re-checked at submit time rather than trusted from the form; there is no arbitrary command execution. Every attempt, refused ones included, is written to the activity log.
+- New abilities: `view system`, `view logs`, `run commands`. Run the permission seeder to create them.
