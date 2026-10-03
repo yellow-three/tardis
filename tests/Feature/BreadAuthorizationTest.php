@@ -7,6 +7,7 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
+use Livewire\Features\SupportLockedProperties\CannotUpdateLockedPropertyException;
 use Livewire\Livewire;
 use Tardis\Auth\TardisAuthorizationPlugin;
 use Tardis\Bread\Sources\JsonBreadSource;
@@ -420,4 +421,64 @@ test('the authorization plugin grants every ability to a super admin role', func
 
     expect(app(TardisAuthorizationPlugin::class)->can('browse bread-page-authz'))->toBeTrue()
         ->and(app(TardisAuthorizationPlugin::class)->can('delete bread-page-authz'))->toBeTrue();
+});
+
+test('the client cannot rewrite the BREAD definition a page was authorised against', function (string $page, array $params) {
+    authzSchema();
+    bindAuthzBread();
+    allowAbilities(['browse bread-page-authz', 'read bread-page-authz', 'edit bread-page-authz', 'add bread-page-authz', 'delete bread-page-authz']);
+
+    $post = BreadAuthzTestModel::create(['title' => 'Mine']);
+    $params = array_map(fn ($value) => $value === ':id' ? $post->id : $value, $params);
+
+    $this->actingAs(authzUser());
+
+    // Livewire public properties are client-writable. A tampered `bread.model`
+    // would point an authorised ability at an unrelated model, and a tampered
+    // `slug` would be checked against the wrong permission.
+    $component = Livewire::test($page, $params);
+
+    foreach (['bread.model', 'slug'] as $property) {
+        expect(fn () => $component->set($property, 'App\\Models\\User'))
+            ->toThrow(CannotUpdateLockedPropertyException::class);
+    }
+})->with([
+    'index' => ['tardis::pages.bread.index', ['slug' => 'bread-page-authz']],
+    'create' => ['tardis::pages.bread.create', ['slug' => 'bread-page-authz']],
+    'read' => ['tardis::pages.bread.read', ['slug' => 'bread-page-authz', 'id' => ':id']],
+    'edit' => ['tardis::pages.bread.edit', ['slug' => 'bread-page-authz', 'id' => ':id']],
+]);
+
+test('the edit page does not let the client swap the record that was authorised', function () {
+    authzSchema();
+    bindAuthzBread();
+    allowAbilities(['edit bread-page-authz']);
+
+    $post = BreadAuthzTestModel::create(['title' => 'Mine']);
+
+    $this->actingAs(authzUser());
+
+    $component = Livewire::test('tardis::pages.bread.edit', ['slug' => 'bread-page-authz', 'id' => $post->id]);
+
+    expect(fn () => $component->set('id', 999))->toThrow(CannotUpdateLockedPropertyException::class);
+});
+
+test('search only lists resources the user may browse', function () {
+    authzSchema();
+    bindAuthzBread();
+    allowAbilities([]);
+
+    BreadAuthzTestModel::create(['title' => 'Confidential report']);
+
+    $this->actingAs(authzUser());
+
+    Livewire::test('tardis::pages.search')
+        ->set('query', 'Confidential')
+        ->assertDontSee('Confidential report');
+
+    allowAbilities(['browse bread-page-authz']);
+
+    Livewire::test('tardis::pages.search')
+        ->set('query', 'Confidential')
+        ->assertSee('Confidential report');
 });

@@ -1,6 +1,7 @@
 <?php
 
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\Locked;
 use Livewire\Attributes\Title;
 use Livewire\Component;
 use Tardis\Auth\BreadAuthorization;
@@ -8,12 +9,16 @@ use Tardis\Bread\BreadManager;
 
 new #[Title('View')] #[Layout('tardis::layouts.admin')] class extends Component
 {
+    #[Locked]
     public string $slug = '';
 
+    #[Locked]
     public int|string $id = 0;
 
+    #[Locked]
     public array $bread = [];
 
+    #[Locked]
     public array $record = [];
 
     public function mount(string $slug, int|string $id): void
