@@ -40,18 +40,18 @@ Son güncelleme: 2026-10-03 (Voyager parity planı eklendi). ID'ler `R` = roadma
 | R15 | P1 | **BREAD açık bulguları (4 madde kaldı).** (Locked property, search yetkisi, slug doğrulama ve validation `|` düzeltmeleri 2026-10-03'te kapandı.) `registerType()` erişilemezliği, ölü `field()` stub, `searchOptions()` filtresiz, fail-open authorization. Kullanılmayan Spatie bağımlılığı kaldırıldı (`bf24401` sonrası) — paket hiçbir yerde Spatie'ye derleme zamanı bağlı değildi, yalnızca `method_exists()` ile duck-typ ediyordu. | ⏳ Açık | — | `docs/notes.md` → B1, B2, B4, B5 |
 | R16 | P2 | **`Alpine.store('theme')` → `Alpine.data('theme')` + `$persist` geçişi.** R8 ile birlikte planlanmıştı ama FOUC'yu etkilemiyor ve planın gövdesi `availableThemes` / `lightThemes` / `darkThemes` getter'larını düşürüyor — `pages/settings/settings.blade.php` bunları `$store.theme.availableThemes` üzerinden okuyor, gövde aynen uygulansaydı settings sayfası kırılırdı. Ayrıca plan store'un `resources/js/app.js` içinde olduğunu varsayıyor; oysa layout'a inline gömülü. Gerçek gerekçe: listener cleanup (`wire:navigate` sırasında birikme). | ⏸️ Ertelenmiş | — | `.omo/plans/theme-fix-wire-navigate.md` (Todo 2-7) |
 | R18 | P2 | **Auth/policy/config tutarsızlıkları.** Login `AuthenticationPlugin`'i atlıyor (B12), `BasePolicy` izin adı slug'dan türemiyor (B11), kullanılmayan config anahtarları (B13; `ConfigTest` varlıklarını pinliyor), plugin route'ları wildcard'a yenilebilir (B14). | ⏳ Açık | — | `docs/notes.md` → B11–B15 |
-| R19 | P2 | **`ThemeManager` boot-time I/O.** `TardisServiceProvider::register()` içinde dosya/ağ okuması yapılıyor, hatalar yalnızca loglanıyor. | ⏸️ Ertelenmiş | — | — |
+| R19 | P2 | **`ThemeManager` boot-time I/O.** `TardisServiceProvider::register()` içinde dosya/ağ okuması yapılıyor, hatalar yalnızca loglanıyor. | ➡️ R31'e taşındı (tema motoru yeniden yazılırken ortadan kalkar) | — | Tema, CSS ve JS mimarisi |
 | R21 | P0 | **Faz 0 — 2.0.0 temizliği.** `FieldType` enum'u → registry (B1), `ConfigBreadSource` + `config/bread` kaldırma (B7/R11), `ThemePlugin::getStyles()` kaldırma (B8c), `FormfieldManager::field()` stub'ı, ölü config anahtarları (B13), `BasePolicy` ability adı (B11), login'in `AuthenticationPlugin`'den geçmesi (B12), `Provider\Routes` contract'ının bağlanması, **BREAD rotalarının tanımdan üretilmesi + wildcard'ın kaldırılması (B14)**, BREAD tanımına `component`/`policy`/`scope`, **BREAD olayları + listener'lar** (izin/menü üretimi `BreadManager`'dan taşınır), `tardis.page` olayı, genişletme API'si (`addAfterFormField`, `addAction/replaceAction`, `addCss/addJs`, model haritası), sürüm `2.0.0` + `UPGRADE.md` | ⏳ Plan | — | Voyager parity planı → Faz 0 |
 | R22 | P1 | **Faz 1 — Panel i18n.** Tüm sabit metinler `__('tardis::…')`, `lang/en` (varsayılan) + `lang/tr`, locale seçici, TR/EN karışık aria etiketlerinin temizliği | ⏳ Plan | — | Faz 1 |
 | R23 | P1 | **Faz 2 — Alan sistemi.** `BreadSaver` servisi (create/edit kopya kodu kalkar), `BreadDefinition`/layout üzerinde `visibleFor/searchable/orderable/relationships`, `FormfieldPlugin` + registry, V2 lifecycle (`browse/read/edit/add/store/update($old)/stored/updated`), add/edit ayrı kural seti, çevrilebilir doğrulama mesajı, dizi elemanı doğrulama, eksik tipler (Color, Coordinates, Hidden, RichText, çoklu checkbox/select, Repeater, SimpleArray, MediaPicker) | ⏳ Plan | — | Faz 2 |
 | R24 | P1 | **Faz 3 — BREAD liste.** `BreadQuery` servisi (V2 `Browsable` parçaları: arama, sütun filtresi, adlandırılmış filtre/scope, sıralama, soft-delete, eager load, `warnings[]`), BREAD başına `scope`, `Action` sınıflarının UI'ya bağlanması (satır + toplu), sunucu taraflı sırala/filtre/ara/sayfa boyutu, ilişki kolonları (eager load), soft-delete geri yükleme/kalıcı silme, aksiyon bazlı layout, browse accessor'ları | ⏳ Plan | — | Faz 3 |
 | R25 | P1 | **Faz 4 — Plugin genişletilebilirliği.** `Routes` contract'ı + yetkili/ön yüz rota ayrımı, plugin ayar ekranı + preferences, `Filter\Widgets/Layouts/Media`, `tardis:plugins` komutu, plugin sürüm/bağımlılık gösterimi | ⏳ Plan | — | Faz 4 |
 | R26 | P2 | **Faz 5 — Media entegrasyonu.** BREAD `media_picker` alanı, thumbnail + kırpma, `{uid}/{date:…}/{random:n}` dosya adı şablonu, tek yükleme doğrulaması (BREAD `FileField` dahil), media filter plugin'i | ⏳ Plan | — | Faz 5 |
-| R27 | P2 | **Faz 6 — Menü builder + Dashboard widget'ları + görünüm.** `storage/tardis/menus.json` bindirmesi, nestable sürükle-bırak, gizle/yeniden adlandır/özel link, varsayılan dashboard kartları + `storage/tardis/dashboard.json` düzeni + widget izinleri, rol sayfasında gruplu izin ağacı, varsayılan tema + özel CSS/JS ayarı (`manage appearance`) | ⏳ Plan | — | Faz 6 |
+| R27 | P2 | **Faz 6 — Menü builder + Dashboard widget'ları + görünüm.** `storage/tardis/menus.json` bindirmesi, nestable sürükle-bırak, gizle/yeniden adlandır/özel link, varsayılan dashboard kartları + `storage/tardis/dashboard.json` düzeni + widget izinleri, rol sayfasında gruplu izin ağacı, tema editörü (appearance) + özel CSS ayarı (`manage appearance`; özel JS arayüzden **verilmez**, yalnızca config dosyasıyla) | ⏳ Plan | — | Faz 6 |
 | R28 | P2 | **Faz 7 — Çok dilli içerik.** Form içinde locale sekmeleri, 'tüm diller / aktif dil' doğrulama modu, listede aktif dil, BREAD etiketleri + menü başlıkları çevrilebilir (JSON kolon biçimi korunur) | ⏳ Plan | — | Faz 7 |
 | R29 | P2 | **Faz 8 — Kurulum, DX ve sistem araçları.** `tardis:install` (migrate + seed + ilk admin + asset publish), isteğe bağlı demo veri, `tardis:doctor` + panelde **Sistem** sayfası, **salt okunur log görüntüleyici** (`view logs`) ve **izin listeli komut çalıştırıcı** (`run commands`, `local` dışında kapalı, activity log'a yazar), güncellenmiş plugin iskeleti, `UPGRADE.md`, kapsamlı örnek | ⏳ Plan | — | Faz 8 |
 | R30 | P1 | **Kalite kapısı (her faz).** Önce test, tam sayfa istek testi, `boot()` yetki kapısı, `lang` anahtarı, `docs/` güncellemesi, faz başına yığılı PR | 🔄 Sürekli | — | Voyager parity planı → Kurallar |
-| R31 | P1 | **Faz 1b — Tasarım sistemi (ortak UI bileşenleri).** `x-tardis::card` (actions slotu), badge, slide-in çekmece, modal, dropdown, toast/bildirim (onay düğmeli), sayfa yükleme çubuğu, sidebar kullanıcı kartı (baş harf avatarı + `avatar_column`) + kalıcı durum, 3 durumlu tema anahtarı, marka ayarları (`appearance` grubu: başlık/logo/favicon/yükleme görseli), RTL değerlendirmesi | ⏳ Plan | — | `research/06` §3.9, §5 |
+| R31 | P1 | **Faz 1b — Tasarım sistemi (ortak UI bileşenleri).** `x-tardis::card` (actions slotu), badge, slide-in çekmece, modal, dropdown, toast/bildirim (onay düğmeli), sayfa yükleme çubuğu, sidebar kullanıcı kartı (baş harf avatarı + `avatar_column`) + kalıcı durum, 3 durumlu tema anahtarı, marka ayarları, **tema/CSS/JS mimarisi (aşağıdaki bölüm): `dist/assets/app.js`, `Alpine.data('theme')`, runtime tema motoru, sunucuda çözülen `data-theme`, global + kullanıcı tema tercihi, DaisyUI tema listesinin daraltılması** (`appearance` grubu: başlık/logo/favicon/yükleme görseli), RTL değerlendirmesi | ⏳ Plan | — | `research/06` §3.9, §5 |
 | R32 | P1 | **Faz 3b — Layout + Builder UX.** BREAD tanımı `list`/`view` layout'ları, sürükle-bırak + 6'lık genişlik ızgarası, yan çekmecede alan seçenekleri, builder tablo listesi (layout sayıları + Backup), `legend`/bölüm başlığı | ⏳ Plan | — | `research/06` §3.4 |
 
 ## Bağımlılık sırası notu
@@ -78,6 +78,10 @@ Amaç: Voyager 1'in olgun BREAD/menü/medya/kurulum deneyimini ve Voyager 2'nin 
 | Compass benzeri araçlar | **Alınır, kısıtlı:** salt okunur log görüntüleyici (`view logs`), izin listeli komut çalıştırıcı (`run commands`; `local` dışında varsayılan kapalı; her çalıştırma activity log'a), sistem sayfası (`tardis:doctor` sonucu) — Faz 8 |
 | BREAD rotaları | **Tanımdan üretilir, `/{slug}` wildcard'ı kalkar**; tanımda `component`, `policy`, `scope` alanları (Faz 0) |
 | Mimari | **`BreadQuery` + `BreadSaver` servisleri** (sayfalar ince kalır) ve **BREAD olayları + listener'lar** (izin, menü, cache; plugin'ler de dinler) |
+| Tema kaynağı | **Runtime CSS değişkenleri**: host/plugin temaları `storage/tardis/themes.json` + Settings `appearance` + `ThemePlugin::getTheme()`; yerleşik temalar Vite ile paketlenir (R31) |
+| Tema kapsamı | **Global varsayılan + kullanıcı başına** (sunucuda saklanır, `data-theme` sunucuda çözülür) (R31) |
+| Tailwind | **Önceden derlenmiş CSS + geniş safelist + `tardis.assets.css`**; host Node build'i gerekmez (R31) |
+| JavaScript | **Küçük `app.js` paketi** (`Alpine.data`/store bileşenleri); layout'taki gömülü betik kalkar, FOUC betiği hariç (R31) |
 | Layout modeli | **Çoklu adlandırılmış layout** (V2): BREAD başına `list` ve `view` layout'ları, aksiyon bazlı form layout'u, seçilebilir liste görünümleri (R32) |
 | Marka | **Settings `appearance` grubu** (başlık, logo, favicon, yükleme görseli, sidebar arka planı); görseller media'dan seçilir; config yalnızca varsayılan (R31) |
 | Avatar | **Baş harf avatarı** + isteğe bağlı `tardis.user.avatar_column`; dış servis çağrısı yok (R31) |
@@ -108,6 +112,44 @@ Voyager 1.7 ve 2.x kaynakları sayfa/bileşen düzeyinde incelendi: `research/06
 ### Mimari ve kod notları (2026-10-03)
 
 Klasör yapısı, servis sağlayıcı akışı, BREAD veri modeli, liste/kaydetme mantığı ve genişletme noktaları karşılaştırıldı: `research/07-voyager-mimari-ve-kod-notlari.md`. Plana giren yapısal kararlar: BREAD rotaları tanımdan üretilir (wildcard kalkar); BREAD tanımı `component`/`policy`/`scope` taşır; sorgu ve kaydetme `BreadQuery`/`BreadSaver` servislerine taşınır; yan etkiler BREAD olayları + listener'lar olur; genişletme API'si (`addAfterFormField`, `addAction/replaceAction/manipulateActions`, `addCss/addJs`, model haritası, `tardis.page` olayı).
+
+## Tema, CSS ve JS mimarisi (2026-10-03)
+
+### Bugünkü durum (koddan)
+
+- **Tek derleme çıktısı:** `vite build` yalnızca `dist/assets/app.css` üretir (196 KB, sabit ad + `?v=<md5>`); `resources/js/app.js` boş (tek yorum). Alpine tema store'u `layouts/admin.blade.php`'de **satır içi**, FOUC betiği `components/theme-boot`'ta.
+- **Tema motoru yarım:** CSS `themes: all` ile DaisyUI'nin ~35 temasını paketliyor ama `themes-manifest.json` yalnızca `tardis-light`/`tardis-dark`'ı listeliyor — seçici sadece ikisini sunuyor, kalan temalar ölü ağırlık. Tema eklemek `@plugin "daisyui/theme"` yazıp **paketi yeniden build etmeyi** gerektiriyor; host bunu yapamaz.
+- **Tercih yalnızca tarayıcıda:** `localStorage` (`tardis-theme-mode|light|dark`); sunucu bilmiyor, bu yüzden `<html data-theme="dark">` sabit varsayılan, ilk boyamada betikle düzeltiliyor. Giriş sayfası ve cihaz değişimi aynı tercihi taşımıyor.
+- **Contract'lar:** `ThemePlugin::getTheme()` (değişken geçersiz kılma) hiçbir yerde kullanılmıyor; `getStyles()` inline `<style>` olarak yazılıyor (B8). `ThemeManager` `register()` içinde dosya/ağ okuyor (R19).
+- **Plugin/host sayfaları:** paket CSS'i yalnızca Tardis view'larını taradığı için dışarıdan gelen yeni Tailwind sınıfları derlenmiş CSS'te yok.
+- **Voyager karşılaştırması:** V1 yalnızca `primary_color` config'i + `additional_css/js` + Settings'ten logo/loader; koyu mod yok. V2 CSS değişkenleri (`CSS_VARS.md`, her biri `-dark` eşli) + `ThemePlugin` + plugin CSS/JS provider'ları + `Voyager::addCss/addJs`.
+
+### Hedef yapı
+
+| Katman | Nerede | Ne yapar |
+|---|---|---|
+| **1. Paket derlemesi** | `resources/css/app.css`, `resources/js/app.js` → `dist/assets/{app.css,app.js}` | Tailwind 4 + DaisyUI 5; **yalnızca yerleşik temalar** (`tardis-light/dark` + seçilmiş kısa liste); ortak bileşen sınıfları (`tardis-*`); JS: `Alpine.data/stores` (tema, toast, çekmece, tooltip, sürükle-bırak). Host Node build'i gerekmez. |
+| **2. Runtime temalar** | `storage/tardis/themes.json` + `ThemePlugin::getTheme()` + Settings `appearance` | Host/plugin temaları (ad, `light|dark`, ~12 DaisyUI rengi) **veri**dir; `@tardisStyles` bunları `[data-theme="ad"]{--color-primary:…;color-scheme:…}` olarak `<style>` yazar (build yok). Değerler doğrulanır (oklch/hex/hsl deseni, ad `[a-z0-9-]`) — CSS enjeksiyonu yok. Yerleşik + runtime temalar tek `ThemeManager` listesinden gelir; manifest yalnızca yerleşik metadata. |
+| **3. Tercih çözümü** | Sunucu | Sıra: **kullanıcı tercihi** (`storage/tardis/preferences.json`, kullanıcı id'sine göre; mod + light + dark tema) → **global varsayılan** (Settings `appearance.mode/theme_light/theme_dark`) → yerleşik. Sunucu `<html data-theme>`'i **doğrudan yazar** (ilk boyamada JS gerekmez); yalnız `system` modu küçük bir betikle `prefers-color-scheme`e bakar. `localStorage` yalnızca misafir/giriş sayfası ve önbellek. Tercih `Alpine.data('theme')` üzerinden sunucuya yazılır (R16: listener temizliği çözülür). |
+| **4. Genişletme** | `tardis.assets.css|js` (yapıldı), plugin `CSS`/`JS` provider'ları, `Tardis::addCss()/addJs()` (Faz 0) | Dosya tabanlı ek varlıklar paket varlıklarından sonra yüklenir (yalnız http(s) ve `/…`). Arayüzden **özel CSS** (Settings `appearance.custom_css`, `manage appearance`, `</style>` kaçışı) verilebilir; **özel JS arayüzden verilmez** — yönetici oturumunda her sayfada çalışan kod olur, yalnızca config/dosya ile eklenir. |
+| **5. Tasarım jetonları** | DaisyUI `--color-*` + `:root{--tardis-*}` | Ayrı jeton sistemi kurulmaz (V2'nin accent/card/input listesi DaisyUI değişkenleriyle karşılanır); paket yalnızca yazı tipi, yarıçap, sidebar genişliği, yoğunluk için `--tardis-*` ekler. Marka (başlık, logo, favicon, yükleme görseli, sidebar arka planı) `appearance` ayarlarından. |
+| **6. JS yapısı** | `resources/js/app.js` + `resources/js/components/*.js` | Tek giriş dosyası `alpine:init` altında bileşenleri kaydeder (`Alpine.data('theme'|'toast'|'slideIn'…)`); Livewire 4'ün paketlediği Alpine kullanılır (ek yükleme yok), `sort`/`persist`/`collapse`/`anchor` eklentileri açıkça kullanılır. Layout'ta gömülü betik **kalmaz** (yalnızca FOUC/`system` betiği ve gerekirse nonce'lu); böylece CSP için `unsafe-inline` gerekmez. |
+| **7. Yayınlama/DX** | `vendor:publish --tag=tardis-assets`, `tardis:install`, `tardis:doctor` | Dağıtılan `dist/` paketle birlikte gelir; doctor yayınlanmış paketin `dist` özetinin paket sürümüyle eşleşmediğini (bayat varlık) ve manifest/tema dosyasının okunamadığını bildirir; geliştirme `npm run dev` + `resources/hot` (var). |
+
+### Tema motoru kuralları
+
+1. `ThemeManager` `register()`'da I/O yapmaz; tembel çözülür ve sonuç tek istekte önbelleğe alınır (R19 biter).
+2. `ThemePlugin::getStyles()` kalkar (B8c, 2.0.0 serbest kırma); yerine yalnızca `getTheme(): array` (değişkenler) kalır.
+3. Tema doğrulaması tek yerde (`Theme::fromArray`): ad deseni, `colorScheme ∈ {light,dark}`, renk değerleri izinli desenle; geçersiz tema loglanıp atlanır (sayfa kırılmaz).
+4. FOUC koruması test altında kalır: sunucu tarafı çözümü ve `system` betiği için `ThemeFoucGuardTest` yeniden yazılır.
+5. DaisyUI yerleşik tema listesi `themes: all` yerine seçilmiş kısa listeyle sınırlanır (paket boyutu ve "seçilemeyen tema" tutarsızlığı biter); hangi temaların gönderileceği Faz 1b'de netleşir.
+
+### Faz dağılımı
+
+- **Faz 0 (R21):** `ThemePlugin::getStyles()` kaldırılır, `Tardis::addCss()/addJs()`.
+- **Faz 1b (R31):** `app.js` paketi + `Alpine.data('theme')`, runtime tema motoru (`themes.json`, `ThemePlugin::getTheme`), sunucuda çözülen `data-theme`, global + kullanıcı tercihi, tema listesi daraltma, marka ayarları.
+- **Faz 6 (R27):** tema editörü (renk seçicili), özel CSS ayarı, önizleme.
+- **Faz 8 (R29):** `tardis:doctor` varlık/tema denetimleri.
 
 ### Voyager'dan neyin alındığı
 
