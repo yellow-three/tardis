@@ -418,3 +418,32 @@ test('save prunes backups to the configured retention', function () {
 
     expect($source->backups('posts'))->toHaveCount(2);
 });
+
+test('a slug that could leave the bread directory is treated as unknown', function (string $slug) {
+    $dir = sys_get_temp_dir().'/tardis-slug-'.uniqid();
+    mkdir($dir);
+    file_put_contents(dirname($dir).'/escape.json', '{"slug":"escape","fields":[]}');
+
+    $source = new JsonBreadSource($dir);
+
+    expect($source->find($slug))->toBeNull()
+        ->and($source->has($slug))->toBeFalse();
+
+    File::deleteDirectory($dir);
+    @unlink(dirname($dir).'/escape.json');
+})->with(['../escape', '..\\escape', 'a/b', '.hidden', '']);
+
+test('writing, backing up or rolling back a path-like slug is refused', function (string $slug) {
+    $dir = sys_get_temp_dir().'/tardis-slug-'.uniqid();
+    mkdir($dir);
+
+    $source = new JsonBreadSource($dir);
+
+    expect(fn () => $source->save(['slug' => $slug, 'fields' => []]))->toThrow(InvalidArgumentException::class)
+        ->and(fn () => $source->rollback($slug, $slug.'.backup.2024-01-01@00-00-00.000000.json'))->toThrow(InvalidArgumentException::class)
+        ->and(fn () => $source->delete($slug))->toThrow(InvalidArgumentException::class);
+
+    expect(File::files($dir))->toBeEmpty();
+
+    File::deleteDirectory($dir);
+})->with(['../escape', 'a/b', '..']);

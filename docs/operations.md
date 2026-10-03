@@ -67,7 +67,7 @@ Host için iki sonuç: (1) Spatie'yi kullanıyorsa **kendi `composer.json`'una e
 |---|---|---|---|
 | `research/voyager-1x-docs/` | Voyager 1.x doküman klonu + **VitePress build çıktısı** (37 dosya, 176K) | Build dosyaları | ✅ ignore |
 | `research/voyager-2x-docs/` | Voyager 2.x doküman klonu + **VitePress build çıktısı** (285 dosya, 2.9M) | Build dosyaları | ✅ ignore |
-| `docs/voyager-karsilastirma.md` | Eski, daha geniş kapsamlı Voyager raporu | Superseded | ✅ ignore |
+| `docs/voyager-karsilastirma.md` | Kullanıcının yerel, daha eski Voyager karşılaştırması (repoda yok) | Yerel not | ✅ ignore |
 
 **Risk**: `git add research/` gibi geniş bir komut çalıştırılırsa 322 build dosyası (toplam ~3MB) repoya girecekti.
 
@@ -79,16 +79,25 @@ Host için iki sonuç: (1) Spatie'yi kullanıyorsa **kendi `composer.json`'una e
 # Voyager research: upstream doc clones + VitePress build output (~322 files, 3MB)
 /research/voyager-1x-docs/
 /research/voyager-2x-docs/
-# superseded by docs/voyager-tam-arsistirma.md
+# local-only earlier comparison; the tracked report is docs/voyager-tam-arsastirma.md
 /docs/voyager-karsilastirma.md
 ```
 
 `git check-ignore` üç yol için de doğrulandı; çalışma ağacı bu sayede ilk kez tamamen temiz.
 
-> Not: Dosyalar silinmedi, yalnızca ignore edildi. `docs/voyager-tam-arsistirma.md` commit'li ve supersede eden belge olarak duruyor. Yerel dosyalara erişim için: `git check-ignore -v research/voyager-2x-docs`
+> Not: Dosyalar silinmedi, yalnızca ignore edildi. `docs/voyager-tam-arsastirma.md` commit'li ve repodaki Voyager raporu olarak duruyor. Yerel dosyalara erişim için: `git check-ignore -v research/voyager-2x-docs`
+
+---
+
+## Silinen dosyalar — 2026-10-03
+
+| Dosya | Durum | Geri alma |
+|---|---|---|
+| `proje-durumu-ozeti.md` | Eski (BREAD'i "placeholder" diye anlatıyordu), `PROJECT_STATUS.md` ile birleştirildi | `git show 725fd3b^:proje-durumu-ozeti.md` |
+| `.debug-journal.md` | Çözülmüş bir hata ayıklama günlüğüydü (Eloquent resolver null → `ModelReflector::getRelationships()` kök neden). **Hiç commit'lenmemişti** (`.git/info/exclude`), bu yüzden geri alınamaz. Kök neden ve düzeltme `src/Bread/ModelReflector.php` yorumunda ve `tests/Unit/ModelReflectorTest.php`'de duruyor. | Yok |
 
 ---
 
 ## Push / merge durumu
 
-Bu dal (`feat/modern-admin-redesign`) **push edilmedi ve merge edilmedi**. Tüm iş branch üzerinde duruyor; PR gözden geçirme ve merge kullanıcı kararı.
+`feat/modern-admin-redesign` `origin`'e push edildi; settings MFC + temizlik işi PR #5 ile içine merge edildi. `master`'a merge **yapılmadı** — redesign branch'inin master'a alınması ayrı bir karar.

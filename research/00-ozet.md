@@ -1,5 +1,7 @@
 # TARDIS BREAD DENETİMİ VE VOYAGER ARAŞTIRMASI — NİHAİ RAPOR
 
+> **Durum notu (2026-10-03).** Bu rapor 2026-09-29 tarihli bir anlık görüntüdür. "Düzeltilmedi, planlandı" denen P0 bulguları (validation, translatable, BelongsToMany kapsamı) sonradan düzeltildi, izin kontrolü sayfalarda uygulanıyor ama varsayılan olarak açık (`docs/notes.md` B9); test sayısı 365'ten 476'ya çıktı. Bulgu bazında güncel durum tablosu: `research/05-tardis-bulgulari-ve-fix-oncelikleri.md` (en üstte). Açık işler: `docs/notes.md`.
+
 Tarih: 2026-09-29
 Branch: `feat/modern-admin-redesign`
 Kapsam: `packages/tardis` BREAD akışları + Voyager 1.x / Voyager 2.x karşılaştırması

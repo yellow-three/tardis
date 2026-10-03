@@ -19,7 +19,7 @@ class FieldValidationRules
     /**
      * @param  array<int, array<string, mixed>>  $fields
      * @param  array<string, mixed>  $form  The current form values, used to decide whether file rules apply.
-     * @return array<string, string>
+     * @return array<string, array<int, string>>
      */
     public static function for(array $fields, array $form = []): array
     {
@@ -39,9 +39,13 @@ class FieldValidationRules
     }
 
     /**
+     * Rules are returned as a list, never a pipe-joined string: a rule such as
+     * regex:/^(a|b)$/ contains a pipe and would be split in two.
+     *
      * @param  array<string, mixed>  $field
+     * @return array<int, string>
      */
-    public static function field(array $field, mixed $value = null): string
+    public static function field(array $field, mixed $value = null): array
     {
         $declared = static::normalise($field['validation'] ?? []);
         $required = in_array('required', $declared, true);
@@ -63,7 +67,7 @@ class FieldValidationRules
             }
         }
 
-        return implode('|', $rules);
+        return $rules;
     }
 
     /**

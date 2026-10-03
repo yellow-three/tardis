@@ -28,5 +28,6 @@
                 "nullable"
             ]
         }
-    ]
+    ],
+    "search_key": "title"
 }

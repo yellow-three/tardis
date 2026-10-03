@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\Locked;
 use Livewire\Attributes\Title;
 use Livewire\Component;
 use Tardis\Auth\BreadAuthorization;
@@ -10,10 +11,12 @@ use Tardis\Events\BreadDeleted;
 
 new #[Title('BREAD')] #[Layout('tardis::layouts.admin')] class extends Component
 {
+    #[Locked]
     public string $slug = '';
 
     public string $search = '';
 
+    #[Locked]
     public array $bread = [];
 
     public float $executionMs = 0.0;

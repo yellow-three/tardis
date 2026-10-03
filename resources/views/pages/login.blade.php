@@ -2,6 +2,8 @@
 
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
+use Illuminate\Cache\RateLimiter;
+use Illuminate\Support\Str;
 use Livewire\Component;
 
 new #[Title('Login')] #[Layout('tardis::layouts.auth')] class extends Component
@@ -26,13 +28,27 @@ new #[Title('Login')] #[Layout('tardis::layouts.auth')] class extends Component
     {
         $this->validate();
 
+        $limiter = app(RateLimiter::class);
+        $key = Str::lower($this->email).'|'.request()->ip();
+
+        if ($limiter->tooManyAttempts($key, 5)) {
+            $this->error = 'Too many login attempts. Please try again in '.$limiter->availableIn($key).' seconds.';
+
+            return;
+        }
+
         if (auth()->attempt([
             'email' => $this->email,
             'password' => $this->password,
         ], $this->remember)) {
+            $limiter->clear($key);
             session()->regenerate();
             $this->redirect(route('tardis.dashboard'));
+
+            return;
         }
+
+        $limiter->hit($key);
 
         $this->error = __('auth.failed');
     }

@@ -2,7 +2,7 @@
 
 namespace {{NAMESPACE}};
 
-use Tardis\Core\Contracts\Plugins\GenericPlugin;
+use Tardis\Contracts\Plugins\GenericPlugin;
 {{MENU_IMPORT}}
 {{WIDGET_IMPORT}}
 {{SETTINGS_IMPORT}}

@@ -77,6 +77,47 @@ Tema, `CSS variable` anahtar-tokası üzerinden çalışıyor (`66c4ed7`). `Them
 
 ## Admin mimarisi — Livewire 4, page-first
 
-Admin şablonları Livewire 4 page-first mimarisine taşındı (`7e854ab`): SFC değil MFC, sayfa bazlı Livewire bileşenleri. Admin sayfaları DaisyUI 5 ile yeniden yazıldı (`49d2454`, 21 şablon).
+Admin şablonları Livewire 4 page-first mimarisine taşındı (`7e854ab`): sayfa bazlı Livewire bileşenleri, yalnızca SFC ve MFC (class-based yok). Küçük sayfalar SFC, büyükler (BREAD sayfaları, builder, database, media-browser, settings) MFC. Admin sayfaları DaisyUI 5 ile yeniden yazıldı (`49d2454`, 21 şablon).
 
-**Sonuç**: Yeni admin sayfası yazarken MFC + DaisyUI 5 deseni izleniyor; eski SFC veya ham HTML deseni tutarsız olur.
+**Sonuç**: Yeni admin sayfası yazarken SFC/MFC + DaisyUI 5 deseni izleniyor; sayfa ~800 satırı geçerse MFC'ye böl (`livewire:convert --mfc`). Eski class-based veya ham HTML deseni tutarsız olur. Kurallar: `docs/LIVEWIRE_PAGE_ORGANIZATION.md`.
+
+---
+
+## Livewire — public property'ler istemci tarafından yazılabilir
+
+Livewire'de her `public` property tarayıcıdan değiştirilebilir. BREAD sayfalarında `slug`, `id`, `bread` ve `record` yetkilendirmenin dayandığı değerlerdir: `mount()` yetkiyi `slug` ile kontrol eder, `delete()`/`save()` ise sonra `bread['model']`'e güvenir. Kilitli olmasalar, istemci `bread.model`'i başka bir Eloquent sınıfına çevirip yetkili bir ability ile o modelde create/edit/delete çalıştırabilirdi.
+
+**Sonuç**: Yetkilendirmenin veya hedef model/kayıt seçiminin dayandığı her property `#[Locked]` olmalı (`tests/Feature/BreadAuthorizationTest.php` bunu index/create/read/edit için pinler). Yeni bir BREAD sayfası eklerken aynı property'leri kilitle; yalnızca gerçekten kullanıcı girdisi olan alanlar (`form`, `search`, …) yazılabilir kalır. BREAD builder'ın property'leri bilerek yazılabilir — builder zaten tanımı düzenlemek için var.
+
+---
+
+## Yetkilendirme — varsayılan olarak yok, plugin ile gelir
+
+`TardisAuthorizationPlugin` pakette var ama hiçbir yerde kaydedilmiyor. Plugin yoksa `BreadAuthorization::allows()` her zaman `true` döner ve `AdminMiddleware` yalnızca kimlik doğrular. Roles/Permissions ekranları tabloları yönetir ama plugin etkin değilse hiçbir şeyi zorlamaz.
+
+**Sonuç**: "İzin ekranı var" demek "izinler uygulanıyor" demek değildir. Üretime çıkan host bir `AuthorizationPlugin` kaydetmeli (README → Authentication and authorization). Açık karar: `docs/notes.md` → B9.
+
+---
+
+## Plugin'ler — `enable()` kullanıcı eylemidir, boot'ta `enableByDefault()`
+
+`PluginManager::enable()` saklanan "disabled" kaydını siler ve cache'e yazar. Bir service provider'dan çağrılırsa her istekte Plugins sayfasındaki devre dışı bırakmayı geri alır. Boot-time varsayılanı `enableByDefault()` verir: kullanıcı kapattıysa dokunmaz, cache'e yazmaz.
+
+**Sonuç**: Provider'larda ve `tardis:make-plugin` stub'larında `register()` + `enableByDefault()` kullan; `enable()` yalnızca Plugins sayfasındaki düğmeye ait.
+
+---
+
+## BREAD slug'ı dosya adıdır
+
+`JsonBreadSource` slug'ı doğrudan dosya adına çevirir (`{slug}.json`, `{slug}.backup.*.json`). Slug yalnızca `[A-Za-z0-9_-]` olabilir ve harf/rakamla başlar; `find()`/`has()` geçersiz slug için `null`/`false` döner, yazan metotlar (`save`, `delete`, `rollback`) `InvalidArgumentException` fırlatır.
+
+**Sonuç**: Slug'ı kullanıcı girdisinden dosya yoluna taşıyan yeni bir kaynak/komut yazarken `JsonBreadSource::isValidSlug()` kullan; kendi regex'ini yazma. Builder'ın `[a-z0-9-]+` kuralı bunun alt kümesidir.
+
+---
+
+## Medya — yükleme uzantı listesiyle sınırlı
+
+Medya ekranı yüklemeleri `tardis-media.allowed_mimes` uzantılarıyla (`extensions:` + `mimes:`) ve `max_file_size` ile sınırlar; liste boşsa kural uygulanmaz. Disk genelde `public` olduğundan `.php`/`.html` yüklemek web kökünden sunulan/çalıştırılan dosya demektir. Varsayılan listede `svg` var ve script taşıyabilir.
+
+**Sonuç**: Medya yükleyen yeni bir yüzey eklerken aynı listeyi kullan. `MediaManager::upload()` kendisi doğrulama yapmaz — çağıran doğrulamalıdır.
+

@@ -55,6 +55,23 @@ class PluginManager
         }
     }
 
+    /**
+     * Turn a plugin on at boot unless an administrator switched it off.
+     *
+     * enable() is an explicit user action: it clears the stored disable and
+     * writes the cache. Calling it from a service provider would therefore undo
+     * every "disable" made on the Plugins page on the next request, and write
+     * to the cache on every request. Boot-time defaults go through here.
+     */
+    public function enableByDefault(string $name): void
+    {
+        if (in_array($name, $this->disabled, true) || in_array($name, $this->enabled, true)) {
+            return;
+        }
+
+        $this->enabled[] = $name;
+    }
+
     public function disable(string $name): void
     {
         if (! in_array($name, $this->disabled)) {

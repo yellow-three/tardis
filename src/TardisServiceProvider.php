@@ -150,7 +150,7 @@ class TardisServiceProvider extends ServiceProvider
         // without Fortify or any other auth package.
         $manager = $this->app->make(PluginManager::class);
         $manager->register('tardis-auth', AuthenticationPlugin::class);
-        $manager->enable('tardis-auth');
+        $manager->enableByDefault('tardis-auth');
     }
 
     protected function registerLivewireNamespaces(): void

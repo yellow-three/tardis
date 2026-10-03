@@ -1,11 +1,15 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use Livewire\Livewire;
 
-Route::middleware(config('tardis.admin.middleware', ['web', 'auth']))
-    ->prefix(config('tardis.admin.prefix', 'admin'))
-    ->group(function () {
-    // Route::livewire('/{{LOWERCASE_NAME}}', 'tardis-{{LOWERCASE_NAME}}::pages.admin.⚡{{LOWERCASE_NAME}}')
-    //     ->name('tardis.{{LOWERCASE_NAME}}');
-});
+// Uncomment to expose the starter page. Register this plugin's provider BEFORE
+// Tardis' own routes (or use a fixed prefix such as /{{LOWERCASE_NAME}}-admin):
+// Tardis ends with a /{slug} wildcard that would otherwise swallow /admin/{{LOWERCASE_NAME}}.
+//
+// Route::middleware(['web', 'tardis.admin'])
+//     ->prefix(config('tardis.admin.prefix', 'admin'))
+//     ->name('tardis.')
+//     ->group(function () {
+//         Route::livewire('/{{LOWERCASE_NAME}}', 'tardis-{{LOWERCASE_NAME}}::pages.admin.{{LOWERCASE_NAME}}')
+//             ->name('{{LOWERCASE_NAME}}');
+//     });

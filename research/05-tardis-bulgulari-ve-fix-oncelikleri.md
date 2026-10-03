@@ -1,5 +1,20 @@
 # Tardis BREAD Bulguları ve Düzeltme Öncelikleri
 
+> **Durum notu (2026-10-03).** Bu dosya 2026-09-29 denetiminin anlık görüntüsüdür; aşağıdaki bulguların çoğu o günden beri kapandı. Güncel açık işler için `docs/notes.md` ve `docs/backlog.md`'ye bak; bu dosyayı geçmiş kanıt/gerekçe olarak oku.
+>
+> | Bulgu | Şimdiki durum |
+> |---|---|
+> | P0 validation kuralları düşüyor | ✅ Çözüldü — `FieldValidationRules` (+ `|` içeren regex düzeltmesi), `BreadValidationTest` |
+> | P0 izin kontrolü yok | 🟡 Sayfalar `BreadAuthorization` ile kontrol ediyor ve property'ler kilitli; **ama varsayılan kurulumda plugin yok → fail-open** (`notes.md` B9/B10) |
+> | P0 translatable → NULL | ✅ Çözüldü — `TranslatableFormfieldTest` |
+> | P1 BelongsToMany kapsamsız `sync()` | ✅ Çözüldü — `resolvableIds()`; `searchOptions()` filtresizliği açık (B4) |
+> | P1 HasMany filtreleme | ↩️ Bulgu geri çekildi (`notes.md`) |
+> | P1 `FormfieldManager::field()` boş | ⏳ Açık (B2) |
+> | P1 checkbox options | ✅ Çözüldü — view `options` döngüsü |
+> | P2 create transaction | ✅ Çözüldü — `DB::transaction` (`8bb20a3`) |
+> | P2 disabled/readonly/help/width | ✅ Çözüldü — formfield view'ları bayrakları işliyor |
+> | P3 ekosistem (settings, widget, plugin, media, DB yöneticisi) | ✅ Eklendi (Voyager'a göre farklar `docs/voyager-tam-arsastirma.md`'de) |
+
 Tarih: 2026-09-29
 Kapsam: `packages/tardis` — BREAD create/edit/index/read/manage akışları, 19 form field tipi,
 validation, ilişkiler, izinler, seçenekler, render katmanı.

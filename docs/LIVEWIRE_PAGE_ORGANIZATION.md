@@ -1,92 +1,50 @@
 # Livewire 4 page organization
 
-This project follows the Livewire 4 guidance for page components and keeps the structure limited to the supported formats:
+TARDIS pages are Livewire 4 full-page components registered with `Route::livewire`. Only two formats are used:
 
-- SFC = single-file component
-- MFC = multi-file component
-- no class-based page components for the admin shell
+- **SFC** — single-file component: PHP class and Blade template in one `.blade.php`
+- **MFC** — multi-file component: a directory with `name.php` and `name.blade.php`
+- Class-based components (a named class plus `render()`) are **not used**.
 
-## Rule of thumb
+Both formats use an anonymous class, `new class extends Component`, with no namespace and no `render()` method. The full rules (including `#[Layout]`, locked properties and naming) are in `.claude/AGENTS.md`.
 
-### Use SFC for simple pages
+## Which format for which page
 
-Use a single-file component when the page is compact and keeps its logic inside one file.
+Use an SFC while a page is compact; move it to an MFC when it has substantial state, a long template, or its own JS/CSS.
 
-Good candidates in this project:
+| Format | Pages |
+|---|---|
+| SFC | dashboard, login, forgot-password, reset-password, permissions, roles, plugins, activity-log, search, ui-components |
+| MFC | `bread/{index,create,edit,read,manage}`, `bread-builder`, `database` (+ `create`, `edit`), `media-browser`, `settings` |
 
-- dashboard
-- login
-- forgot-password
-- reset-password
-- permissions
-- roles
-- settings (moderate complexity)
+`livewire:convert` switches a component between the two without changing its name:
 
-These are straightforward admin screens where a single file keeps the page readable.
+```bash
+php artisan livewire:convert tardis::pages.settings --mfc
+```
 
-### Use MFC for complex pages
+Inside this package, where there is no application, run it through Testbench: `vendor/bin/testbench livewire:convert tardis::pages.settings --mfc`.
 
-Use a multi-file component when a page has substantial state, nested UI, data-heavy forms, or more than one concern.
+## Layout on disk
 
-Recommended candidates in this project:
+```text
+resources/views/pages/dashboard.blade.php          # SFC  -> tardis::pages.dashboard
 
-- media-browser
-- database
-- search
-- bread-builder
-- bread management
-- bread create / edit / read flows
+resources/views/pages/settings/                    # MFC  -> tardis::pages.settings
+├── settings.php                                   #   PHP class
+└── settings.blade.php                             #   template
+```
 
-These pages benefit from separation into:
-
-- PHP class file
-- Blade view
-- JS if needed
-- scoped CSS if needed
-- optional tests
-
-## Project pattern
-
-The admin shell is already page-first, which matches the Livewire 4 docs:
+The component name is identical for both formats, so routes and `<livewire:tardis::...>` tags never change when a page is converted.
 
 ```php
-Route::livewire('/dashboard', 'tardis::pages.dashboard');
-Route::livewire('/bread', 'tardis::pages.bread.manage');
+Route::livewire('/dashboard', 'tardis::pages.dashboard')->name('dashboard');
+Route::livewire('/bread', 'tardis::pages.bread.manage')->name('bread.manage');
 ```
 
-This is the correct pattern for full-page screens.
+## Rules worth remembering
 
-## Recommended file layout
-
-### SFC example
-
-```text
-resources/views/pages/dashboard.blade.php
-```
-
-### MFC example
-
-```text
-resources/views/pages/bread/
-├── manage.blade.php
-├── manage/
-│   ├── manage.php
-│   ├── manage.blade.php
-│   ├── manage.js
-│   └── manage.css
-```
-
-This gives the project a clean split between simple pages and more complex pages without introducing class-based components or controller-driven page rendering.
-
-## Important constraint
-
-The project should not mix in class-based components for normal page screens unless there is a specific migration need. The docs recommend SFC and MFC for new Livewire 4 projects, and this package is already aligned with that model.
-
-## Practical recommendation
-
-1. Leave simple pages as SFC
-2. Convert the heavier CRUD/admin screens to MFC
-3. Keep route layer as Livewire page routes, not controller page routes
-4. Reserve controller usage for non-page backend tasks, not for the page shell itself
-
-This keeps the project consistent with the official Livewire 4 documentation and the existing architecture.
+1. Page components declare `#[Layout('tardis::layouts.admin')]`; embedded child components do not declare a layout.
+2. Public properties are client-writable. Anything authorisation depends on (`slug`, `id`, `bread`, `record` on the BREAD pages) must be `#[Locked]`.
+3. Keep routes as Livewire page routes; reserve controllers for non-page backend work (the logout route is the only one).
+4. Do not use a `⚡` emoji in file names — the package is published through Composer.

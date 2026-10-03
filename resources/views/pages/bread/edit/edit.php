@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\Locked;
 use Livewire\Attributes\Title;
 use Livewire\Component;
 use Livewire\WithFileUploads;
@@ -16,12 +17,16 @@ new #[Title('Edit')] #[Layout('tardis::layouts.admin')] class extends Component
 {
     use WithFileUploads;
 
+    #[Locked]
     public string $slug = '';
 
+    #[Locked]
     public int|string $id = 0;
 
+    #[Locked]
     public array $bread = [];
 
+    #[Locked]
     public array $record = [];
 
     public array $form = [];

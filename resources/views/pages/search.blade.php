@@ -3,6 +3,7 @@
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
+use Tardis\Auth\BreadAuthorization;
 use Tardis\Bread\BreadManager;
 
 new #[Title('Search')] #[Layout('tardis::layouts.admin')] class extends Component
@@ -42,11 +43,16 @@ new #[Title('Search')] #[Layout('tardis::layouts.admin')] class extends Componen
         }
 
         $repo = app(BreadManager::class);
+        $authorization = app(BreadAuthorization::class);
         $breads = $repo->all();
         $this->results = [];
 
         foreach ($breads as $slug => $bread) {
             if (! $bread->searchKey) {
+                continue;
+            }
+
+            if (! $authorization->allows('browse', (string) $slug)) {
                 continue;
             }
 
