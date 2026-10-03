@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use Tardis\Bread\Action;
 use Tardis\Events\BreadRecordDeleted;
 
-class DeleteAction extends Action
+class ForceDeleteAction extends Action
 {
     public string $icon = 'trash';
 
@@ -14,31 +14,29 @@ class DeleteAction extends Action
 
     public ?string $permission = 'delete';
 
-    public bool $bulk = true;
-
     public function getTitle(): string
     {
-        return __('tardis::bread.delete');
+        return __('tardis::bread.delete_permanently');
     }
 
     public function getConfirmMessage(): ?string
     {
-        return __('tardis::bread.confirm_delete_record');
+        return __('tardis::bread.confirm_delete_permanently');
     }
 
     public function getSuccessMessage(): string
     {
-        return __('tardis::bread.item_deleted');
+        return __('tardis::bread.item_deleted_permanently');
     }
 
     public function appliesTo(Model $record): bool
     {
-        return ! (method_exists($record, 'trashed') && $record->trashed());
+        return method_exists($record, 'trashed') && $record->trashed();
     }
 
     public function handle(Model $record, string $slug): mixed
     {
-        $deleted = $record->delete();
+        $deleted = $record->forceDelete();
 
         BreadRecordDeleted::dispatch($slug, $record);
 

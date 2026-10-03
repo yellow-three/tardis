@@ -4,8 +4,11 @@ declare(strict_types=1);
 
 namespace Tardis;
 
+use Illuminate\Support\Collection;
 use Tardis\Assets\Asset;
+use Tardis\Bread\Action;
 use Tardis\Bread\BreadManager;
+use Tardis\Manager\ActionManager;
 use Tardis\Manager\AssetManager;
 use Tardis\Manager\FormfieldManager;
 use Tardis\Manager\MenuManager;
@@ -71,6 +74,27 @@ class Tardis
     public function addJs(Asset|string $asset): void
     {
         app(AssetManager::class)->addJs($asset);
+    }
+
+    /**
+     * Offer an action on a BREAD listing ('*' = every BREAD).
+     */
+    public function addAction(string $slug, Action|string $action): void
+    {
+        app(ActionManager::class)->add($slug, $action);
+    }
+
+    public function replaceAction(string $slug, string $name, Action|string $action): void
+    {
+        app(ActionManager::class)->replace($slug, $name, $action);
+    }
+
+    /**
+     * @param  \Closure(Collection): Collection  $callback
+     */
+    public function manipulateActions(string $slug, \Closure $callback): void
+    {
+        app(ActionManager::class)->manipulate($slug, $callback);
     }
 
     public static function version(): string
