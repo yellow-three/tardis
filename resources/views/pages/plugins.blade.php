@@ -13,6 +13,8 @@ new #[Title('Plugin Manager')] #[Layout('tardis::layouts.admin')] class extends 
 
     public int $enabledCount = 0;
 
+    public ?string $message = null;
+
     /**
      * Runs on every request, not only on mount: Livewire keeps component state
      * between updates, so a permission revoked after the page opened must
@@ -40,6 +42,7 @@ new #[Title('Plugin Manager')] #[Layout('tardis::layouts.admin')] class extends 
                 'type' => $plugin['type'],
                 'description' => method_exists($instance, 'description') ? $instance->description() : null,
                 'enabled' => Tardis::plugins()->isEnabled($name),
+                'locked' => Tardis::plugins()->isLocked($name),
                 'version' => $info['version'] ?? null,
             ];
         })->toArray();
@@ -55,7 +58,13 @@ new #[Title('Plugin Manager')] #[Layout('tardis::layouts.admin')] class extends 
 
     public function disable(string $name): void
     {
-        Tardis::plugins()->disable($name);
+        try {
+            Tardis::plugins()->disable($name);
+            $this->message = null;
+        } catch (\LogicException) {
+            $this->message = 'This plugin protects the panel and cannot be disabled.';
+        }
+
         $this->refreshPlugins();
     }
 }; ?>
@@ -76,6 +85,12 @@ $typeLabels = [
         title="Plugin Manager"
         :description="count($plugins) . ' plugin(s) registered · ' . $enabledCount . ' enabled'"
     />
+
+    @if ($message)
+        <div class="alert alert-warning mb-4" role="alert">
+            <span>{{ $message }}</span>
+        </div>
+    @endif
 
     @if (empty($plugins))
         <div class="card bg-base-100 border border-base-300">
@@ -136,7 +151,12 @@ $typeLabels = [
                                     @endif
                                 </td>
                                 <td class="text-right">
-                                    @if ($plugin['enabled'])
+                                    @if ($plugin['locked'])
+                                        <span class="badge badge-ghost badge-sm gap-1">
+                                            <x-tardis::icon name="lock-closed" class="w-3 h-3" />
+                                            Required
+                                        </span>
+                                    @elseif ($plugin['enabled'])
                                         <button
                                             wire:click="disable('{{ $plugin['slug'] }}')"
                                             class="btn btn-ghost btn-sm text-error"

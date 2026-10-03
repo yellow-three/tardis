@@ -26,6 +26,9 @@ abstract class TestCase extends OrchestraTestCase
 
     protected function defineEnvironment($app): void
     {
+        // Never let tests write plugin/settings/BREAD state into the shared skeleton.
+        $app->useStoragePath(sys_get_temp_dir().'/tardis-testbench-storage-'.getmypid());
+
         $app['config']->set('database.default', 'testing');
         $app['config']->set('database.connections.testing', [
             'driver' => 'sqlite',

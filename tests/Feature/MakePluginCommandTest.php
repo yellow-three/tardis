@@ -3,8 +3,21 @@
 declare(strict_types=1);
 
 use Illuminate\Support\Facades\File;
+use Tardis\Contracts\Plugins\GenericPlugin;
 use Tardis\Manager\PluginManager;
-use Tardis\Plugins\AuthenticationPlugin;
+
+class MakePluginFixture implements GenericPlugin
+{
+    public function name(): string
+    {
+        return 'Fixture';
+    }
+
+    public function description(): string
+    {
+        return 'fixture';
+    }
+}
 
 beforeEach(function () {
     $this->pluginRoot = sys_get_temp_dir().'/tardis-make-plugin-'.uniqid();
@@ -77,7 +90,7 @@ test('the generated service provider enables the plugin it registers', function 
 
 test('enableByDefault turns a plugin on without clearing a stored disable', function () {
     $manager = new PluginManager;
-    $manager->register('blog', AuthenticationPlugin::class);
+    $manager->register('blog', MakePluginFixture::class);
     $manager->disable('blog');
 
     $manager->enableByDefault('blog');
@@ -85,7 +98,7 @@ test('enableByDefault turns a plugin on without clearing a stored disable', func
     expect($manager->isEnabled('blog'))->toBeFalse();
 
     $fresh = new PluginManager;
-    $fresh->register('blog', AuthenticationPlugin::class);
+    $fresh->register('blog', MakePluginFixture::class);
     $fresh->enableByDefault('blog');
 
     expect($fresh->isEnabled('blog'))->toBeFalse('a disable stored in the cache must survive the boot-time default');
@@ -93,7 +106,7 @@ test('enableByDefault turns a plugin on without clearing a stored disable', func
 
 test('enableByDefault enables a plugin nobody has disabled', function () {
     $manager = new PluginManager;
-    $manager->register('blog', AuthenticationPlugin::class);
+    $manager->register('blog', MakePluginFixture::class);
     $manager->enableByDefault('blog');
     $manager->enableByDefault('blog');
 
