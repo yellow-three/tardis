@@ -81,3 +81,7 @@ Generated plugins from 1.x did not load: they imported `Tardis\Core\…` classes
 ## BREAD actions
 
 `Tardis\Bread\Action` was unused and changed shape: it now works on one record (`handle(Model $record, string $slug)`, bulk runs loop over the selected rows) and is registered with `Tardis::addAction()`. `method`, `route` and `download` are gone. The `BREAD index` component's `executionMs`/`warnings` public properties became computed; the warning texts are translated.
+
+## Provider\CSS / Provider\JS
+
+The return type is now `string|Asset|array`. A plugin that returns a string keeps working; implementations that declare `: string` stay valid. `@tardisStyles`/`@tardisScripts` take an optional scope (`@tardisStyles('auth')`) and `AssetManager::styles()/scripts()` take it as an argument (default `admin`).

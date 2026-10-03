@@ -10,7 +10,7 @@
 
     <x-tardis::theme-boot />
 
-    @tardisStyles
+    @tardisStyles('auth')
     @livewireStyles
 </head>
 <body class="min-h-screen bg-base-200 flex items-center justify-center p-4">
@@ -33,7 +33,7 @@
         </p>
     </div>
 
-    @tardisScripts
+    @tardisScripts('auth')
     @livewireScripts
 </body>
 </html>

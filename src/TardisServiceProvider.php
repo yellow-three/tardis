@@ -80,12 +80,12 @@ class TardisServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
-        Blade::directive('tardisStyles', function () {
-            return '<?php echo app(\\Tardis\\Manager\\AssetManager::class)->styles(); ?>';
+        Blade::directive('tardisStyles', function ($expression) {
+            return '<?php echo app(\\Tardis\\Manager\\AssetManager::class)->styles('.($expression ?: "'admin'").'); ?>';
         });
 
-        Blade::directive('tardisScripts', function () {
-            return '<?php echo app(\\Tardis\\Manager\\AssetManager::class)->scripts(); ?>';
+        Blade::directive('tardisScripts', function ($expression) {
+            return '<?php echo app(\\Tardis\\Manager\\AssetManager::class)->scripts('.($expression ?: "'admin'").'); ?>';
         });
 
         $this->registerDefaultAuthorization();
