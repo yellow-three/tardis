@@ -14,4 +14,5 @@ return [
     ],
     'builtin' => 'Yerleşik',
     'custom' => 'Özel',
+    'close' => 'Kapat',
 ];

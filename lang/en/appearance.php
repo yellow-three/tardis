@@ -14,4 +14,5 @@ return [
     ],
     'builtin' => 'Built-in',
     'custom' => 'Custom',
+    'close' => 'Close',
 ];

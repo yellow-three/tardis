@@ -34,6 +34,9 @@
         <x-tardis::admin-sidebar />
     </div>
 
+    <x-tardis::toasts />
+    <x-tardis::loading-bar />
+
     @tardisScripts
 
     @livewireScripts
