@@ -111,4 +111,17 @@ return [
         ],
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Content-Security-Policy
+    |--------------------------------------------------------------------------
+    |
+    | Inline <style>/<script> blocks the panel writes carry this nonce so a strict
+    | policy can allow them. Leave null to use Laravel's Vite nonce (if you set
+    | one with Vite::useCspNonce()); a closure returning the nonce also works.
+    */
+    'csp' => [
+        'nonce' => null,
+    ],
+
 ];

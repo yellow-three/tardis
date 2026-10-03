@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tardis\Manager;
 
 use Illuminate\Contracts\Foundation\Application;
+use Illuminate\Support\Facades\Vite;
 use Tardis\Assets\Asset;
 use Tardis\Contracts\Plugins\Features\Provider\CSS;
 use Tardis\Contracts\Plugins\Features\Provider\JS;
@@ -101,7 +102,7 @@ class AssetManager
         $themeCss = app(ThemeManager::class)->css();
 
         if ($themeCss !== '') {
-            $html .= '<style id="tardis-themes">'.$themeCss.'</style>'.PHP_EOL;
+            $html .= '<style'.$this->nonceAttribute().' id="tardis-themes">'.$themeCss.'</style>'.PHP_EOL;
         }
 
         // 1a. Custom CSS from Settings → appearance. Only the closing tag could
@@ -109,7 +110,7 @@ class AssetManager
         $custom = app(SettingsManager::class)->get('appearance.custom_css');
 
         if (is_string($custom) && trim($custom) !== '') {
-            $html .= '<style id="tardis-custom-css">'.preg_replace('#</style#i', '', $custom).'</style>'.PHP_EOL;
+            $html .= '<style'.$this->nonceAttribute().' id="tardis-custom-css">'.preg_replace('#</style#i', '', $custom).'</style>'.PHP_EOL;
         }
 
         // 1b. Assets registered through Tardis::addCss()
@@ -121,7 +122,7 @@ class AssetManager
         foreach ($this->pluginAssets('css') as $item) {
             $html .= $item instanceof Asset
                 ? ($this->wanted([$item], $scope) === [] ? '' : $this->render($item))
-                : '<style>'.$item.'</style>'.PHP_EOL;
+                : '<style'.$this->nonceAttribute().'>'.$item.'</style>'.PHP_EOL;
         }
 
         // 3. ThemePlugin variables
@@ -129,7 +130,7 @@ class AssetManager
             $rule = $this->themeRule($theme->getTheme());
 
             if ($rule !== '') {
-                $html .= '<style>'.$rule.'</style>'.PHP_EOL;
+                $html .= '<style'.$this->nonceAttribute().'>'.$rule.'</style>'.PHP_EOL;
             }
         }
 
@@ -164,7 +165,7 @@ class AssetManager
         foreach ($this->pluginAssets('js') as $item) {
             $html .= $item instanceof Asset
                 ? ($this->wanted([$item], $scope) === [] ? '' : $this->render($item))
-                : '<script>'.$item.'</script>'.PHP_EOL;
+                : '<script'.$this->nonceAttribute().'>'.$item.'</script>'.PHP_EOL;
         }
 
         // 2. Host-configured scripts
@@ -320,7 +321,7 @@ class AssetManager
             // An inline block must not be able to close its own element.
             $body = str_ireplace(['</style', '</script'], ['<\\/style', '<\\/script'], $asset->inline);
 
-            return ($asset->type === 'css' ? '<style>'.$body.'</style>' : '<script>'.$body.'</script>').PHP_EOL;
+            return ($asset->type === 'css' ? '<style'.$this->nonceAttribute().'>'.$body.'</style>' : '<script'.$this->nonceAttribute().'>'.$body.'</script>').PHP_EOL;
         }
 
         if ($asset->file !== null) {
@@ -360,6 +361,46 @@ class AssetManager
         }
 
         return ' integrity="'.$asset->integrity.'" crossorigin="anonymous"';
+    }
+
+    /**
+     * The nonce attribute for inline blocks, so a strict Content-Security-Policy
+     * can allow them: Laravel's Vite nonce when the host set one, else
+     * `tardis.csp.nonce` (a string, or a closure returning one).
+     */
+    public function nonce(): ?string
+    {
+        $nonce = config('tardis.csp.nonce');
+
+        if ($nonce instanceof \Closure) {
+            $nonce = $nonce();
+        }
+
+        $nonce ??= Vite::cspNonce();
+
+        return is_string($nonce) && preg_match('/^[A-Za-z0-9+\/=_-]+$/', $nonce) === 1 ? $nonce : null;
+    }
+
+    public function nonceAttribute(): string
+    {
+        $nonce = $this->nonce();
+
+        return $nonce === null ? '' : ' nonce="'.$nonce.'"';
+    }
+
+    /**
+     * Ask for an asset that only some pages need (a formfield's script). It is
+     * written with the page's other assets, once, however many fields want it.
+     */
+    public function require(Asset $asset): void
+    {
+        foreach ($this->added as $existing) {
+            if ($existing->type === $asset->type && $existing->file === $asset->file && $existing->url === $asset->url && $existing->inline === $asset->inline) {
+                return;
+            }
+        }
+
+        $this->added[] = $asset;
     }
 
     private function plugins(): PluginManager

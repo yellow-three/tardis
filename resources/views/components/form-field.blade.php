@@ -7,6 +7,10 @@
     type registered by a plugin shows up without touching either page.
 --}}
 @php
+    foreach ($field->assets() as $fieldAsset) {
+        app(\Tardis\Manager\AssetManager::class)->require($fieldAsset);
+    }
+
     $locales = $field->translatable ? $field->resolvedLocales() : [];
     $errorKey = 'form.'.$field->name;
 @endphp

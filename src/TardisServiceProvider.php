@@ -16,6 +16,7 @@ use Tardis\Commands\TardisBreadMigrateCommand;
 use Tardis\Commands\TardisMakeBreadCommand;
 use Tardis\Commands\TardisMakeModelCommand;
 use Tardis\Commands\TardisMakePluginCommand;
+use Tardis\Commands\TardisPluginsCommand;
 use Tardis\Events\BreadRecordCreated;
 use Tardis\Events\BreadRecordDeleted;
 use Tardis\Events\BreadRecordUpdated;
@@ -247,6 +248,7 @@ class TardisServiceProvider extends ServiceProvider
                 TardisMakeBreadCommand::class,
                 TardisMakeModelCommand::class,
                 TardisMakePluginCommand::class,
+                TardisPluginsCommand::class,
             ]);
         }
     }

@@ -20,11 +20,11 @@
         ],
     ];
 @endphp
-<script>
+<script{!! app(\Tardis\Manager\AssetManager::class)->nonceAttribute() !!}>
     window.__TARDIS__ = @json($tardisBoot);
 </script>
 @if ($tardisChoice['mode'] === 'system')
-    <script>
+    <script{!! app(\Tardis\Manager\AssetManager::class)->nonceAttribute() !!}>
         (function () {
             var t = window.__TARDIS__.theme;
             document.documentElement.setAttribute('data-theme', window.matchMedia('(prefers-color-scheme: dark)').matches ? t.dark : t.light);

@@ -6,6 +6,7 @@ use Tardis\Http\BreadRoutes;
 use Tardis\Http\Controllers\AssetController;
 use Tardis\Http\Controllers\LocaleController;
 use Tardis\Http\Controllers\ThemeController;
+use Tardis\Http\PluginRoutes;
 
 // Plugin and host assets, addressed by content hash. No middleware on purpose:
 // they are code, not data, the login page needs them too, and a session cookie
@@ -67,3 +68,6 @@ Route::middleware(['web', 'tardis.locale', 'tardis.admin'])
 
 // BREAD routes are generated from the definitions, after every fixed screen.
 BreadRoutes::define();
+
+// Plugins that provide routes add them inside the panel's own group.
+PluginRoutes::define();
