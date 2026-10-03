@@ -7,12 +7,24 @@ namespace Tests;
 use BladeUI\Heroicons\BladeHeroiconsServiceProvider;
 use BladeUI\Icons\BladeIconsServiceProvider;
 use Illuminate\Cache\CacheServiceProvider;
+use Illuminate\Filesystem\Filesystem;
 use Livewire\LivewireServiceProvider;
 use Orchestra\Testbench\TestCase as OrchestraTestCase;
 use Tardis\TardisServiceProvider;
 
 abstract class TestCase extends OrchestraTestCase
 {
+    protected string $tardisStorage = '';
+
+    protected function tearDown(): void
+    {
+        parent::tearDown();
+
+        if ($this->tardisStorage !== '') {
+            (new Filesystem)->deleteDirectory($this->tardisStorage);
+        }
+    }
+
     protected function getPackageProviders($app): array
     {
         return [
@@ -27,7 +39,8 @@ abstract class TestCase extends OrchestraTestCase
     protected function defineEnvironment($app): void
     {
         // Never let tests write plugin/settings/BREAD state into the shared skeleton.
-        $app->useStoragePath(sys_get_temp_dir().'/tardis-testbench-storage-'.getmypid());
+        $this->tardisStorage = sys_get_temp_dir().'/tardis-testbench-storage-'.uniqid();
+        $app->useStoragePath($this->tardisStorage);
 
         $app['config']->set('database.default', 'testing');
         $app['config']->set('database.connections.testing', [
