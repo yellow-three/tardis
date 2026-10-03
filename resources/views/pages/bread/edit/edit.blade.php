@@ -1,8 +1,8 @@
 <div>
     <div class="flex items-center justify-between mb-6">
         <div>
-            <h1 class="text-2xl font-bold">Edit {{ $bread['name'] ?? ucfirst($slug) }}</h1>
-            <p class="text-base-content/60 mt-1">Update the selected record.</p>
+            <h1 class="text-2xl font-bold">{{ __('tardis::bread.edit_record', ['name' => $bread['name'] ?? ucfirst($slug)]) }}</h1>
+            <p class="text-base-content/60 mt-1">{{ __('tardis::bread.update_the_selected_record') }}</p>
         </div>
     </div>
 
@@ -69,7 +69,7 @@
                     @elseif ($type === 'slider')
                         <input type="range" wire:model="form.{{ $name }}" class="range" min="{{ $field['min'] ?? 0 }}" max="{{ $field['max'] ?? 100 }}" step="{{ $field['step'] ?? 1 }}" />
                     @elseif ($type === 'tags')
-                        <input type="text" wire:model="form.{{ $name }}" class="input w-full" placeholder="Comma separated" />
+                        <input type="text" wire:model="form.{{ $name }}" class="input w-full" placeholder="{{ __('tardis::bread.comma_separated') }}" />
                     @elseif ($type === 'date')
                         <input type="date" wire:model="form.{{ $name }}" class="input w-full" />
                     @elseif ($type === 'datetime')
@@ -88,7 +88,7 @@
                         <input
                             type="search"
                             wire:model.live.debounce.300ms="relationSearch.{{ $name }}"
-                            placeholder="Search {{ $label }}..."
+                            placeholder="{{ __('tardis::bread.search_name', ['name' => $label]) }}"
                             class="input input-sm w-full mb-2"
                         />
                         <div class="border border-base-300 rounded-lg max-h-48 overflow-y-auto">
@@ -98,12 +98,12 @@
                                     <span class="text-sm">{{ $optionLabel }}</span>
                                 </label>
                             @empty
-                                <p class="px-3 py-2 text-sm text-base-content/60">No matches found.</p>
+                                <p class="px-3 py-2 text-sm text-base-content/60">{{ __('tardis::bread.no_matches_found') }}</p>
                             @endforelse
                         </div>
                     @elseif ($type === 'has_many')
                         <div class="border border-base-300 rounded-lg p-4 text-sm text-base-content/60">
-                            Related items will be managed here.
+                            {{ __('tardis::bread.related_items_will_be_managed_here') }}
                         </div>
                     @else
                         @if ($translatable)
@@ -121,8 +121,8 @@
             @endforeach
 
             <div class="card-actions justify-end">
-                <a href="{{ url(trim(config('tardis.admin.prefix', 'admin'), '/').'/'.$slug) }}" class="btn btn-ghost">Cancel</a>
-                <button type="submit" class="btn btn-primary">Update</button>
+                <a href="{{ url(trim(config('tardis.admin.prefix', 'admin'), '/').'/'.$slug) }}" class="btn btn-ghost">{{ __('tardis::bread.cancel') }}</a>
+                <button type="submit" class="btn btn-primary">{{ __('tardis::bread.update') }}</button>
             </div>
         </div>
     </form>

@@ -226,10 +226,9 @@ new #[Title('Edit')] #[Layout('tardis::layouts.admin')] class extends Component
             }
 
             if ($missing !== []) {
-                $this->addError('form', sprintf(
-                    'These fields are required by the database and cannot be left empty: %s.',
-                    implode(', ', $missing),
-                ));
+                $this->addError('form', __('tardis::bread.fields_required_by_database', [
+                    'fields' => implode(', ', $missing),
+                ]));
 
                 return;
             }
@@ -258,7 +257,7 @@ new #[Title('Edit')] #[Layout('tardis::layouts.admin')] class extends Component
             }
         }
 
-        session()->flash('message', 'Item updated successfully.');
+        session()->flash('message', __('tardis::bread.item_updated'));
         $this->redirect(url(trim(config('tardis.admin.prefix', 'admin'), '/').'/'.$this->slug));
     }
 };

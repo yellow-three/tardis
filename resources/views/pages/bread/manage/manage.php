@@ -43,7 +43,7 @@ new #[Title('BREAD Management')] #[Layout('tardis::layouts.admin')] class extend
         try {
             app(BreadManager::class)->rollback($slug, $backup);
 
-            session()->flash('message', "BREAD [{$slug}] restored from a backup.");
+            session()->flash('message', __('tardis::bread.restored_from_backup', ['slug' => $slug]));
         } catch (Throwable $e) {
             session()->flash('error', $e->getMessage());
         }

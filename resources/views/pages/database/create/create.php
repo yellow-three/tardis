@@ -62,7 +62,7 @@ new #[Title('Create Table')] #[Layout('tardis::layouts.admin')] class extends Co
         $columns = $this->normalizeColumns($this->newTableColumns);
 
         if (count($columns) === 0) {
-            $this->error = 'Add at least one column.';
+            $this->error = __('tardis::database.add_one_column');
 
             return;
         }
@@ -99,17 +99,17 @@ new #[Title('Create Table')] #[Layout('tardis::layouts.admin')] class extends Co
 
                     app(ModelGenerator::class)->generate($this->newTableName, $columns, ['force' => true]);
 
-                    session()->flash('message', 'Table and model created successfully.');
+                    session()->flash('message', __('tardis::database.table_and_model_created'));
                 } catch (Throwable $e) {
-                    session()->flash('message', 'Table created, but model generation failed: '.$e->getMessage());
+                    session()->flash('message', __('tardis::database.table_created_model_failed', ['error' => $e->getMessage()]));
                 }
             } else {
-                session()->flash('message', 'Table created successfully.');
+                session()->flash('message', __('tardis::database.table_created'));
             }
 
             $this->redirect(route('tardis.database.index'));
         } catch (Throwable $e) {
-            $this->error = 'Could not create table: '.$e->getMessage();
+            $this->error = __('tardis::database.could_not_create_table', ['error' => $e->getMessage()]);
         }
     }
 };

@@ -205,10 +205,9 @@ new #[Title('Create')] #[Layout('tardis::layouts.admin')] class extends Componen
         }
 
         if ($missing !== []) {
-            $this->addError('form', sprintf(
-                'These fields are required by the database and cannot be left empty: %s.',
-                implode(', ', $missing),
-            ));
+            $this->addError('form', __('tardis::bread.fields_required_by_database', [
+                'fields' => implode(', ', $missing),
+            ]));
 
             return;
         }
@@ -231,7 +230,7 @@ new #[Title('Create')] #[Layout('tardis::layouts.admin')] class extends Componen
 
         BreadRecordCreated::dispatch($this->slug, $created, $data);
 
-        session()->flash('message', 'Item created successfully.');
+        session()->flash('message', __('tardis::bread.item_created'));
         $this->redirect(url(trim(config('tardis.admin.prefix', 'admin'), '/').'/'.$this->slug));
     }
 };

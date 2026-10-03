@@ -69,7 +69,7 @@ new #[Title('Database Explorer')] #[Layout('tardis::layouts.admin')] class exten
                 return $table;
             }, $tables);
         } catch (Throwable $e) {
-            $this->error = 'Could not load tables: '.$e->getMessage();
+            $this->error = __('tardis::database.could_not_load_tables', ['error' => $e->getMessage()]);
             $this->tables = [];
         }
     }
@@ -100,7 +100,7 @@ new #[Title('Database Explorer')] #[Layout('tardis::layouts.admin')] class exten
 
             $this->totalRows = DB::connection($connection)->table($this->selectedTable)->count();
         } catch (Throwable $e) {
-            $this->error = 'Could not load table data: '.$e->getMessage();
+            $this->error = __('tardis::database.could_not_load_table_data', ['error' => $e->getMessage()]);
             $this->columns = [];
         }
     }

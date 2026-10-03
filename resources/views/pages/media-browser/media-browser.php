@@ -242,7 +242,7 @@ new #[Title('Media')] #[Layout('tardis::layouts.admin')] class extends Component
         $this->newUploads = [];
         $this->uploadInputKey++;
         $this->loadFiles();
-        session()->flash('message', $count.' file(s) uploaded successfully');
+        session()->flash('message', __('tardis::media.uploaded', ['count' => $count]));
     }
 
     public function showFileInfo(string $path): void

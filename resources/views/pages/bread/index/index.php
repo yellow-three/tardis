@@ -114,6 +114,6 @@ new #[Title('BREAD')] #[Layout('tardis::layouts.admin')] class extends Component
         $item->delete();
 
         BreadRecordDeleted::dispatch($this->slug, $item);
-        session()->flash('message', 'Item deleted successfully.');
+        session()->flash('message', __('tardis::bread.item_deleted'));
     }
 };
