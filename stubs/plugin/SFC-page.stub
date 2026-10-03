@@ -3,7 +3,7 @@ use Livewire\Component;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 
-new #[Title('{{STUDLY_NAME}}')] #[Layout('components.tardis.admin-layout')] class extends Component
+new #[Title('{{STUDLY_NAME}}')] #[Layout('tardis::layouts.admin')] class extends Component
 {
     //
 };
