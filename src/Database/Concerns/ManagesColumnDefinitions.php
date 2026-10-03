@@ -45,6 +45,17 @@ trait ManagesColumnDefinitions
         ];
     }
 
+    /**
+     * Framework tables (migrations, sessions, jobs...) and this package's own
+     * tardis_* tables are never exposed: one wrong click in the explorer would
+     * otherwise take the host application or the permission system down.
+     */
+    protected function isHiddenTable(string $name): bool
+    {
+        return str_starts_with($name, 'tardis_')
+            || in_array($name, (array) config('tardis.database.hidden_tables', []), true);
+    }
+
     protected function validateTableName(string $name): bool
     {
         if (! preg_match('/^[a-z][a-z0-9_]+$/', $name)) {

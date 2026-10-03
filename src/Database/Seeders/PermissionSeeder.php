@@ -6,6 +6,7 @@ namespace Tardis\Database\Seeders;
 
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Str;
+use Tardis\Auth\Abilities;
 use Tardis\Models\Permission;
 use Tardis\Models\Role;
 
@@ -21,31 +22,10 @@ use Tardis\Models\Role;
  */
 class PermissionSeeder extends Seeder
 {
-    /** @var array<int, string> */
-    protected array $adminPermissions = [
-        'browse admin',
-        'access admin',
-        'manage users',
-        'manage settings',
-        'manage plugins',
-        'manage menus',
-    ];
-
-    /** @var array<int, string> */
-    protected array $mediaPermissions = [
-        'browse media',
-        'read media',
-        'upload media',
-        'edit media',
-        'delete media',
-        'rename media',
-        'move media',
-    ];
-
     public function run(): void
     {
-        $this->createPermissions($this->adminPermissions, 'admin');
-        $this->createPermissions($this->mediaPermissions, 'media');
+        $this->createPermissions(Abilities::admin(), 'admin');
+        $this->createPermissions(Abilities::media(), 'media');
         $this->ensureSuperAdminRoles();
     }
 

@@ -10,17 +10,16 @@ Bu dosya **yalnızca aktif/açık** bulguları, denemeleri ve açık işleri tut
 
 # GÜNCELLEME (2026-10-03) — Kod denetimi: düzeltilenler commit'te, açık kalanlar burada
 
+> Çözülenler (varsayılan yetkilendirme B9, BREAD dışı ekranların yetkisi B10, settings import B15) `RELEASE_NOTES.md`'de; bu tabloda yalnızca açık kalanlar var.
+
 Bu turda bulunan ve düzeltilen hatalar (kilitli Livewire property'leri, search yetkisi, medya yükleme listesi, login throttle, doğrulama kurallarında `|`, slug path traversal, `make-plugin` stub'ları) `RELEASE_NOTES.md` ve `git log`'da. Aşağıdakiler **karar veya kapsam gerektirdiği için açık**:
 
 | # | Bulgu | Kod ref |
 |---|-------|---------|
-| B9 | **Varsayılan kurulumda yetkilendirme yok (fail-open).** `TardisAuthorizationPlugin` hiçbir yerde kaydedilmiyor; `BreadAuthorization` plugin yoksa her şeye izin veriyor, `AdminMiddleware` ise yalnızca "giriş yapılmış mı" diye bakıyor. Sonuç: host uygulamanın **herhangi bir giriş yapmış kullanıcısı** `/admin` ve tüm BREAD CRUD'una erişir. README bunu belgeliyor; kod hâlâ açık. Seçenekler: (a) plugin'i varsayılan kaydet (süper-admin rolü olmayan kurulumlar kilitlenir), (b) config'te `tardis.authorization.enabled` bayrağı, (c) olduğu gibi bırak ve yalnızca belgele. | `src/TardisServiceProvider.php` (`registerDefaultAuth`), `src/Auth/BreadAuthorization.php:41`, `src/Http/Middleware/AdminMiddleware.php` |
-| B10 | **BREAD dışındaki ekranlar yetki dışı.** Roles, Permissions, Plugins, Settings, Database Explorer, BREAD manage/builder (rollback dahil) ve Media yalnızca `tardis.admin` ile korunuyor. B9 kapansa bile bir BREAD rolü olan kullanıcı kendine rol/izin verebilir. | `routes/admin.php`, `resources/views/pages/{roles,permissions,plugins,settings,database,media-browser,bread/manage}` |
 | B11 | **`BasePolicy` izin adı BREAD slug'ından türemiyor.** `$slug = class_basename($this)` → `"browse PostPolicy"`; BREAD sayfaları ise `"browse posts"` soruyor. Test (`BasePolicyTest`) bunu host sözleşmesi olarak sabitliyor ama iki taraf aynı izin adını kullanmıyor. `hasPermissionTo` yoksa `true` döner (fail-open). | `src/Policies/BasePolicy.php:12-17` |
 | B12 | **Login formu `AuthenticationPlugin`'i atlıyor.** `login.blade.php` doğrudan `auth()->attempt()` çağırıyor; özel bir auth plugin'inin `authenticate()` / `guard()` / `loginComponent()` değerleri login sırasında hiç kullanılmıyor. | `resources/views/pages/login.blade.php`, `src/Plugins/AuthenticationPlugin.php` |
 | B13 | **Kullanılmayan config anahtarları.** `tardis.admin.middleware`, `tardis.plugins.enabled/disabled`, `tardis.media.*`, `tardis.bread.soft_deletes/timestamps`, `tardis.activity_log.*` hiçbir yerde okunmuyor (medya `tardis-media.*` kullanıyor; route'lar `['web','tardis.admin']`'i sabit yazıyor). Host bu anahtarları değiştirip hiçbir etki görmez. | `config/tardis.php`, `routes/admin.php` |
 | B14 | **Plugin route'ları `/{slug}` wildcard'ına yenilebilir.** Core `/{slug}`, `/{slug}/{id}` rotalarını en sona koyuyor ama plugin provider'ı sonra yüklenirse `/admin/blog/posts` BREAD sayfasına düşer. Şu an yalnızca `docs/PLUGIN_GUIDE.md`'de uyarı var; sıra garanti edilmiyor. | `routes/admin.php:48-52` |
-| B15 | **`SettingsManager::import()` kısmi yazıyor.** Çakışan bir anahtarda `create()` istisna fırlatıyor; önceki kayıtlar zaten kaydedilmiş oluyor, kullanıcıya yarım import bildiriliyor. | `src/Manager/SettingsManager.php` (`import`) |
 
 # GÜNCELLEME (2026-10-01) — Create/edit atomikliği düzeltildi; `registerType()` erişilemezliği AÇIK (karar bekleniyor)
 

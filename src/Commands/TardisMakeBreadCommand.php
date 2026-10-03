@@ -6,6 +6,7 @@ use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 use Tardis\Bread\BreadDefinition;
+use Tardis\Bread\BreadManager;
 use Tardis\Bread\ModelReflector;
 use Tardis\Bread\Sources\JsonBreadSource;
 
@@ -45,7 +46,7 @@ class TardisMakeBreadCommand extends Command
             'search_key' => 'id',
         ]);
 
-        $source->save($definition);
+        app(BreadManager::class)->save($definition);
 
         $target = $source->path().'/'.$slug.'.json';
 

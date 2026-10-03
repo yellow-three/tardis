@@ -29,6 +29,45 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Database Explorer
+    |--------------------------------------------------------------------------
+    |
+    | Tables the explorer never lists, opens, alters or drops. Tables whose name
+    | starts with "tardis_" belong to this package and are always hidden too.
+    |
+    */
+    'database' => [
+        'hidden_tables' => [
+            'migrations',
+            'password_resets',
+            'password_reset_tokens',
+            'failed_jobs',
+            'sessions',
+            'cache',
+            'cache_locks',
+            'jobs',
+            'job_batches',
+            'personal_access_tokens',
+        ],
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Additional assets
+    |--------------------------------------------------------------------------
+    |
+    | Extra stylesheet and script URLs loaded on every admin page, after the
+    | package's own assets (Voyager's additional_css / additional_js). Plugins can
+    | still provide inline CSS/JS through the CSS and JS provider contracts.
+    |
+    */
+    'assets' => [
+        'css' => [],
+        'js' => [],
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Media Settings
     |--------------------------------------------------------------------------
     */
@@ -72,6 +111,13 @@ return [
     |
     */
     'authorization' => [
+        // When true (default) TardisAuthorizationPlugin is registered and enabled:
+        // a logged-in user needs the "access admin" ability — through a role — to
+        // open the panel. Create the first administrator with
+        // `php artisan tardis:admin you@example.com`. Set to false only if you
+        // register your own AuthorizationPlugin or protect the panel another way:
+        // with no authorization plugin every authenticated user is allowed in.
+        'enabled' => true,
         'super_admin_roles' => ['super-admin'],
     ],
 

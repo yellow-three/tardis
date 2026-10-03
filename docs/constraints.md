@@ -91,11 +91,13 @@ Livewire'de her `public` property tarayıcıdan değiştirilebilir. BREAD sayfal
 
 ---
 
-## Yetkilendirme — varsayılan olarak yok, plugin ile gelir
+## Yetkilendirme — varsayılan olarak açık plugin, `access admin` kapısı
 
-`TardisAuthorizationPlugin` pakette var ama hiçbir yerde kaydedilmiyor. Plugin yoksa `BreadAuthorization::allows()` her zaman `true` döner ve `AdminMiddleware` yalnızca kimlik doğrular. Roles/Permissions ekranları tabloları yönetir ama plugin etkin değilse hiçbir şeyi zorlamaz.
+`TardisAuthorizationPlugin` `TardisServiceProvider::boot()` içinde kaydedilir ve etkinleştirilir (`tardis.authorization.enabled`, varsayılan `true`; boot'ta okunur çünkü host config'i `register()` sırasında henüz final değildir). `AdminMiddleware` kimlik doğrulamadan sonra `access admin` ability'sini ister; rolü olmayan kullanıcı 403 alır. İlk yönetici `tardis:admin` ile oluşturulur.
 
-**Sonuç**: "İzin ekranı var" demek "izinler uygulanıyor" demek değildir. Üretime çıkan host bir `AuthorizationPlugin` kaydetmeli (README → Authentication and authorization). Açık karar: `docs/notes.md` → B9.
+Plugin **yoksa** (`enabled=false` ve host da kendi plugin'ini kaydetmediyse) `BreadAuthorization` hâlâ fail-open'dır: giriş yapmış herkes girer. Bu yüzden `enabled=false` yalnızca başka bir koruma varken kullanılmalı.
+
+**Sonuç**: Yeni bir ekran eklerken `boot()` içinde `app(BreadAuthorization::class)->authorizeAbility(Abilities::X)` çağır (Livewire her istekte `boot()`'u çalıştırır, `mount()` yalnızca ilk render'da) ve `Abilities` + `PermissionSeeder`'a ability'yi ekle; menü öğesine `->permission(...)` ver. Testler `tardis.authorization.enabled=false` ile çalışır (`tests/TestCase.php`); yetki testleri kendi plugin'ini kaydeder.
 
 ---
 
@@ -104,6 +106,8 @@ Livewire'de her `public` property tarayıcıdan değiştirilebilir. BREAD sayfal
 `PluginManager::enable()` saklanan "disabled" kaydını siler ve cache'e yazar. Bir service provider'dan çağrılırsa her istekte Plugins sayfasındaki devre dışı bırakmayı geri alır. Boot-time varsayılanı `enableByDefault()` verir: kullanıcı kapattıysa dokunmaz, cache'e yazmaz.
 
 **Sonuç**: Provider'larda ve `tardis:make-plugin` stub'larında `register()` + `enableByDefault()` kullan; `enable()` yalnızca Plugins sayfasındaki düğmeye ait.
+
+Açık/kapalı durumu `storage/tardis/plugins.json` içinde tutulur (cache değil — `cache:clear` bir deploy'da tüm kapatmaları geri alırdı). `AuthenticationPlugin` ve `AuthorizationPlugin` uygulayan plugin'ler **kilitlidir**: `disable()` `LogicException` fırlatır, sayfa "Required" gösterir, dosyada "disabled" yazsa bile yok sayılır.
 
 ---
 
@@ -120,4 +124,20 @@ Livewire'de her `public` property tarayıcıdan değiştirilebilir. BREAD sayfal
 Medya ekranı yüklemeleri `tardis-media.allowed_mimes` uzantılarıyla (`extensions:` + `mimes:`) ve `max_file_size` ile sınırlar; liste boşsa kural uygulanmaz. Disk genelde `public` olduğundan `.php`/`.html` yüklemek web kökünden sunulan/çalıştırılan dosya demektir. Varsayılan listede `svg` var ve script taşıyabilir.
 
 **Sonuç**: Medya yükleyen yeni bir yüzey eklerken aynı listeyi kullan. `MediaManager::upload()` kendisi doğrulama yapmaz — çağıran doğrulamalıdır.
+
+---
+
+## Manager'lar container singleton'ıdır
+
+`MenuManager`, `WidgetManager`, `SettingsManager`, `FormfieldManager` ve `PluginManager` container'da tek instance'tır ve `Tardis::menu()` vb. aynı nesneyi döndürür. Eskiden facade `new` ile ayrı bir kopya üretiyordu: facade üzerinden kaydedilen menü öğesi, alan tipi veya plugin sayfalara/middleware'e hiç ulaşmıyordu (ve header ikinci, boş bir `MenuManager` çözüp kullanıcı menüsünü boş gösteriyordu).
+
+**Sonuç**: Yeni bir manager eklerken `TardisServiceProvider::register()` içinde `singleton` yap ve `Tardis` sınıfında `app(Class::class)` ile çöz — `new` kullanma. `tests/Unit/TardisTest.php` eşitliği pinler.
+
+---
+
+## Admin kabuğu host rotalarına bağımlı olmamalı
+
+Header/sidebar yalnızca `tardis.*` rotalarını varsayar. Host'un `profile.edit` rotası varsa Profile bağlantısı eklenir, yoksa eklenmez; çıkış `tardis.logout`'tur. Eskiden boş bir host (Breeze/Fortify'sız) her sayfada `Route [profile.edit] not defined` ile 500 veriyordu.
+
+**Sonuç**: Layout/header'a `route('...')` eklerken rotanın paketin kendisinde olduğundan emin ol; host rotası gerekiyorsa `Route::has()` ile koru. `tests/Feature/AdminShellTest.php` her sabit sayfayı tam doküman olarak çıplak bir host'ta render eder.
 

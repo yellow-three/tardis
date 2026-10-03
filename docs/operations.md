@@ -98,6 +98,14 @@ Host için iki sonuç: (1) Spatie'yi kullanıyorsa **kendi `composer.json`'una e
 
 ---
 
+## Plugin durumu cache'ten dosyaya taşındı — 2026-10-03
+
+Plugin açık/kapalı bilgisi artık `storage/tardis/plugins.json` içinde (`{"disabled": [...]}`). Eskiden `tardis.plugins.disabled` cache anahtarındaydı ve **taşınmadı**: yükseltmeden sonra cache'te kapalı olan bir plugin tekrar açık görünür, Plugins sayfasından bir kez daha kapatılmalıdır. Eski cache anahtarı kendiliğinden kaybolur (`cache:clear`) ya da `cache()->forget('tardis.plugins.disabled')` ile silinebilir.
+
+**Yükseltme sonrası ilk yönetici:** yetkilendirme artık varsayılan açık olduğundan, hiçbir rolü olmayan mevcut kurulumlar panele giremez. `php artisan migrate && php artisan tardis:admin you@example.com` çalıştırın.
+
+---
+
 ## Push / merge durumu
 
 `feat/modern-admin-redesign` `origin`'e push edildi; settings MFC + temizlik işi PR #5 ile içine merge edildi. `master`'a merge **yapılmadı** — redesign branch'inin master'a alınması ayrı bir karar.

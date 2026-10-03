@@ -574,6 +574,11 @@
                                 <span class="text-error">{{ $message }}</span>
                             </label>
                         @enderror
+                        @if ($importError)
+                            <label class="label">
+                                <span class="text-error" role="alert">{{ $importError }}</span>
+                            </label>
+                        @endif
                     </div>
 
                     <div class="modal-action">

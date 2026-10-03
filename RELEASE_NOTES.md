@@ -10,14 +10,24 @@ Package version: `1.0.0` (`Tardis\Tardis::version()`). Branch `feat/modern-admin
 - Sidebar built from `MenuManager` and plugin-provided items; active-route detection for nested URLs
 - Plugin system with Authentication, Authorization, Formfield and Theme plugin contracts plus Provider/Filter feature interfaces
 - DaisyUI 5 theme system driven by a Vite-generated manifest, applied before first paint
-- Role/permission tables and a `TardisAuthorizationPlugin` (not enabled by default — see README → Authentication and authorization)
-- Artisan generators: `tardis:make-bread`, `tardis:make-model`, `tardis:make-plugin`, plus `tardis:bread:migrate` / `tardis:bread:export`
+- Role/permission tables, a `TardisAuthorizationPlugin` that is enabled by default, a Users screen for assigning roles and `tardis:admin` to create the first administrator (README → Authentication and authorization)
+- Artisan commands: `tardis:admin`, `tardis:make-bread`, `tardis:make-model`, `tardis:make-plugin`, plus `tardis:bread:migrate` / `tardis:bread:export`
 
 ## Architecture decision
 
 Pages follow the Livewire 4 page-first convention: simple screens are SFC, large ones are MFC (`bread/*`, `bread-builder`, `database/*`, `media-browser`, `settings`), and routes are `Route::livewire` routes. Class-based components are not used.
 
-## Changes since the redesign branch started
+## Authorization, plugins and admin screens (2026-10-03)
+
+- **The panel is closed by default.** `TardisAuthorizationPlugin` is registered and enabled; `tardis.admin` requires the `access admin` ability after login. Run `php artisan tardis:admin you@example.com` after migrating. Set `tardis.authorization.enabled=false` only if something else protects `/admin`.
+- **Every fixed screen is gated** by its own ability (`manage settings|plugins|users|roles|database|bread`, `view activity`, `browse|upload|rename|delete media`), checked on every Livewire request; the sidebar hides what the user cannot open (BREAD resources by `browse {slug}`). Saving a BREAD definition provisions its five permissions.
+- **Plugins:** on/off state moved from the cache to `storage/tardis/plugins.json`; authentication and authorization plugins are locked. *Upgrade note: switches previously stored in the cache are not migrated, so a plugin that was disabled is enabled again until it is disabled once more.*
+- **Users screen** (`/admin/users`): search users, assign roles, the last super administrator cannot be demoted.
+- **Database Explorer** hides framework and `tardis_*` tables; the table being edited is locked.
+- **Admin shell** renders on a host without `profile.edit`/`logout` routes (every page returned 500 before), and the managers are container singletons so the facade and the container share one instance.
+- **Settings import** is all-or-nothing and reports a clash in the modal; `tardis.assets.css|js` add extra stylesheets/scripts.
+
+## Earlier changes since the redesign branch started
 
 Security and correctness fixes found in the code audit:
 
@@ -32,8 +42,9 @@ Security and correctness fixes found in the code audit:
 
 ## Known limitations
 
-- No authorization plugin is enabled by default; any authenticated user can reach the panel until one is registered.
-- Roles, Permissions, Plugins, Settings, Database and BREAD-definition screens are not gated by BREAD abilities.
+- With `tardis.authorization.enabled=false` and no other authorization plugin, any authenticated user can reach the panel.
+- The login form calls `auth()->attempt()` directly instead of the `AuthenticationPlugin`.
+- `tardis.admin.middleware`, `tardis.plugins.*`, `tardis.media.*`, `tardis.bread.soft_deletes/timestamps` and `tardis.activity_log.*` config keys are not read anywhere.
 - `registerType()` extension point is unreachable from BREAD definitions because `FieldType` is a closed enum.
 - Theme manifest loading happens during service-provider registration and logs rather than surfaces failures.
 
@@ -42,6 +53,6 @@ Open decisions and the roadmap live in [docs/notes.md](docs/notes.md) and [docs/
 ## Verified quality
 
 ```bash
-composer test   # 476 passed (1213 assertions)
+composer test   # 561 passed (1391 assertions)
 composer lint   # clean
 ```

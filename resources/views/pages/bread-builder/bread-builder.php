@@ -4,6 +4,8 @@ use Illuminate\Support\Str;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
+use Tardis\Auth\Abilities;
+use Tardis\Auth\BreadAuthorization;
 use Tardis\Bread\BreadDefinition;
 use Tardis\Bread\BreadManager;
 use Tardis\Bread\FieldType;
@@ -85,6 +87,16 @@ new #[Title('BREAD Builder')] #[Layout('tardis::layouts.admin')] class extends C
     public bool $modelHasSoftDeletes = false;
 
     public bool $modelHasTimestamps = true;
+
+    /**
+     * Runs on every request, not only on mount: Livewire keeps component state
+     * between updates, so a permission revoked after the page opened must
+     * still stop the next action.
+     */
+    public function boot(): void
+    {
+        app(BreadAuthorization::class)->authorizeAbility(Abilities::BREAD);
+    }
 
     public function mount(?string $slug = null): void
     {

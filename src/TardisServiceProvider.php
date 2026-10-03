@@ -8,7 +8,9 @@ use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\ServiceProvider;
 use Livewire\Livewire;
+use Tardis\Auth\TardisAuthorizationPlugin;
 use Tardis\Bread\Sources\ConfigBreadSource;
+use Tardis\Commands\TardisAdminCommand;
 use Tardis\Commands\TardisBreadExportCommand;
 use Tardis\Commands\TardisBreadMigrateCommand;
 use Tardis\Commands\TardisMakeBreadCommand;
@@ -16,9 +18,12 @@ use Tardis\Commands\TardisMakeModelCommand;
 use Tardis\Commands\TardisMakePluginCommand;
 use Tardis\Http\Middleware\AdminMiddleware;
 use Tardis\Manager\AssetManager;
+use Tardis\Manager\FormfieldManager;
+use Tardis\Manager\MenuManager;
 use Tardis\Manager\PluginManager;
 use Tardis\Manager\SettingsManager;
 use Tardis\Manager\ThemeManager;
+use Tardis\Manager\WidgetManager;
 use Tardis\Plugins\AuthenticationPlugin;
 
 class TardisServiceProvider extends ServiceProvider
@@ -41,6 +46,15 @@ class TardisServiceProvider extends ServiceProvider
         );
 
         $this->app->singleton(AssetManager::class);
+
+        // One instance per manager: pages resolve them with app(Class::class)
+        // while host code goes through the Tardis facade, and anything
+        // registered on one copy (a menu item, a field type, a widget) would be
+        // invisible to the other.
+        $this->app->singleton(MenuManager::class);
+        $this->app->singleton(WidgetManager::class);
+        $this->app->singleton(SettingsManager::class);
+        $this->app->singleton(FormfieldManager::class);
 
         // Plugin registrations must outlive the registration call: the manager
         // is resolved again by every consumer (AdminMiddleware, MenuItem,
@@ -107,6 +121,7 @@ class TardisServiceProvider extends ServiceProvider
             return '<?php echo app(\\Tardis\\Manager\\AssetManager::class)->scripts(); ?>';
         });
 
+        $this->registerDefaultAuthorization();
         $this->registerLivewireNamespaces();
         $this->registerViews();
 
@@ -151,6 +166,22 @@ class TardisServiceProvider extends ServiceProvider
         $manager = $this->app->make(PluginManager::class);
         $manager->register('tardis-auth', AuthenticationPlugin::class);
         $manager->enableByDefault('tardis-auth');
+
+    }
+
+    /**
+     * Registered in boot(), not register(): it reads host configuration, which
+     * is only final once every provider has registered.
+     */
+    protected function registerDefaultAuthorization(): void
+    {
+        if (! config('tardis.authorization.enabled', true)) {
+            return;
+        }
+
+        $manager = $this->app->make(PluginManager::class);
+        $manager->register('tardis-authorization', TardisAuthorizationPlugin::class);
+        $manager->enableByDefault('tardis-authorization');
     }
 
     protected function registerLivewireNamespaces(): void
@@ -224,6 +255,7 @@ class TardisServiceProvider extends ServiceProvider
     {
         if ($this->app->runningInConsole()) {
             $this->commands([
+                TardisAdminCommand::class,
                 TardisBreadExportCommand::class,
                 TardisBreadMigrateCommand::class,
                 TardisMakeBreadCommand::class,

@@ -1,6 +1,6 @@
 # Tardis Project Status
 
-Last verified: 2026-10-03 — `composer test` → 476 passed (1213 assertions), `composer lint` clean.
+Last verified: 2026-10-03 — `composer test` → 561 passed (1391 assertions), `composer lint` clean.
 
 ## Overview
 
@@ -18,9 +18,11 @@ Declared last in `routes/admin.php` so they never shadow the fixed screens: `/ad
 Only SFC and MFC are allowed (see `.claude/AGENTS.md`). Large pages are MFC: `bread/*`, `bread-builder`, `database/*`, `media-browser`, `settings`.
 
 ### Security model
-- `tardis.admin` middleware → `AuthenticationPlugin` (default: `Auth::check()`); login is rate limited.
-- BREAD pages authorise `"{action} {slug}"` through the enabled `AuthorizationPlugin`; with none enabled the guard **fails open**. `TardisAuthorizationPlugin` ships but is not registered by default.
+- `tardis.admin` middleware → `AuthenticationPlugin` (default: `Auth::check()`) then the `access admin` ability; login is rate limited.
+- `TardisAuthorizationPlugin` is enabled by default (`tardis.authorization.enabled`); `tardis:admin` creates the first super administrator. With no authorization plugin at all the guard fails open.
+- BREAD pages authorise `"{action} {slug}"`; every other fixed screen authorises a fixed ability in `boot()` (so each Livewire request is checked); the sidebar hides what the user may not open.
 - BREAD page properties that authorisation depends on are `#[Locked]`.
+- Plugin switches live in `storage/tardis/plugins.json`; authentication/authorization plugins are locked.
 - Media uploads are restricted to `tardis-media.allowed_mimes`.
 
 ### Menu, themes, settings
@@ -28,11 +30,13 @@ Only SFC and MFC are allowed (see `.claude/AGENTS.md`). Large pages are MFC: `br
 - `ThemeManager` reads the Vite-generated `themes-manifest.json` (dev: Vite URL with disk fallback; prod: disk).
 - `SettingsManager` persists to `storage/tardis/settings/settings.json`; the preset in `resources/presets/settings.json` is seeded on the first web boot when no file exists.
 
-## Open decisions (details in `docs/notes.md`)
+## Open decisions and follow-ups (details in `docs/notes.md`)
+
+The authorization default, per-screen abilities, plugin persistence/locking and the Users screen were decided and shipped on 2026-10-03.
+
 
 | Item | Why it needs a decision |
 |---|---|
-| Authorization default | Registering `TardisAuthorizationPlugin` by default is safer but locks out installs that have no roles yet |
 | BREAD definition source (JSON vs `config/bread`) | Plan and code point in opposite directions (B7 / R11) |
 | `FieldType` enum vs `registerType()` | The extension point cannot be used from BREAD definitions (B1) |
 | `ThemePlugin::getStyles()` | Contract change is a BC break (B8 / R10a) |

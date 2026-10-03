@@ -5,6 +5,8 @@ use Illuminate\Support\Facades\Schema;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
+use Tardis\Auth\Abilities;
+use Tardis\Auth\BreadAuthorization;
 use Tardis\Database\Concerns\ManagesColumnDefinitions;
 use Tardis\Database\ModelGenerator;
 
@@ -28,6 +30,16 @@ new #[Title('Database Explorer')] #[Layout('tardis::layouts.admin')] class exten
 
     public bool $selectedTableHasModel = false;
 
+    /**
+     * Runs on every request, not only on mount: Livewire keeps component state
+     * between updates, so a permission revoked after the page opened must
+     * still stop the next action.
+     */
+    public function boot(): void
+    {
+        app(BreadAuthorization::class)->authorizeAbility(Abilities::DATABASE);
+    }
+
     public function mount(): void
     {
         $this->loadTables();
@@ -46,6 +58,11 @@ new #[Title('Database Explorer')] #[Layout('tardis::layouts.admin')] class exten
                 ? Schema::connection($connection)->getTables(DB::connection($connection)->getDatabaseName())
                 : Schema::connection($connection)->getTables();
 
+            $tables = array_values(array_filter(
+                $tables,
+                fn (array $table) => ! $this->isHiddenTable($table['name'])
+            ));
+
             $this->tables = array_map(function (array $table) {
                 $table['has_model'] = app(ModelGenerator::class)->modelExists($table['name']);
 
@@ -59,6 +76,10 @@ new #[Title('Database Explorer')] #[Layout('tardis::layouts.admin')] class exten
 
     public function selectTable(string $table): void
     {
+        if ($this->isHiddenTable($table)) {
+            return;
+        }
+
         $this->selectedTable = $table;
         $this->loadTableData();
     }
@@ -86,6 +107,10 @@ new #[Title('Database Explorer')] #[Layout('tardis::layouts.admin')] class exten
 
     public function viewTable(string $table): void
     {
+        if ($this->isHiddenTable($table)) {
+            return;
+        }
+
         $this->selectTable($table);
         $this->selectedTableHasModel = app(ModelGenerator::class)->modelExists($table);
         $this->showTableInfoModal = true;

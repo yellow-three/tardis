@@ -27,27 +27,27 @@ class Tardis
 
     public function plugins(): PluginManager
     {
-        return $this->pluginManager ??= new PluginManager;
+        return $this->pluginManager ??= app(PluginManager::class);
     }
 
     public function menu(): MenuManager
     {
-        return $this->menuManager ??= new MenuManager;
+        return $this->menuManager ??= app(MenuManager::class);
     }
 
     public function widgets(): WidgetManager
     {
-        return $this->widgetManager ??= new WidgetManager;
+        return $this->widgetManager ??= app(WidgetManager::class);
     }
 
     public function settings(): SettingsManager
     {
-        return $this->settingsManager ??= new SettingsManager;
+        return $this->settingsManager ??= app(SettingsManager::class);
     }
 
     public function formfields(): FormfieldManager
     {
-        return $this->formfieldManager ??= new FormfieldManager;
+        return $this->formfieldManager ??= app(FormfieldManager::class);
     }
 
     public function bread(): BreadManager

@@ -5,6 +5,8 @@ use Illuminate\Support\Str;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
+use Tardis\Auth\Abilities;
+use Tardis\Auth\BreadAuthorization;
 use Tardis\Classes\Setting;
 use Tardis\Facades\Tardis;
 
@@ -50,9 +52,21 @@ new #[Title('Settings')] #[Layout('tardis::layouts.admin')] class extends Compon
 
     public bool $showImportModal = false;
 
+    public ?string $importError = null;
+
     public bool $showExportModal = false;
 
     public bool $showJsonPanel = false;
+
+    /**
+     * Runs on every request, not only on mount: Livewire keeps component state
+     * between updates, so a permission revoked after the page opened must
+     * still stop the next action.
+     */
+    public function boot(): void
+    {
+        app(BreadAuthorization::class)->authorizeAbility(Abilities::SETTINGS);
+    }
 
     public function mount(): void
     {
@@ -300,7 +314,15 @@ new #[Title('Settings')] #[Layout('tardis::layouts.admin')] class extends Compon
             'importJson' => 'required|json',
         ]);
 
-        $count = Tardis::settings()->import($this->importJson);
+        try {
+            Tardis::settings()->import($this->importJson);
+        } catch (RuntimeException $e) {
+            $this->importError = $e->getMessage();
+
+            return;
+        }
+
+        $this->importError = null;
         $this->showImportModal = false;
         $this->loadSettings();
         $this->saved = true;

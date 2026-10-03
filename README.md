@@ -58,30 +58,33 @@ All admin routes are Livewire page routes (`Route::livewire`) defined in `routes
 - Dynamic BREAD resources, declared **last** so they never shadow a fixed screen
   - `/admin/{slug}`, `/admin/{slug}/create`, `/admin/{slug}/{id}`, `/admin/{slug}/{id}/edit`
 
-Because `/admin/{slug}` is a wildcard, any route a plugin adds under the admin prefix must be registered **before** it, or the wildcard wins.
+Because `/admin/{slug}` is a wildcard, any route a plugin adds under the admin prefix must be registered **before** it, or the wildcard wins. Fixed screens also include `/admin/users`.
 
 ## Authentication and authorization
 
-Every admin route runs through the `tardis.admin` middleware. It delegates to the enabled `AuthenticationPlugin` (the built-in one checks `Auth::check()` and redirects to `/admin/login`). The login form is rate limited to 5 failed attempts per email + IP.
+Every admin route runs through the `tardis.admin` middleware. It delegates authentication to the enabled `AuthenticationPlugin` (the built-in one checks `Auth::check()` and redirects to `/admin/login`; the login form is rate limited to 5 failed attempts per email + IP) and then requires the **`access admin`** ability.
 
-> **Read this before going to production.** Authentication only proves the visitor is logged in — **it does not prove they are an administrator**. Authorization (who may browse/add/edit/delete which BREAD) is delegated to an `AuthorizationPlugin`, and **none is enabled by default**. Until you register one, `BreadAuthorization` fails open: every logged-in user of your application can use the admin panel. Register an authorization plugin (or restrict the `tardis.admin` middleware yourself) before exposing the panel.
+Authorization is on by default: `TardisAuthorizationPlugin` is registered and enabled, backed by the `tardis_roles` / `tardis_permissions` tables. A logged-in user who holds no role cannot open the panel, so create the first administrator after migrating:
 
-The package ships `Tardis\Auth\TardisAuthorizationPlugin`, backed by the `tardis_roles` / `tardis_permissions` tables (managed on the Roles and Permissions pages). Enable it from a service provider:
-
-```php
-use Tardis\Auth\TardisAuthorizationPlugin;
-use Tardis\Manager\PluginManager;
-
-public function boot(PluginManager $plugins): void
-{
-    $plugins->register('tardis-authorization', TardisAuthorizationPlugin::class);
-    $plugins->enableByDefault('tardis-authorization');
-}
+```bash
+php artisan migrate
+php artisan tardis:admin you@example.com            # existing user
+php artisan tardis:admin you@example.com --create   # create the user as well (password generated, or --password=...)
 ```
 
-Abilities are `"{action} {slug}"` strings (`browse posts`, `edit posts`, …). Roles listed in `tardis.authorization.super_admin_roles` (default `super-admin`) bypass every check. If the host user model already has a `hasPermissionTo()` method (for example Spatie's `HasRoles`), that answer is used instead of the TARDIS tables.
+`tardis:admin` creates the `super-admin` role, provisions every permission and assigns the role; it is safe to run again. Roles listed in `tardis.authorization.super_admin_roles` (default `super-admin`) bypass every check. Further roles and their permissions are managed on the **Roles** and **Permissions** pages, and roles are assigned to people on the **Users** page.
 
-The Roles, Permissions, Plugins, Settings, Database and BREAD-definition screens are not gated by BREAD abilities; treat access to the panel as administrator access to those.
+What is checked where:
+
+| Screen | Ability |
+|---|---|
+| BREAD resources | `browse` / `read` / `add` / `edit` / `delete` + the resource slug (`browse posts`); provisioned automatically when a BREAD definition is saved |
+| Settings, Plugins, Users, Roles + Permissions, Database Explorer, BREAD management + builder, Activity log | `manage settings`, `manage plugins`, `manage users`, `manage roles`, `manage database`, `manage bread`, `view activity` |
+| Media | `browse media`, plus `upload media`, `rename media`, `delete media` for writes |
+
+Pages check their ability on every Livewire request, not only on mount, and the sidebar hides entries the user may not open. If the host user model already has a `hasPermissionTo()` method (for example Spatie's `HasRoles`), that answer is used instead of the TARDIS tables.
+
+To use your own authorization, set `tardis.authorization.enabled` to `false` and register an `AuthorizationPlugin`. **With no authorization plugin at all, every authenticated user is allowed into the panel**, so only disable it if something else protects `/admin`.
 
 ## Menu system
 
@@ -97,7 +100,9 @@ Default entries include:
 
 - Overview: Dashboard, Media, UI Components
 - Management: Settings, Plugins, Database Explorer, BREAD (plus one entry per BREAD resource)
-- Access: Permissions, Roles
+- Access: Permissions, Users, Roles
+
+Entries the current user is not allowed to open are hidden. The user dropdown offers Logout, and a Profile link only when the host application defines a `profile.edit` route.
 
 Menu items can be grouped by section and can participate in active-route detection across nested admin pages.
 
@@ -193,6 +198,7 @@ Larger screens (BREAD pages, BREAD builder, media browser, database explorer, se
 
 | Command | Purpose |
 |---|---|
+| `tardis:admin {email}` | Make a user a super administrator (`--create` creates the user) |
 | `tardis:make-bread {model} {slug?}` | Create a BREAD definition (JSON) from an Eloquent model |
 | `tardis:make-model {table}` | Generate an Eloquent model for an existing table |
 | `tardis:make-plugin {name}` | Scaffold a plugin package (`--with-menu`, `--with-widgets`, `--with-settings`, `--with-migration`, `--with-model`) |
@@ -200,6 +206,14 @@ Larger screens (BREAD pages, BREAD builder, media browser, database explorer, se
 | `tardis:bread:export` | Export all JSON definitions as one document |
 
 See [docs/PLUGIN_GUIDE.md](docs/PLUGIN_GUIDE.md) and [docs/EXAMPLE_BREAD.md](docs/EXAMPLE_BREAD.md).
+
+## Extra CSS and JavaScript
+
+`tardis.assets.css` and `tardis.assets.js` take lists of URLs (`https://…` or root-relative `/…`) that load on every admin page after the package assets. Plugins can add inline CSS/JS through the `CSS` / `JS` provider contracts.
+
+## Database Explorer
+
+The explorer never lists, opens, alters or drops framework tables (`migrations`, `sessions`, `jobs`, `cache`, …, configurable in `tardis.database.hidden_tables`) or this package's `tardis_*` tables.
 
 ## Media uploads
 

@@ -5,7 +5,7 @@
 > | Bulgu | Şimdiki durum |
 > |---|---|
 > | P0 validation kuralları düşüyor | ✅ Çözüldü — `FieldValidationRules` (+ `|` içeren regex düzeltmesi), `BreadValidationTest` |
-> | P0 izin kontrolü yok | 🟡 Sayfalar `BreadAuthorization` ile kontrol ediyor ve property'ler kilitli; **ama varsayılan kurulumda plugin yok → fail-open** (`notes.md` B9/B10) |
+> | P0 izin kontrolü yok | ✅ Çözüldü — `BreadAuthorization`, kilitli property'ler, `TardisAuthorizationPlugin` varsayılan etkin, `access admin` kapısı, tüm sabit ekranlar ability ile korunuyor (2026-10-03) |
 > | P0 translatable → NULL | ✅ Çözüldü — `TranslatableFormfieldTest` |
 > | P1 BelongsToMany kapsamsız `sync()` | ✅ Çözüldü — `resolvableIds()`; `searchOptions()` filtresizliği açık (B4) |
 > | P1 HasMany filtreleme | ↩️ Bulgu geri çekildi (`notes.md`) |
