@@ -34,8 +34,8 @@ composer test
 
 Result:
 
-- 140 tests passed
-- 231 assertions
+- 441 tests passed
+- 1116 assertions
 
 ## Optional next improvements
 
