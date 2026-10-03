@@ -59,4 +59,8 @@ return [
         'with' => 'Silinenlerle birlikte',
         'only' => 'Yalnızca silinenler',
     ],
+    'action_completed' => 'Tamamlandı.',
+    'bulk_done' => ':title: :count kayıt.',
+    'selected_count' => ':count seçili',
+    'select' => 'Seç',
 ];

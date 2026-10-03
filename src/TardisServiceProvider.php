@@ -24,6 +24,7 @@ use Tardis\Http\Middleware\AdminMiddleware;
 use Tardis\Http\Middleware\SetPanelLocale;
 use Tardis\Listeners\LogBreadActivity;
 use Tardis\Listeners\ProvisionBreadPermissions;
+use Tardis\Manager\ActionManager;
 use Tardis\Manager\AssetManager;
 use Tardis\Manager\FormfieldManager;
 use Tardis\Manager\MenuManager;
@@ -60,6 +61,7 @@ class TardisServiceProvider extends ServiceProvider
         $this->app->singleton(WidgetManager::class);
         $this->app->singleton(SettingsManager::class);
         $this->app->singleton(FormfieldManager::class);
+        $this->app->singleton(ActionManager::class);
 
         // Plugin registrations must outlive the registration call: the manager
         // is resolved again by every consumer (AdminMiddleware, MenuItem,

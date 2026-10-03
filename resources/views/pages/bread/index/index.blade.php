@@ -53,9 +53,22 @@
                     <p class="text-base-content/60 mt-2">{{ __('tardis::bread.create_the_first_item_for_this_eb71') }}</p>
                 </div>
             @else
+                @php($bulkActions = $this->actions()->filter(fn ($action) => $action->isBulk()))
+                @if ($bulkActions->isNotEmpty() && $selected !== [])
+                    <div class="flex flex-wrap items-center gap-2 border-b border-base-300 px-4 py-2">
+                        <span class="text-sm">{{ __('tardis::bread.selected_count', ['count' => count($selected)]) }}</span>
+                        @foreach ($bulkActions as $action)
+                            <button type="button" wire:click="runBulk('{{ $action->name() }}')" {!! $action->getConfirmMessage() ? 'wire:confirm="'.e($action->getConfirmMessage()).'"' : '' !!} class="btn btn-xs {{ $action->tone === 'error' ? 'btn-error btn-outline' : 'btn-ghost' }}">{{ $action->getTitle() }}</button>
+                        @endforeach
+                    </div>
+                @endif
+
                 <table class="table table-zebra">
                     <thead>
                         <tr>
+                            @if ($bulkActions->isNotEmpty())
+                                <th class="w-8" scope="col"><span class="sr-only">{{ __('tardis::bread.select') }}</span></th>
+                            @endif
                             @foreach ($this->visibleFields as $field)
                                 @php($fieldName = (string) ($field['name'] ?? ''))
                                 @php($sortable = in_array($fieldName, $this->query()->orderable(), true))
@@ -78,6 +91,9 @@
                     <tbody>
                         @foreach ($this->rows as $row)
                             <tr>
+                                @if ($bulkActions->isNotEmpty())
+                                    <td><input type="checkbox" wire:model.live="selected" value="{{ $row->getKey() }}" class="checkbox checkbox-sm" aria-label="{{ __('tardis::bread.select') }}" /></td>
+                                @endif
                                 @foreach ($this->visibleFields as $field)
                                     @php($fieldName = $field['name'] ?? '')
                                     <td>
@@ -90,14 +106,15 @@
                                 @endforeach
                                 <td class="text-right">
                                     <div class="flex justify-end gap-2">
-                                        @if (method_exists($row, 'trashed') && $row->trashed())
-                                            <button type="button" wire:click="restore({{ $row->getKey() }})" class="btn btn-ghost btn-xs">{{ __('tardis::bread.restore') }}</button>
-                                            <button type="button" wire:click="forceDelete({{ $row->getKey() }})" wire:confirm="{{ __('tardis::bread.confirm_delete_permanently') }}" class="btn btn-ghost btn-xs text-error">{{ __('tardis::bread.delete_permanently') }}</button>
-                                        @else
+                                        @unless (method_exists($row, 'trashed') && $row->trashed())
                                             <a href="{{ url(trim(config('tardis.admin.prefix', 'admin'), '/').'/'.$slug.'/'.$row->getKey()) }}" class="btn btn-ghost btn-xs">{{ __('tardis::bread.view') }}</a>
                                             <a href="{{ url(trim(config('tardis.admin.prefix', 'admin'), '/').'/'.$slug.'/'.$row->getKey().'/edit') }}" class="btn btn-ghost btn-xs">{{ __('tardis::bread.edit') }}</a>
-                                            <button type="button" wire:click="delete({{ $row->getKey() }})" wire:confirm="{{ __('tardis::bread.confirm_delete_record') }}" class="btn btn-ghost btn-xs text-error">{{ __('tardis::bread.delete') }}</button>
-                                        @endif
+                                        @endunless
+                                        @foreach ($this->actions() as $action)
+                                            @if ($action->appliesTo($row))
+                                                <button type="button" wire:click="runAction('{{ $action->name() }}', {{ $row->getKey() }})" {!! $action->getConfirmMessage() ? 'wire:confirm="'.e($action->getConfirmMessage()).'"' : '' !!} class="btn btn-ghost btn-xs {{ $action->tone === 'error' ? 'text-error' : '' }}">{{ $action->getTitle() }}</button>
+                                            @endif
+                                        @endforeach
                                     </div>
                                 </td>
                             </tr>

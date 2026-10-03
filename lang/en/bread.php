@@ -59,4 +59,8 @@ return [
         'with' => 'Include deleted',
         'only' => 'Only deleted',
     ],
+    'action_completed' => 'Done.',
+    'bulk_done' => ':title: :count record(s).',
+    'selected_count' => ':count selected',
+    'select' => 'Select',
 ];

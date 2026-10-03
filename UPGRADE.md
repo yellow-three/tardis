@@ -77,3 +77,7 @@ Generated plugins from 1.x did not load: they imported `Tardis\Core\…` classes
 | `Formfield::viewData()` overridden by subclasses with `array_merge(parent::viewData(), …)` | Override `extraViewData()`; `viewData(array $context = [])` adds `model` (the Livewire path, `form.<name>` by default), `id` and `extraAttributes` (was `attributes`) |
 | field views bound `wire:model="<name>"` and drew their own label | A field view renders **only the control** bound to `$model`; label, help text, error and per-locale repetition come from `x-tardis::form-field`. `BelongsToManyField`/`HasManyField` expose the related class as `relatedModel` (was `model`) |
 | options of radio/checkbox and slider limits ignored by BREAD pages | `Formfield::$configurable` maps definition keys onto properties |
+
+## BREAD actions
+
+`Tardis\Bread\Action` was unused and changed shape: it now works on one record (`handle(Model $record, string $slug)`, bulk runs loop over the selected rows) and is registered with `Tardis::addAction()`. `method`, `route` and `download` are gone. The `BREAD index` component's `executionMs`/`warnings` public properties became computed; the warning texts are translated.

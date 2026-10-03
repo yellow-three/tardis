@@ -2,26 +2,34 @@
 
 namespace Tardis\Bread\Actions;
 
+use Illuminate\Database\Eloquent\Model;
 use Tardis\Bread\Action;
 
 class RestoreAction extends Action
 {
-    public string $title = 'Restore';
+    public string $icon = 'arrow-uturn-left';
 
-    public string $icon = 'check-circle';
-
-    public string $method = 'POST';
-
-    public ?string $confirmMessage = 'Are you sure you want to restore this item?';
+    public ?string $permission = 'edit';
 
     public bool $bulk = true;
 
-    public function handle($model, array $ids = []): mixed
+    public function getTitle(): string
     {
-        if ($this->isBulk() && ! empty($ids)) {
-            return $model::withTrashed()->whereIn('id', $ids)->restore();
-        }
+        return __('tardis::bread.restore');
+    }
 
-        return $model->restore();
+    public function getSuccessMessage(): string
+    {
+        return __('tardis::bread.item_restored');
+    }
+
+    public function appliesTo(Model $record): bool
+    {
+        return method_exists($record, 'trashed') && $record->trashed();
+    }
+
+    public function handle(Model $record, string $slug): mixed
+    {
+        return $record->restore();
     }
 }
