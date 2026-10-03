@@ -125,7 +125,7 @@ test('bread menu icons are prefixed so the menu partial can render them', functi
     $items = collectedMenu()->all();
 
     expect($items->firstWhere('title', 'Posts')->icon)->toBe('heroicon-o-link')
-        ->and($items->firstWhere('title', 'Users')->icon)->toBe('heroicon-o-user-group')
+        ->and($items->where('section', 'BREAD')->firstWhere('title', 'Users')->icon)->toBe('heroicon-o-user-group')
         // Already-qualified components are left untouched.
         ->and($items->firstWhere('title', 'Pages')->icon)->toBe('heroicon-o-document')
         // Definitions without an icon fall back rather than rendering nothing.

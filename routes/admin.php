@@ -38,6 +38,7 @@ Route::middleware(['web', 'tardis.admin'])
 
         Route::livewire('/permissions', 'tardis::pages.permissions')->name('permissions');
         Route::livewire('/roles', 'tardis::pages.roles')->name('roles');
+        Route::livewire('/users', 'tardis::pages.users')->name('users.index');
 
         Route::livewire('/ui-components', 'tardis::pages.ui-components')->name('ui-components');
 

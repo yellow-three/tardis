@@ -106,6 +106,11 @@ class MenuManager
                 ->permission(Abilities::ROLES)
                 ->section('Access')
                 ->order(60),
+            (new MenuItem('Users', 'heroicon-o-users'))
+                ->route('tardis.users.index')
+                ->permission(Abilities::USERS)
+                ->section('Access')
+                ->order(55),
             (new MenuItem('Roles', 'heroicon-o-user-group'))
                 ->route('tardis.roles')
                 ->permission(Abilities::ROLES)

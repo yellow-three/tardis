@@ -45,6 +45,7 @@ test('every fixed admin page renders a full document without any host applicatio
     '/admin/bread',
     '/admin/database',
     '/admin/roles',
+    '/admin/users',
     '/admin/permissions',
     '/admin/activity-log',
     '/admin/search',
