@@ -1,0 +1,58 @@
+<?php
+
+return [
+    'system' => 'System',
+    'system_tools' => 'System Tools',
+    'overview' => 'Overview',
+    'logs' => 'Logs',
+    'commands' => 'Commands',
+
+    // Doctor
+    'title' => 'System',
+    'diagnostics' => 'Diagnostics',
+    'run_checks' => 'Run checks again',
+    'status' => 'Status',
+    'check' => 'Check',
+    'details' => 'Details',
+    'passed' => 'Passed',
+    'warnings' => 'Warnings',
+    'failed' => 'Failed',
+    'ok' => 'OK',
+    'warn' => 'Warning',
+    'error' => 'Failed',
+    'all_checks_passed' => 'All checks passed. Nothing to fix.',
+    'checks_with_warnings' => ':count check(s) need attention.',
+    'checks_failed' => ':count check(s) failed.',
+    'no_issues' => 'No issues detected.',
+    'read_only_notice' => 'These checks only read state. They never change anything.',
+
+    // Logs
+    'log_viewer' => 'Log Viewer',
+    'log_file' => 'Log file',
+    'select_log' => 'Select a log file',
+    'no_log_files' => 'No log files found.',
+    'unavailable' => 'This log file is no longer available.',
+    'lines' => 'Lines',
+    'tail' => 'Tail',
+    'refresh' => 'Refresh',
+    'empty_log' => 'This log file is empty.',
+    'truncated_notice' => 'Only the end of this file is shown.',
+
+    // Commands
+    'command_runner' => 'Command Runner',
+    'command' => 'Command',
+    'select_command' => 'Select a command',
+    'no_allowed_commands' => 'No commands are allowed in this environment.',
+    'arguments' => 'Arguments',
+    'allowed_options' => 'Allowed options',
+    'no_arguments' => 'This command takes no allowed options.',
+    'run' => 'Run',
+    'running' => 'Running...',
+    'output' => 'Output',
+    'no_output' => 'No output.',
+    'exit_code' => 'Exit code',
+    'runner_disabled' => 'The command runner is disabled.',
+    'runner_disabled_hint' => 'Enable it and allowlist commands in the configuration.',
+    'not_allowed' => 'That command is not allowed.',
+    'confirm_run' => 'Run this command?',
+];

@@ -13,6 +13,8 @@ use Tardis\Bread\Legacy\LegacyConfigReader;
 use Tardis\Commands\TardisAdminCommand;
 use Tardis\Commands\TardisBreadExportCommand;
 use Tardis\Commands\TardisBreadMigrateCommand;
+use Tardis\Commands\TardisDoctorCommand;
+use Tardis\Commands\TardisInstallCommand;
 use Tardis\Commands\TardisMakeBreadCommand;
 use Tardis\Commands\TardisMakeModelCommand;
 use Tardis\Commands\TardisMakePluginCommand;
@@ -249,6 +251,8 @@ class TardisServiceProvider extends ServiceProvider
                 TardisAdminCommand::class,
                 TardisBreadExportCommand::class,
                 TardisBreadMigrateCommand::class,
+                TardisDoctorCommand::class,
+                TardisInstallCommand::class,
                 TardisMakeBreadCommand::class,
                 TardisMakeModelCommand::class,
                 TardisMakePluginCommand::class,

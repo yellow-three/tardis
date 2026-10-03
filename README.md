@@ -81,6 +81,7 @@ What is checked where:
 | BREAD resources | `browse` / `read` / `add` / `edit` / `delete` + the resource slug (`browse posts`); provisioned automatically when a BREAD definition is saved |
 | Settings, Plugins, Users, Roles + Permissions, Database Explorer, BREAD management + builder, Activity log | `manage settings`, `manage plugins`, `manage users`, `manage roles`, `manage database`, `manage bread`, `view activity` |
 | Media | `browse media`, plus `upload media`, `rename media`, `delete media` for writes |
+| System diagnostics, log viewer, command runner | `view system`, `view logs`, `run commands` — one ability per screen, so holding one never grants or hides another |
 
 Pages check their ability on every Livewire request, not only on mount, and the sidebar hides entries the user may not open. If the host user model already has a `hasPermissionTo()` method (for example Spatie's `HasRoles`), that answer is used instead of the TARDIS tables.
 
@@ -99,7 +100,7 @@ $menu = Tardis::menu();
 Default entries include:
 
 - Overview: Dashboard, Media, UI Components
-- Management: Settings, Plugins, Database Explorer, BREAD (plus one entry per BREAD resource)
+- Management: Settings, Plugins, Database Explorer, System (diagnostics, logs, commands), BREAD (plus one entry per BREAD resource)
 - Access: Permissions, Users, Roles
 
 Entries the current user is not allowed to open are hidden. The user dropdown offers Logout, and a Profile link only when the host application defines a `profile.edit` route.
@@ -204,6 +205,8 @@ Larger screens (BREAD pages, BREAD builder, media browser, database explorer, se
 | `tardis:make-plugin {name}` | Scaffold a plugin package (`--with-menu`, `--with-widgets`, `--with-settings`, `--with-migration`, `--with-model`) |
 | `tardis:bread:migrate` | Convert legacy `config/bread/*.php` definitions to JSON |
 | `tardis:bread:export` | Export all JSON definitions as one document |
+| `tardis:doctor` | Report install health; exits non-zero on failure so it can gate a deploy (`--json` for scripts) |
+| `tardis:install` | Idempotent installer: migrate, seed permissions, publish assets, optionally create the first admin (`--email`, `--force`) |
 
 See [docs/PLUGIN_GUIDE.md](docs/PLUGIN_GUIDE.md) and [docs/EXAMPLE_BREAD.md](docs/EXAMPLE_BREAD.md).
 
@@ -214,6 +217,16 @@ See [docs/PLUGIN_GUIDE.md](docs/PLUGIN_GUIDE.md) and [docs/EXAMPLE_BREAD.md](doc
 ## Database Explorer
 
 The explorer never lists, opens, alters or drops framework tables (`migrations`, `sessions`, `jobs`, `cache`, …, configurable in `tardis.database.hidden_tables`) or this package's `tardis_*` tables.
+
+## System diagnostics
+
+Three read-mostly screens, each behind its own ability (`view system`, `view logs`, `run commands`). They appear as three separate sidebar entries rather than one collapsible group, so holding one ability never hides or strands a sibling.
+
+- **Diagnostics** runs the same checks as `tardis:doctor`: PHP version, Laravel version, storage permissions, database tables, published assets, route cache, the authorization plugin, the theme manifest, installed plugins and BREAD definitions.
+- **Log viewer** tails files under `tardis.system.logs.path` (default `storage/logs`). `filename_pattern` restricts which names may be opened, and `max_bytes` caps a single read — the reader seeks to the end, so a large log costs a seek rather than a full load.
+- **Command runner** is off by default. Even enabled, it stays closed unless the app runs in one of `tardis.system.commands.environments` (default `local`) *and* the command appears in `tardis.system.commands.allowlist` as `['name' => [...allowed args]]`. An empty allowlist allows nothing, so enabling the runner is never by itself enough to expose artisan to a browser.
+
+`php artisan tardis:doctor --json` reports the same checks as JSON and exits non-zero when a check fails, so it can gate a deploy.
 
 ## Media uploads
 

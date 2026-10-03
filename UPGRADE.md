@@ -89,3 +89,31 @@ The return type is now `string|Asset|array`. A plugin that returns a string keep
 ## New abilities
 
 `manage menus` (existing, now gates the menu builder), `manage dashboard` and `manage appearance` are new fixed abilities. A user who is not a super admin needs them granted on a role (re-run `php artisan db:seed --class="Tardis\\Database\\Seeders\\PermissionSeeder"` to create the rows). `MenuManager::all()` and `WidgetManager::all()` take an optional `$withHidden` argument; `Widget::$component` is now a Blade view name (`tardis::widgets.users`) instead of an unused label.
+
+Three more ship with the system tooling below: `view system` (diagnostics), `view logs` (log viewer) and `run commands` (command runner). They are separate abilities on purpose — one per screen — and each needs to be granted on the role.
+
+## Installation and system tooling
+
+Two new artisan commands ship with 2.0:
+
+- `php artisan tardis:install` — idempotent installer: migrate, seed permissions, publish assets and optionally create the first admin (`--email`, `--force`). Safe to re-run; nothing is overwritten unless you pass `--force`.
+- `php artisan tardis:doctor` — install health report covering PHP and Laravel versions, storage permissions, `tardis_*` tables, published assets, route cache, the authorization plugin, the theme manifest, installed plugins and BREAD definitions. Prints a table by default, `--json` for scripts, and exits non-zero when a check fails so it can gate a deploy.
+
+Three screens ship alongside them: **System diagnostics** (`view system`), a read-only **log viewer** (`view logs`) and an **allowlisted command runner** (`run commands`). They are three separate sidebar entries rather than one collapsible group, so revoking one ability never hides or strands the other two.
+
+The log viewer only reads files under `tardis.system.logs.path` (default `storage/logs`) whose name matches `filename_pattern`, and caps a single read at `max_bytes`. It seeks to the end of the file rather than loading it, so opening a multi-gigabyte log costs a seek, not a full read.
+
+The command runner is **disabled by default**, and turning it on is not enough on its own: a command runs only when the app environment is listed in `tardis.system.commands.environments` (default `local`) *and* the command appears in `tardis.system.commands.allowlist` together with the arguments it may receive. An empty allowlist allows nothing.
+
+```php
+'commands' => [
+    'enabled' => true,
+    'environments' => ['local'],
+    'allowlist' => [
+        'cache:clear' => [],
+        'queue:retry' => ['id'],
+    ],
+],
+```
+
+There is no arbitrary command execution: the allowlist is checked again at submit time, not trusted from the form. Every run that is allowed through is written to the activity log.

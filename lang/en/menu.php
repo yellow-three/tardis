@@ -21,4 +21,7 @@ return [
     'logout' => 'Logout',
     'menu_builder' => 'Menu builder',
     'theme_editor' => 'Themes',
+    'system' => 'System',
+    'system_logs' => 'Logs',
+    'system_commands' => 'Commands',
 ];

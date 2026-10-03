@@ -2,9 +2,10 @@
 
 use Illuminate\Support\Facades\Route;
 
-// Uncomment to expose the starter page. Register this plugin's provider BEFORE
-// Tardis' own routes (or use a fixed prefix such as /{{LOWERCASE_NAME}}-admin):
-// Tardis ends with a /{slug} wildcard that would otherwise swallow /admin/{{LOWERCASE_NAME}}.
+// Uncomment to expose the starter page. No extra registration order or prefix is
+// needed: Tardis' BREAD routes are constrained to the slugs that have a
+// definition, so /admin/{{LOWERCASE_NAME}} is never swallowed. Avoid only giving
+// a BREAD the same slug as this route's first segment.
 //
 // Route::middleware(['web', 'tardis.admin'])
 //     ->prefix(config('tardis.admin.prefix', 'admin'))

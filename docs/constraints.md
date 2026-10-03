@@ -148,3 +148,11 @@ Header/sidebar yalnızca `tardis.*` rotalarını varsayar. Host'un `profile.edit
 
 **Sonuç**: Layout/header'a `route('...')` eklerken rotanın paketin kendisinde olduğundan emin ol; host rotası gerekiyorsa `Route::has()` ile koru. `tests/Feature/AdminShellTest.php` her sabit sayfayı tam doküman olarak çıplak bir host'ta render eder.
 
+---
+
+## Test — `NoHardcodedTextTest` etiket içindeki `->` ifadesini yanlış okuyor
+
+Görünür metin tarayıcısı HTML etiketlerini regex ile tarar ve etiket dışında kalan kısmı metin sayar. Blade'de `@disabled(! $this->canRun)` yazıldığında metindeki `>` karakteri (`->` okunun ucu) etiketi erkenden kapatır. Tarayıcı ifadeyi geçerli bir attribute değeri olarak göremez ve Blade'in gerçekte üretmediği bir metni raporlar — yani test, DOM'da olmayan bir metni "görünür" bulur.
+
+**Sonuç**: Bir öznitelik değeri içinde (`@disabled`, `:class`, `wire:*`, `x-*`) asla `$this->` kullanma. Değeri `mount()` ve `updated*()` içinde senkronlayan düz bir public property olarak tut (`public bool $canRun = false;`) ve etikette çıplak `$canRun` yaz. Böylece tarayıcı, test ve gerçek DOM aynı değeri görür.
+

@@ -83,7 +83,9 @@ Route::middleware(['web', 'tardis.admin'])
 
 The generated provider registers a Livewire namespace for the plugin (`tardis-blog`), so pages live in the plugin's own `resources/views/pages/admin/` rather than in the `tardis::` namespace.
 
-> **Route order matters.** Tardis ends with the wildcard `Route::livewire('/{slug}', ...)` under the same prefix. A plugin route such as `/admin/blog/posts` has two segments and is matched by `/{slug}/{id}` unless it is registered first, so load plugin routes before Tardis' or use a distinct prefix.
+> **Plugin routes are not swallowed by BREAD routes.** Tardis registers no catch-all `/{slug}` route: BREAD routes are constrained to the slugs that actually have a definition — and match nothing at all when there are none — so `/admin/blog/posts` stays yours no matter when the plugin loads. See [docs/constraints.md](constraints.md) for the full routing rules.
+>
+> **One caveat:** don't give a BREAD the same slug as your plugin's top-level path segment. `ReservedSlugs` covers only the package's own segments (`settings`, `users`, `bread`, …), so a BREAD with slug `blog` is allowed and its `/{slug}/{id}` route would match `/admin/blog/posts` as slug `blog`, id `posts`. BREAD routes are registered before plugin routes, so it wins. Give the BREAD a distinct slug (`posts`) instead.
 
 Authentication and authorization plugins are **locked**: they guard the panel, so the Plugins page shows "Required" instead of a Disable button and `PluginManager::disable()` throws for them.
 

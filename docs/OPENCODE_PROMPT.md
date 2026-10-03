@@ -32,12 +32,14 @@ Sen TARDIS projesinde çalışıyorsun: Laravel admin paketi (`yellow-three/tard
 
 ## Yapılacaklar — bu sırayla, her biri ayrı branch + PR
 **1. Faz 8 — Kurulum ve sistem araçları (R29)**
-- `tardis:install`: migrate + permission seed + ilk admin (`tardis:admin` mantığını yeniden kullan) + asset publish; idempotent; etkileşimsiz mod (`--no-interaction`, `--email`).
-- `tardis:doctor`: ortam kontrolleri (PHP/Laravel sürümü, storage yazılabilirliği, `tardis_*` tabloları, yayınlanmış asset'in güncelliği, route cache uyarısı, authorization plugin durumu, BREAD tanımlarının model/tablo sağlığı). Çıktı hem konsol hem `--json`.
-- Panelde "Sistem" sayfası (doctor sonucu, ability `view system`).
-- Salt okunur log görüntüleyici (`view logs`): yalnızca `storage/logs` içindeki `*.log`, dosya adı beyaz liste/regex ile doğrulanır, son N satır, büyük dosyada kuyruktan okuma.
-- İzin listeli komut çalıştırıcı (`run commands`): config'te açıkça listelenen artisan komutları, `local` ortam dışında varsayılan KAPALI, argümanlar doğrulanır, her çalıştırma activity log'a yazılır. Keyfi komut çalıştırma yok.
-- İsteğe bağlı demo veri seeder'ı. Plugin iskeleti güncel kalsın.
+Durum: aşağıdakilerden ilk beş ✅ tamamlandı (`feat/phase-8-install`); demo veri seeder'ı, `UPGRADE.md` ve `RELEASE_NOTES.md` de tamamlandı. Yalnızca plugin iskeleti + `docs/PLUGIN_GUIDE.md` wildcard-route düzeltmesi sürüyor.
+- ✅ `tardis:install`: migrate + permission seed + ilk admin (`tardis:admin` mantığını yeniden kullan) + asset publish; idempotent; etkileşimsiz mod (`--no-interaction`, `--email`).
+- ✅ `tardis:doctor`: ortam kontrolleri (PHP/Laravel sürümü, storage yazılabilirliği, `tardis_*` tabloları, yayınlanmış asset'in güncelliği, route cache uyarısı, authorization plugin durumu, BREAD tanımlarının model/tablo sağlığı). Çıktı hem konsol hem `--json`.
+- ✅ Panelde "Sistem" sayfası (doctor sonucu, ability `view system`). Tek bir grup değil, üç ayrı kardeş ekran (`view system` / `view logs` / `run commands`) — bir yetki diğerini gizlemesin diye.
+- ✅ Salt okunur log görüntüleyici (`view logs`): yalnızca `storage/logs` içindeki `*.log`, dosya adı beyaz liste/regex ile doğrulanır, son N satır, büyük dosyada kuyruktan okuma.
+- ✅ İzin listeli komut çalıştırıcı (`run commands`): config'te açıkça listelenen artisan komutları, `local` ortam dışında varsayılan KAPALI, argümanlar doğrulanır, her çalıştırma activity log'a yazılır. Keyfi komut çalıştırma yok.
+- ✅ İsteğe bağlı demo veri seeder'ı (`Tardis\Database\Seeders\DemoSeeder`, `tardis.system.demo.enabled` + local/testing ortamı ile opt-in).
+- ✅ Plugin iskeleti güncel: `stubs/plugin/routes.stub` içindeki hatalı "wildcard / kayıt sırası" notu düzeltildi (BREAD rotaları yalnızca tanımlı slug'lara kısıtlı, catch-all yok; tek gerçek risk, bir BREAD'in plugin'in ilk segmentiyle aynı slug'ı kullanması). `docs/PLUGIN_GUIDE.md` de gerçek davranışla hizalandı. (`UPGRADE.md` 2.x kurulum bölümü dahil)
 
 **2. Faz 7 — Çok dilli içerik (R28)**
 - Formda alan başına dil sekmeleri (şu an locale başına alt alta giriş var), aktif dil bilgisi, "tüm diller zorunlu / yalnızca aktif dil" doğrulama modu (BREAD tanımında ayar), listede aktif dilin değeri, BREAD etiketleri (`name`, `name_plural`, alan etiketleri) ve menü başlıkları çevrilebilir. JSON kolon biçimi korunur (`Tardis\Classes\Translation`).

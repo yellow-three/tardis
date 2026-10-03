@@ -108,6 +108,23 @@ test('the seeder is idempotent', function () {
         ->and(DB::table('tardis_permission_role')->count())->toBe($expected);
 });
 
+test('the seeder provisions the system abilities', function () {
+    (new PermissionSeeder)->run();
+
+    expect(DB::table('tardis_permissions')->where('slug', Abilities::SYSTEM)->exists())->toBeTrue()
+        ->and(DB::table('tardis_permissions')->where('slug', Abilities::LOGS)->exists())->toBeTrue()
+        ->and(DB::table('tardis_permissions')->where('slug', Abilities::COMMANDS)->exists())->toBeTrue();
+});
+
+test('the system abilities are part of the admin list the seeder walks', function () {
+    // Keeping them out of admin() would create the permissions for nobody to
+    // hold: the super-admin role is granted exactly what these lists return.
+    expect(Abilities::admin())
+        ->toContain(Abilities::SYSTEM)
+        ->toContain(Abilities::LOGS)
+        ->toContain(Abilities::COMMANDS);
+});
+
 test('the seeder exposes bread permissions through the native model', function () {
     (new PermissionSeeder)->syncForBread('posts');
 

@@ -113,6 +113,51 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | System Settings
+    |--------------------------------------------------------------------------
+    |
+    | Backs the System screen: the read-only log viewer and the Artisan command
+    | runner. Both are diagnostics, so the defaults are the restrictive ones.
+    |
+    */
+    'system' => [
+        'logs' => [
+            // Directory the log viewer reads. Relative paths resolve against the
+            // application's storage path; null means storage_path('logs').
+            'path' => null,
+            // Only files matching this pattern can be opened, so a crafted name
+            // cannot walk out of the log directory.
+            'filename_pattern' => '/^[A-Za-z0-9._-]+\.log$/',
+            // How many trailing lines a single read returns.
+            'tail' => 200,
+            // Hard ceiling on the bytes one read may touch. The reader seeks to
+            // the end of the file, so a huge log costs a seek, not a full load.
+            'max_bytes' => 262144,
+        ],
+
+        'commands' => [
+            // The runner is off until you turn it on. A published config file
+            // must never be able to expose artisan to a browser by accident.
+            'enabled' => false,
+            // Even when enabled, the runner stays closed unless the app runs in
+            // one of these environments.
+            'environments' => ['local'],
+            // The only commands that may run, as ['name' => [...allowed args]].
+            // An empty list means nothing is allowed, so enabling alone is not
+            // enough to make a command reachable.
+            'allowlist' => [],
+        ],
+
+        'demo' => [
+            // Demo seeder is opt-in and only runs in local/testing environments.
+            // This switch must remain false by default to avoid seeding non-local
+            // environments.
+            'enabled' => false,
+        ],
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Content-Security-Policy
     |--------------------------------------------------------------------------
     |

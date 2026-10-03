@@ -48,6 +48,12 @@ Route::middleware(['web', 'tardis.locale', 'tardis.admin'])
         Route::livewire('/database/{table}/edit', 'tardis::pages.database.edit')->name('database.edit');
         Route::livewire('/settings', 'tardis::pages.settings')->name('settings.index');
 
+        // System tools. Each screen checks its own ability on mount and on
+        // every update, so the routes only carry the shared panel middleware.
+        Route::livewire('/system', 'tardis::pages.system')->name('system.index');
+        Route::livewire('/system/logs', 'tardis::pages.system.logs')->name('system.logs');
+        Route::livewire('/system/commands', 'tardis::pages.system.commands')->name('system.commands');
+
         Route::livewire('/search', 'tardis::pages.search')->name('search');
         Route::post('/logout', function () {
             Auth::logout();
