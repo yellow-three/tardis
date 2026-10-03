@@ -17,4 +17,5 @@ return [
     'delete_role' => 'Rolü sil',
     'are_you_sure_you_want_to_4956' => 'Bu rolü silmek istediğinize emin misiniz? Bu role sahip kullanıcılar izinlerini kaybeder.',
     'delete' => 'Sil',
+    'toggle_all' => 'Tümünü seç / kaldır',
 ];
