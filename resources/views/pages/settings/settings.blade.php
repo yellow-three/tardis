@@ -12,7 +12,7 @@
         if ((e.ctrlKey || e.metaKey) && e.key === 's') {
             e.preventDefault();
             $wire.save();
-            showNotification('success', 'Settings saved successfully.');
+            showNotification('success', @js(__('tardis::settings.saved')));
         }
     });
     // URL hash support
@@ -35,68 +35,35 @@
     <!-- Header -->
     <div class="flex items-center justify-between mb-6">
         <div>
-            <h1 class="text-2xl font-bold">Settings</h1>
-            <p class="text-base-content/60 mt-1">Manage your application configuration</p>
+            <h1 class="text-2xl font-bold">{{ __('tardis::settings.settings') }}</h1>
+            <p class="text-base-content/60 mt-1">{{ __('tardis::settings.manage_your_application_configuration') }}</p>
         </div>
 
         <div class="flex gap-2">
             <div class="relative">
                 <x-tardis::icon name="magnifying-glass" class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-base-content/50" />
-                <input type="text" wire:model.live.debounce.300ms="search" class="input input-sm pl-10 w-64" placeholder="Search settings..." />
+                <input type="text" wire:model.live.debounce.300ms="search" class="input input-sm pl-10 w-64" placeholder="{{ __('tardis::settings.search_settings') }}" />
             </div>
             <button wire:click="$set('showAddGroupModal', true)" class="btn btn-outline btn-sm gap-2">
                 <x-tardis::icon name="plus" class="w-4 h-4" />
-                Add Group
+                {{ __('tardis::settings.add_group') }}
             </button>
             <button wire:click="openImportModal" class="btn btn-outline btn-sm gap-2">
                 <x-tardis::icon name="folder" class="w-4 h-4" />
-                Import
+                {{ __('tardis::settings.import') }}
             </button>
             <button wire:click="openExportModal" class="btn btn-outline btn-sm gap-2">
                 <x-tardis::icon name="check" class="w-4 h-4" />
-                Export
+                {{ __('tardis::settings.export') }}
             </button>
             <button wire:click="$set('showAddModal', true)" class="btn btn-primary btn-sm gap-2">
                 <x-tardis::icon name="plus" class="w-4 h-4" />
-                Add Setting
+                {{ __('tardis::settings.add_setting') }}
             </button>
         </div>
     </div>
 
-    <!-- Theme Preview Section -->
-    <div class="card bg-base-100 mb-6 border border-base-300" x-data x-show="$store.theme.availableThemes.length > 0">
-        <div class="card-body p-4">
-            <h3 class="card-title text-sm font-semibold flex items-center gap-2">
-                <x-tardis::icon name="paint-brush" class="w-4 h-4" />
-                Available Themes
-                <span class="text-xs text-base-content/40 font-normal" x-text="'(' + $store.theme.availableThemes.length + ')'"></span>
-            </h3>
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 mt-2">
-                <template x-for="theme in $store.theme.availableThemes" :key="theme.name">
-                    <div class="flex items-center gap-3 p-3 rounded-lg bg-base-200">
-                        <div class="flex gap-1">
-                            <template x-for="(color, i) in theme.previewColors" :key="i">
-                                <div
-                                    class="w-6 h-6 rounded-full border border-base-300 shrink-0"
-                                    :style="`background-color: ${color}`"
-                                    :title="color"
-                                ></div>
-                            </template>
-                        </div>
-                        <div class="flex-1 min-w-0">
-                            <div class="font-medium text-sm truncate" x-text="theme.name"></div>
-                            <div class="flex items-center gap-2 mt-0.5">
-                                <span class="badge badge-ghost badge-xs" x-text="theme.colorScheme"></span>
-                                <template x-if="theme.default">
-                                    <span class="badge badge-primary badge-xs">Default</span>
-                                </template>
-                            </div>
-                        </div>
-                    </div>
-                </template>
-            </div>
-        </div>
-    </div>
+    <x-tardis::theme-picker />
 
     <!-- Horizontal Group Tabs (Voyager II style) -->
     @php $filteredGroups = $this->getFilteredGroups(); @endphp
@@ -124,7 +91,7 @@
                             <x-tardis::icon :name="$filteredGroups[$activeGroup]['icon']" class="w-5 h-5" />
                         @endif
                         {{ $filteredGroups[$activeGroup]['label'] }}
-                        <span class="text-sm text-base-content/40 font-normal">settings</span>
+                        <span class="text-sm text-base-content/40 font-normal">{{ __('tardis::settings.settings_2') }}</span>
                     </h2>
 
                     <div class="divider mt-2 mb-0"></div>
@@ -141,26 +108,26 @@
                                         @if ($setting['translatable'])
                                             <span class="badge badge-ghost badge-xs gap-1">
                                                 <x-tardis::icon name="text" class="w-3 h-3" />
-                                                translatable
+                                                {{ __('tardis::settings.translatable') }}
                                             </span>
                                         @endif
                                         @if (!empty($setting['validation']))
                                             <span class="badge badge-ghost badge-xs gap-1">
                                                 <x-tardis::icon name="check-circle" class="w-3 h-3" />
-                                                validated
+                                                {{ __('tardis::settings.validated') }}
                                             </span>
                                         @endif
                                         <button
                                             wire:click="cloneSetting('{{ $setting['fullKey'] }}')"
                                             class="btn btn-ghost btn-xs text-info"
-                                            title="Clone setting"
+                                            title="{{ __('tardis::settings.clone_setting') }}"
                                         >
                                             <x-tardis::icon name="document-text" class="w-3 h-3" />
                                         </button>
                                         <button
                                             wire:click="confirmDelete('{{ $setting['fullKey'] }}')"
                                             class="btn btn-ghost btn-xs text-error"
-                                            title="Delete setting"
+                                            title="{{ __('tardis::settings.delete_setting') }}"
                                         >
                                             <x-tardis::icon name="x-mark" class="w-3 h-3" />
                                         </button>
@@ -274,12 +241,12 @@
                                                         type="text"
                                                         wire:model="values.{{ $activeGroup }}.{{ $setting['key'] }}.{{ $arrIndex }}"
                                                         class="input flex-1 input-sm"
-                                                        placeholder="Item {{ $arrIndex + 1 }}"
+                                                        placeholder="{{ __('tardis::settings.item_n', ['number' => $arrIndex + 1]) }}"
                                                     />
                                                     <button
                                                         wire:click="removeSimpleArrayItem('{{ $setting['fullKey'] }}', {{ $arrIndex }})"
                                                         class="btn btn-ghost btn-square btn-sm text-error"
-                                                        title="Remove item"
+                                                        title="{{ __('tardis::settings.remove_item') }}"
                                                     >
                                                         <x-tardis::icon name="x-mark" class="w-4 h-4" />
                                                     </button>
@@ -290,7 +257,7 @@
                                                 class="btn btn-ghost btn-sm gap-1 text-primary"
                                             >
                                                 <x-tardis::icon name="plus" class="w-4 h-4" />
-                                                Add item
+                                                {{ __('tardis::settings.add_item') }}
                                             </button>
                                         </div>
 
@@ -303,19 +270,19 @@
                                                     <input
                                                         type="text"
                                                         wire:model="values.{{ $activeGroup }}.{{ $setting['key'] }}.{{ $dynIndex }}.key"
-                                                        placeholder="Key"
+                                                        placeholder="{{ __('tardis::settings.key') }}"
                                                         class="input w-2/5 input-sm"
                                                     />
                                                     <input
                                                         type="text"
                                                         wire:model="values.{{ $activeGroup }}.{{ $setting['key'] }}.{{ $dynIndex }}.value"
-                                                        placeholder="Value"
+                                                        placeholder="{{ __('tardis::settings.value') }}"
                                                         class="input flex-1 input-sm"
                                                     />
                                                     <button
                                                         wire:click="removeDynamicRow('{{ $setting['fullKey'] }}', {{ $dynIndex }})"
                                                         class="btn btn-ghost btn-square btn-sm text-error"
-                                                        title="Remove row"
+                                                        title="{{ __('tardis::settings.remove_row') }}"
                                                     >
                                                         <x-tardis::icon name="x-mark" class="w-4 h-4" />
                                                     </button>
@@ -326,7 +293,7 @@
                                                 class="btn btn-ghost btn-sm gap-1 text-primary"
                                             >
                                                 <x-tardis::icon name="plus" class="w-4 h-4" />
-                                                Add row
+                                                {{ __('tardis::settings.add_row') }}
                                             </button>
                                         </div>
 
@@ -337,10 +304,10 @@
                                                 type="text"
                                                 id="setting-{{ $setting['uuid'] }}"
                                                 wire:model="values.{{ $activeGroup }}.{{ $setting['key'] }}"
-                                                placeholder="Media path or URL"
+                                                placeholder="{{ __('tardis::settings.media_path_or_url') }}"
                                                 class="input flex-1"
                                             />
-                                            <button class="btn btn-outline btn-square" title="Browse media">
+                                            <button class="btn btn-outline btn-square" title="{{ __('tardis::settings.browse_media') }}">
                                                 <x-tardis::icon name="folder" class="w-4 h-4" />
                                             </button>
                                         </div>
@@ -352,10 +319,10 @@
                                                 type="text"
                                                 id="setting-{{ $setting['uuid'] }}"
                                                 wire:model="values.{{ $activeGroup }}.{{ $setting['key'] }}"
-                                                placeholder="File path"
+                                                placeholder="{{ __('tardis::settings.file_path') }}"
                                                 class="input flex-1"
                                             />
-                                            <button class="btn btn-outline btn-square" title="Browse files">
+                                            <button class="btn btn-outline btn-square" title="{{ __('tardis::settings.browse_files') }}">
                                                 <x-tardis::icon name="folder" class="w-4 h-4" />
                                             </button>
                                         </div>
@@ -403,7 +370,7 @@
                     <div class="card-actions justify-end mt-6 pt-4 border-t border-base-200">
                         <button wire:click="save" class="btn btn-primary gap-2">
                             <x-tardis::icon name="check" class="w-4 h-4" />
-                            Save {{ $groups[$activeGroup]['label'] }} Settings
+                            {{ __('tardis::settings.save_group', ['group' => $groups[$activeGroup]['label']]) }}
                         </button>
                     </div>
                 </div>
@@ -415,30 +382,30 @@
             <div class="card-body text-center py-16">
                 <x-tardis::icon name="cog-6-tooth" class="w-16 h-16 mx-auto text-base-content/20" />
                 @if ($search)
-                    <h3 class="text-lg font-semibold mt-4">No matching settings</h3>
+                    <h3 class="text-lg font-semibold mt-4">{{ __('tardis::settings.no_matching_settings') }}</h3>
                     <p class="text-base-content/60 mt-1 max-w-md mx-auto">
-                        No settings match "{{ $search }}". Try a different search term.
+                        {{ __('tardis::settings.no_match', ['query' => $search]) }}
                     </p>
                     <button wire:click="$set('search', '')" class="btn btn-ghost btn-sm mt-4">
-                        Clear search
+                        {{ __('tardis::settings.clear_search') }}
                     </button>
                 @elseif ($activeGroup && isset($groups[$activeGroup]))
-                    <h3 class="text-lg font-semibold mt-4">No settings in this group</h3>
+                    <h3 class="text-lg font-semibold mt-4">{{ __('tardis::settings.no_settings_in_this_group') }}</h3>
                     <p class="text-base-content/60 mt-1 max-w-md mx-auto">
-                        Add a setting to the "{{ $groups[$activeGroup]['label'] }}" group.
+                        {{ __('tardis::settings.add_to_group', ['group' => $groups[$activeGroup]['label']]) }}
                     </p>
                     <button wire:click="$set('showAddModal', true)" class="btn btn-primary gap-2 mt-4">
                         <x-tardis::icon name="plus" class="w-4 h-4" />
-                        Add Setting
+                        {{ __('tardis::settings.add_setting') }}
                     </button>
                 @else
-                    <h3 class="text-lg font-semibold mt-4">No settings configured</h3>
+                    <h3 class="text-lg font-semibold mt-4">{{ __('tardis::settings.no_settings_configured') }}</h3>
                     <p class="text-base-content/60 mt-1 max-w-md mx-auto">
-                        Publish the default settings preset or add a new setting to get started.
+                        {{ __('tardis::settings.publish_the_default_settings_preset_or_42ad') }}
                     </p>
                     <button wire:click="$set('showAddModal', true)" class="btn btn-primary gap-2 mt-4">
                         <x-tardis::icon name="plus" class="w-4 h-4" />
-                        Add Setting
+                        {{ __('tardis::settings.add_setting') }}
                     </button>
                 @endif
             </div>
@@ -449,14 +416,14 @@
     @if ($showAddModal)
         <dialog class="modal modal-open">
             <div class="modal-box w-full max-w-lg">
-                <h3 class="font-bold text-lg mb-4">Add New Setting</h3>
+                <h3 class="font-bold text-lg mb-4">{{ __('tardis::settings.add_new_setting') }}</h3>
 
                 <form wire:submit="createSetting" class="space-y-4">
                     <div class="flex flex-col gap-2">
                         <label class="label">
-                            <span class="text-base-content">Key <span class="text-error">*</span></span>
+                            <span class="text-base-content">{{ __('tardis::settings.key') }} <span class="text-error">*</span></span>
                         </label>
-                        <input type="text" wire:model="newKey" class="input" placeholder="e.g., site_name" />
+                        <input type="text" wire:model="newKey" class="input" placeholder="{{ __('tardis::settings.e_g_site_name') }}" />
                         @error('newKey')
                             <label class="label">
                                 <span class="text-error">{{ $message }}</span>
@@ -466,14 +433,14 @@
 
                     <div class="flex flex-col gap-2">
                         <label class="label">
-                            <span class="text-base-content">Group</span>
+                            <span class="text-base-content">{{ __('tardis::settings.group') }}</span>
                         </label>
-                        <input type="text" wire:model="newGroup" class="input" placeholder="e.g., admin (optional)" />
+                        <input type="text" wire:model="newGroup" class="input" placeholder="{{ __('tardis::settings.e_g_admin_optional') }}" />
                     </div>
 
                     <div class="flex flex-col gap-2">
                         <label class="label">
-                            <span class="text-base-content">Type <span class="text-error">*</span></span>
+                            <span class="text-base-content">{{ __('tardis::settings.type') }} <span class="text-error">*</span></span>
                         </label>
                         <select wire:model="newType" class="select">
                             @foreach ($this->getAvailableTypes() as $typeValue => $typeLabel)
@@ -489,9 +456,9 @@
 
                     <div class="flex flex-col gap-2">
                         <label class="label">
-                            <span class="text-base-content">Label <span class="text-error">*</span></span>
+                            <span class="text-base-content">{{ __('tardis::settings.label') }} <span class="text-error">*</span></span>
                         </label>
-                        <input type="text" wire:model="newName" class="input" placeholder="e.g., Site Name" />
+                        <input type="text" wire:model="newName" class="input" placeholder="{{ __('tardis::settings.e_g_site_name_2') }}" />
                         @error('newName')
                             <label class="label">
                                 <span class="text-error">{{ $message }}</span>
@@ -501,36 +468,36 @@
 
                     <div class="flex flex-col gap-2">
                         <label class="label">
-                            <span class="text-base-content">Description</span>
+                            <span class="text-base-content">{{ __('tardis::settings.description') }}</span>
                         </label>
-                        <input type="text" wire:model="newInfo" class="input" placeholder="Optional description" />
+                        <input type="text" wire:model="newInfo" class="input" placeholder="{{ __('tardis::settings.optional_description') }}" />
                     </div>
 
                     <div class="flex flex-col gap-2">
                         <label class="label">
-                            <span class="text-base-content">Default Value</span>
+                            <span class="text-base-content">{{ __('tardis::settings.default_value') }}</span>
                         </label>
-                        <input type="text" wire:model="newDefaultValue" class="input" placeholder="Optional default value" />
+                        <input type="text" wire:model="newDefaultValue" class="input" placeholder="{{ __('tardis::settings.optional_default_value') }}" />
                     </div>
 
                     <div class="flex flex-col gap-2">
                         <label class="label">
-                            <span class="text-base-content">Validation Rules</span>
+                            <span class="text-base-content">{{ __('tardis::settings.validation_rules') }}</span>
                         </label>
-                        <input type="text" wire:model="newValidation" class="input" placeholder="e.g., required|string|max:255" />
+                        <input type="text" wire:model="newValidation" class="input" placeholder="{{ __('tardis::settings.e_g_required_string_max_255') }}" />
                         <label class="label">
-                            <span class="text-base-content/50">Pipe-separated rules (optional)</span>
+                            <span class="text-base-content/50">{{ __('tardis::settings.pipe_separated_rules_optional') }}</span>
                         </label>
                     </div>
 
                     <div class="modal-action">
-                        <button type="button" wire:click="$set('showAddModal', false)" class="btn btn-ghost">Cancel</button>
-                        <button type="submit" class="btn btn-primary">Create Setting</button>
+                        <button type="button" wire:click="$set('showAddModal', false)" class="btn btn-ghost">{{ __('tardis::settings.cancel') }}</button>
+                        <button type="submit" class="btn btn-primary">{{ __('tardis::settings.create_setting') }}</button>
                     </div>
                 </form>
             </div>
             <form method="dialog" class="modal-backdrop">
-                <button wire:click="$set('showAddModal', false)">close</button>
+                <button wire:click="$set('showAddModal', false)">{{ __('tardis::settings.close') }}</button>
             </form>
         </dialog>
     @endif
@@ -539,15 +506,15 @@
     @if ($showDeleteModal)
         <dialog class="modal modal-open">
             <div class="modal-box">
-                <h3 class="font-bold text-lg">Delete Setting</h3>
-                <p class="py-4">Are you sure you want to delete the setting <strong>{{ $deleteKey }}</strong>? This action cannot be undone.</p>
+                <h3 class="font-bold text-lg">{{ __('tardis::settings.delete_setting_2') }}</h3>
+                <p class="py-4">{!! __('tardis::settings.confirm_delete', ['key' => '<strong>'.e($deleteKey).'</strong>']) !!}</p>
                 <div class="modal-action">
-                    <button wire:click="cancelDelete" class="btn btn-ghost">Cancel</button>
-                    <button wire:click="deleteSetting" class="btn btn-error">Delete</button>
+                    <button wire:click="cancelDelete" class="btn btn-ghost">{{ __('tardis::settings.cancel') }}</button>
+                    <button wire:click="deleteSetting" class="btn btn-error">{{ __('tardis::settings.delete') }}</button>
                 </div>
             </div>
             <form method="dialog" class="modal-backdrop">
-                <button wire:click="cancelDelete">close</button>
+                <button wire:click="cancelDelete">{{ __('tardis::settings.close') }}</button>
             </form>
         </dialog>
     @endif
@@ -556,12 +523,12 @@
     @if ($showImportModal)
         <dialog class="modal modal-open">
             <div class="modal-box w-full max-w-lg">
-                <h3 class="font-bold text-lg mb-4">Import Settings</h3>
+                <h3 class="font-bold text-lg mb-4">{{ __('tardis::settings.import_settings') }}</h3>
 
                 <form wire:submit="importSettings" class="space-y-4">
                     <div class="flex flex-col gap-2">
                         <label class="label">
-                            <span class="text-base-content">JSON Data <span class="text-error">*</span></span>
+                            <span class="text-base-content">{{ __('tardis::settings.json_data') }} <span class="text-error">*</span></span>
                         </label>
                         <textarea
                             wire:model="importJson"
@@ -582,13 +549,13 @@
                     </div>
 
                     <div class="modal-action">
-                        <button type="button" wire:click="$set('showImportModal', false)" class="btn btn-ghost">Cancel</button>
-                        <button type="submit" class="btn btn-primary">Import</button>
+                        <button type="button" wire:click="$set('showImportModal', false)" class="btn btn-ghost">{{ __('tardis::settings.cancel') }}</button>
+                        <button type="submit" class="btn btn-primary">{{ __('tardis::settings.import') }}</button>
                     </div>
                 </form>
             </div>
             <form method="dialog" class="modal-backdrop">
-                <button wire:click="$set('showImportModal', false)">close</button>
+                <button wire:click="$set('showImportModal', false)">{{ __('tardis::settings.close') }}</button>
             </form>
         </dialog>
     @endif
@@ -597,11 +564,11 @@
     @if ($showExportModal)
         <dialog class="modal modal-open">
             <div class="modal-box w-full max-w-lg">
-                <h3 class="font-bold text-lg mb-4">Export Settings</h3>
+                <h3 class="font-bold text-lg mb-4">{{ __('tardis::settings.export_settings') }}</h3>
 
                 <div class="flex flex-col gap-2">
                     <label class="label">
-                        <span class="text-base-content">JSON Data</span>
+                        <span class="text-base-content">{{ __('tardis::settings.json_data') }}</span>
                     </label>
                     <textarea
                         class="textarea font-mono text-sm"
@@ -611,12 +578,12 @@
                 </div>
 
                 <div class="modal-action">
-                    <button type="button" wire:click="$set('showExportModal', false)" class="btn btn-ghost">Close</button>
-                    <button type="button" onclick="navigator.clipboard.writeText(document.querySelector('[wire\\\\:model=exportJson]').value || document.querySelector('textarea[readonly]').value)" class="btn btn-primary">Copy to Clipboard</button>
+                    <button type="button" wire:click="$set('showExportModal', false)" class="btn btn-ghost">{{ __('tardis::settings.close_2') }}</button>
+                    <button type="button" onclick="navigator.clipboard.writeText(document.querySelector('[wire\\\\:model=exportJson]').value || document.querySelector('textarea[readonly]').value)" class="btn btn-primary">{{ __('tardis::settings.copy_to_clipboard') }}</button>
                 </div>
             </div>
             <form method="dialog" class="modal-backdrop">
-                <button wire:click="$set('showExportModal', false)">close</button>
+                <button wire:click="$set('showExportModal', false)">{{ __('tardis::settings.close') }}</button>
             </form>
         </dialog>
     @endif
@@ -625,13 +592,13 @@
     @if ($showAddGroupModal)
         <dialog class="modal modal-open">
             <div class="modal-box">
-                <h3 class="font-bold text-lg mb-4">Add Group</h3>
+                <h3 class="font-bold text-lg mb-4">{{ __('tardis::settings.add_group') }}</h3>
                 <form wire:submit="addGroup" class="space-y-4">
                     <div class="flex flex-col gap-2">
                         <label class="label">
-                            <span class="text-base-content">Group Name</span>
+                            <span class="text-base-content">{{ __('tardis::settings.group_name') }}</span>
                         </label>
-                        <input type="text" wire:model="newGroupName" class="input" placeholder="e.g., General, Media, Auth" autofocus />
+                        <input type="text" wire:model="newGroupName" class="input" placeholder="{{ __('tardis::settings.e_g_general_media_auth') }}" autofocus />
                         @error('newGroupName')
                             <label class="label">
                                 <span class="text-error">{{ $message }}</span>
@@ -640,12 +607,12 @@
                     </div>
                 </form>
                 <div class="modal-action">
-                    <button wire:click="$set('showAddGroupModal', false)" class="btn btn-ghost">Cancel</button>
-                    <button wire:click="addGroup" class="btn btn-primary">Create Group</button>
+                    <button wire:click="$set('showAddGroupModal', false)" class="btn btn-ghost">{{ __('tardis::settings.cancel') }}</button>
+                    <button wire:click="addGroup" class="btn btn-primary">{{ __('tardis::settings.create_group') }}</button>
                 </div>
             </div>
             <form method="dialog" class="modal-backdrop">
-                <button wire:click="$set('showAddGroupModal', false)">close</button>
+                <button wire:click="$set('showAddGroupModal', false)">{{ __('tardis::settings.close') }}</button>
             </form>
         </dialog>
     @endif
@@ -656,7 +623,7 @@
             <button @click="open = !open" class="btn btn-ghost btn-sm gap-2 w-full justify-between">
                 <span class="flex items-center gap-2">
                     <x-tardis::icon name="document-text" class="w-4 h-4" />
-                    JSON Output
+                    {{ __('tardis::settings.json_output') }}
                 </span>
                 <x-tardis::icon name="chevron-up-down" class="w-4 h-4 transition-transform" x-bind:class="{ 'rotate-180': open }" />
             </button>
@@ -664,9 +631,9 @@
                 <div class="card bg-base-200 border border-base-300">
                     <div class="card-body p-4">
                         <div class="flex items-center justify-between mb-2">
-                            <span class="text-xs text-base-content/50">Settings JSON</span>
+                            <span class="text-xs text-base-content/50">{{ __('tardis::settings.settings_json') }}</span>
                             <button onclick="navigator.clipboard.writeText(document.getElementById('json-output').textContent)" class="btn btn-ghost btn-xs">
-                                Copy
+                                {{ __('tardis::settings.copy') }}
                             </button>
                         </div>
                         <pre id="json-output" class="text-xs font-mono overflow-auto max-h-64 p-3 bg-base-300 rounded">{{ $this->getJsonOutput() }}</pre>

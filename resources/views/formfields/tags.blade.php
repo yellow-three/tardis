@@ -30,10 +30,10 @@
             type="text"
             x-model="input"
             @keydown.enter.prevent="addTag()"
-            placeholder="Add tag..."
+            placeholder="{{ __('tardis::fields.add_tag') }}"
             class="input input-bordered flex-1 input-sm"
         />
-        <button type="button" @click="addTag()" class="btn btn-primary btn-sm">Add</button>
+        <button type="button" @click="addTag()" class="btn btn-primary btn-sm">{{ __('tardis::fields.add') }}</button>
     </div>
     <input type="hidden" name="{{ $name }}" :value="JSON.stringify(tags)" />
 </div>

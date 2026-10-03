@@ -4,184 +4,163 @@ declare(strict_types=1);
 
 namespace Tardis\Manager;
 
+use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Log;
+use Tardis\Theme\BuiltinThemes;
 use Tardis\Theme\Theme;
 
+/**
+ * The panel's themes: the ones compiled into the stylesheet plus the ones a
+ * host adds as data in storage/tardis/themes.json.
+ *
+ * Nothing is read until a theme is asked for, and an unreadable or invalid file
+ * only means "no custom themes": a bad theme must never break a page.
+ */
 class ThemeManager
 {
-    /** @var array<string, Theme> */
-    protected array $themes = [];
+    /** @var Collection<int, Theme>|null */
+    protected ?Collection $themes = null;
 
-    /** @var string|null Code of the explicitly set default theme */
-    protected ?string $defaultCode = null;
+    protected string $path;
 
-    /**
-     * Register a theme manually.
-     */
-    public function register(
-        string $code,
-        string $name,
-        string $description = '',
-        string $type = 'light',
-        array $previewColors = [],
-        bool $isCustom = false,
-    ): Theme {
-        $theme = new Theme(
-            code: $code,
-            name: $name,
-            description: $description,
-            type: $type,
-            previewColors: $previewColors,
-            isCustom: $isCustom,
-        );
-
-        $this->themes[$code] = $theme;
-
-        return $theme;
+    public function __construct(?string $path = null)
+    {
+        $this->path = $path ?? storage_path('tardis/themes.json');
     }
 
     /**
-     * Resolve a theme by its code.
+     * @return Collection<int, Theme> built-in first, then custom, in file order
      */
-    public function resolve(string $code): ?Theme
+    public function all(): Collection
     {
-        return $this->themes[$code] ?? null;
-    }
-
-    /**
-     * Get the default theme.
-     *
-     * Returns the theme marked as default in the manifest, or the first
-     * registered theme if none is explicitly marked.
-     */
-    public function default(): ?Theme
-    {
-        if ($this->defaultCode !== null) {
-            return $this->themes[$this->defaultCode] ?? null;
+        if ($this->themes !== null) {
+            return $this->themes;
         }
 
-        return array_values($this->themes)[0] ?? null;
-    }
+        $themes = collect(BuiltinThemes::all())
+            ->map(fn (array $definition) => Theme::fromArray($definition))
+            ->filter()
+            ->values();
 
-    /**
-     * Get the currently active theme.
-     *
-     * Defaults to the default theme for now. This can be extended later
-     * to respect a user preference or session value.
-     */
-    public function active(): Theme
-    {
-        return $this->default() ?? new Theme(
-            code: 'tardis-light',
-            name: 'TARDIS Light',
-            type: 'light',
-        );
-    }
+        foreach ($this->readCustom() as $definition) {
+            $theme = is_array($definition) ? Theme::fromArray($definition) : null;
 
-    /**
-     * Get all registered themes.
-     *
-     * @return array<string, Theme>
-     */
-    public function themes(): array
-    {
-        return $this->themes;
-    }
+            if ($theme === null || $themes->contains(fn (Theme $existing) => $existing->name === $theme->name)) {
+                Log::notice('Skipping an invalid or duplicate custom theme.', ['theme' => is_array($definition) ? ($definition['name'] ?? null) : null]);
 
-    /**
-     * Load themes from a JSON manifest file.
-     *
-     * Expects the structure produced by the Vite plugin:
-     * { "themes": [{ "name": "...", "colorScheme": "...", ... }] }
-     *
-     * @throws \InvalidArgumentException If the manifest file does not exist
-     * @throws \RuntimeException If the JSON content is invalid
-     */
-    public function loadManifest(string $path): void
-    {
-        if (! file_exists($path)) {
-            throw new \InvalidArgumentException("Theme manifest not found: {$path}");
-        }
-
-        $json = file_get_contents($path);
-
-        if ($json === false) {
-            throw new \RuntimeException("Failed to read theme manifest: {$path}");
-        }
-
-        $data = json_decode($json, true);
-
-        if (! is_array($data) || ! isset($data['themes']) || ! is_array($data['themes'])) {
-            throw new \RuntimeException("Invalid theme manifest structure: {$path}");
-        }
-
-        foreach ($data['themes'] as $themeData) {
-            $code = $themeData['name'] ?? '';
-            $type = $themeData['colorScheme'] ?? 'light';
-            $previewColors = $themeData['previewColors'] ?? [];
-            $isDefault = $themeData['default'] ?? false;
-
-            $this->register(
-                code: $code,
-                name: $code,
-                description: '',
-                type: $type,
-                previewColors: $previewColors,
-            );
-
-            if ($isDefault) {
-                $this->defaultCode = $code;
+                continue;
             }
+
+            $themes->push($theme);
         }
+
+        return $this->themes = $themes->values();
+    }
+
+    public function find(string $name): ?Theme
+    {
+        return $this->all()->first(fn (Theme $theme) => $theme->name === $name);
+    }
+
+    public function has(string $name): bool
+    {
+        return $this->find($name) !== null;
     }
 
     /**
-     * Load themes from a remote JSON manifest URL (e.g. Vite dev server).
+     * @return list<string>
      */
-    public function loadManifestFromUrl(string $url): void
+    public function names(?string $scheme = null): array
     {
-        $context = stream_context_create(['http' => ['timeout' => 2]]);
-        $json = @file_get_contents($url, false, $context);
+        return $this->all()
+            ->filter(fn (Theme $theme) => $scheme === null || $theme->scheme === $scheme)
+            ->pluck('name')
+            ->values()
+            ->all();
+    }
 
-        if ($json === false) {
-            throw new \RuntimeException("Failed to fetch theme manifest from: {$url}");
+    /**
+     * CSS for the runtime themes only; the built-in ones are in the stylesheet.
+     */
+    public function css(): string
+    {
+        return $this->all()
+            ->reject(fn (Theme $theme) => $theme->builtin)
+            ->map(fn (Theme $theme) => $theme->css())
+            ->implode('');
+    }
+
+    /**
+     * Add or replace a custom theme. Built-in names and invalid definitions are refused.
+     *
+     * @param  array<string, mixed>  $definition
+     */
+    public function saveCustom(array $definition): bool
+    {
+        $theme = Theme::fromArray($definition);
+
+        if ($theme === null || collect(BuiltinThemes::all())->contains(fn (array $builtin) => $builtin['name'] === $theme->name)) {
+            return false;
         }
 
-        $data = json_decode($json, true);
+        $custom = collect($this->readCustom())
+            ->reject(fn ($existing) => is_array($existing) && ($existing['name'] ?? null) === $theme->name)
+            ->push(['name' => $theme->name, 'scheme' => $theme->scheme, 'label' => $theme->label, 'colors' => $theme->colors])
+            ->values()
+            ->all();
 
-        if (! is_array($data) || ! isset($data['themes']) || ! is_array($data['themes'])) {
-            throw new \RuntimeException("Invalid theme manifest structure from: {$url}");
+        return $this->writeCustom($custom);
+    }
+
+    public function deleteCustom(string $name): bool
+    {
+        $custom = $this->readCustom();
+        $remaining = array_values(array_filter($custom, fn ($existing) => ! (is_array($existing) && ($existing['name'] ?? null) === $name)));
+
+        if (count($remaining) === count($custom)) {
+            return false;
         }
 
-        foreach ($data['themes'] as $themeData) {
-            $code = $themeData['name'] ?? '';
-            $type = $themeData['colorScheme'] ?? 'light';
-            $previewColors = $themeData['previewColors'] ?? [];
-            $isDefault = $themeData['default'] ?? false;
+        return $this->writeCustom($remaining);
+    }
 
-            $this->register(
-                code: $code,
-                name: $code,
-                description: '',
-                type: $type,
-                previewColors: $previewColors,
-            );
+    /**
+     * @return array<int, mixed>
+     */
+    protected function readCustom(): array
+    {
+        if (! is_file($this->path)) {
+            return [];
+        }
 
-            if ($isDefault) {
-                $this->defaultCode = $code;
+        $data = json_decode((string) file_get_contents($this->path), true);
+
+        return is_array($data) && is_array($data['themes'] ?? null) ? array_values($data['themes']) : [];
+    }
+
+    /**
+     * @param  array<int, mixed>  $themes
+     */
+    protected function writeCustom(array $themes): bool
+    {
+        try {
+            $dir = dirname($this->path);
+
+            if (! is_dir($dir)) {
+                mkdir($dir, 0755, true);
             }
-        }
-    }
 
-    /**
-     * Get all registered themes as an associative array.
-     *
-     * Semantically identical to {@see themes()}, provided for
-     * metadata-oriented consumers.
-     *
-     * @return array<string, Theme>
-     */
-    public function getThemesWithMetadata(): array
-    {
-        return $this->themes;
+            $tmp = tempnam($dir, '.themes-');
+            file_put_contents($tmp, json_encode(['themes' => $themes], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE)."\n");
+            rename($tmp, $this->path);
+
+            $this->themes = null;
+
+            return true;
+        } catch (\Throwable $e) {
+            Log::warning('Could not persist custom themes.', ['error' => $e->getMessage()]);
+
+            return false;
+        }
     }
 }

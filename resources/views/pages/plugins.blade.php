@@ -7,7 +7,7 @@ use Tardis\Auth\Abilities;
 use Tardis\Auth\BreadAuthorization;
 use Tardis\Facades\Tardis;
 
-new #[Title('Plugin Manager')] #[Layout('tardis::layouts.admin')] class extends Component
+new #[Title('tardis::plugins.plugin_manager')] #[Layout('tardis::layouts.admin')] class extends Component
 {
     public array $plugins = [];
 
@@ -62,7 +62,7 @@ new #[Title('Plugin Manager')] #[Layout('tardis::layouts.admin')] class extends 
             Tardis::plugins()->disable($name);
             $this->message = null;
         } catch (\LogicException) {
-            $this->message = 'This plugin protects the panel and cannot be disabled.';
+            $this->message = __('tardis::plugins.cannot_disable');
         }
 
         $this->refreshPlugins();
@@ -71,19 +71,19 @@ new #[Title('Plugin Manager')] #[Layout('tardis::layouts.admin')] class extends 
 
 @php
 $typeLabels = [
-    'authentication' => ['label' => 'Auth', 'class' => 'badge-primary'],
-    'authorization' => ['label' => 'Permission', 'class' => 'badge-secondary'],
-    'formfield' => ['label' => 'Formfield', 'class' => 'badge-accent'],
-    'theme' => ['label' => 'Theme', 'class' => 'badge-info'],
-    'generic' => ['label' => 'Generic', 'class' => 'badge-ghost'],
-    'unknown' => ['label' => 'Unknown', 'class' => 'badge-neutral'],
+    'authentication' => ['label' => __('tardis::plugins.types.authentication'), 'class' => 'badge-primary'],
+    'authorization' => ['label' => __('tardis::plugins.types.authorization'), 'class' => 'badge-secondary'],
+    'formfield' => ['label' => __('tardis::plugins.types.formfield'), 'class' => 'badge-accent'],
+    'theme' => ['label' => __('tardis::plugins.types.theme'), 'class' => 'badge-info'],
+    'generic' => ['label' => __('tardis::plugins.types.generic'), 'class' => 'badge-ghost'],
+    'unknown' => ['label' => __('tardis::plugins.types.unknown'), 'class' => 'badge-neutral'],
 ];
 @endphp
 
 <div>
     <x-tardis::page-header
-        title="Plugin Manager"
-        :description="count($plugins) . ' plugin(s) registered · ' . $enabledCount . ' enabled'"
+        :title="__('tardis::plugins.plugin_manager')"
+        :description="__('tardis::plugins.summary', ['registered' => count($plugins), 'enabled' => $enabledCount])"
     />
 
     @if ($message)
@@ -96,9 +96,9 @@ $typeLabels = [
         <div class="card bg-base-100 border border-base-300">
             <div class="card-body text-center py-12">
                 <x-tardis::icon name="puzzle-piece" class="w-16 h-16 mx-auto text-base-content/30" />
-                <h3 class="text-lg font-semibold mt-4">No plugins installed</h3>
+                <h3 class="text-lg font-semibold mt-4">{{ __('tardis::plugins.no_plugins_installed') }}</h3>
                 <p class="text-base-content/60 mt-2">
-                    Install plugins via <code class="badge badge-ghost">composer require tardis/plugin-name</code>
+                    {{ __('tardis::plugins.install_via') }} <code class="badge badge-ghost">composer require tardis/plugin-name</code>
                 </p>
             </div>
         </div>
@@ -108,10 +108,10 @@ $typeLabels = [
                 <table class="table">
                     <thead>
                         <tr>
-                            <th scope="col">Plugin</th>
-                            <th scope="col">Type</th>
-                            <th scope="col">Status</th>
-                            <th class="text-right" scope="col">Actions</th>
+                            <th scope="col">{{ __('tardis::plugins.plugin') }}</th>
+                            <th scope="col">{{ __('tardis::plugins.type') }}</th>
+                            <th scope="col">{{ __('tardis::plugins.status') }}</th>
+                            <th class="text-right" scope="col">{{ __('tardis::plugins.actions') }}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -141,12 +141,12 @@ $typeLabels = [
                                     @if ($plugin['enabled'])
                                         <span class="badge badge-success badge-sm gap-1">
                                             <x-tardis::icon name="check-circle" class="w-3 h-3" />
-                                            Enabled
+                                            {{ __('tardis::plugins.enabled') }}
                                         </span>
                                     @else
                                         <span class="badge badge-ghost badge-sm gap-1">
                                             <x-tardis::icon name="x-circle" class="w-3 h-3" />
-                                            Disabled
+                                            {{ __('tardis::plugins.disabled') }}
                                         </span>
                                     @endif
                                 </td>
@@ -154,7 +154,7 @@ $typeLabels = [
                                     @if ($plugin['locked'])
                                         <span class="badge badge-ghost badge-sm gap-1">
                                             <x-tardis::icon name="lock-closed" class="w-3 h-3" />
-                                            Required
+                                            {{ __('tardis::plugins.required') }}
                                         </span>
                                     @elseif ($plugin['enabled'])
                                         <button
@@ -162,7 +162,7 @@ $typeLabels = [
                                             class="btn btn-ghost btn-sm text-error"
                                         >
                                             <x-tardis::icon name="power" class="w-4 h-4" />
-                                            Disable
+                                            {{ __('tardis::plugins.disable') }}
                                         </button>
                                     @else
                                         <button
@@ -170,7 +170,7 @@ $typeLabels = [
                                             class="btn btn-ghost btn-sm text-success"
                                         >
                                             <x-tardis::icon name="power" class="w-4 h-4" />
-                                            Enable
+                                            {{ __('tardis::plugins.enable') }}
                                         </button>
                                     @endif
                                 </td>

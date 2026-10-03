@@ -1,12 +1,12 @@
 <div>
     <x-tardis::page-header
-        title="BREAD Management"
-        description="Manage your Browse, Read, Edit, Add, Delete definitions"
+        :title="__('tardis::bread.bread_management')"
+        :description="__('tardis::bread.manage_your_browse_read_edit_add_d5d2')"
     >
         <x-slot:action>
             <a href="{{ route('tardis.bread.create') }}" class="btn btn-primary gap-2">
                 <x-tardis::icon name="plus" class="w-4 h-4" />
-                New BREAD
+                {{ __('tardis::bread.new_bread') }}
             </a>
         </x-slot:action>
     </x-tardis::page-header>
@@ -27,11 +27,12 @@
         <div class="alert alert-warning mb-6">
             <x-tardis::icon name="information-circle" class="w-5 h-5 shrink-0" />
             <div class="flex-1">
-                <h3 class="font-semibold">Legacy config definitions detected</h3>
+                <h3 class="font-semibold">{{ __('tardis::bread.legacy_config_definitions_detected') }}</h3>
                 <p class="text-sm text-base-content/70">
-                    You still have BREAD definitions in <code class="badge badge-ghost badge-sm">config/bread</code>.
-                    Run <code class="badge badge-ghost badge-sm">php artisan tardis:bread:migrate</code> to move
-                    them into JSON storage.
+                    {!! __('tardis::bread.legacy_hint', [
+                        'dir' => '<code class="badge badge-ghost badge-sm">config/bread</code>',
+                        'command' => '<code class="badge badge-ghost badge-sm">php artisan tardis:bread:migrate</code>',
+                    ]) !!}
                 </p>
             </div>
         </div>
@@ -41,9 +42,9 @@
         <div class="card bg-base-100 border border-base-300">
             <div class="card-body text-center py-12">
                 <x-tardis::icon name="table-cells" class="w-16 h-16 mx-auto text-base-content/30" />
-                <h3 class="text-lg font-semibold mt-4">No BREAD definitions found</h3>
+                <h3 class="text-lg font-semibold mt-4">{{ __('tardis::bread.no_bread_definitions_found') }}</h3>
                 <p class="text-base-content/60 mt-2">
-                    Create a BREAD definition to get started
+                    {{ __('tardis::bread.create_a_bread_definition_to_get_91ab') }}
                 </p>
             </div>
         </div>
@@ -53,10 +54,10 @@
                 <table class="table">
                     <thead>
                         <tr>
-                            <th scope="col">Name</th>
-                            <th scope="col">Slug</th>
-                            <th scope="col">Source</th>
-                            <th class="text-right" scope="col">Actions</th>
+                            <th scope="col">{{ __('tardis::bread.name') }}</th>
+                            <th scope="col">{{ __('tardis::bread.slug') }}</th>
+                            <th scope="col">{{ __('tardis::bread.source') }}</th>
+                            <th class="text-right" scope="col">{{ __('tardis::bread.actions') }}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -64,13 +65,13 @@
                             <tr>
                                 <td class="font-semibold">{{ $bread->name ?? $slug }}</td>
                                 <td><code class="badge badge-ghost badge-sm">{{ $slug }}</code></td>
-                                <td><span class="badge badge-info badge-sm">json</span></td>
+                                <td><span class="badge badge-info badge-sm">{{ __('tardis::bread.json') }}</span></td>
                                 <td class="text-right">
                                     <div class="flex items-center justify-end gap-1">
                                         <div class="dropdown dropdown-end">
-                                            <div tabindex="0" role="button" class="btn btn-ghost btn-sm gap-1" aria-label="Backups for {{ $slug }}">
+                                            <div tabindex="0" role="button" class="btn btn-ghost btn-sm gap-1" aria-label="{{ __('tardis::bread.backups_for', ['slug' => $slug]) }}">
                                                 <x-tardis::icon name="clock" class="w-4 h-4" />
-                                                Backups
+                                                {{ __('tardis::bread.backups') }}
                                             </div>
                                             <ul tabindex="0" class="dropdown-content menu bg-base-100 rounded-box z-10 w-72 p-2 shadow border border-base-300">
                                                 @forelse ($this->backups($slug) as $backup)
@@ -81,23 +82,23 @@
                                                             class="justify-between font-mono text-xs"
                                                         >
                                                             <span class="truncate">{{ $backup['date'] }}</span>
-                                                            <span class="badge badge-warning badge-sm shrink-0">Restore</span>
+                                                            <span class="badge badge-warning badge-sm shrink-0">{{ __('tardis::bread.restore') }}</span>
                                                         </button>
                                                     </li>
                                                 @empty
                                                     <li>
                                                         <span class="px-2 py-1 text-sm text-base-content/60">
-                                                            No backups yet
+                                                            {{ __('tardis::bread.no_backups_yet') }}
                                                         </span>
                                                     </li>
                                                 @endforelse
                                             </ul>
                                         </div>
                                         <a href="{{ route('tardis.bread.edit', ['slug' => $slug]) }}" class="btn btn-ghost btn-sm">
-                                            Edit
+                                            {{ __('tardis::bread.edit') }}
                                         </a>
                                         <a href="{{ route('tardis.bread.index', ['slug' => $slug]) }}" class="btn btn-ghost btn-sm">
-                                            Browse
+                                            {{ __('tardis::bread.browse') }}
                                         </a>
                                     </div>
                                 </td>

@@ -1,13 +1,16 @@
 import { defineConfig } from 'vite';
 import tailwindcss from '@tailwindcss/vite';
 import hotFile from './vite-plugins/hot-file.js';
-import themesManifest from './vite-plugins/themes-manifest.js';
 
+/**
+ * Stylesheet build. The core script is built separately (vite.js.config.js) as
+ * a classic IIFE: it must run before Livewire starts Alpine, which a module
+ * script cannot guarantee, and a multi-entry build cannot emit an IIFE.
+ */
 export default defineConfig({
     plugins: [
         hotFile(),
         tailwindcss(),
-        themesManifest(),
     ],
     build: {
         outDir: 'dist',

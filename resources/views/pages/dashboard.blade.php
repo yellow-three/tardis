@@ -6,7 +6,7 @@ use Livewire\Component;
 use Illuminate\Support\Facades\DB;
 use Tardis\Bread\BreadManager;
 
-new #[Title('Dashboard')] #[Layout('tardis::layouts.admin')] class extends Component
+new #[Title('tardis::dashboard.dashboard')] #[Layout('tardis::layouts.admin')] class extends Component
 {
     public int $totalUsers = 0;
 
@@ -55,7 +55,7 @@ new #[Title('Dashboard')] #[Layout('tardis::layouts.admin')] class extends Compo
 }; ?>
 
 <div>
-    <x-tardis::page-header title="Dashboard" description="Welcome to TARDIS Admin" />
+    <x-tardis::page-header :title="__('tardis::dashboard.dashboard')" :description="__('tardis::dashboard.welcome_to_tardis_admin')" />
 
     <!-- Stats Cards -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
@@ -67,7 +67,7 @@ new #[Title('Dashboard')] #[Layout('tardis::layouts.admin')] class extends Compo
                     </div>
                     <div>
                         <p class="text-3xl font-bold">{{ $totalUsers }}</p>
-                        <p class="text-sm text-base-content/60">Users</p>
+                        <p class="text-sm text-base-content/60">{{ __('tardis::dashboard.users') }}</p>
                     </div>
                 </div>
             </div>
@@ -81,7 +81,7 @@ new #[Title('Dashboard')] #[Layout('tardis::layouts.admin')] class extends Compo
                     </div>
                     <div>
                         <p class="text-3xl font-bold">{{ $totalBreads }}</p>
-                        <p class="text-sm text-base-content/60">BREADs</p>
+                        <p class="text-sm text-base-content/60">{{ __('tardis::dashboard.breads') }}</p>
                     </div>
                 </div>
             </div>
@@ -95,7 +95,7 @@ new #[Title('Dashboard')] #[Layout('tardis::layouts.admin')] class extends Compo
                     </div>
                     <div>
                         <p class="text-3xl font-bold">{{ $totalMedia }}</p>
-                        <p class="text-sm text-base-content/60">Media Files</p>
+                        <p class="text-sm text-base-content/60">{{ __('tardis::dashboard.media_files') }}</p>
                     </div>
                 </div>
             </div>
@@ -109,7 +109,7 @@ new #[Title('Dashboard')] #[Layout('tardis::layouts.admin')] class extends Compo
                     </div>
                     <div>
                         <p class="text-3xl font-bold">{{ $totalActivities }}</p>
-                        <p class="text-sm text-base-content/60">Activities</p>
+                        <p class="text-sm text-base-content/60">{{ __('tardis::dashboard.activities') }}</p>
                     </div>
                 </div>
             </div>
@@ -119,9 +119,9 @@ new #[Title('Dashboard')] #[Layout('tardis::layouts.admin')] class extends Compo
     <!-- Recent Activities -->
     <div class="card bg-base-100 border border-base-300">
         <div class="card-body">
-            <h2 class="card-title">Recent Activity</h2>
+            <h2 class="card-title">{{ __('tardis::dashboard.recent_activity') }}</h2>
             @if (empty($recentActivities))
-                <p class="text-base-content/60 text-center py-4">No recent activities</p>
+                <p class="text-base-content/60 text-center py-4">{{ __('tardis::dashboard.no_recent_activities') }}</p>
             @else
                 <div class="divide-y divide-base-200">
                     @foreach ($recentActivities as $activity)

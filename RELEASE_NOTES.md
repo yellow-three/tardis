@@ -9,7 +9,7 @@ Package version: `2.0.0` (`Tardis\Tardis::version()`), the breaking cleanup of t
 - 19 form field types rendered through one registry (`FieldType` enum ↔ `FormfieldManager`), including relations and translatable fields
 - Sidebar built from `MenuManager` and plugin-provided items; active-route detection for nested URLs
 - Plugin system with Authentication, Authorization, Formfield and Theme plugin contracts plus Provider/Filter feature interfaces
-- DaisyUI 5 theme system driven by a Vite-generated manifest, applied before first paint
+- DaisyUI 5 theme engine: themes are data (`Theme`, `ThemeManager`, `storage/tardis/themes.json`), resolved on the server (user preference → Settings defaults → built-in) and written to `<html data-theme>` before first paint
 - Role/permission tables, a `TardisAuthorizationPlugin` that is enabled by default, a Users screen for assigning roles and `tardis:admin` to create the first administrator (README → Authentication and authorization)
 - Artisan commands: `tardis:admin`, `tardis:make-bread`, `tardis:make-model`, `tardis:make-plugin`, plus `tardis:bread:migrate` / `tardis:bread:export`
 
@@ -65,3 +65,10 @@ Open decisions and the roadmap live in [docs/notes.md](docs/notes.md) and [docs/
 composer test   # 603 passed (1546 assertions)
 composer lint   # clean
 ```
+
+## 2.0 — panel i18n and design system (Faz 1 / 1b)
+
+- **Translated panel**: every screen reads `tardis::` language files (`lang/en`, `lang/tr`). Publish with the `tardis-lang` tag to override or add a locale; `Locales` lists what is available. The locale is stored per user (`storage/tardis/preferences.json`) and switched from the header. A guard test fails on untranslated visible text in any Blade view.
+- **Theme engine**: the Vite theme manifest is gone. Light/dark/system mode and the light and dark theme are chosen per user, with global defaults under the Settings `appearance` keys. Custom themes can be saved with `ThemeManager::saveCustom()`.
+- **Core script**: a small IIFE (`dist/assets/app.js`, loaded before Livewire) provides the `theme` and `toasts` Alpine stores and the `window.Tardis` API (`component`, `on`, `toast`, `theme`, `csrf`).
+- **Design-system components**: `x-tardis::card`, `badge`, `modal`, `slide-in`, `toasts`, `loading-bar` and `theme-picker`.

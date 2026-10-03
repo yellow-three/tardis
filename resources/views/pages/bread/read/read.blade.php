@@ -1,10 +1,10 @@
 <div>
     <x-tardis::page-header
         :title="$bread['name'] ?? ucfirst($slug)"
-        description="Record details"
+        :description="__('tardis::bread.record_details')"
     >
         <x-slot:action>
-            <a href="{{ url(trim(config('tardis.admin.prefix', 'admin'), '/').'/'.$slug) }}" class="btn btn-ghost">Back to list</a>
+            <a href="{{ url(trim(config('tardis.admin.prefix', 'admin'), '/').'/'.$slug) }}" class="btn btn-ghost">{{ __('tardis::bread.back_to_list') }}</a>
         </x-slot:action>
     </x-tardis::page-header>
 

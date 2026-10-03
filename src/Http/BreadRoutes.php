@@ -44,7 +44,7 @@ final class BreadRoutes
     {
         $definitions = self::definitions();
 
-        Route::middleware(['web', 'tardis.admin'])
+        Route::middleware(['web', 'tardis.locale', 'tardis.admin'])
             ->prefix(config('tardis.admin.prefix', 'admin'))
             ->name('tardis.')
             ->group(function () use ($definitions) {

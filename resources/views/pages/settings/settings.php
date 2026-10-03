@@ -84,7 +84,7 @@ new #[Title('Settings')] #[Layout('tardis::layouts.admin')] class extends Compon
 
             if (! isset($this->groups[$group])) {
                 $this->groups[$group] = [
-                    'label' => $group === '_ungrouped' ? 'General' : $group,
+                    'label' => $group === '_ungrouped' ? __('tardis::settings.general') : $group,
                     'icon' => $this->groupIcon($group),
                     'settings' => [],
                 ];
@@ -134,7 +134,7 @@ new #[Title('Settings')] #[Layout('tardis::layouts.admin')] class extends Compon
                 $value = $this->values[$group][$key];
 
                 if (empty($setting->key)) {
-                    $errors[$setting->getFullKey()] = 'Key is required.';
+                    $errors[$setting->getFullKey()] = __('tardis::settings.validation.key_required');
 
                     continue;
                 }
@@ -174,10 +174,10 @@ new #[Title('Settings')] #[Layout('tardis::layouts.admin')] class extends Compon
             'newName' => 'required|string|max:255',
             'newType' => 'required|in:'.implode(',', array_keys(Setting::availableTypes())),
         ], [
-            'newKey.required' => 'Key is required.',
-            'newKey.regex' => 'Key must contain only lowercase letters, numbers, dots, hyphens, and underscores.',
-            'newName.required' => 'Label is required.',
-            'newType.required' => 'Type is required.',
+            'newKey.required' => __('tardis::settings.validation.key_required'),
+            'newKey.regex' => __('tardis::settings.validation.key_regex'),
+            'newName.required' => __('tardis::settings.validation.label_required'),
+            'newType.required' => __('tardis::settings.validation.type_required'),
         ]);
 
         $validation = [];

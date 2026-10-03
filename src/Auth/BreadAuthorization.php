@@ -66,7 +66,7 @@ class BreadAuthorization
     public function authorize(string $action, string $slug, mixed $model = null): void
     {
         if (! $this->allows($action, $slug, $model)) {
-            abort(403, 'Unauthorized.');
+            abort(403, __('tardis::shell.unauthorized'));
         }
     }
 
@@ -87,7 +87,7 @@ class BreadAuthorization
     public function authorizeAbility(string $ability): void
     {
         if (! $this->allowsAbility($ability)) {
-            abort(403, 'Unauthorized.');
+            abort(403, __('tardis::shell.unauthorized'));
         }
     }
 
