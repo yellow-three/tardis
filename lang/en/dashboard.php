@@ -9,4 +9,9 @@ return [
     'activities' => 'Activities',
     'recent_activity' => 'Recent Activity',
     'no_recent_activities' => 'No recent activities',
+    'customize' => 'Customize',
+    'done' => 'Done',
+    'reset_layout' => 'Restore defaults',
+    'confirm_reset' => 'Discard the dashboard layout?',
+    'width' => 'Width',
 ];

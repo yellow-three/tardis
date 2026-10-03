@@ -9,4 +9,9 @@ return [
     'activities' => 'Etkinlikler',
     'recent_activity' => 'Son etkinlik',
     'no_recent_activities' => 'Son etkinlik yok',
+    'customize' => 'Özelleştir',
+    'done' => 'Bitti',
+    'reset_layout' => 'Varsayılanlara dön',
+    'confirm_reset' => 'Pano düzeni silinsin mi?',
+    'width' => 'Genişlik',
 ];

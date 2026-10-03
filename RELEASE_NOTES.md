@@ -98,3 +98,11 @@ composer lint   # clean
 - **Formfield assets**: `Formfield::assets()` is written only on pages that render the field.
 - **CSP**: inline blocks carry a nonce (`tardis.csp.nonce` or Laravel's Vite nonce).
 - **Tooling**: `tardis:plugins [list|enable|disable]`; `tardis:make-plugin --with-assets` scaffolds CSS/JS sources, a Vite build and the `Asset::file()` wiring. The JavaScript surface is documented in [docs/JS.md](docs/JS.md).
+
+## 2.0 — menu builder, dashboard widgets, themes (Faz 6)
+
+- **Menu builder** (`manage menus`): `storage/tardis/menus.json` layers hide, rename, section, order and custom links over the code-defined menu; deleting it restores the defaults. Custom link URLs are limited to http(s) and root-relative.
+- **Dashboard** is widget-driven: the stock cards are `Widget`s with their own abilities, plugins add more through `Provider\Widgets`, and an edit mode (`manage dashboard`) hides, re-orders and resizes them into `storage/tardis/dashboard.json`.
+- **Roles**: the permission picker shows groups and BREAD resources with toggle-all.
+- **Theme editor** (`manage appearance`): create, edit and delete custom themes; built-ins can be duplicated.
+- New abilities: `manage dashboard`, `manage appearance` (`manage menus` now has a screen). Run the permission seeder to create them.

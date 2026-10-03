@@ -76,6 +76,43 @@ new #[Title('tardis::roles.roles')] #[Layout('tardis::layouts.admin')] class ext
         $this->showEditModal = true;
     }
 
+    /**
+     * Permissions as a tree: group, then (for BREAD) resource, in the order the
+     * database lists them.
+     *
+     * @return array<string, array<string, array<int, array<string, mixed>>>>
+     */
+    public function permissionTree(): array
+    {
+        $tree = [];
+
+        foreach ($this->allPermissions as $permission) {
+            $group = $permission['group'] ?: 'other';
+            // "browse posts" -> resource "posts"; fixed abilities have no resource.
+            $resource = $group === 'BREAD' ? (string) str($permission['slug'])->after(' ') : '';
+
+            $tree[$group][$resource][] = $permission;
+        }
+
+        return $tree;
+    }
+
+    /** Tick every permission of a group (or a resource within it), or clear them when all are ticked. */
+    public function toggleGroup(string $group, string $resource = ''): void
+    {
+        $ids = collect($this->permissionTree()[$group] ?? [])
+            ->when($resource !== '' || $group === 'BREAD', fn ($branches) => $branches->only($resource === '' ? $branches->keys()->all() : [$resource]))
+            ->flatten(1)
+            ->pluck('id')
+            ->map(fn ($id) => (int) $id);
+
+        $current = collect($this->editRolePermissions)->map(fn ($id) => (int) $id);
+
+        $this->editRolePermissions = $ids->every(fn ($id) => $current->contains($id))
+            ? $current->reject(fn ($id) => $ids->contains($id))->values()->all()
+            : $current->merge($ids)->unique()->values()->all();
+    }
+
     public function saveRolePermissions(): void
     {
         if ($this->editRoleId) {
@@ -171,15 +208,31 @@ new #[Title('tardis::roles.roles')] #[Layout('tardis::layouts.admin')] class ext
         <dialog class="modal modal-open">
             <div class="modal-box w-full max-w-lg">
                 <h3 class="font-bold text-lg">{{ __('tardis::roles.edit_role_permissions') }}</h3>
-                <div class="py-4 max-h-96 overflow-y-auto">
-                    @foreach ($allPermissions as $perm)
-                        <label class="flex items-center gap-3 py-2 border-b border-base-200">
-                            <input type="checkbox" wire:model="editRolePermissions" value="{{ $perm['id'] }}" class="checkbox checkbox-sm checkbox-primary" />
-                            <div>
-                                <span class="font-medium">{{ $perm['name'] }}</span>
-                                <span class="text-xs text-base-content/50 ml-2">{{ $perm['slug'] }}</span>
+                <div class="py-4 max-h-96 overflow-y-auto space-y-4">
+                    @foreach ($this->permissionTree() as $group => $resources)
+                        <section wire:key="perm-group-{{ $group }}">
+                            <div class="mb-1 flex items-center justify-between">
+                                <h4 class="text-sm font-semibold uppercase tracking-wide text-base-content/60">{{ $group }}</h4>
+                                <button type="button" wire:click="toggleGroup(@js($group))" class="btn btn-ghost btn-xs">{{ __('tardis::roles.toggle_all') }}</button>
                             </div>
-                        </label>
+                            @foreach ($resources as $resource => $permissions)
+                                @if ($resource !== '')
+                                    <div class="mt-2 flex items-center justify-between pl-2">
+                                        <span class="text-xs font-medium text-base-content/70">{{ $resource }}</span>
+                                        <button type="button" wire:click="toggleGroup(@js($group), @js($resource))" class="btn btn-ghost btn-xs">{{ __('tardis::roles.toggle_all') }}</button>
+                                    </div>
+                                @endif
+                                @foreach ($permissions as $perm)
+                                    <label class="flex items-center gap-3 py-1.5 border-b border-base-200 {{ $resource !== '' ? 'pl-4' : '' }}">
+                                        <input type="checkbox" wire:model="editRolePermissions" value="{{ $perm['id'] }}" class="checkbox checkbox-sm checkbox-primary" />
+                                        <div>
+                                            <span class="font-medium">{{ $perm['name'] }}</span>
+                                            <span class="text-xs text-base-content/50 ml-2">{{ $perm['slug'] }}</span>
+                                        </div>
+                                    </label>
+                                @endforeach
+                            @endforeach
+                        </section>
                     @endforeach
                 </div>
                 <div class="modal-action">

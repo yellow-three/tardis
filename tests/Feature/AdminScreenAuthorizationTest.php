@@ -75,6 +75,8 @@ test('each fixed screen refuses a user who lacks its ability', function (string 
 })->with([
     'settings' => ['tardis::pages.settings', [], Abilities::SETTINGS],
     'plugins' => ['tardis::pages.plugins', [], Abilities::PLUGINS],
+    'menu builder' => ['tardis::pages.menu-builder', [], Abilities::MENUS],
+    'theme editor' => ['tardis::pages.theme-editor', [], Abilities::APPEARANCE],
     'database' => ['tardis::pages.database', [], Abilities::DATABASE],
     'database create' => ['tardis::pages.database.create', [], Abilities::DATABASE],
     'database edit' => ['tardis::pages.database.edit', ['table' => 'users'], Abilities::DATABASE],
@@ -94,6 +96,8 @@ test('each fixed screen opens for a user who holds its ability', function (strin
 })->with([
     'settings' => ['tardis::pages.settings', [], Abilities::SETTINGS],
     'plugins' => ['tardis::pages.plugins', [], Abilities::PLUGINS],
+    'menu builder' => ['tardis::pages.menu-builder', [], Abilities::MENUS],
+    'theme editor' => ['tardis::pages.theme-editor', [], Abilities::APPEARANCE],
     'database' => ['tardis::pages.database', [], Abilities::DATABASE],
     'database create' => ['tardis::pages.database.create', [], Abilities::DATABASE],
     'database edit' => ['tardis::pages.database.edit', ['table' => 'users'], Abilities::DATABASE],
@@ -168,4 +172,17 @@ test('the sidebar lists a BREAD resource only to users who may browse it', funct
 
     expect($hidden)->not->toContain('href="'.route('tardis.bread.index', ['slug' => 'widgets']).'"')
         ->and($shown)->toContain('href="'.route('tardis.bread.index', ['slug' => 'widgets']).'"');
+});
+
+test('changing the dashboard layout needs its own ability', function () {
+    gateAllows([Abilities::ACCESS]);
+
+    Livewire::test('tardis::pages.dashboard')
+        ->assertOk()
+        ->assertDontSee(__('tardis::dashboard.customize'))
+        ->call('toggleEditing')->assertForbidden();
+
+    gateAllows([Abilities::ACCESS, Abilities::DASHBOARD]);
+
+    Livewire::test('tardis::pages.dashboard')->assertSee(__('tardis::dashboard.customize'))->call('toggleEditing')->assertOk();
 });

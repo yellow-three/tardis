@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tardis\Classes;
 
 use Illuminate\Support\Collection;
+use Illuminate\Support\Str;
 use Tardis\Contracts\Plugins\AuthorizationPlugin;
 use Tardis\Manager\PluginManager;
 
@@ -63,11 +64,38 @@ class MenuItem
 
     public ?string $section = null;
 
+    /** Set when the administrator's menu overlay hides this item. */
+    public bool $overlayHidden = false;
+
+    /** The item's own opening in a new tab (custom links only). */
+    public bool $newTab = false;
+
+    /** Explicit stable id; see id(). */
+    public ?string $key = null;
+
     public function __construct(string $title, ?string $icon = null)
     {
         $this->title = $title;
         $this->icon = $icon;
         $this->children = new Collection;
+    }
+
+    /**
+     * A stable identity for the menu overlay: the explicit key, else the route
+     * name with its parameters (every BREAD shares a route and differs by slug),
+     * else the url, else the title.
+     */
+    public function id(): string
+    {
+        if ($this->key !== null) {
+            return $this->key;
+        }
+
+        if ($this->routeName !== null) {
+            return $this->routeName.($this->routeParams === [] ? '' : ':'.implode(',', array_map('strval', $this->routeParams)));
+        }
+
+        return Str::slug($this->url ?? $this->title);
     }
 
     public static function makeDivider(): self

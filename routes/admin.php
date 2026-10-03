@@ -37,6 +37,8 @@ Route::middleware(['web', 'tardis.locale', 'tardis.admin'])
     ->group(function () {
         Route::livewire('/dashboard', 'tardis::pages.dashboard')->name('dashboard');
 
+        Route::livewire('/themes', 'tardis::pages.theme-editor')->name('themes.index');
+        Route::livewire('/menus', 'tardis::pages.menu-builder')->name('menus.index');
         Route::livewire('/plugins', 'tardis::pages.plugins')->name('plugins.index');
         Route::livewire('/media', 'tardis::pages.media-browser')->name('media');
         Route::livewire('/media/browse', 'tardis::pages.media-browser')->name('media.browse');

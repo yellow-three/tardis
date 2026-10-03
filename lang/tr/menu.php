@@ -19,4 +19,6 @@ return [
     'roles' => 'Roller',
     'profile' => 'Profil',
     'logout' => 'Çıkış',
+    'menu_builder' => 'Menü oluşturucu',
+    'theme_editor' => 'Temalar',
 ];
