@@ -8,7 +8,7 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Log;
 use Tardis\Bread\BreadDefinition;
-use Tardis\Bread\FieldType;
+use Tardis\Manager\FormfieldManager;
 
 /**
  * Stores BREAD definitions as JSON files, one file per slug, under
@@ -343,7 +343,7 @@ class JsonBreadSource implements BreadSource
     {
         foreach ($fields as $field) {
             if (isset($field['type']) && is_string($field['type'])) {
-                FieldType::fromValue($field['type']);
+                app(FormfieldManager::class)->assertRegistered($field['type']);
             }
         }
     }

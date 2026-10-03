@@ -8,8 +8,8 @@ use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Schema;
 use Livewire\Livewire;
 use Tardis\Bread\BreadManager;
-use Tardis\Bread\FieldType;
 use Tardis\Bread\Sources\JsonBreadSource;
+use Tardis\Manager\FormfieldManager;
 
 class BreadBuilderTestModel extends Model
 {
@@ -75,7 +75,7 @@ test('detectFields produces only valid FieldType values', function () {
         ->call('detectFields');
 
     foreach ($component->get('fieldConfig') as $field) {
-        expect(FieldType::tryFrom($field['type']))->not->toBeNull();
+        expect(app(FormfieldManager::class)->has($field['type']))->toBeTrue();
     }
 });
 
@@ -414,7 +414,7 @@ test('slug status distinguishes empty, invalid, available and taken slugs', func
     expect($component->instance()->slugStatus)->toBe('taken');
 });
 
-test('save coerces a field type that is not a registered FieldType', function () {
+test('save coerces a field type that is not registered', function () {
     $source = new JsonBreadSource($this->breadPath);
     app()->instance(JsonBreadSource::class, $source);
 
@@ -435,7 +435,7 @@ test('save coerces a field type that is not a registered FieldType', function ()
     expect($bread->fields['avatar']['type'])->toBe('file');
 
     foreach ($bread->fields as $field) {
-        expect(array_column(FieldType::cases(), 'value'))->toContain($field['type']);
+        expect(array_keys(app(FormfieldManager::class)->types()))->toContain($field['type']);
     }
 });
 
@@ -447,8 +447,8 @@ test('save maps a legacy field type name onto the enum', function () {
         ->set('model', BreadBuilderTestModel::class)
         ->call('detectFields')
         ->set('slug', 'bread-builder-test')
-        // 'image' is not an enum case, but FieldType::normalize() reads it as
-        // File, so the staged intent survives instead of losing to the type the
+        // 'image' is not a registered type, but normalize() reads it as
+        // file, so the staged intent survives instead of losing to the type the
         // reflector detected for body.
         ->set('fieldConfig.body.type', 'image')
         ->call('save')

@@ -7,7 +7,7 @@ namespace Tardis\Bread\Sources;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\File;
 use Tardis\Bread\BreadDefinition;
-use Tardis\Bread\FieldType;
+use Tardis\Manager\FormfieldManager;
 
 /**
  * Reads BREAD definitions from PHP config files, one file per slug.
@@ -119,7 +119,7 @@ class ConfigBreadSource implements BreadSource
     {
         foreach ($fields as $field) {
             if (isset($field['type']) && is_string($field['type'])) {
-                FieldType::fromValue($field['type']);
+                app(FormfieldManager::class)->assertRegistered($field['type']);
             }
         }
     }

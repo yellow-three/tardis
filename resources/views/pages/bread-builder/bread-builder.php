@@ -8,8 +8,8 @@ use Tardis\Auth\Abilities;
 use Tardis\Auth\BreadAuthorization;
 use Tardis\Bread\BreadDefinition;
 use Tardis\Bread\BreadManager;
-use Tardis\Bread\FieldType;
 use Tardis\Bread\ModelReflector;
+use Tardis\Manager\FormfieldManager;
 
 new #[Title('BREAD Builder')] #[Layout('tardis::layouts.admin')] class extends Component
 {
@@ -430,17 +430,15 @@ new #[Title('BREAD Builder')] #[Layout('tardis::layouts.admin')] class extends C
 
     public function setFieldType(string $key, string $type): void
     {
-        $normalized = FieldType::tryFrom($type);
-
-        if ($normalized === null || ! isset($this->fieldConfig[$key])) {
+        if (! app(FormfieldManager::class)->has($type) || ! isset($this->fieldConfig[$key])) {
             return;
         }
 
-        $this->fieldConfig[$key]['type'] = $normalized->value;
+        $this->fieldConfig[$key]['type'] = $type;
     }
 
     /**
-     * Coerce every staged field type back onto the FieldType enum.
+     * Coerce every staged field type back onto a registered field type.
      *
      * The type <select> only ever offers registered values, but it binds
      * straight to fieldConfig.<key>.type, so a hand-crafted Livewire payload
@@ -450,23 +448,26 @@ new #[Title('BREAD Builder')] #[Layout('tardis::layouts.admin')] class extends C
      */
     protected function normalizeFieldTypes(): void
     {
+        $formfields = app(FormfieldManager::class);
+
         foreach ($this->fieldConfig as $key => $field) {
             if (! is_array($field)) {
                 continue;
             }
 
             $detected = $this->detectedFields[$key]['type'] ?? null;
-            $fallback = is_string($detected) ? FieldType::tryFrom($detected) : null;
+            $fallback = is_string($detected) && $formfields->has($detected) ? $detected : null;
 
-            // Run the staged value through FieldType::normalize() first so a
-            // legacy/semantic name (image, email, simple_array) still maps onto
-            // the enum instead of being discarded in favour of the detected type.
+            // Run the staged value through normalize() first so a legacy or
+            // semantic name (image, email, simple_array) still maps onto a
+            // registered type instead of being discarded in favour of the
+            // detected one.
             $current = $field['type'] ?? null;
-            $normalized = is_string($current)
-                ? FieldType::tryFrom(FieldType::normalize($current))
+            $normalized = is_string($current) && $formfields->has($formfields->normalize($current))
+                ? $formfields->normalize($current)
                 : null;
 
-            $this->fieldConfig[$key]['type'] = ($normalized ?? $fallback ?? FieldType::Text)->value;
+            $this->fieldConfig[$key]['type'] = $normalized ?? $fallback ?? 'text';
         }
     }
 
