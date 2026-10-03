@@ -24,6 +24,8 @@ Son güncelleme: 2026-10-03. ID'ler `R` = roadmap sırası; `notes.md` bulgular�
 | R6 | P2 | Asset symlink kurulumu | ✅ Çözüldü | (plan frontmatter: `status: completed`) | — |
 | R7 | P2 | Dual-mode asset pipeline — Vite dev + prebuilt manifest | ✅ Çözüldü | `ed8d7f0` + `AssetManager`/`ThemeManager` manifest | `docs/constraints.md` → Tema sistemi |
 | R8 | P1 | Tema paint öncesi uygulanmıyor (FOUC) — blocking `<script>` + manifest çözümlemesi `</head>` öncesine alındı | ✅ Çözüldü | `fce40c0` | `docs/constraints.md` → Tema sistemi |
+| R17 | P0 | **Yetkilendirme kapatıldı.** `TardisAuthorizationPlugin` varsayılan etkin, `access admin` kapısı, `tardis:admin`, tüm sabit ekranlar ability ile korunuyor ve menüde gizleniyor, BREAD kaydı izinleri üretiyor, plugin durumu dosyada + auth plugin'leri kilitli, Users ekranı, Database Explorer sistem tabloları, ek CSS/JS config'i | ✅ Çözüldü | `b17143c`, `b846632`, `30131ff`, `bae9688`, `331202c` | `RELEASE_NOTES.md` |
+| R20 | P1 | **Yönetici kabuğu çıplak host'ta 500 veriyordu + manager'lar singleton değildi.** | ✅ Çözüldü | `a87de6a` | `docs/constraints.md` → Manager'lar |
 
 ### Açık
 
@@ -37,8 +39,7 @@ Son güncelleme: 2026-10-03. ID'ler `R` = roadmap sırası; `notes.md` bulgular�
 | R14 | P2 | **Graphify MCP'yi OpenCode'a bağla.** Doğrulandı: `~/.config/opencode/opencode.json` içinde `graphify` **yok**. Yalnızca araç/observability, ürün yüzeyi yok. | ⏳ Açık | — | `.omo/plans/graphify-mcp-setup.md` |
 | R15 | P1 | **BREAD açık bulguları (4 madde kaldı).** (Locked property, search yetkisi, slug doğrulama ve validation `|` düzeltmeleri 2026-10-03'te kapandı.) `registerType()` erişilemezliği, ölü `field()` stub, `searchOptions()` filtresiz, fail-open authorization. Kullanılmayan Spatie bağımlılığı kaldırıldı (`bf24401` sonrası) — paket hiçbir yerde Spatie'ye derleme zamanı bağlı değildi, yalnızca `method_exists()` ile duck-typ ediyordu. | ⏳ Açık | — | `docs/notes.md` → B1, B2, B4, B5 |
 | R16 | P2 | **`Alpine.store('theme')` → `Alpine.data('theme')` + `$persist` geçişi.** R8 ile birlikte planlanmıştı ama FOUC'yu etkilemiyor ve planın gövdesi `availableThemes` / `lightThemes` / `darkThemes` getter'larını düşürüyor — `pages/settings/settings.blade.php` bunları `$store.theme.availableThemes` üzerinden okuyor, gövde aynen uygulansaydı settings sayfası kırılırdı. Ayrıca plan store'un `resources/js/app.js` içinde olduğunu varsayıyor; oysa layout'a inline gömülü. Gerçek gerekçe: listener cleanup (`wire:navigate` sırasında birikme). | ⏸️ Ertelenmiş | — | `.omo/plans/theme-fix-wire-navigate.md` (Todo 2-7) |
-| R17 | P0 | **Varsayılan yetkilendirme (fail-open) kararı.** `TardisAuthorizationPlugin` kayıtlı değil; giriş yapmış her host kullanıcısı panele girer. Roles/Permissions/Plugins/Settings/Database/Media ekranları BREAD ability'leriyle de korunmuyor (B10). Üretim öncesi şart. | ⏸️ Karar bekleniyor | — | `docs/notes.md` → B9, B10 |
-| R18 | P2 | **Auth/policy/config tutarsızlıkları.** Login `AuthenticationPlugin`'i atlıyor (B12), `BasePolicy` izin adı slug'dan türemiyor (B11), kullanılmayan config anahtarları (B13), plugin route'ları wildcard'a yenilebilir (B14), settings import kısmi yazıyor (B15). | ⏳ Açık | — | `docs/notes.md` → B11–B15 |
+| R18 | P2 | **Auth/policy/config tutarsızlıkları.** Login `AuthenticationPlugin`'i atlıyor (B12), `BasePolicy` izin adı slug'dan türemiyor (B11), kullanılmayan config anahtarları (B13; `ConfigTest` varlıklarını pinliyor), plugin route'ları wildcard'a yenilebilir (B14). | ⏳ Açık | — | `docs/notes.md` → B11–B15 |
 | R19 | P2 | **`ThemeManager` boot-time I/O.** `TardisServiceProvider::register()` içinde dosya/ağ okuması yapılıyor, hatalar yalnızca loglanıyor. | ⏸️ Ertelenmiş | — | — |
 
 ## Bağımlılık sırası notu

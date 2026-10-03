@@ -64,7 +64,7 @@ public function boot(PluginManager $plugins): void
 }
 ```
 
-`enableByDefault()` respects a disable made on the admin Plugins page, so the plugin stays off across requests until someone enables it there. Do not call `enable()` from a provider: that is the explicit user action and would clear the stored disable on every request. The generated service provider already does both calls.
+`enableByDefault()` respects a disable made on the admin Plugins page (stored in `storage/tardis/plugins.json`, so a `cache:clear` does not undo it), so the plugin stays off across requests until someone enables it there. Do not call `enable()` from a provider: that is the explicit user action and would clear the stored disable on every request. The generated service provider already does both calls.
 
 ## 4. Add a route
 
@@ -84,6 +84,8 @@ Route::middleware(['web', 'tardis.admin'])
 The generated provider registers a Livewire namespace for the plugin (`tardis-blog`), so pages live in the plugin's own `resources/views/pages/admin/` rather than in the `tardis::` namespace.
 
 > **Route order matters.** Tardis ends with the wildcard `Route::livewire('/{slug}', ...)` under the same prefix. A plugin route such as `/admin/blog/posts` has two segments and is matched by `/{slug}/{id}` unless it is registered first, so load plugin routes before Tardis' or use a distinct prefix.
+
+Authentication and authorization plugins are **locked**: they guard the panel, so the Plugins page shows "Required" instead of a Disable button and `PluginManager::disable()` throws for them.
 
 ## 5. Best practices
 
