@@ -75,3 +75,31 @@ test('run calls artisan for an allowed command', function () {
 
     expect((new CommandAllowlist)->run('tardis:doctor'))->toBe(0);
 });
+
+test('allowlisted flags reach the command as options, not as ignored positionals', function () {
+    config()->set('tardis.system.commands.enabled', true);
+    config()->set('tardis.system.commands.allowlist', ['queue:work' => ['--once', '--queue=default']]);
+
+    $kernel = Mockery::mock(Kernel::class);
+    $kernel->shouldReceive('call')->once()->with('queue:work', ['--once' => true, '--queue' => 'default'])->andReturn(0);
+    Artisan::swap($kernel);
+
+    expect((new CommandAllowlist)->run('queue:work', ['--once', '--queue=default']))->toBe(0);
+});
+
+test('a positional value is never allowed, only --flag and --option=value', function () {
+    config()->set('tardis.system.commands.enabled', true);
+    config()->set('tardis.system.commands.allowlist', ['tardis:doctor' => ['json', '--json']]);
+
+    expect((new CommandAllowlist)->allows('tardis:doctor', ['json']))->toBeFalse()
+        ->and((new CommandAllowlist)->allows('tardis:doctor', ['--json']))->toBeTrue();
+});
+
+test('a flag really changes what the command does', function () {
+    config()->set('tardis.system.commands.enabled', true);
+    config()->set('tardis.system.commands.allowlist', ['tardis:doctor' => ['--json']]);
+
+    (new CommandAllowlist)->run('tardis:doctor', ['--json']);
+
+    expect(json_decode(trim(Artisan::output()), true))->toHaveKey('checks');
+});

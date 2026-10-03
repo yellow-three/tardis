@@ -87,14 +87,15 @@ test('the assets check warns when published assets differ from the build', funct
     expect(reportCheck(DoctorReport::run(), 'Published assets')->isWarning())->toBeTrue();
 });
 
-test('the theme manifest check fails when the manifest is missing', function () {
-    expect(reportCheck(DoctorReport::run(), 'Theme manifest')->isFailure())->toBeTrue();
+test('the themes check needs no build artefact: a fresh install passes it', function () {
+    expect(reportCheck(DoctorReport::run(), 'Themes')->isOk())->toBeTrue();
 });
 
-test('the theme manifest check passes for valid json', function () {
-    File::put($this->publicDir.'/tardis-assets/themes-manifest.json', (string) json_encode(['themes' => []]));
+test('the themes check warns about a corrupt themes.json', function () {
+    File::ensureDirectoryExists(storage_path('tardis'));
+    File::put(storage_path('tardis/themes.json'), '{not json');
 
-    expect(reportCheck(DoctorReport::run(), 'Theme manifest')->isOk())->toBeTrue();
+    expect(reportCheck(DoctorReport::run(), 'Themes')->isWarning())->toBeTrue();
 });
 
 test('the bread check fails for a definition whose model is missing', function () {

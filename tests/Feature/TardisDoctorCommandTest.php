@@ -27,9 +27,6 @@ test('doctor succeeds on a healthy install', function () {
     $this->artisan('migrate', ['--force' => true])->assertSuccessful();
     $this->artisan('vendor:publish', ['--tag' => 'tardis-assets', '--force' => true])->assertSuccessful();
 
-    File::ensureDirectoryExists(public_path('tardis-assets'));
-    File::put(public_path('tardis-assets/themes-manifest.json'), (string) json_encode(['themes' => []]));
-
     $this->artisan('tardis:doctor')->assertSuccessful();
 });
 

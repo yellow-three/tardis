@@ -10,9 +10,10 @@ use Illuminate\Support\Facades\Artisan;
  * Gate for running artisan commands from the panel.
  *
  * Disabled unless the host opts in, and even then only the exact commands and
- * argument values listed in config are accepted. Arguments are passed to
- * Artisan as an array, never interpolated into a shell string, so a value that
- * slips through validation still cannot become a second command.
+ * options listed in config are accepted. An entry is `--flag` or
+ * `--option=value`; positional arguments are not supported. Options are passed
+ * to Artisan as a parameter array, never interpolated into a shell string, so a
+ * value that slips through validation still cannot become a second command.
  */
 final class CommandAllowlist
 {
@@ -80,7 +81,7 @@ final class CommandAllowlist
         $allowed = $commands[$command];
 
         foreach ($args as $arg) {
-            if (! is_string($arg) || $this->isUnsafe($arg) || ! in_array($arg, $allowed, true)) {
+            if (! is_string($arg) || $this->isUnsafe($arg) || ! $this->isOption($arg) || ! in_array($arg, $allowed, true)) {
                 return false;
             }
         }
@@ -97,7 +98,32 @@ final class CommandAllowlist
             throw new \InvalidArgumentException("Command [{$command}] is not allowed.");
         }
 
-        return Artisan::call($command, $args);
+        return Artisan::call($command, $this->parameters($args));
+    }
+
+    /**
+     * Artisan::call() reads `--flag` only as an array KEY; a list such as
+     * ['--once'] is silently ignored, so the strings become a keyed array.
+     *
+     * @param  list<string>  $args
+     * @return array<string, bool|string>
+     */
+    private function parameters(array $args): array
+    {
+        $parameters = [];
+
+        foreach ($args as $arg) {
+            [$name, $value] = array_pad(explode('=', $arg, 2), 2, null);
+
+            $parameters[$name] = $value ?? true;
+        }
+
+        return $parameters;
+    }
+
+    private function isOption(string $arg): bool
+    {
+        return preg_match('/^--[A-Za-z0-9][A-Za-z0-9-]*(=[^=]*)?$/', $arg) === 1;
     }
 
     /**

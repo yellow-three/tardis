@@ -10,6 +10,7 @@ use Tardis\Bread\BreadManager;
 use Tardis\Contracts\Plugins\Features\Provider\CSS;
 use Tardis\Contracts\Plugins\Features\Provider\JS;
 use Tardis\Manager\PluginManager;
+use Tardis\Manager\ThemeManager;
 
 /**
  * Runs the `tardis:doctor` checks and collects their results.
@@ -37,7 +38,7 @@ final class DoctorReport
             self::guard('Published assets', self::checkAssets(...)),
             self::guard('Route cache', self::checkRouteCache(...)),
             self::guard('Authorization plugin', self::checkAuthorization(...)),
-            self::guard('Theme manifest', self::checkThemeManifest(...)),
+            self::guard('Themes', self::checkThemes(...)),
             self::guard('Plugins', self::checkPlugins(...)),
             self::guard('BREAD definitions', self::checkBread(...)),
         ];
@@ -263,25 +264,21 @@ final class DoctorReport
         return CheckResult::ok('Authorization plugin', $plugins->count().' authorization plugin(s) enabled.');
     }
 
-    private static function checkThemeManifest(): CheckResult
+    /**
+     * Themes are data now (storage/tardis/themes.json), so there is no build
+     * artefact to look for; the only thing that can be wrong is a corrupt file.
+     */
+    private static function checkThemes(): CheckResult
     {
-        $path = public_path('tardis-assets/themes-manifest.json');
+        $path = storage_path('tardis/themes.json');
 
-        if (! is_file($path)) {
-            return CheckResult::fail(
-                'Theme manifest',
-                'The theme manifest is missing.',
-                'Publish the TARDIS assets.',
-            );
+        if (is_file($path) && ! is_array(json_decode((string) file_get_contents($path), true))) {
+            return CheckResult::warn('Themes', 'storage/tardis/themes.json is not valid JSON; custom themes are ignored.');
         }
 
-        $decoded = json_decode((string) file_get_contents($path), true);
+        $count = app(ThemeManager::class)->all()->count();
 
-        if (! is_array($decoded)) {
-            return CheckResult::fail('Theme manifest', 'The theme manifest is not valid JSON.');
-        }
-
-        return CheckResult::ok('Theme manifest', 'The theme manifest is present and valid.');
+        return CheckResult::ok('Themes', "{$count} themes available.");
     }
 
     private static function checkPlugins(): CheckResult

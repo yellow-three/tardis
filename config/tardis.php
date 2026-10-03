@@ -142,7 +142,9 @@ return [
             // Even when enabled, the runner stays closed unless the app runs in
             // one of these environments.
             'environments' => ['local'],
-            // The only commands that may run, as ['name' => [...allowed args]].
+            // The only commands that may run, as ['name' => [...allowed options]].
+            // An option is '--flag' or '--option=value'; positional arguments are
+            // not supported. Example: ['queue:work' => ['--once', '--queue=default']].
             // An empty list means nothing is allowed, so enabling alone is not
             // enough to make a command reachable.
             'allowlist' => [],

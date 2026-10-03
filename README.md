@@ -109,30 +109,12 @@ Menu items can be grouped by section and can participate in active-route detecti
 
 ## Theme system
 
-TARDIS uses a build-time manifest system for DaisyUI themes.
+Themes are data. The built-in `tardis-light` and `tardis-dark` ship in the compiled stylesheet; any other theme is a validated entry in `storage/tardis/themes.json` that Tardis turns into a `[data-theme]` rule at request time, so a host can add one **without rebuilding any assets**.
 
-### How it works
-
-During build, a Vite plugin extracts theme metadata from CSS definitions and generates a manifest at `public/tardis-assets/themes-manifest.json`. The service provider loads this manifest and the admin layout exposes it to the Alpine theme store.
-
-### Adding a custom theme
-
-```css
-@plugin "daisyui/theme" {
-  name: "my-custom-theme",
-  color-scheme: dark;
-  --color-primary: oklch(50% 0.2 260);
-  --color-secondary: oklch(60% 0.15 180);
-  --color-accent: oklch(70% 0.18 80);
-  --color-base-100: oklch(25% 0.02 260);
-}
-```
-
-Then rebuild assets:
-
-```bash
-npm run build
-```
+- The server resolves the theme per request (the user's own choice, else the defaults under Settings → appearance, else the built-ins) and writes `data-theme` on `<html>`, so the first paint is already right.
+- Users pick a mode (light, dark, follow the system) and a light and a dark theme from Settings; administrators can create and edit custom themes under **Themes** (`manage appearance`).
+- A custom theme can also be added in code with `app(\Tardis\Manager\ThemeManager::class)->saveCustom([...])`: a `name` (`[a-z0-9-]`), a `scheme` (`light` or `dark`) and colours (at least `primary`, `base-100` and `base-content`; values are checked against an allow-list of colour formats).
+- Extra CSS goes in Settings → appearance → custom CSS, or in a stylesheet registered with `Tardis::addCss()`.
 
 ## BREAD usage
 
