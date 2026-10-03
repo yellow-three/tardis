@@ -30,17 +30,11 @@ Only SFC and MFC are allowed (see `.claude/AGENTS.md`). Large pages are MFC: `br
 - `ThemeManager` reads the Vite-generated `themes-manifest.json` (dev: Vite URL with disk fallback; prod: disk).
 - `SettingsManager` persists to `storage/tardis/settings/settings.json`; the preset in `resources/presets/settings.json` is seeded on the first web boot when no file exists.
 
-## Open decisions and follow-ups (details in `docs/notes.md`)
+## Roadmap
 
-The authorization default, per-screen abilities, plugin persistence/locking and the Users screen were decided and shipped on 2026-10-03.
+The next release is **2.0.0**: a Voyager 1/2 parity plan in nine phases (`docs/backlog.md` → *Voyager parity planı*, R21–R30). Decided on 2026-10-03: JSON is the single BREAD source, the field-type enum is replaced by a registry + `FormfieldPlugin`, backwards compatibility may break once (with `UPGRADE.md`), translations stay in JSON columns, the menu builder stores `storage/tardis/menus.json`, and the panel gets `lang/en` + `lang/tr`.
 
-
-| Item | Why it needs a decision |
-|---|---|
-| BREAD definition source (JSON vs `config/bread`) | Plan and code point in opposite directions (B7 / R11) |
-| `FieldType` enum vs `registerType()` | The extension point cannot be used from BREAD definitions (B1) |
-| `ThemePlugin::getStyles()` | Contract change is a BC break (B8 / R10a) |
-| `ThemeManager` boot-time I/O | Discussed, deferred |
+Still open and not part of a phase decision: `ThemeManager` boot-time I/O (R19).
 
 ## Documentation map
 

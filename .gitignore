@@ -38,3 +38,8 @@ resources/hot
 /research/voyager-2x-docs/
 # superseded by docs/voyager-tam-arsistirma.md
 /docs/voyager-karsilastirma.md
+# Local Voyager source checkouts used for the design study (research/06)
+/research/voyager-1.7/
+/research/voyager-1.7.zip
+/research/voyager-2.x/
+/research/voyager-2.x.zip
