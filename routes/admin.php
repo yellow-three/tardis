@@ -3,8 +3,20 @@
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use Tardis\Http\BreadRoutes;
+use Tardis\Http\Controllers\AssetController;
 use Tardis\Http\Controllers\LocaleController;
 use Tardis\Http\Controllers\ThemeController;
+
+// Plugin and host assets, addressed by content hash. No middleware on purpose:
+// they are code, not data, the login page needs them too, and a session cookie
+// must never ride on a response that is cached for a year.
+Route::prefix(config('tardis.admin.prefix', 'admin'))
+    ->name('tardis.')
+    ->group(function () {
+        Route::get('/_assets/{hash}.{extension}', AssetController::class)
+            ->where(['hash' => '[a-f0-9]{16}', 'extension' => 'css|js'])
+            ->name('assets');
+    });
 
 Route::middleware(['web', 'tardis.locale'])
     ->prefix(config('tardis.admin.prefix', 'admin'))

@@ -2,7 +2,15 @@
 
 namespace Tardis\Contracts\Plugins\Features\Provider;
 
+use Tardis\Assets\Asset;
+
 interface CSS
 {
-    public function provideCSS(): string;
+    /**
+     * Plain text is written inline; return an Asset (or a list of them) to have
+     * Tardis serve files from a hashed, cacheable URL instead.
+     *
+     * @return string|Asset|array<int, Asset>
+     */
+    public function provideCSS(): string|Asset|array;
 }

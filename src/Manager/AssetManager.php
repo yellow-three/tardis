@@ -72,7 +72,7 @@ class AssetManager
         return $hash === false ? null : substr($hash, 0, 8);
     }
 
-    public function styles(): string
+    public function styles(string $scope = 'admin'): string
     {
         if ($this->stylesRendered) {
             return '';
@@ -113,13 +113,15 @@ class AssetManager
         }
 
         // 1b. Assets registered through Tardis::addCss()
-        foreach ($this->added('css') as $asset) {
+        foreach ($this->wanted($this->added('css'), $scope) as $asset) {
             $html .= $this->render($asset);
         }
 
         // 2. Plugin CSS providers (CSS interface)
-        foreach ($this->plugins()->enabledWith(CSS::class) as $plugin) {
-            $html .= '<style>'.$plugin->provideCSS().'</style>'.PHP_EOL;
+        foreach ($this->pluginAssets('css') as $item) {
+            $html .= $item instanceof Asset
+                ? ($this->wanted([$item], $scope) === [] ? '' : $this->render($item))
+                : '<style>'.$item.'</style>'.PHP_EOL;
         }
 
         // 3. ThemePlugin variables
@@ -139,7 +141,7 @@ class AssetManager
         return $html;
     }
 
-    public function scripts(): string
+    public function scripts(string $scope = 'admin'): string
     {
         if ($this->scriptsRendered) {
             return '';
@@ -154,13 +156,15 @@ class AssetManager
         $html .= $this->coreScript();
 
         // 0a. Assets registered through Tardis::addJs()
-        foreach ($this->added('js') as $asset) {
+        foreach ($this->wanted($this->added('js'), $scope) as $asset) {
             $html .= $this->render($asset);
         }
 
         // 1. Plugin JS providers
-        foreach ($this->plugins()->enabledWith(JS::class) as $plugin) {
-            $html .= '<script>'.$plugin->provideJS().'</script>'.PHP_EOL;
+        foreach ($this->pluginAssets('js') as $item) {
+            $html .= $item instanceof Asset
+                ? ($this->wanted([$item], $scope) === [] ? '' : $this->render($item))
+                : '<script>'.$item.'</script>'.PHP_EOL;
         }
 
         // 2. Host-configured scripts
@@ -242,6 +246,67 @@ class AssetManager
     }
 
     /**
+     * Everything the enabled plugins provide for one type: plain strings (inline
+     * text) and Asset objects, in plugin order.
+     *
+     * @return list<Asset|string>
+     */
+    private function pluginAssets(string $type): array
+    {
+        $contract = $type === 'css' ? CSS::class : JS::class;
+        $items = [];
+
+        foreach ($this->plugins()->enabledWith($contract) as $plugin) {
+            $provided = $type === 'css' ? $plugin->provideCSS() : $plugin->provideJS();
+
+            foreach (is_array($provided) ? $provided : [$provided] as $item) {
+                if ($item instanceof Asset || (is_string($item) && $item !== '')) {
+                    $items[] = $item;
+                }
+            }
+        }
+
+        return $items;
+    }
+
+    /**
+     * Every file-backed asset anything has registered, whatever the page: the
+     * table the hashed asset route resolves against.
+     *
+     * @return list<Asset>
+     */
+    public function fileAssets(): array
+    {
+        $all = [...$this->added, ...array_filter($this->pluginAssets('css'), fn ($i) => $i instanceof Asset), ...array_filter($this->pluginAssets('js'), fn ($i) => $i instanceof Asset)];
+
+        return array_values(array_filter($all, fn (Asset $asset) => $asset->file !== null));
+    }
+
+    /** The registered file asset behind a hash and extension, or null. */
+    public function findByHash(string $hash, string $extension): ?Asset
+    {
+        foreach ($this->fileAssets() as $asset) {
+            if ($asset->type === $extension && $asset->hash() === $hash) {
+                return $asset;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * @param  list<Asset>  $assets
+     * @return list<Asset>
+     */
+    private function wanted(array $assets, string $scope): array
+    {
+        $route = request()->route()?->getName();
+        $can = fn (string $ability) => (bool) auth()->user()?->can($ability);
+
+        return array_values(array_filter($assets, fn (Asset $asset) => $asset->wantedOn($scope, $route, $can)));
+    }
+
+    /**
      * @return list<Asset>
      */
     private function added(string $type): array
@@ -256,6 +321,20 @@ class AssetManager
             $body = str_ireplace(['</style', '</script'], ['<\\/style', '<\\/script'], $asset->inline);
 
             return ($asset->type === 'css' ? '<style>'.$body.'</style>' : '<script>'.$body.'</script>').PHP_EOL;
+        }
+
+        if ($asset->file !== null) {
+            $hash = $asset->hash();
+
+            if ($hash === null) {
+                return '';
+            }
+
+            $url = route('tardis.assets', ['hash' => $hash, 'extension' => $asset->type]);
+
+            return $asset->type === 'css'
+                ? '<link rel="stylesheet" href="'.e($url).'">'.PHP_EOL
+                : '<script src="'.e($url).'"'.($asset->defer ? ' defer' : '').'></script>'.PHP_EOL;
         }
 
         if ($asset->url === null || ! $this->isSafeUrl($asset->url)) {
