@@ -75,6 +75,7 @@ test('each fixed screen refuses a user who lacks its ability', function (string 
 })->with([
     'settings' => ['tardis::pages.settings', [], Abilities::SETTINGS],
     'plugins' => ['tardis::pages.plugins', [], Abilities::PLUGINS],
+    'menu builder' => ['tardis::pages.menu-builder', [], Abilities::MENUS],
     'database' => ['tardis::pages.database', [], Abilities::DATABASE],
     'database create' => ['tardis::pages.database.create', [], Abilities::DATABASE],
     'database edit' => ['tardis::pages.database.edit', ['table' => 'users'], Abilities::DATABASE],
@@ -94,6 +95,7 @@ test('each fixed screen opens for a user who holds its ability', function (strin
 })->with([
     'settings' => ['tardis::pages.settings', [], Abilities::SETTINGS],
     'plugins' => ['tardis::pages.plugins', [], Abilities::PLUGINS],
+    'menu builder' => ['tardis::pages.menu-builder', [], Abilities::MENUS],
     'database' => ['tardis::pages.database', [], Abilities::DATABASE],
     'database create' => ['tardis::pages.database.create', [], Abilities::DATABASE],
     'database edit' => ['tardis::pages.database.edit', ['table' => 'users'], Abilities::DATABASE],

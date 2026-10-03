@@ -33,6 +33,7 @@ use Tardis\Manager\PluginManager;
 use Tardis\Manager\SettingsManager;
 use Tardis\Manager\ThemeManager;
 use Tardis\Manager\WidgetManager;
+use Tardis\Menu\MenuOverlay;
 use Tardis\Plugins\AuthenticationPlugin;
 use Tardis\Support\UserPreferences;
 use Tardis\Theme\ThemePreference;
@@ -58,6 +59,7 @@ class TardisServiceProvider extends ServiceProvider
         // while host code goes through the Tardis facade, and anything
         // registered on one copy (a menu item, a field type, a widget) would be
         // invisible to the other.
+        $this->app->singleton(MenuOverlay::class);
         $this->app->singleton(MenuManager::class);
         $this->app->singleton(WidgetManager::class);
         $this->app->singleton(SettingsManager::class);

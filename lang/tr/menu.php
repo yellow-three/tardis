@@ -19,4 +19,5 @@ return [
     'roles' => 'Roller',
     'profile' => 'Profil',
     'logout' => 'Çıkış',
+    'menu_builder' => 'Menü oluşturucu',
 ];

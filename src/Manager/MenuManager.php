@@ -14,6 +14,7 @@ use Tardis\Classes\MenuItem;
 use Tardis\Classes\UserMenuItem;
 use Tardis\Contracts\Plugins\Features\Filter\FilterMenuItems;
 use Tardis\Contracts\Plugins\Features\Provider\MenuItems;
+use Tardis\Menu\MenuOverlay;
 
 class MenuManager
 {
@@ -81,6 +82,11 @@ class MenuManager
                 ->permission(Abilities::PLUGINS)
                 ->section(__('tardis::menu.sections.management'))
                 ->order(40),
+            (new MenuItem(__('tardis::menu.menu_builder'), 'heroicon-o-bars-3'))
+                ->route('tardis.menus.index')
+                ->permission(Abilities::MENUS)
+                ->section(__('tardis::menu.sections.management'))
+                ->order(42),
             (new MenuItem(__('tardis::menu.database_explorer'), 'heroicon-o-circle-stack'))
                 ->route('tardis.database.index')
                 ->permission(Abilities::DATABASE)
@@ -148,11 +154,61 @@ class MenuManager
             }
         }
 
+        // Links the administrator added in the menu builder
+        $this->addItems(...$this->customMenuItems());
+
         // Apply permission validation
         $this->validatePermissions($plugins);
 
         // Apply menu filters
         $this->applyFilters($plugins);
+
+        // The administrator's hide/rename/re-order choices go last
+        $this->applyOverlay();
+    }
+
+    /** @return array<int, MenuItem> */
+    protected function customMenuItems(): array
+    {
+        return array_map(function (array $link) {
+            $item = (new MenuItem((string) $link['title'], $link['icon'] ?? 'heroicon-o-link'))
+                ->url((string) $link['url'])
+                ->section($link['section'] ?? null)
+                ->order((int) ($link['order'] ?? 90));
+
+            $item->key = (string) $link['id'];
+            $item->newTab = (bool) ($link['new_tab'] ?? false);
+
+            if (! empty($link['permission'])) {
+                $item->permission((string) $link['permission']);
+            }
+
+            return $item;
+        }, app(MenuOverlay::class)->custom());
+    }
+
+    protected function applyOverlay(): void
+    {
+        $changes = app(MenuOverlay::class)->items();
+
+        if ($changes === []) {
+            return;
+        }
+
+        $apply = function (MenuItem $item) use ($changes, &$apply): void {
+            $entry = $item->isDivider ? null : ($changes[$item->id()] ?? null);
+
+            if ($entry !== null) {
+                $item->overlayHidden = ! empty($entry['hidden']);
+                $item->title = $entry['title'] ?? $item->title;
+                $item->order = $entry['order'] ?? $item->order;
+                $item->section = $entry['section'] ?? $item->section;
+            }
+
+            $item->children->each($apply);
+        };
+
+        $this->items->each($apply);
     }
 
     /**
@@ -230,10 +286,10 @@ class MenuManager
     /**
      * Get all sidebar menu items as a flat collection (after permission validation).
      */
-    public function all(): Collection
+    public function all(bool $withHidden = false): Collection
     {
         return $this->items
-            ->filter(fn (MenuItem $item) => $item->isVisible())
+            ->filter(fn (MenuItem $item) => $item->isVisible() && ($withHidden || ! $item->overlayHidden))
             ->sortBy(fn (MenuItem $item) => $item->order)
             ->values();
     }
