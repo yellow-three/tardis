@@ -10,7 +10,7 @@ You can scaffold a plugin with the built-in command:
 php artisan tardis:make-plugin blog --with-menu --with-settings
 ```
 
-This creates the base plugin folder structure and a starter service provider.
+This creates a package under `packages/Tardis/Blog` (change it with `--package-dir`, and pass `--namespace` to avoid the default `Tardis\Blog`) containing a service provider, the plugin class, config, a routes file, a starter page and optional model/migration. Follow the three steps the command prints to require the package from your application.
 
 ## 2. Implement the plugin contract
 
@@ -47,9 +47,9 @@ class BlogPlugin implements GenericPlugin, MenuItems
 }
 ```
 
-## 3. Register it
+## 3. Register and enable it
 
-Register the plugin in your service provider or application bootstrap logic:
+A plugin only contributes anything while it is **enabled**. Register it in a service provider's `boot()` and mark it enabled by default:
 
 ```php
 <?php
@@ -57,10 +57,14 @@ Register the plugin in your service provider or application bootstrap logic:
 use App\Plugins\BlogPlugin;
 use Tardis\Manager\PluginManager;
 
-app(PluginManager::class)->register('blog', BlogPlugin::class);
+public function boot(PluginManager $plugins): void
+{
+    $plugins->register('blog', BlogPlugin::class);
+    $plugins->enableByDefault('blog');
+}
 ```
 
-You can also register the plugin from a package service provider during boot.
+`enableByDefault()` respects a disable made on the admin Plugins page, so the plugin stays off across requests until someone enables it there. Do not call `enable()` from a provider: that is the explicit user action and would clear the stored disable on every request. The generated service provider already does both calls.
 
 ## 4. Add a route
 
@@ -73,9 +77,13 @@ Route::middleware(['web', 'tardis.admin'])
     ->prefix(config('tardis.admin.prefix', 'admin'))
     ->name('tardis.')
     ->group(function () {
-        Route::livewire('/blog/posts', 'tardis::pages.blog.posts')->name('blog.posts');
+        Route::livewire('/blog/posts', 'tardis-blog::pages.admin.posts')->name('blog.posts');
     });
 ```
+
+The generated provider registers a Livewire namespace for the plugin (`tardis-blog`), so pages live in the plugin's own `resources/views/pages/admin/` rather than in the `tardis::` namespace.
+
+> **Route order matters.** Tardis ends with the wildcard `Route::livewire('/{slug}', ...)` under the same prefix. A plugin route such as `/admin/blog/posts` has two segments and is matched by `/{slug}/{id}` unless it is registered first, so load plugin routes before Tardis' or use a distinct prefix.
 
 ## 5. Best practices
 
@@ -84,6 +92,7 @@ Route::middleware(['web', 'tardis.admin'])
 - do not add one-off route conflicts into the core admin route file
 - use the plugin system to keep feature registration modular
 - prefer `section()` grouping so the sidebar stays readable
+- gate plugin pages yourself: `tardis.admin` only proves the user is logged in; use `MenuItem::permission()` for visibility and `BreadAuthorization` / your own check for access
 
 ## 6. Plugin lifecycle
 

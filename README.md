@@ -47,24 +47,41 @@ This keeps the framework flexible while matching the official Livewire 4 convent
 
 ## Route structure
 
-The admin routes are defined in `routes/admin.php` and follow a clear split:
+All admin routes are Livewire page routes (`Route::livewire`) defined in `routes/admin.php`, under the `admin` prefix (`tardis.admin.prefix`) and the `tardis.` route-name prefix:
 
-- Livewire routes for fixed pages
-  - `/admin/dashboard`
-  - `/admin/plugins`
-  - `/admin/settings`
-  - `/admin/permissions`
-  - `/admin/roles`
-  - `/admin/bread`
-  - `/admin/bread/create`
+- Fixed screens
+  - `/admin/dashboard`, `/admin/settings`, `/admin/plugins`
+  - `/admin/media`, `/admin/activity-log`, `/admin/search`
+  - `/admin/database` (database explorer: list / create / edit tables)
+  - `/admin/permissions`, `/admin/roles`
+  - `/admin/bread` (definitions), `/admin/bread/create` and `/admin/bread/{slug}/edit` (BREAD builder)
+- Dynamic BREAD resources, declared **last** so they never shadow a fixed screen
+  - `/admin/{slug}`, `/admin/{slug}/create`, `/admin/{slug}/{id}`, `/admin/{slug}/{id}/edit`
 
-- Controller routes for dynamic BREAD resource CRUD
-  - `/admin/{slug}`
-  - `/admin/{slug}/create`
-  - `/admin/{slug}/{id}`
-  - `/admin/{slug}/{id}/edit`
+Because `/admin/{slug}` is a wildcard, any route a plugin adds under the admin prefix must be registered **before** it, or the wildcard wins.
 
-This keeps the system unambiguous and avoids wildcard route conflicts for the admin family.
+## Authentication and authorization
+
+Every admin route runs through the `tardis.admin` middleware. It delegates to the enabled `AuthenticationPlugin` (the built-in one checks `Auth::check()` and redirects to `/admin/login`). The login form is rate limited to 5 failed attempts per email + IP.
+
+> **Read this before going to production.** Authentication only proves the visitor is logged in — **it does not prove they are an administrator**. Authorization (who may browse/add/edit/delete which BREAD) is delegated to an `AuthorizationPlugin`, and **none is enabled by default**. Until you register one, `BreadAuthorization` fails open: every logged-in user of your application can use the admin panel. Register an authorization plugin (or restrict the `tardis.admin` middleware yourself) before exposing the panel.
+
+The package ships `Tardis\Auth\TardisAuthorizationPlugin`, backed by the `tardis_roles` / `tardis_permissions` tables (managed on the Roles and Permissions pages). Enable it from a service provider:
+
+```php
+use Tardis\Auth\TardisAuthorizationPlugin;
+use Tardis\Manager\PluginManager;
+
+public function boot(PluginManager $plugins): void
+{
+    $plugins->register('tardis-authorization', TardisAuthorizationPlugin::class);
+    $plugins->enableByDefault('tardis-authorization');
+}
+```
+
+Abilities are `"{action} {slug}"` strings (`browse posts`, `edit posts`, …). Roles listed in `tardis.authorization.super_admin_roles` (default `super-admin`) bypass every check. If the host user model already has a `hasPermissionTo()` method (for example Spatie's `HasRoles`), that answer is used instead of the TARDIS tables.
+
+The Roles, Permissions, Plugins, Settings, Database and BREAD-definition screens are not gated by BREAD abilities; treat access to the panel as administrator access to those.
 
 ## Menu system
 
@@ -78,14 +95,9 @@ $menu = Tardis::menu();
 
 Default entries include:
 
-- Dashboard
-- Media
-- UI Components
-- Settings
-- Plugins
-- BREAD
-- Permissions
-- Roles
+- Overview: Dashboard, Media, UI Components
+- Management: Settings, Plugins, Database Explorer, BREAD (plus one entry per BREAD resource)
+- Access: Permissions, Roles
 
 Menu items can be grouped by section and can participate in active-route detection across nested admin pages.
 
@@ -175,7 +187,23 @@ Livewire is used for the admin shell and fixed page screens, for example:
 <livewire:tardis::pages.bread.manage />
 ```
 
-For larger screens, the project follows the Livewire 4 recommendation and prefers MFC for complex pages, while keeping smaller screens in SFC. This avoids the older controller-per-page pattern for the admin UI layer and keeps the app aligned with the official component model.
+Larger screens (BREAD pages, BREAD builder, media browser, database explorer, settings) are Multi-File Components; small ones stay Single-File Components. Class-based components are not used. See [docs/LIVEWIRE_PAGE_ORGANIZATION.md](docs/LIVEWIRE_PAGE_ORGANIZATION.md).
+
+## Artisan commands
+
+| Command | Purpose |
+|---|---|
+| `tardis:make-bread {model} {slug?}` | Create a BREAD definition (JSON) from an Eloquent model |
+| `tardis:make-model {table}` | Generate an Eloquent model for an existing table |
+| `tardis:make-plugin {name}` | Scaffold a plugin package (`--with-menu`, `--with-widgets`, `--with-settings`, `--with-migration`, `--with-model`) |
+| `tardis:bread:migrate` | Convert legacy `config/bread/*.php` definitions to JSON |
+| `tardis:bread:export` | Export all JSON definitions as one document |
+
+See [docs/PLUGIN_GUIDE.md](docs/PLUGIN_GUIDE.md) and [docs/EXAMPLE_BREAD.md](docs/EXAMPLE_BREAD.md).
+
+## Media uploads
+
+Uploads on the media screen are limited to the extensions in `tardis-media.allowed_mimes` (images, pdf, office documents, zip) and to `tardis-media.max_file_size` KB. Executable or markup files such as `.php` and `.html` are rejected. Publish the config with `--tag=tardis-media-config` to change the list; keep in mind that `svg` is in the default list and can carry script, so remove it if you serve the media disk from your own origin.
 
 ## Testing
 
@@ -203,6 +231,18 @@ For local coverage or formatting fixes:
 composer test-coverage
 composer lint-fix
 ```
+
+## Documentation
+
+| File | What it covers |
+|---|---|
+| [PROJECT_STATUS.md](PROJECT_STATUS.md) | Current state, verification and open follow-ups |
+| [RELEASE_NOTES.md](RELEASE_NOTES.md) | What the package includes and what changed |
+| [docs/PLUGIN_GUIDE.md](docs/PLUGIN_GUIDE.md) | Writing and enabling plugins |
+| [docs/EXAMPLE_BREAD.md](docs/EXAMPLE_BREAD.md) | A complete BREAD definition |
+| [docs/DEMO_FLOW.md](docs/DEMO_FLOW.md) | A walkthrough for demonstrating the panel |
+| [docs/constraints.md](docs/constraints.md) | Permanent constraints and gotchas |
+| [docs/notes.md](docs/notes.md), [docs/backlog.md](docs/backlog.md) | Open findings and the roadmap |
 
 ## License
 

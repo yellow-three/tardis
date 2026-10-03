@@ -34,7 +34,7 @@ Yalnızca **aktif** bulguları tutar. Bir bulgu çözüldüğünde ilgili satır
 
 Uzun ömürlü işlerin haritası. Madde çözülünce **silinmez**; durum ve commit ile güncellenir.
 
-- Kimlikler `R1…R16` (`R` = roadmap sırası). `B*` kimlikleriyle karıştırılmaz.
+- Kimlikler `R1…R19` (`R` = roadmap sırası). `B*` kimlikleriyle karıştırılmaz.
 - Öncelik ölçeği: **P0** kırıcı/güvenlik/bloke edici · **P1** önemli eksik veya kullanıcı görür · **P2** iyileştirme/teknik borç/araç.
 - İki tablo: `### Tamamlandı` ve `### Açık`. Çözülen madde Tamamlandı'ya taşınır.
 - Sütunlar: `ID | Öncelik | İş | Durum | Commit | Yönlendirme`

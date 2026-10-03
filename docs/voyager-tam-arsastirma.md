@@ -1,5 +1,7 @@
 # TARDIS BREAD DENETİMİ + VOYAGER TAM ARAŞTIRMA
 
+> **Durum notu (2026-10-03).** Bu rapor 2026-09-29 tarihli bir anlık görüntüdür. "Düzeltilmedi, planlandı" denen P0 bulguları (validation, translatable, BelongsToMany kapsamı) sonradan düzeltildi, izin kontrolü sayfalarda uygulanıyor ama varsayılan olarak açık (`docs/notes.md` B9); test sayısı 365'ten 476'ya çıktı. Bulgu bazında güncel durum tablosu: `research/05-tardis-bulgulari-ve-fix-oncelikleri.md` (en üstte). Açık işler: `docs/notes.md`.
+
 **Tarih:** 2026-09-29
 **Branch:** `feat/modern-admin-redesign`
 **Kapsam:** `packages/tardis` BREAD akışları (19 field tipi, validation, ilişki, izin,
