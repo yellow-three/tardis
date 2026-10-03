@@ -1,9 +1,10 @@
 <?php
 
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Str;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
-use Illuminate\Support\Str;
 use Tardis\Classes\Setting;
 use Tardis\Facades\Tardis;
 
@@ -120,17 +121,19 @@ new #[Title('Settings')] #[Layout('tardis::layouts.admin')] class extends Compon
 
                 if (empty($setting->key)) {
                     $errors[$setting->getFullKey()] = 'Key is required.';
+
                     continue;
                 }
 
                 if (! empty($setting->validation)) {
-                    $validator = \Illuminate\Support\Facades\Validator::make(
+                    $validator = Validator::make(
                         ['value' => $value],
                         ['value' => $setting->validation]
                     );
 
                     if ($validator->fails()) {
                         $errors[$setting->getFullKey()] = $validator->errors()->first('value');
+
                         continue;
                     }
                 }
@@ -141,6 +144,7 @@ new #[Title('Settings')] #[Layout('tardis::layouts.admin')] class extends Compon
 
         if (! empty($errors)) {
             $this->dispatch('settings-errors', errors: $errors);
+
             return;
         }
 
@@ -384,4 +388,4 @@ new #[Title('Settings')] #[Layout('tardis::layouts.admin')] class extends Compon
     {
         return Setting::availableTypes();
     }
-}; 
+};
