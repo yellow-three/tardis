@@ -13,11 +13,33 @@
 
     <div class="card bg-base-100 mb-6 border border-base-300">
         <div class="card-body">
-            <div class="flex flex-col gap-2 max-w-md">
-                <label class="label">
-                    <span class="text-base-content">{{ __('tardis::bread.search') }}</span>
-                </label>
-                <input type="search" wire:model.live.debounce.300ms="search" class="input" placeholder="{{ __('tardis::bread.search_name', ['name' => $bread['name_plural'] ?? ucfirst($slug)]) }}" aria-label="Search {{ $bread['name_plural'] ?? ucfirst($slug) }}" autocomplete="off" />
+            <div class="flex flex-wrap items-end gap-4">
+                <div class="flex flex-col gap-2 min-w-64 flex-1 max-w-md">
+                    <label class="label" for="bread-search">
+                        <span class="text-base-content">{{ __('tardis::bread.search') }}</span>
+                    </label>
+                    <input id="bread-search" type="search" wire:model.live.debounce.300ms="search" class="input w-full" placeholder="{{ __('tardis::bread.search_name', ['name' => $bread['name_plural'] ?? ucfirst($slug)]) }}" autocomplete="off" />
+                </div>
+
+                <div class="flex flex-col gap-2">
+                    <label class="label" for="bread-per-page"><span class="text-base-content">{{ __('tardis::bread.per_page') }}</span></label>
+                    <select id="bread-per-page" wire:model.live="perPage" class="select">
+                        @foreach (\Tardis\Bread\BreadQuery::PER_PAGE_OPTIONS as $option)
+                            <option value="{{ $option }}">{{ $option }}</option>
+                        @endforeach
+                    </select>
+                </div>
+
+                @if ($this->query()->supportsTrashed())
+                    <div class="flex flex-col gap-2">
+                        <label class="label" for="bread-trashed"><span class="text-base-content">{{ __('tardis::bread.deleted_records') }}</span></label>
+                        <select id="bread-trashed" wire:model.live="trashed" class="select">
+                            @foreach (\Tardis\Bread\BreadQuery::TRASHED as $mode)
+                                <option value="{{ $mode }}">{{ __('tardis::bread.trashed.'.$mode) }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                @endif
             </div>
         </div>
     </div>
@@ -35,7 +57,20 @@
                     <thead>
                         <tr>
                             @foreach ($this->visibleFields as $field)
-                                <th scope="col">{{ $field['label'] ?? ucfirst((string) ($field['name'] ?? '')) }}</th>
+                                @php($fieldName = (string) ($field['name'] ?? ''))
+                                @php($sortable = in_array($fieldName, $this->query()->orderable(), true))
+                                <th scope="col" @if ($sortable && $sort === $fieldName) aria-sort="{{ $direction === 'desc' ? 'descending' : 'ascending' }}" @endif>
+                                    @if ($sortable)
+                                        <button type="button" wire:click="sortBy('{{ $fieldName }}')" class="inline-flex items-center gap-1 font-semibold">
+                                            {{ $field['label'] ?? ucfirst($fieldName) }}
+                                            @if ($sort === $fieldName)
+                                                <span aria-hidden="true">{{ $direction === 'desc' ? '▼' : '▲' }}</span>
+                                            @endif
+                                        </button>
+                                    @else
+                                        {{ $field['label'] ?? ucfirst($fieldName) }}
+                                    @endif
+                                </th>
                             @endforeach
                             <th class="text-right" scope="col">{{ __('tardis::bread.actions') }}</th>
                         </tr>
@@ -55,9 +90,14 @@
                                 @endforeach
                                 <td class="text-right">
                                     <div class="flex justify-end gap-2">
-                                        <a href="{{ url(trim(config('tardis.admin.prefix', 'admin'), '/').'/'.$slug.'/'.$row->getKey()) }}" class="btn btn-ghost btn-xs">{{ __('tardis::bread.view') }}</a>
-                                        <a href="{{ url(trim(config('tardis.admin.prefix', 'admin'), '/').'/'.$slug.'/'.$row->getKey().'/edit') }}" class="btn btn-ghost btn-xs">{{ __('tardis::bread.edit') }}</a>
-                                        <button type="button" wire:click="delete({{ $row->getKey() }})" wire:confirm="Delete this record?" class="btn btn-ghost btn-xs text-error">{{ __('tardis::bread.delete') }}</button>
+                                        @if (method_exists($row, 'trashed') && $row->trashed())
+                                            <button type="button" wire:click="restore({{ $row->getKey() }})" class="btn btn-ghost btn-xs">{{ __('tardis::bread.restore') }}</button>
+                                            <button type="button" wire:click="forceDelete({{ $row->getKey() }})" wire:confirm="{{ __('tardis::bread.confirm_delete_permanently') }}" class="btn btn-ghost btn-xs text-error">{{ __('tardis::bread.delete_permanently') }}</button>
+                                        @else
+                                            <a href="{{ url(trim(config('tardis.admin.prefix', 'admin'), '/').'/'.$slug.'/'.$row->getKey()) }}" class="btn btn-ghost btn-xs">{{ __('tardis::bread.view') }}</a>
+                                            <a href="{{ url(trim(config('tardis.admin.prefix', 'admin'), '/').'/'.$slug.'/'.$row->getKey().'/edit') }}" class="btn btn-ghost btn-xs">{{ __('tardis::bread.edit') }}</a>
+                                            <button type="button" wire:click="delete({{ $row->getKey() }})" wire:confirm="{{ __('tardis::bread.confirm_delete_record') }}" class="btn btn-ghost btn-xs text-error">{{ __('tardis::bread.delete') }}</button>
+                                        @endif
                                     </div>
                                 </td>
                             </tr>

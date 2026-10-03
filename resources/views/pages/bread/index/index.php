@@ -1,28 +1,44 @@
 <?php
 
-use Illuminate\Support\Facades\DB;
+use Illuminate\Database\Eloquent\Model;
+use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Locked;
 use Livewire\Attributes\Title;
+use Livewire\Attributes\Url;
 use Livewire\Component;
+use Livewire\WithPagination;
 use Tardis\Auth\BreadAuthorization;
 use Tardis\Bread\BreadDefinition;
+use Tardis\Bread\BreadListing;
 use Tardis\Bread\BreadManager;
+use Tardis\Bread\BreadQuery;
 use Tardis\Events\BreadRecordDeleted;
 
 new #[Title('BREAD')] #[Layout('tardis::layouts.admin')] class extends Component
 {
+    use WithPagination;
+
     #[Locked]
     public string $slug = '';
 
+    #[Url(except: '')]
     public string $search = '';
+
+    #[Url(except: '')]
+    public string $sort = '';
+
+    #[Url(except: 'asc')]
+    public string $direction = 'asc';
+
+    #[Url(except: 15)]
+    public int $perPage = 15;
+
+    #[Url(except: 'without')]
+    public string $trashed = 'without';
 
     #[Locked]
     public array $bread = [];
-
-    public float $executionMs = 0.0;
-
-    public array $warnings = [];
 
     public function mount(string $slug): void
     {
@@ -38,52 +54,67 @@ new #[Title('BREAD')] #[Layout('tardis::layouts.admin')] class extends Component
         app(BreadAuthorization::class)->authorize('browse', $this->slug);
     }
 
-    public function getRowsProperty()
+    protected function bread(): BreadDefinition
     {
-        if (empty($this->bread)) {
-            return collect();
+        return BreadDefinition::fromArray($this->bread);
+    }
+
+    public function updatingSearch(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatingPerPage(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatingTrashed(): void
+    {
+        $this->resetPage();
+    }
+
+    public function sortBy(string $column): void
+    {
+        if (! in_array($column, $this->query()->orderable(), true)) {
+            return;
         }
 
+        $this->direction = $this->sort === $column && $this->direction === 'asc' ? 'desc' : 'asc';
+        $this->sort = $column;
+        $this->resetPage();
+    }
+
+    public function query(): BreadQuery
+    {
+        return new BreadQuery($this->bread());
+    }
+
+    #[Computed]
+    public function listing(): ?BreadListing
+    {
         $model = $this->bread['model'] ?? null;
 
         if (! $model || ! class_exists($model)) {
-            return collect();
+            return null;
         }
 
-        DB::enableQueryLog();
-        $start = hrtime(true);
+        return $this->query()->listing($this->search, $this->sort ?: null, $this->direction, $this->perPage, $this->trashed);
+    }
 
-        $query = BreadDefinition::fromArray($this->bread)->query();
+    public function getRowsProperty()
+    {
+        return $this->listing?->rows ?? collect();
+    }
 
-        if (! empty($this->bread['order_column'])) {
-            $query->orderBy($this->bread['order_column'], $this->bread['order_direction'] ?? 'asc');
-        }
+    public function getExecutionMsProperty(): float
+    {
+        return $this->listing?->executionMs ?? 0.0;
+    }
 
-        if (! empty($this->bread['search_key']) && $this->search !== '') {
-            $query->where($this->bread['search_key'], 'like', '%'.$this->search.'%');
-        }
-
-        $rows = $query->paginate(15);
-
-        $this->executionMs = round((hrtime(true) - $start) / 1_000_000, 2);
-
-        $queries = DB::getQueryLog();
-        DB::disableQueryLog();
-
-        $this->warnings = [];
-
-        foreach ($queries as $queryLogEntry) {
-            if (($queryLogEntry['time'] ?? 0) > 200) {
-                $querySql = substr($queryLogEntry['query'] ?? '', 0, 120);
-                $this->warnings[] = "Slow query ({$queryLogEntry['time']} ms): {$querySql}";
-            }
-        }
-
-        if (count($queries) > 15) {
-            $this->warnings[] = 'High query count ('.count($queries).') for this listing — possible missing eager loading.';
-        }
-
-        return $rows;
+    public function getWarningsProperty(): array
+    {
+        return $this->listing?->warnings ?? [];
     }
 
     public function getVisibleFieldsProperty(): array
@@ -100,20 +131,51 @@ new #[Title('BREAD')] #[Layout('tardis::layouts.admin')] class extends Component
         return url(trim(config('tardis.admin.prefix', 'admin'), '/').'/'.$this->slug.'/create');
     }
 
-    public function delete(int|string $id): void
+    protected function findRecord(int|string $id): Model
     {
-        app(BreadAuthorization::class)->authorize('delete', $this->slug);
-
         $model = $this->bread['model'] ?? null;
 
         if (! $model || ! class_exists($model)) {
             abort(404);
         }
 
-        $item = BreadDefinition::fromArray($this->bread)->query()->findOrFail($id);
+        return $this->query()->build(trashed: 'with')->findOrFail($id);
+    }
+
+    public function delete(int|string $id): void
+    {
+        app(BreadAuthorization::class)->authorize('delete', $this->slug);
+
+        $item = $this->findRecord($id);
         $item->delete();
 
         BreadRecordDeleted::dispatch($this->slug, $item);
         session()->flash('message', __('tardis::bread.item_deleted'));
+    }
+
+    public function restore(int|string $id): void
+    {
+        app(BreadAuthorization::class)->authorize('edit', $this->slug);
+
+        $item = $this->findRecord($id);
+
+        if (method_exists($item, 'restore')) {
+            $item->restore();
+            session()->flash('message', __('tardis::bread.item_restored'));
+        }
+    }
+
+    public function forceDelete(int|string $id): void
+    {
+        app(BreadAuthorization::class)->authorize('delete', $this->slug);
+
+        $item = $this->findRecord($id);
+
+        if (method_exists($item, 'forceDelete')) {
+            $item->forceDelete();
+
+            BreadRecordDeleted::dispatch($this->slug, $item);
+            session()->flash('message', __('tardis::bread.item_deleted_permanently'));
+        }
     }
 };

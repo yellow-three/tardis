@@ -45,4 +45,18 @@ return [
     'item_deleted' => 'Kayıt başarıyla silindi.',
     'restored_from_backup' => 'BREAD [:slug] bir yedekten geri yüklendi.',
     'model_class_unknown' => 'Model sınıfı belirlenemedi.',
+    'per_page' => 'Sayfa başına',
+    'deleted_records' => 'Silinen kayıtlar',
+    'delete_permanently' => 'Kalıcı sil',
+    'confirm_delete_permanently' => 'Bu kayıt kalıcı olarak silinsin mi? Bu işlem geri alınamaz.',
+    'confirm_delete_record' => 'Bu kayıt silinsin mi?',
+    'item_restored' => 'Kayıt geri yüklendi.',
+    'item_deleted_permanently' => 'Kayıt kalıcı olarak silindi.',
+    'slow_query' => 'Yavaş sorgu (:ms ms): :sql',
+    'high_query_count' => 'Bu liste için sorgu sayısı yüksek (:count) — eager loading eksik olabilir.',
+    'trashed' => [
+        'without' => 'Silinenleri gizle',
+        'with' => 'Silinenlerle birlikte',
+        'only' => 'Yalnızca silinenler',
+    ],
 ];

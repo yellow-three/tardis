@@ -45,4 +45,18 @@ return [
     'item_deleted' => 'Item deleted successfully.',
     'restored_from_backup' => 'BREAD [:slug] restored from a backup.',
     'model_class_unknown' => 'Unable to determine model class.',
+    'per_page' => 'Per page',
+    'deleted_records' => 'Deleted records',
+    'delete_permanently' => 'Delete permanently',
+    'confirm_delete_permanently' => 'Delete this record permanently? This cannot be undone.',
+    'confirm_delete_record' => 'Delete this record?',
+    'item_restored' => 'Record restored.',
+    'item_deleted_permanently' => 'Record deleted permanently.',
+    'slow_query' => 'Slow query (:ms ms): :sql',
+    'high_query_count' => 'High query count (:count) for this listing — possible missing eager loading.',
+    'trashed' => [
+        'without' => 'Hide deleted',
+        'with' => 'Include deleted',
+        'only' => 'Only deleted',
+    ],
 ];
