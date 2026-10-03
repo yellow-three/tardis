@@ -157,3 +157,16 @@ Kaynak: yerel kopyalar `research/voyager-1.7/` (Bootstrap 3 + jQuery + Vue 2 bil
 | 4 Plugin | + plugin ekranı: arama, etkin/pasif filtre, sürüm/tür, preferences paneli, tema önizleme, güncelleme denetimi (isteğe bağlı) |
 | 5 Media | + picker, move, crop, ayrıntı paneli, thumbnail |
 | 6 Menü + widget | + nestable menü ağacı, dashboard widget kartları (genişlik sınıfları), roller için gruplu izin ağacı |
+
+---
+
+## 7. Netleşen kararlar (2026-10-03)
+
+| Konu | Karar |
+|---|---|
+| Layout modeli | Çoklu adlandırılmış layout (V2): `list` + `view`, aksiyon bazlı form layout'u |
+| Marka | Settings `appearance` grubu; görseller media'dan |
+| Avatar | Baş harf + isteğe bağlı `tardis.user.avatar_column`; Gravatar yok |
+| Dashboard | Varsayılan kartlar (BREAD sayıları, son aktivite, plugin widget'ları) + `dashboard.json` düzeni |
+| Compass benzeri araçlar | Alınmaz (komut çalıştırıcı/log yüzeyi) |
+| SPA | Hayır; Livewire + Alpine (sürükle-bırak için Livewire/Alpine'in yerleşik `sort` desteği önce denenir, gerekirse SortableJS) |

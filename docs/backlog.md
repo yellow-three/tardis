@@ -47,11 +47,11 @@ Son güncelleme: 2026-10-03 (Voyager parity planı eklendi). ID'ler `R` = roadma
 | R24 | P1 | **Faz 3 — BREAD liste.** `Action` sınıflarının UI'ya bağlanması (satır + toplu), sunucu taraflı sırala/filtre/ara/sayfa boyutu, ilişki kolonları (eager load), soft-delete geri yükleme/kalıcı silme, aksiyon bazlı layout, browse accessor'ları | ⏳ Plan | — | Faz 3 |
 | R25 | P1 | **Faz 4 — Plugin genişletilebilirliği.** `Routes` contract'ı + yetkili/ön yüz rota ayrımı, plugin ayar ekranı + preferences, `Filter\Widgets/Layouts/Media`, `tardis:plugins` komutu, plugin sürüm/bağımlılık gösterimi | ⏳ Plan | — | Faz 4 |
 | R26 | P2 | **Faz 5 — Media entegrasyonu.** BREAD `media_picker` alanı, thumbnail + kırpma, `{uid}/{date:…}/{random:n}` dosya adı şablonu, tek yükleme doğrulaması (BREAD `FileField` dahil), media filter plugin'i | ⏳ Plan | — | Faz 5 |
-| R27 | P2 | **Faz 6 — Menü builder + Dashboard widget'ları + görünüm.** `storage/tardis/menus.json` bindirmesi, sürükle-bırak, gizle/yeniden adlandır/özel link, widget izinleri + yerleşim, varsayılan tema + özel CSS/JS ayarı (`manage appearance`) | ⏳ Plan | — | Faz 6 |
+| R27 | P2 | **Faz 6 — Menü builder + Dashboard widget'ları + görünüm.** `storage/tardis/menus.json` bindirmesi, nestable sürükle-bırak, gizle/yeniden adlandır/özel link, varsayılan dashboard kartları + `storage/tardis/dashboard.json` düzeni + widget izinleri, rol sayfasında gruplu izin ağacı, varsayılan tema + özel CSS/JS ayarı (`manage appearance`) | ⏳ Plan | — | Faz 6 |
 | R28 | P2 | **Faz 7 — Çok dilli içerik.** Form içinde locale sekmeleri, 'tüm diller / aktif dil' doğrulama modu, listede aktif dil, BREAD etiketleri + menü başlıkları çevrilebilir (JSON kolon biçimi korunur) | ⏳ Plan | — | Faz 7 |
 | R29 | P2 | **Faz 8 — Kurulum ve DX.** `tardis:install` (migrate + seed + ilk admin + asset publish), isteğe bağlı demo veri, `tardis:doctor`, güncellenmiş plugin iskeleti, `UPGRADE.md`, kapsamlı örnek | ⏳ Plan | — | Faz 8 |
 | R30 | P1 | **Kalite kapısı (her faz).** Önce test, tam sayfa istek testi, `boot()` yetki kapısı, `lang` anahtarı, `docs/` güncellemesi, faz başına yığılı PR | 🔄 Sürekli | — | Voyager parity planı → Kurallar |
-| R31 | P1 | **Faz 1b — Tasarım sistemi (ortak UI bileşenleri).** `x-tardis::card` (actions slotu), badge, slide-in çekmece, modal, dropdown, toast/bildirim (onay düğmeli), sayfa yükleme çubuğu, sidebar kullanıcı kartı + kalıcı durum, 3 durumlu tema anahtarı, marka ayarları (`appearance` grubu: başlık/logo/favicon/yükleme görseli), RTL değerlendirmesi | ⏳ Plan | — | `research/06` §3.9, §5 |
+| R31 | P1 | **Faz 1b — Tasarım sistemi (ortak UI bileşenleri).** `x-tardis::card` (actions slotu), badge, slide-in çekmece, modal, dropdown, toast/bildirim (onay düğmeli), sayfa yükleme çubuğu, sidebar kullanıcı kartı (baş harf avatarı + `avatar_column`) + kalıcı durum, 3 durumlu tema anahtarı, marka ayarları (`appearance` grubu: başlık/logo/favicon/yükleme görseli), RTL değerlendirmesi | ⏳ Plan | — | `research/06` §3.9, §5 |
 | R32 | P1 | **Faz 3b — Layout + Builder UX.** BREAD tanımı `list`/`view` layout'ları, sürükle-bırak + 6'lık genişlik ızgarası, yan çekmecede alan seçenekleri, builder tablo listesi (layout sayıları + Backup), `legend`/bölüm başlığı | ⏳ Plan | — | `research/06` §3.4 |
 
 ## Bağımlılık sırası notu
@@ -74,6 +74,10 @@ Amaç: Voyager 1'in olgun BREAD/menü/medya/kurulum deneyimini ve Voyager 2'nin 
 | Menü depolama | **JSON dosyası** (`storage/tardis/menus.json`), kod tanımlı öğelerin üstüne bindirme |
 | Panel dili | **`lang/` dosyaları, EN varsayılan + TR** |
 | Yetkilendirme | Zaten kapatıldı (R17): her yeni ekran ability + `boot()` kapısı + menü gizleme ile gelir |
+| Layout modeli | **Çoklu adlandırılmış layout** (V2): BREAD başına `list` ve `view` layout'ları, aksiyon bazlı form layout'u, seçilebilir liste görünümleri (R32) |
+| Marka | **Settings `appearance` grubu** (başlık, logo, favicon, yükleme görseli, sidebar arka planı); görseller media'dan seçilir; config yalnızca varsayılan (R31) |
+| Avatar | **Baş harf avatarı** + isteğe bağlı `tardis.user.avatar_column`; dış servis çağrısı yok (R31) |
+| Dashboard | **Varsayılan kartlar** (izinli BREAD'ler için kayıt sayısı, son aktivite, plugin widget'ları) + `storage/tardis/dashboard.json` düzeni; her widget `->permission()` taşır (R27) |
 
 ### Faz sırası ve bağımlılıklar
 
