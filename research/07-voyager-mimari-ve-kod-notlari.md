@@ -143,9 +143,13 @@ Kaynak: `research/voyager-1.7/` (`src/` 4777 satırlık controller dahil ~170 PH
 
 ---
 
-## 8. Kapsam kararları — yeniden açık
+## 8. Kapsam kararları (kullanıcı kararlarıyla kapandı — 2026-10-03)
 
-Önceki notta (`06` §5 ve §7) iki konuyu **ben tek başıma "alınmaz" diye yazdım**; bunlar sizin kararınız değildi. Bu dosyadan itibaren **açık soru** olarak duruyorlar:
+Önceki notta (`06` §5/§7) iki konuyu **ben tek başıma "alınmaz" diye yazmıştım**; sonradan soruldu:
 
-1. **SPA geçişi (V2 benzeri istemci render):** Livewire 4 zaten sunucu/istemci karışık bir model sunuyor; tam SPA (Vue/Inertia) Tardis'in mevcut 500+ test ve Blade/Livewire yatırımını yeniden yazmak demek. Eksikleri (sürükle-bırak, canlı filtre) Livewire + Alpine ile karşılanabilir. Karar sizde.
-2. **Compass benzeri araçlar (artisan komut çalıştırıcı, log görüntüleyici, kaynak bağlantıları):** V1'de bu araçlar paneli geliştirme ortamı ve hata ayıklama için kullanışlı yapıyor; ben güvenlik gerekçesiyle dışarıda bırakmıştım. Kısıtlı bir sürüm (salt okunur log görüntüleyici + izinli, yalnız izin listesindeki komutları çalıştıran araç, üretimde kapalı) mümkün. Karar sizde.
+| Konu | Karar |
+|---|---|
+| SPA geçişi | **Hayır** — Livewire + Alpine kalır (`wire:navigate`) |
+| Compass benzeri araçlar | **Evet, kısıtlı:** salt okunur log görüntüleyici (`view logs`), izin listeli komut çalıştırıcı (`run commands`, `local` dışında varsayılan kapalı, activity log'a yazar), sistem sayfası (`tardis:doctor` sonucu) |
+| BREAD rotaları | Tanımdan üretilir, wildcard kalkar |
+| Servis + olaylar | `BreadQuery` + `BreadSaver` servisleri ve BREAD olayları + listener'lar |
