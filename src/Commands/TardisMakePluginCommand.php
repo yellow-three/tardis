@@ -124,6 +124,13 @@ class TardisMakePluginCommand extends Command
     protected function generateFromStub(string $stubPath, string $destinationPath, array $replacements): void
     {
         $content = File::get($stubPath);
+
+        // A namespace contains backslashes, which must be escaped inside JSON:
+        // the raw value turned the psr-4 key of composer.json into invalid JSON.
+        if (str_ends_with($stubPath, '.json.stub')) {
+            $replacements = array_map(fn (string $value) => substr(json_encode($value), 1, -1), $replacements);
+        }
+
         $content = str_replace(array_keys($replacements), array_values($replacements), $content);
         File::put($destinationPath, $content);
     }
