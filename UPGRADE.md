@@ -60,3 +60,12 @@ Generated plugins from 1.x did not load: they imported `Tardis\Core\…` classes
 ## Tooling
 
 `composer lint` ignores `research/`. `tests/TestCase.php` isolates storage per test; a test that saves a BREAD definition and then requests a URL should call `reloadAdminRoutes()` (`tests/Pest.php`).
+
+## Theme and language changes
+
+| Was | Now |
+|---|---|
+| `vite-plugins/themes-manifest.js`, `config/tardis-themes.php`, the `tardis-themes-assets` publish tag | Removed. Built-in themes live in `Tardis\Theme\BuiltinThemes` and must be declared in your compiled CSS (`@plugin "daisyui" { themes: false; }` plus the `tardis-light`/`tardis-dark` blocks) |
+| `AssetManager::availableThemes()` | `ThemeManager::all()` / `find()` / `names()` |
+| inline Alpine theme store in the admin layout | `window.Tardis.theme` from the core script; run `npm run build` to refresh `dist/` |
+| hard-coded English strings | `tardis::` translations. Publish `tardis-lang` to override; `#[Title]` attributes now hold translation keys |
