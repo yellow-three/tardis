@@ -21,7 +21,7 @@ test('the registry exposes every built-in field type', function () {
     expect(array_keys((new FormfieldManager)->types()))->toBe([
         'text', 'number', 'select', 'toggle', 'date', 'datetime', 'time',
         'textarea', 'password', 'file', 'checkbox', 'radio', 'slider',
-        'slug', 'tags', 'markdown', 'code_editor', 'belongs_to_many', 'has_many',
+        'slug', 'tags', 'markdown', 'code_editor', 'color', 'hidden', 'belongs_to_many', 'has_many',
     ]);
 });
 

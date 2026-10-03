@@ -6,6 +6,8 @@ use Tardis\Formfields\Formfield;
 
 class SliderField extends Formfield
 {
+    protected array $configurable = ['min', 'max', 'step'];
+
     public int $min = 0;
 
     public int $max = 100;
@@ -43,12 +45,12 @@ class SliderField extends Formfield
         return 'tardis::formfields.slider';
     }
 
-    public function viewData(): array
+    protected function extraViewData(): array
     {
-        return array_merge(parent::viewData(), [
+        return [
             'min' => $this->min,
             'max' => $this->max,
             'step' => $this->step,
-        ]);
+        ];
     }
 }

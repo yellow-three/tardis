@@ -6,6 +6,8 @@ use Tardis\Formfields\Formfield;
 
 class CodeEditorField extends Formfield
 {
+    protected array $configurable = ['language'];
+
     public string $language = 'php';
 
     public function language(string $language): self
@@ -25,10 +27,10 @@ class CodeEditorField extends Formfield
         return 'tardis::formfields.code-editor';
     }
 
-    public function viewData(): array
+    protected function extraViewData(): array
     {
-        return array_merge(parent::viewData(), [
+        return [
             'language' => $this->language,
-        ]);
+        ];
     }
 }

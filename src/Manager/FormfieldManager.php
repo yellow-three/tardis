@@ -6,10 +6,12 @@ use Tardis\Formfields\Formfield;
 use Tardis\Formfields\Types\BelongsToManyField;
 use Tardis\Formfields\Types\CheckboxField;
 use Tardis\Formfields\Types\CodeEditorField;
+use Tardis\Formfields\Types\ColorField;
 use Tardis\Formfields\Types\DateField;
 use Tardis\Formfields\Types\DateTimeField;
 use Tardis\Formfields\Types\FileField;
 use Tardis\Formfields\Types\HasManyField;
+use Tardis\Formfields\Types\HiddenField;
 use Tardis\Formfields\Types\MarkdownField;
 use Tardis\Formfields\Types\NumberField;
 use Tardis\Formfields\Types\PasswordField;
@@ -49,6 +51,8 @@ class FormfieldManager
             'tags' => TagsField::class,
             'markdown' => MarkdownField::class,
             'code_editor' => CodeEditorField::class,
+            'color' => ColorField::class,
+            'hidden' => HiddenField::class,
             'belongs_to_many' => BelongsToManyField::class,
             'has_many' => HasManyField::class,
         ];
@@ -131,7 +135,8 @@ class FormfieldManager
         foreach ($definitions as $definition) {
             $type = $definition['type'];
             $name = $definition['name'];
-            $label = $definition['label'] ?? null;
+            // A definition without a label is shown as a readable name, not the raw column.
+            $label = $definition['label'] ?? ucfirst(str_replace(['_', '-'], ' ', (string) $name));
 
             $field = $this->make($type, $name, $label);
 
@@ -155,41 +160,7 @@ class FormfieldManager
                 $field->width($definition['width']);
             }
 
-            if (isset($definition['options']) && $field instanceof SelectField) {
-                $field->options($definition['options']);
-            }
-
-            if ($field instanceof BelongsToManyField || $field instanceof HasManyField) {
-                if (isset($definition['relation'])) {
-                    $field->relation($definition['relation']);
-                }
-
-                if (isset($definition['model'])) {
-                    $field->model($definition['model']);
-                }
-            }
-
-            if ($field instanceof BelongsToManyField && isset($definition['label_column'])) {
-                $field->labelColumn($definition['label_column']);
-            }
-
-            if ($field instanceof FileField) {
-                if (isset($definition['mimes'])) {
-                    $field->mimes($definition['mimes']);
-                }
-
-                if (isset($definition['max_size'])) {
-                    $field->maxSize((int) $definition['max_size']);
-                }
-
-                if (isset($definition['disk'])) {
-                    $field->disk($definition['disk']);
-                }
-
-                if (isset($definition['directory'])) {
-                    $field->directory($definition['directory']);
-                }
-            }
+            $field->configure($definition);
 
             if (isset($definition['translatable'])) {
                 $field->translatable((bool) $definition['translatable']);

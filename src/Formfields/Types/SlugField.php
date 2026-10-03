@@ -6,6 +6,8 @@ use Tardis\Formfields\Formfield;
 
 class SlugField extends Formfield
 {
+    protected array $configurable = ['from'];
+
     public ?string $from = null;
 
     public function from(string $field): self
@@ -25,10 +27,10 @@ class SlugField extends Formfield
         return 'tardis::formfields.slug';
     }
 
-    public function viewData(): array
+    protected function extraViewData(): array
     {
-        return array_merge(parent::viewData(), [
+        return [
             'from' => $this->from,
-        ]);
+        ];
     }
 }
