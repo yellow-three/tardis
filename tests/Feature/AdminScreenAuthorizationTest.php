@@ -171,3 +171,16 @@ test('the sidebar lists a BREAD resource only to users who may browse it', funct
     expect($hidden)->not->toContain('href="'.route('tardis.bread.index', ['slug' => 'widgets']).'"')
         ->and($shown)->toContain('href="'.route('tardis.bread.index', ['slug' => 'widgets']).'"');
 });
+
+test('changing the dashboard layout needs its own ability', function () {
+    gateAllows([Abilities::ACCESS]);
+
+    Livewire::test('tardis::pages.dashboard')
+        ->assertOk()
+        ->assertDontSee(__('tardis::dashboard.customize'))
+        ->call('toggleEditing')->assertForbidden();
+
+    gateAllows([Abilities::ACCESS, Abilities::DASHBOARD]);
+
+    Livewire::test('tardis::pages.dashboard')->assertSee(__('tardis::dashboard.customize'))->call('toggleEditing')->assertOk();
+});

@@ -32,6 +32,8 @@ final class Abilities
 
     public const MENUS = 'manage menus';
 
+    public const DASHBOARD = 'manage dashboard';
+
     public const MEDIA_BROWSE = 'browse media';
 
     public const MEDIA_UPLOAD = 'upload media';
@@ -58,6 +60,7 @@ final class Abilities
             self::BREAD,
             self::ACTIVITY,
             self::MENUS,
+            self::DASHBOARD,
         ];
     }
 

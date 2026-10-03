@@ -85,3 +85,15 @@ body {
         transition-duration: 0.01ms !important;
     }
 }
+
+
+/* Dashboard widgets: full width on small screens, `--span` of 12 columns from lg up. */
+.tardis-widget {
+    grid-column: 1 / -1;
+}
+
+@media (min-width: 1024px) {
+    .tardis-widget {
+        grid-column: span var(--span, 6) / span var(--span, 6);
+    }
+}

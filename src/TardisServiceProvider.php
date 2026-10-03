@@ -17,6 +17,7 @@ use Tardis\Commands\TardisMakeBreadCommand;
 use Tardis\Commands\TardisMakeModelCommand;
 use Tardis\Commands\TardisMakePluginCommand;
 use Tardis\Commands\TardisPluginsCommand;
+use Tardis\Dashboard\DashboardLayout;
 use Tardis\Events\BreadRecordCreated;
 use Tardis\Events\BreadRecordDeleted;
 use Tardis\Events\BreadRecordUpdated;
@@ -61,6 +62,7 @@ class TardisServiceProvider extends ServiceProvider
         // invisible to the other.
         $this->app->singleton(MenuOverlay::class);
         $this->app->singleton(MenuManager::class);
+        $this->app->singleton(DashboardLayout::class);
         $this->app->singleton(WidgetManager::class);
         $this->app->singleton(SettingsManager::class);
         $this->app->singleton(FormfieldManager::class);
