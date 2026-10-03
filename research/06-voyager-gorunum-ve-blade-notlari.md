@@ -135,13 +135,13 @@ Kaynak: yerel kopyalar `research/voyager-1.7/` (Bootstrap 3 + jQuery + Vue 2 bil
 
 ## 5. Karar/İlke notları (plana girenler)
 
-1. **Sunucu render + Alpine/Livewire kalır**; V2'nin SPA'sı alınmaz. Etkileşim ihtiyacı (sürükle-bırak, nestable) küçük Alpine eklentisiyle (ör. SortableJS) çözülür.
+1. **Sunucu render + Alpine/Livewire (öneri; karar bekliyor):** V2'nin SPA'sı alınmaz önerisi bana ait, onaylanmadı — bkz. `07` §8. Etkileşim ihtiyacı (sürükle-bırak, nestable) küçük Alpine eklentisiyle çözülür.
 2. **Bileşen kütüphanesi:** `Card(actions)`, `Badge`, `SlideIn`, `Modal`, `Dropdown`, `Notifications`, `Pagination`, `IconPicker`, `ColorPicker`, `Toggle` — Blade anonim bileşenleri (`x-tardis::…`) + DaisyUI karşılıkları. Sayfalar çıplak HTML yerine bunları kullanır.
 3. **Tek formfield, çok bağlam:** her formfield browse/read/edit/add/query için tek sözleşme sunar (V2) ama render'ı Blade view'dan yapar; V1'in tip zinciri geri gelmez.
 4. **Layout kavramı:** BREAD tanımı `list` ve `view` layout'ları taşır (en az: browse/read/edit/add ayrı). JSON şeması genişler; geriye dönük okuma için dönüştürücü yazılır (2.0.0'da serbest kırma kararı).
 5. **Tasarım jetonları:** DaisyUI tema değişkenleri korunur; V2'nin accent değişkeni fikri DaisyUI `--color-primary` ile karşılanır (ayrı jeton sistemi kurulmaz). Marka ayarları (başlık, logo, favicon, yükleme görseli) **Settings** grubu `appearance` olur.
 6. **Yetki:** her yeni ekran ability + `boot()` kapısı; liste aksiyonları Action politikasıyla (V1) çalışır.
-7. **Güvenlik filtresi:** V1 Compass'in artisan komut çalıştırıcısı ve log görüntüleyicisi **alınmaz** (uzaktan komut yüzeyi); log görüntüleme yalnızca salt okunur ve `view activity` benzeri bir ability ile düşünülebilir.
+7. **Compass benzeri araçlar (karar bekliyor):** artisan komut çalıştırıcı ve log görüntüleyici önce dışarıda bırakılmıştı; bu benim tek taraflı kararımdı — bkz. `07` §8.
 
 ---
 
@@ -168,5 +168,5 @@ Kaynak: yerel kopyalar `research/voyager-1.7/` (Bootstrap 3 + jQuery + Vue 2 bil
 | Marka | Settings `appearance` grubu; görseller media'dan |
 | Avatar | Baş harf + isteğe bağlı `tardis.user.avatar_column`; Gravatar yok |
 | Dashboard | Varsayılan kartlar (BREAD sayıları, son aktivite, plugin widget'ları) + `dashboard.json` düzeni |
-| Compass benzeri araçlar | Alınmaz (komut çalıştırıcı/log yüzeyi) |
-| SPA | Hayır; Livewire + Alpine (sürükle-bırak için Livewire/Alpine'in yerleşik `sort` desteği önce denenir, gerekirse SortableJS) |
+| Compass benzeri araçlar | **Açık soru** (kullanıcı kararı bekliyor) |
+| SPA | **Açık soru** (öneri: Livewire + Alpine kalır) |

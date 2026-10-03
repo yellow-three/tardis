@@ -99,7 +99,7 @@ Her faz bir öncekinin üstüne yığılmış ayrı PR'dır; sıra bağımlılı
 
 ### Görünüm notları (2026-10-03)
 
-Voyager 1.7 ve 2.x kaynakları sayfa/bileşen düzeyinde incelendi: `research/06-voyager-gorunum-ve-blade-notlari.md`. Plana giren ilkeler: sunucu render + Alpine/Livewire kalır (SPA yok); tek formfield sözleşmesi çok bağlamda (browse/read/edit/add/query) çalışır, V1'in tip zinciri geri gelmez; BREAD tanımı `list`/`view` layout'ları taşır; ortak bileşen kütüphanesi (Card+actions, Badge, SlideIn, Modal, Toast); marka ayarları `appearance` grubunda; V1 Compass'in komut çalıştırıcısı **alınmaz**.
+Voyager 1.7 ve 2.x kaynakları sayfa/bileşen düzeyinde incelendi: `research/06-voyager-gorunum-ve-blade-notlari.md`. Plana giren ilkeler: sunucu render + Alpine/Livewire kalır (SPA yok); tek formfield sözleşmesi çok bağlamda (browse/read/edit/add/query) çalışır, V1'in tip zinciri geri gelmez; BREAD tanımı `list`/`view` layout'ları taşır; ortak bileşen kütüphanesi (Card+actions, Badge, SlideIn, Modal, Toast); marka ayarları `appearance` grubunda; V1 Compass benzeri araçlar ve SPA geçişi **açık soru** (karar bekliyor, `research/07` §8).
 
 ### Voyager'dan neyin alındığı
 
@@ -125,7 +125,7 @@ Voyager 1.7 ve 2.x kaynakları sayfa/bileşen düzeyinde incelendi: `research/06
 
 ### Kapsam dışı
 
-- Vue/Inertia arayüzü (V2'nin ön yüzü); Tardis Livewire kalır.
+- Vue/Inertia arayüzü (V2'nin ön yüzü) — **öneri**, karar bekliyor; öneri Livewire'ın kalmasıdır.
 - Doctrine DBAL (V1); şema keşfi Laravel şema builder ile.
 - Kullanıcı parolası/profil ekranı (host'a ait).
 - Çeviri tablosu (V1 `translations`); çeviriler JSON kolonda.
