@@ -1,6 +1,5 @@
 <?php
 
-use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Locked;
 use Livewire\Attributes\Title;
@@ -9,9 +8,10 @@ use Livewire\WithFileUploads;
 use Tardis\Auth\BreadAuthorization;
 use Tardis\Bread\BreadDefinition;
 use Tardis\Bread\BreadManager;
+use Tardis\Bread\BreadSaver;
 use Tardis\Bread\FieldValidationRules;
+use Tardis\Bread\MissingColumnsException;
 use Tardis\Classes\Translation;
-use Tardis\Events\BreadRecordUpdated;
 use Tardis\Formfields\Formfield;
 use Tardis\Formfields\Types\BelongsToManyField;
 use Tardis\Manager\FormfieldManager;
@@ -152,50 +152,6 @@ new #[Title('Edit')] #[Layout('tardis::layouts.admin')] class extends Component
         return FieldValidationRules::for($this->fields, $this->form);
     }
 
-    /**
-     * Columns the table declares NOT NULL without a default.
-     *
-     * Mirrors the create page: clearing such a field would otherwise be
-     * written as NULL and abort the whole update with SQLSTATE 23000.
-     *
-     * @return array<int, string>
-     */
-    protected function requiredColumns(string $modelClass, array $fields): array
-    {
-        try {
-            $table = (new $modelClass)->getTable();
-
-            $schema = (new $modelClass)->getConnection()
-                ->getSchemaBuilder()
-                ->getColumns($table);
-        } catch (Throwable) {
-            // A missing/renamed table is reported by the update itself.
-            return [];
-        }
-
-        $inDefinition = array_map(
-            fn ($field) => $field->name,
-            $fields,
-        );
-
-        $required = [];
-
-        foreach ($schema as $column) {
-            // A column with a default can be omitted from the statement; a
-            // NULL default is still a default, so test the value and not just
-            // the key's presence (the MySQL schema always reports the key).
-            if (($column['nullable'] ?? true) || ($column['default'] ?? null) !== null) {
-                continue;
-            }
-
-            if (in_array($column['name'], $inDefinition, true)) {
-                $required[] = $column['name'];
-            }
-        }
-
-        return $required;
-    }
-
     public function save(): void
     {
         $this->validate($this->validationRules());
@@ -205,66 +161,14 @@ new #[Title('Edit')] #[Layout('tardis::layouts.admin')] class extends Component
         if ($modelClass && class_exists($modelClass)) {
             $record = BreadDefinition::fromArray($this->bread)->query()->findOrFail($this->id);
 
-            $fields = app(FormfieldManager::class)->fields($this->fields);
-            $data = [];
-            $relations = [];
-
-            foreach ($fields as $field) {
-                $value = $this->form[$field->name] ?? $field->default;
-
-                if ($field->skipWhenBlank() && blank($value)) {
-                    continue;
-                }
-
-                if ($field->isRelation()) {
-                    $relations[] = [$field, $value];
-
-                    continue;
-                }
-
-                $data[$field->name] = $field->transform($value);
-            }
-
-            // A field the user cleared must not be written as NULL when the
-            // table refuses nulls, otherwise the update dies on SQLSTATE 23000
-            // and nothing tells the user which field was at fault.
-            $missing = [];
-
-            foreach ($this->requiredColumns($modelClass, $fields) as $column) {
-                if (! array_key_exists($column, $data) || blank($data[$column])) {
-                    $missing[] = $column;
-                }
-            }
-
-            if ($missing !== []) {
+            try {
+                app(BreadSaver::class)->update($this->slug, $record, $this->fields, $this->form);
+            } catch (MissingColumnsException $e) {
                 $this->addError('form', __('tardis::bread.fields_required_by_database', [
-                    'fields' => implode(', ', $missing),
+                    'fields' => implode(', ', $e->columns),
                 ]));
 
                 return;
-            }
-
-            // The columns are written before the relations, so a relation that
-            // dies mid-loop would otherwise leave the update committed with only
-            // part of the relation set applied. Only the database writes are
-            // wrapped: uploads were already moved to disk during transform().
-            DB::transaction(function () use ($record, $data, $relations) {
-                $record->update($data);
-
-                foreach ($relations as [$field, $value]) {
-                    $field->updated($value, $record);
-                }
-            });
-
-            $changes = $record->getChanges();
-
-            if ($changes !== []) {
-                BreadRecordUpdated::dispatch(
-                    $this->slug,
-                    $record,
-                    array_intersect_key($record->getPrevious(), $changes),
-                    $changes,
-                );
             }
         }
 

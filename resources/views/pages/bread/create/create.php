@@ -1,6 +1,5 @@
 <?php
 
-use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Locked;
 use Livewire\Attributes\Title;
@@ -8,9 +7,10 @@ use Livewire\Component;
 use Livewire\WithFileUploads;
 use Tardis\Auth\BreadAuthorization;
 use Tardis\Bread\BreadManager;
+use Tardis\Bread\BreadSaver;
 use Tardis\Bread\FieldValidationRules;
+use Tardis\Bread\MissingColumnsException;
 use Tardis\Classes\Translation;
-use Tardis\Events\BreadRecordCreated;
 use Tardis\Formfields\Formfield;
 use Tardis\Formfields\Types\BelongsToManyField;
 use Tardis\Manager\FormfieldManager;
@@ -126,52 +126,6 @@ new #[Title('Create')] #[Layout('tardis::layouts.admin')] class extends Componen
         return FieldValidationRules::for($this->fields, $this->form);
     }
 
-    /**
-     * Columns the table declares NOT NULL without a default.
-     *
-     * A BREAD definition can mark such a field as optional (its validation
-     * list is empty), so an untouched field would otherwise be written as
-     * NULL and abort the whole insert with an opaque SQLSTATE 23000 — the
-     * user only sees a failed save, with no hint which field was at fault.
-     *
-     * @return array<int, string>
-     */
-    protected function requiredColumns(string $modelClass, array $fields): array
-    {
-        try {
-            $table = (new $modelClass)->getTable();
-
-            $schema = (new $modelClass)->getConnection()
-                ->getSchemaBuilder()
-                ->getColumns($table);
-        } catch (Throwable) {
-            // A missing/renamed table is reported by the insert itself.
-            return [];
-        }
-
-        $inDefinition = array_map(
-            fn ($field) => $field->name,
-            $fields,
-        );
-
-        $required = [];
-
-        foreach ($schema as $column) {
-            // A column with a default can be omitted from the insert; a NULL
-            // default is still a default, so test the value and not just the
-            // key's presence (the MySQL schema always reports the key).
-            if (($column['nullable'] ?? true) || ($column['default'] ?? null) !== null) {
-                continue;
-            }
-
-            if (in_array($column['name'], $inDefinition, true)) {
-                $required[] = $column['name'];
-            }
-        }
-
-        return $required;
-    }
-
     public function save(): void
     {
         $this->validate($this->validationRules());
@@ -184,62 +138,15 @@ new #[Title('Create')] #[Layout('tardis::layouts.admin')] class extends Componen
             return;
         }
 
-        $fields = app(FormfieldManager::class)->fields($this->fields);
-        $data = [];
-        $relations = [];
-
-        foreach ($fields as $field) {
-            $value = $this->form[$field->name] ?? $field->default;
-
-            if ($field->skipWhenBlank() && blank($value)) {
-                continue;
-            }
-
-            if ($field->isRelation()) {
-                $relations[] = [$field, $value];
-
-                continue;
-            }
-
-            $data[$field->name] = $field->transform($value);
-        }
-
-        // A field left blank in the form must not be written as NULL when the
-        // table refuses nulls, otherwise the whole insert dies on SQLSTATE
-        // 23000 and the user is told nothing about which field was missing.
-        $missing = [];
-
-        foreach ($this->requiredColumns($modelClass, $fields) as $column) {
-            if (! array_key_exists($column, $data) || blank($data[$column])) {
-                $missing[] = $column;
-            }
-        }
-
-        if ($missing !== []) {
+        try {
+            app(BreadSaver::class)->create($this->slug, $modelClass, $this->fields, $this->form);
+        } catch (MissingColumnsException $e) {
             $this->addError('form', __('tardis::bread.fields_required_by_database', [
-                'fields' => implode(', ', $missing),
+                'fields' => implode(', ', $e->columns),
             ]));
 
             return;
         }
-
-        // The parent row is inserted before the relations are written, so a
-        // relation that dies mid-loop (a pivot wired to a schema it cannot
-        // satisfy, a second relation throwing after the first already synced)
-        // would otherwise leave a committed record carrying half its relations
-        // and no indication that the create failed. Only the database writes
-        // are wrapped: uploads were already moved to disk during transform().
-        $created = DB::transaction(function () use ($modelClass, $data, $relations) {
-            $model = $modelClass::create($data);
-
-            foreach ($relations as [$field, $value]) {
-                $field->stored($value, $model);
-            }
-
-            return $model;
-        });
-
-        BreadRecordCreated::dispatch($this->slug, $created, $data);
 
         session()->flash('message', __('tardis::bread.item_created'));
         $this->redirect(url(trim(config('tardis.admin.prefix', 'admin'), '/').'/'.$this->slug));
