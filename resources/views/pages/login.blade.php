@@ -5,6 +5,7 @@ use Livewire\Attributes\Title;
 use Illuminate\Cache\RateLimiter;
 use Illuminate\Support\Str;
 use Livewire\Component;
+use Tardis\Manager\PluginManager;
 
 new #[Title('Login')] #[Layout('tardis::layouts.auth')] class extends Component
 {
@@ -37,13 +38,15 @@ new #[Title('Login')] #[Layout('tardis::layouts.auth')] class extends Component
             return;
         }
 
-        if (auth()->attempt([
-            'email' => $this->email,
-            'password' => $this->password,
-        ], $this->remember)) {
+        $plugin = app(PluginManager::class)->authenticationPlugin();
+
+        $signedIn = $plugin !== null
+            ? $plugin->attempt(['email' => $this->email, 'password' => $this->password], $this->remember)
+            : auth()->attempt(['email' => $this->email, 'password' => $this->password], $this->remember);
+
+        if ($signedIn) {
             $limiter->clear($key);
-            session()->regenerate();
-            $this->redirect(route('tardis.dashboard'));
+            $this->redirect($plugin !== null ? $plugin->redirectTo() : route('tardis.dashboard'));
 
             return;
         }

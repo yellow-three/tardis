@@ -159,6 +159,17 @@ class PluginManager
         return $plugin['instance'] ?? null;
     }
 
+    /**
+     * The plugin that signs users in. When more than one is enabled the one
+     * registered last wins, so a host plugin overrides the built-in default.
+     */
+    public function authenticationPlugin(): ?AuthenticationPlugin
+    {
+        $plugin = $this->enabledWith(AuthenticationPlugin::class)->last();
+
+        return $plugin instanceof AuthenticationPlugin ? $plugin : null;
+    }
+
     public function authorizationPlugins(): Collection
     {
         return $this->enabled()->filter(fn ($plugin) => $plugin['type'] === 'authorization');

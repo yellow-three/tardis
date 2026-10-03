@@ -15,16 +15,15 @@ class AuthenticationPlugin implements AuthenticationPluginContract
         return Auth::user();
     }
 
-    public function authenticate(Request $request): Request
+    public function attempt(array $credentials, bool $remember = false): bool
     {
-        $credentials = $request->only(['email', 'password']);
-        $remember = $request->boolean('remember');
+        $signedIn = Auth::guard($this->guard())->attempt($credentials, $remember);
 
-        if (Auth::attempt($credentials, $remember)) {
-            $request->session()->regenerate();
+        if ($signedIn && app()->bound('session.store')) {
+            session()->regenerate();
         }
 
-        return $request;
+        return $signedIn;
     }
 
     public function logout(Request $request): Request
