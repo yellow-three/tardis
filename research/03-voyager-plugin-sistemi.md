@@ -6,7 +6,7 @@ Kaynaklar:
 - `https://github.com/thedevdojo/voyager` (1.x çekirdek)
 - `https://github.com/voyager-admin/voyager` (2.x çekirdek)
 
-Tarih: 2026-09-29
+Tarih: 2026-09-29 · yeniden doğrulama: 2026-10-03 (2.x bölümleri `voyager-admin/voyager@47fb33b` ile birebir doğrulandı; 1.x bölümü düzeltildi, bkz. §1.3)
 
 ---
 
@@ -14,45 +14,35 @@ Tarih: 2026-09-29
 
 ### 1.1 Çekirdekte plugin dosyası YOK
 
-`find -iname "*plugin*"` → boş. Voyager 1.x çekirdeğinde plugin kodu bulunmuyor.
-Plugin mimarisi **dolaylı** olarak şu mekanizmalarla kuruluyor:
+`find -iname "*plugin*"` → boş (1.8'de de). Voyager 1.x çekirdeğinde plugin kodu yok.
+Eklenti noktaları dolaylıdır:
 
 | Mekanizma | Konum | Rolü |
 |---|---|---|
 | `composer.json` → `extra.laravel.providers` | paket metadata | **Otomatik keşif** (Laravel package discovery) |
 | `VoyagerEventServiceProvider` | `src/Providers/` | Event dinleyicileri |
-| `VoyagerDummyServiceProvider` | `src/Providers/` | Publishable asset'ler |
-| `FormFieldsRegistered` event | `src/Events/` | **Üçüncü parti formfield kaydı** |
-| `composer` konsol komutu | — | `voyager:composer require` |
+| `VoyagerDummyServiceProvider` | `src/Providers/` | Dummy seeder'lar ve dummy içerik (publish tag'leri) |
+| `FormFieldsRegistered` event | `src/Events/` | **Üçüncü parti formfield kaydı** (`Voyager::addFormField()`) |
+
+> Düzeltme (2026-10-03): önceki sürüm tabloda bir `voyager:composer require` komutu listeliyordu; böyle bir komut kaynakta yok (1.8'deki komutlar: `install`, `admin`, `controllers`, `make:model`).
 
 ### 1.2 Üçüncü parti formfield ekleme (1.x)
 
-`FormFieldsRegistered` event'i, çekirdeğin formfield listesini genişletmek için
-tetiklenir. Resmi örnek: `voyager-json-editor` plugin'i bir `TextareaHandler`
-kopyası üretip event ile kaydeder.
+`FormFieldsRegistered` event'i çekirdeğin formfield listesini genişletmek için tetiklenir
+(`VoyagerServiceProvider.php:345`); `Voyager::addFormField($handler)` handler'ı `getCodename()` ile kaydeder
+(`Voyager.php:141`). Resmi doküman: `customization/adding-custom-formfields.md`.
 
-**1.x plugin kurulum akışı:**
-```
-composer require tcg/voyager-<isim>-plugin
-php artisan vendor:publish   (gerekirse)
-→ FormFieldsRegistered event'i ile field tipi listeye girer
-```
+### 1.3 Eski "resmi plugin'ler" iddiası — doğrulanamadı
 
-### 1.3 1.x Resmi plugin'ler
+2026-09-29 sürümü burada `tcg/voyager-hooks`, `-mail`, `-notification`, `-file-manager`, `-json-editor`, `-dummy` adlı
+altı "resmi plugin" listelemişti. 2026-10-03 kontrolü:
 
-| Plugin | Paket | İşlev |
-|---|---|---|
-| Hooks | `tcg/voyager-hooks` | **Genel olay kancaları** — herhangi bir noktaya kod ekleme |
-| Mail | `tcg/voyager-mail` | Toplu e-posta gönderimi (queue, attachment, view) |
-| Notification | `tcg/voyager-notification` | Site içi bildirim sistemi + Vue bileşeni |
-| File Manager | `tcg/voyager-file-manager` | Medya yöneticisini **ayrı panel** olarak sunma |
-| JSON Editor | `tcg/voyager-json-editor` | JSON editörü formfield'i |
-| Dummy | `tcg/voyager-dummy` | Geliştirme şablonu |
-
-**Önemli:** `tcg/voyager-hooks` — 1.x'te **en genel** eklenti noktası.
-Laravel'in olay sistemi üzerinden BREAD/media/menu/table herhangi bir noktaya
-müdahale edebilir. Bu, 1.x'in "plugin sistemi" dediğimiz şeyin fiili olarak
-`FormFieldsRegistered` + `Hooks` + Laravel event'leri üçlüsü olduğu anlamına gelir.
+- Bu paket adlarının **hiçbiri Packagist'te yok** (`repo.packagist.org/p2/...` → 404), repo kaynağında veya
+  `voyager-docs.devdojo.com` sayfalarında da geçmiyor.
+- Gerçekte var olan tek ilgili paket **`larapack/voyager-hooks`** (üçüncü parti hook sistemi). Doküman sitesinin
+  yükseltme sayfası (**1.5**) hook işlevinin **kaldırıldığını** söylüyor ("Version 1.5 removes the hooks functionality").
+- Dolayısıyla "1.x'in plugin sistemi = `FormFieldsRegistered` + Hooks + event'ler" çıkarımı güncel sürüm için
+  **geçersiz**: 1.5+ için eklenti noktaları yalnızca Laravel paket keşfi, `FormFieldsRegistered` ve Laravel event'leridir.
 
 ### 1.4 1.x'te olmayanlar
 
@@ -62,8 +52,7 @@ müdahale edebilir. Bu, 1.x'in "plugin sistemi" dediğimiz şeyin fiili olarak
 - Plugin sürüm takibi (**yok**)
 - Resmi "Search Plugins" kataloğu (**yok**)
 
-→ 1.x'te plugin = **Composer paketi + Laravel event/hook**. Yönetim katmanı
-doğrudan Laravel'e bırakılmıştır.
+→ 1.x'te plugin = **Composer paketi + Laravel event'leri** (+ `FormFieldsRegistered`). Yönetim katmanı Laravel'e bırakılmıştır.
 
 ---
 
@@ -282,7 +271,7 @@ yalnızca gerçekten ihtiyaç duyulduğunda (ör. route tanımında) alınmalı.
 | **Menü/Widget/Layout/Media sürme** | ❌ | ✅ 4 Filter kontratı |
 | Tema desteği | ❌ | ✅ `ThemePlugin` + Preview |
 | Kapalıyken yüklenme | — | ⚠️ Evet → constructor'da yük yapma |
-| Hook sistemi | `tcg/voyager-hooks` paketi | Kontrat tabanlı Provider/Filter |
+| Hook sistemi | yok (`larapack/voyager-hooks` 1.5'te kaldırıldı) | Kontrat tabanlı Provider/Filter |
 
 ---
 
@@ -290,7 +279,7 @@ yalnızca gerçekten ihtiyaç duyulduğunda (ör. route tanımında) alınmalı.
 
 | Konu | Öneri | Öncelik |
 |---|---|---|
-| **Plugin yok** | Provider/Filter ayrımlı kontrat sistemi kur | P3 (uzun vade) |
+| **Plugin yok** | Provider/Filter ayrımlı kontrat sistemi kur | ✅ yapıldı (2026-10-03: `Contracts/Plugins/Features/{Provider,Filter}`, `PluginManager`) |
 | **Formfield kaydı** | `FormfieldManager::addFormfield()` registry + `getFormfield($type)` (Voyager 2 mantığı) | **P1** |
 | **Ölü render mimarisi** | Handler ince olsun, mantık field sınıfında (Voyager 2) ya da view'da (Voyager 1) — **biri** | **P1** |
 | **Widget/API yok** | Panel öğelerine `->permission()` benzeri izin bağlama | P2 |
@@ -317,7 +306,7 @@ research/voyager-2x-docs/plugins/menu-items.md       menü öğesi ekleme
 research/voyager-2x-docs/plugins/preferences.md      plugin tercihleri
 research/voyager-2x-docs/plugins/language.md         plugin i18n
 
-/tmp/opencode/voyager2/src/Contracts/Plugins/        17 kontrat dosyası
-/tmp/opencode/voyager2/src/Manager/Plugins.php        plugin registry + kimlik
-/tmp/opencode/voyager2/src/Plugins/AuthenticationPlugin.php
+voyager-admin/voyager@2.x src/Contracts/Plugins/     17 kontrat (5 temel + 8 Provider + 4 Filter)
+voyager-admin/voyager@2.x src/Manager/Plugins.php    plugin registry + kimlik
+voyager-admin/voyager@2.x src/Plugins/AuthenticationPlugin.php
 ```

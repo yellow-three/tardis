@@ -24,7 +24,7 @@ Events, Console) + 92 resmi markdown doküman sayfası (230 asset ile 328 dosya)
 | Tardis BREAD denetimi (19 field tipi, 5 sayfa akışı) | ✅ Tamamlandı |
 | Render/UI eksiklerinin düzeltilmesi + testleri | ✅ Tamamlandı — 365 test geçiyor |
 | Derinlemesine davranış denetimi (validation, izin, ilişki, kayıt) | ✅ Tamamlandı — **3 kritik hata bulundu** |
-| Voyager 1.x kaynak + 37 doküman sayfası | ✅ Tamamlandı |
+| Voyager 1.x kaynak + 38 doküman sayfası | ✅ Tamamlandı |
 | Voyager 2.x kaynak + 55 doküman dosyası | ✅ Tamamlandı |
 | Plugin sistemi (her iki sürüm, 17 kontrat) | ✅ Tamamlandı |
 | **TEK birleşik rapor (bu dosya)** | ✅ Tamamlandı |
@@ -105,18 +105,18 @@ Push/merge **yapılmadı**. Bu turda kod değişikliği yok.
 
 | Kaynak | Kapsam | Durum |
 |---|---|---|
-| `github.com/thedevdojo/voyager` (branch `1.x`) | Kaynak kodu | ✅ `/tmp/opencode/voyager1` |
-| `voyager-docs.devdojo.com/1.x/` | 37 doküman sayfası | ✅ `research/voyager-1x-docs/` |
-| `github.com/voyager-admin/voyager` (branch `2.x`) | Kaynak kodu + 55 doküman | ✅ `/tmp/opencode/voyager2` |
-| `voyager-admin.github.io/voyager/` | 52 içerik sayfası | ✅ repo docs ile birebir aynı doğrulandı |
+| `github.com/thedevdojo/voyager` (branch `1.8`, `cb56948`, 2024-10-14; ilk okuma `1.x` / 2022-01) | Kaynak kodu | ✅ yeniden doğrulandı (2026-10-03) |
+| `voyager-docs.devdojo.com/1.x/` | 38 doküman sayfası (1.5'i anlatır) | ✅ `research/voyager-1x-docs/` |
+| `github.com/voyager-admin/voyager` (branch `2.x`, `47fb33b`, 2022-10-21) | Kaynak kodu + 55 doküman | ✅ yeniden doğrulandı (2026-10-03) |
+| `voyager-admin.github.io/voyager/` | 55 sayfa | ✅ repo docs ile aynı içerik doğrulandı |
 
 **Eksik bırakılmış sayfa yok.**
 
 | Dizin | Markdown | Asset | Toplam |
 |---|---|---|---|
-| `research/voyager-1x-docs/` | 37 | 0 | 37 |
+| `research/voyager-1x-docs/` | 38 | 0 | 38 |
 | `research/voyager-2x-docs/` | 55 | 230 (113 js, 56 png, 55 html, 2 svg, 2 json, 2 css) | 285 |
-| **Markdown doküman toplamı** | **92** | — | — |
+| **Markdown doküman toplamı** | **93** | — | — |
 | 6 araştırma raporu | 6 | — | — |
 | **`research/` geneli** | **98** | **230** | **328 (3,2 MB)** |
 
@@ -228,14 +228,14 @@ ilişki yazımı başarısız olursa ana kayıt kalır (kısmi kayıt).
 | Field view'ları | `resources/views/formfields/` — 23 view | Mantık **view'da** |
 | BREAD CRUD | `Http/Controllers/Controller.php` | `insertUpdateData()` 324 satır |
 | BREAD builder | `VoyagerBreadController.php` | 357 satır, `authorize` |
-| Şema keşfi | `Database/Schema/SchemaManager.php` | Doctrine DBAL |
+| Şema keşfi | `Database/Schema/SchemaManager.php` | Doctrine DBAL (1.x branch); 1.8'de Laravel şema builder'ı |
 | Modeller | `src/Models/` (12) | `DataType`, `DataRow`, `Setting`, `Menu`, `MenuItem`, `Permission`, `Role`, `Translation`… |
 | Politikalar | `src/Policies/` (5) | `BasePolicy` + model bazlı |
 | Widget'lar | `src/Widgets/` | `BaseDimmer` + 3 (Arrilot) |
 | Event'ler | `src/Events/` (24) | BREAD/media/table/menu lifecycle |
 | Komutlar | `src/Commands/` (4) | install, admin, controllers, make:model |
-| Config | `publishable/config/voyager.php` | 8 ana bölüm |
-| i18n | `publishable/lang/` | **31 dil** |
+| Config | `publishable/config/voyager.php` | 11 grup |
+| i18n | `publishable/lang/` | **34 dil** |
 
 ## 4.2 22 somut field tipi
 
@@ -384,7 +384,7 @@ Widget'lar: `BaseDimmer` (Arrilot `AbstractWidget`) + `PostDimmer`, `PageDimmer`
 ## 4.10 i18n
 
 - `src/Translator.php` + `Translator/Collection.php`; `Helpers/helpersi18n.php`
-- `publishable/lang/` — **31 dil** (al, am, ar, bg, ca, cs, de, el, en, es, fa, fi, fr, gl, id, it, ja, ku, mm, nl, pl, pt, pt_br, ro, ru, sv, tr, uk, vi, zh_CN, zh_TW)
+- `publishable/lang/` — **34 dil** (1.8; `az`, `km`, `my` sonradan eklendi)
 - `config('voyager.multilingual')`: `enabled`, `default`, `locales[]`
 - BREAD `display_name` çevirilebilir (`is_bread_translatable`, `prepareTranslationsFromArray`)
 - **Çeviri disiplini:** `required`/`unique`/`email`/`max` dahil **tüm kural
@@ -489,7 +489,7 @@ Slug  Tags  Text  Toggle
 
 ## 5.5 BREAD Manager — Reflection + yedekleme
 
-`src/Manager/Breads.php` — 30+ metot. Kritik olanlar:
+`src/Manager/Breads.php` — 27 public metot. Kritik olanlar:
 
 | Metot | İşlev |
 |---|---|
@@ -539,7 +539,7 @@ public function __call(string $name, array $arguments): bool
 
 | Sistem | Konum | Not |
 |---|---|---|
-| Settings | `Manager/Settings.php` (13 metot) | **Dosya tabanlı**, `set($key,$value,$locale)` **çok dilli** |
+| Settings | `Manager/Settings.php` (11 metot) | **Dosya tabanlı**, `set($key,$value,$locale)` **çok dilli** |
 | Menu | `Manager/Menu.php` | `addItems()`, `getItems(PluginManager,$userMenu)`, `getUnfilteredItems()` |
 | Media | `Http/Controllers/MediaController.php` + `Classes/Media.php` | `Filter\Media` ile plugin sürebilir |
 | Rules | `Rules/ClassExists.php`, `Rules/DefaultLocale.php` | Model referansı **yapılandırma anında** doğrulanır |
@@ -562,11 +562,10 @@ public function __call(string $name, array $arguments): bool
 | `VoyagerEventServiceProvider` | Event dinleyicileri |
 | `FormFieldsRegistered` event | **Üçüncü parti formfield kaydı** |
 
-Resmi plugin'ler: `voyager-hooks` (**en genel eklenti noktası**), `voyager-mail`,
-`voyager-notification`, `voyager-file-manager`, `voyager-json-editor`, `voyager-dummy`.
+~~Resmi plugin'ler: `voyager-hooks`, `voyager-mail`, …~~ — **düzeltme (2026-10-03):** `tcg/voyager-*` paketleri Packagist'te yok ve kaynakta/dokümanda geçmiyor; yalnızca üçüncü parti `larapack/voyager-hooks` gerçektir ve 1.5'te kaldırıldı. Bkz. `research/03-voyager-plugin-sistemi.md` §1.3.
 
 **Yok:** yönetim paneli, açık/kapalı anahtarı, ayar arayüzü, sürüm takibi, katalog.
-→ Plugin = Composer paketi + Laravel event/hook.
+→ Plugin = Composer paketi + Laravel event'leri (+ `FormFieldsRegistered`).
 
 ## 6.2 Voyager 2.x — first-class plugin sistemi
 
@@ -644,17 +643,17 @@ public function provideCSS(): string { return file_get_contents('…/asset.css')
 | Widget + `->permission()` | ❌ | ✅ |
 | **Menü/Widget/Layout/Media sürme** | ❌ | ✅ 4 Filter |
 | Tema | ❌ | ✅ Preview |
-| Hook | `voyager-hooks` paketi | Kontrat tabanlı |
+| Hook | yok (`larapack/voyager-hooks` 1.5'te kaldırıldı) | Kontrat tabanlı |
 
 ---
 
 # BÖLÜM 7 — DOKÜMAN KAPSAMI
 
-**92 markdown doküman kaydedildi** (37 + 55) ve 230 asset (görsel/js/css) indirildi;
+**93 markdown doküman kaydedildi** (38 + 55) ve 230 asset (görsel/js/css) indirildi;
 `research/` toplamı 328 dosya / 3,2 MB.
 Dizin + sayfa bazlı özetler: `research/04-resmi-dokumanlar.md`
 
-### 1.x — 37 sayfa
+### 1.x — 38 sayfa
 
 | Kategori | Sayfa sayısı | Öne çıkan |
 |---|---|---|
@@ -761,7 +760,7 @@ güncellenmeli. Geri alınabilir değildir; commit'ler ayrı tutulmalı.
 | `03-voyager-plugin-sistemi.md` | Plugin sistemi — 5 tip, 17 kontrat, Provider/Filter |
 | `04-resmi-dokumanlar.md` | 92 markdown sayfanın dizini ve özeti |
 | `05-tardis-bulgulari-ve-fix-oncelikleri.md` | Bulgu kanıtları, `dosya:line`, çözüm, test planı |
-| `voyager-1x-docs/` | 37 resmi 1.x sayfası |
+| `voyager-1x-docs/` | 38 resmi 1.x sayfası |
 | `voyager-2x-docs/` | 55 resmi 2.x doküman dosyası |
 
 ## Voyager 1.x (`/tmp/opencode/voyager1`)
@@ -785,7 +784,7 @@ src/Database/Schema/SchemaManager.php   şema keşfi
 src/Events/*.php                        24 event
 src/Commands/*.php                      4 komut
 publishable/config/voyager.php          8 config bölümü
-publishable/lang/                       31 dil
+publishable/lang/                       34 dil
 ```
 
 ## Voyager 2.x (`/tmp/opencode/voyager2`)

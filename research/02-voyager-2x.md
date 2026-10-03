@@ -4,6 +4,14 @@ Kaynak: `https://github.com/voyager-admin/voyager` (branch `2.x`)
 İnceleme: repodan indirildi (`/tmp/opencode/voyager2`), kaynak kod + yerel `docs/` okunarak çıkarıldı.
 Tarih: 2026-09-29
 
+> ## Yeniden doğrulama — 2026-10-03
+> `voyager-admin/voyager` yeniden klonlandı (`2.x`, `47fb33b`, **2022-10-21 — repo o tarihten beri değişmedi**, yani 2.x fiilen donmuş durumda) ve karşılaştırıldı.
+>
+> - **Doğrulananlar:** `Formfield` 8 aşama (`src/Classes/Formfield.php`), `dontStore` listesi (11 bayrak), 16 formfield sınıfı ve lifecycle override matrisi (§3.1 satır satır aynı), 12 feature kontratı (8 Provider + 4 Filter) + 5 temel kontrat = 17, `BasePolicy::__call → true`, `storage/voyager/plugins.json`, `InstalledVersions` ile sürüm, `Text::browse` `strip_tags` + limit.
+> - **Düzeltilen hatalar:** `Manager/Breads.php` 27 public metot (30+ değil); `Manager/Settings.php` 11 public metot (13 değil); `Manager/Menu.php` 3 metot.
+> - **Yeni bulgu:** kök `authorization.md` BREAD yetkilendirmesi için **"To be implemented"** diyor — 2.x'te BREAD aksiyonları gerçekte yetkilendirilmiyor; yalnızca BREAD builder ve media manager için ability adları tanımlı (`browse/add/edit/delete/backup/restore` → `Bread::instance`; `browse/upload/rename/delete/move` → `media`; `browse` → `voyager`). `TODO.md` dağınık kısa işler içerir (ör. boş çevrilmiş slug'ın `voyager.dashboard` route'unu ezip paneli bozması).
+> - **Doküman:** repo `docs/` ile `gh-pages` (build `5be699f`, 2022-10-20) aynı içerik; yerel `research/voyager-2x-docs/` ile 285 dosyanın tamamı birebir aynı.
+
 > Kapsam notu: BREAD dahil tüm sistemler — Formfields, Manager, Plugins, Policies,
 > Rules, Media, Settings, Menu, Layouts, Widgets, Commands, Events.
 
@@ -170,7 +178,7 @@ ifade ediyor.
 
 ## 4. BREAD Manager — JSON tabanlı depolama
 
-`src/Manager/Breads.php` — 30+ metot. Kritik olanlar:
+`src/Manager/Breads.php` — 27 public metot. Kritik olanlar:
 
 | Metot | İşlev |
 |---|---|
@@ -331,7 +339,7 @@ kullanıcı formu gönderdiğinde değil, **yapılandırırken** hata alır.
 
 ## 9. Settings Manager
 
-`src/Manager/Settings.php` — 13 metot:
+`src/Manager/Settings.php` — 11 public metot:
 
 | Metot | İşlev |
 |---|---|
@@ -443,6 +451,22 @@ Diğer: `docs/media-manager.md`, `docs/settings.md`, `docs/overriding/`,
 | **Ayar locale desteği** | `set($key,$value,$locale)` | Yok | P2 |
 | **Yapılandırılmış kurallar** | `ClassExists`, `DefaultLocale` | Yok | P2 |
 | **Model scope keşfi** | `getModelScopes()` | Yok | P2 |
+
+---
+
+## 15b. Güncel Tardis durumu (2026-10-03)
+
+| Konu | Şimdi |
+|---|---|
+| Field lifecycle | 🟡 `transform` / `skipWhenBlank` / `stored` / `updated` + `viewData`; `browse`/`read`/`edit` ayrımı ve `update($model,$value,$old)` hâlâ yok |
+| Validation | ✅ kurallar korunuyor; çevrilebilir mesaj ve çok dilli doğrulama yok |
+| Translatable kayıp (P0) | ✅ düzeltildi (`TranslatableFormfieldTest`) |
+| Reflection ile keşif | ✅ `ModelReflector` (ilişki, scope, accessor) |
+| BREAD yedekleme/rollback | ✅ `JsonBreadSource::backup/rollback/prune` |
+| Plugin Provider/Filter ayrımı | ✅ `Contracts/Plugins/Features/{Provider,Filter}` |
+| Plugin sürümü | 🟡 `PluginManager::getPluginInfo()` (`composer.json` / `version()`) |
+| Ayar locale desteği, `ClassExists`/`DefaultLocale` kuralları | ❌ yok |
+| Aksiyon bazlı layout | 🟡 `BreadLayout` sınıfı var; create/edit/read hâlâ ayrı sayfalar |
 
 ---
 
