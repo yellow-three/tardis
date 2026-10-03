@@ -1,8 +1,17 @@
 # Voyager 1.x (thedevdojo/voyager) — Tam Sistem Araştırması
 
-Kaynak: `https://github.com/thedevdojo/voyager` (branch `1.x`)
+Kaynak: `https://github.com/thedevdojo/voyager` (branch `1.8`, `cb56948`, 2024-10-14 — 2026-10-03'te yeniden doğrulandı; ilk sürüm `1.x` branch'inden, `a95fd26` / 2022-01-15, okunmuştu)
 İnceleme: repodan indirildi (`/tmp/opencode/voyager1`), kaynak kod okunarak çıkarıldı.
 Tarih: 2026-09-29
+
+> ## Yeniden doğrulama — 2026-10-03
+> `thedevdojo/voyager` yeniden klonlandı (`1.8`, `cb56948`) ve bu dosyadaki sayılar/iddialar kaynakla karşılaştırıldı.
+>
+> - **Kaynak hâlâ geçerli:** 24 formfield `.php` (22 somut handler), 23 field view, 12 model, 5 policy, 24 event, 4 komut, `Controller.php` 324 satır (`insertUpdateData` L45, `validateBread` L195, `getContentBasedOnType` L258), `VoyagerBreadController` 357 satır; BREAD kaydında transaction yok, builder'da var (`DataType.php:88`); `Menu::display()` 30 gün cache ve `Auth::user()->can('browse', $item)` süzmesi (`Menu.php:56,149`); kayıtta `checkbox` istisnası (`Controller.php:62`).
+> - **Düzeltilen hatalar:** media controller 8 action (9 değil), settings controller 7 metod (8 değil), config 11 grup (8 değil), dil sayısı 34 (31 değil), field view 23 (§16'daki 24 hatalıydı), `VoyagerDummyServiceProvider` dummy seeder/içerik yayınlar, **`tcg/voyager-*` plugin paketleri yok** (Packagist 404) — bkz. `03-voyager-plugin-sistemi.md`.
+> - **Sürüm bilgisi:** repo varsayılan branch'i `1.7`; son branch `1.8` (Laravel 11, PHP `^8.2|^8.3`, `doctrine/dbal` kaldırıldı); son tag `v1.8.0`; `1.x` branch'i 2022-01'de kalmış. Doküman sitesi `1.x` bölümü **1.5**'i anlatır (repo `docs/` klasörü 1.6'ya kadar güncel), yani kod dokümandan ileride.
+> - **1.8'in `1.x`'e göre kaynak farkları (21 dosya):** toplu silme artık kayıt başına `delete()` + `BreadDataDeleted` olayı çalıştırır (eski kod `$data->destroy($ids)` ile toplu siliyor ve olayı tek kez, `$data` değişkeni o sırada mesaj dizisine dönüştüğü için kayıt yerine **mesaj dizisiyle** tetikliyordu); `action()` var olmayan sınıfta açık hata fırlatır; `FileDeleted` event'i artık `$path`'i gerçekten saklar (eski kodda `$this->path;` atama yoktu); `BasePolicy::checkPermission` dataType bulunamazsa istisna fırlatır; medya listeleme Flysystem 3'e uyarlandı; ilişki seçeneklerine sıralama (`sort`) eklendi; modeller `HasFactory` kullanıyor.
+> - **Doküman sitesi:** `llms.txt` sürümleri 1.0–1.6 ve `1.x` (38 sayfa); `1.x` bölümü yerel kopyayla birebir aynı, tek fark yeni `introduction.md`.
 
 > Kapsam notu: Bu dosya BREAD'ı da içerir; ayrıca Media Manager, Settings, Plugin,
 > Roles/Permissions, Database Manager, Compass, Menu, Widgets, i18n, Events,
@@ -18,13 +27,13 @@ Tarih: 2026-09-29
 | Field view'ları | `resources/views/formfields/` — 23 view | Seçenek desteği **view'ların içinde**, handler'da değil. 23. view `relationship.blade.php` — handler'ı yok, ilişki alanları tarafından kullanılır |
 | BREAD CRUD | `src/Http/Controllers/Controller.php` → `insertUpdateData()` | 324 satır, tek merkezi kaydetme |
 | BREAD builder | `src/Http/Controllers/VoyagerBreadController.php` | 357 satır, `browse_bread` authorize |
-| Şema sezgisi | `src/Database/Schema/SchemaManager.php` | Doctrine DBAL tablo/sütun keşfi |
+| Şema sezgisi | `src/Database/Schema/SchemaManager.php` | 1.x branch'inde Doctrine DBAL; **1.8'de** `doctrine/dbal` `composer.json`'dan çıktı, Laravel şema builder'ı (`getTables`, `getForeignKeys`) kullanılıyor, `listTableNames()` için DBAL yalnızca yedek |
 | Modeller | `src/Models/` (12 adet) | `DataType`, `DataRow`, `Setting`, `Menu`, `MenuItem`, `Permission`, `Role`, `Translation`, `Category`, `Post`, `Page`, `User` |
 | Politikalar | `src/Policies/` (5 adet) | `BasePolicy` + model bazlı |
 | Widget'lar | `src/Widgets/` (`BaseDimmer` + 3) | Arrilot widgets |
 | Event'ler | `src/Events/` (24 adet) | BREAD/media/table/menu lifecycle |
 | Komutlar | `src/Commands/` (4 adet) | Install, Admin, Controllers, MakeModel |
-| Config | `publishable/config/voyager.php` | 8 ana bölüm |
+| Config | `publishable/config/voyager.php` | 11 grup + birkaç düz anahtar (bkz. §14) |
 
 ### Kritik mimari kararı
 Handler'lar **son derece ince**:
@@ -243,7 +252,7 @@ Permission::removeFrom($table_name)   // toplu silme
 
 ## 5. Media Manager
 
-`src/Http/Controllers/VoyagerMediaController.php` — 9 public metod:
+`src/Http/Controllers/VoyagerMediaController.php` — 8 public action (+ `__construct`):
 
 | Metot | İşlev |
 |---|---|
@@ -283,7 +292,7 @@ döndürüyor. Medya paneli, klasör ağacı, kırpma, MIME politikası eksik.
 
 ## 6. Settings sistemi
 
-`VoyagerSettingsController` — 8 metod: `index`, `store`, `update`, `delete`,
+`VoyagerSettingsController` — 7 metod: `index`, `store`, `update`, `delete`,
 `move_up`, `move_down`, `delete_value`.
 
 ### 6.1 `settings` tablosu şeması
@@ -311,13 +320,13 @@ type, order(default 1), group(nullable)
 **1.x çekirdeğinde plugin dosyası yok** (`find -iname "*plugin*"` boş). Plugin mimarisi:
 
 - `composer.json` `extra.laravel.providers` → otomatik keşif (paket tabanlı)
-- Resmi plugin'ler ayrı paketler: `tcg/voyager-*-plugin`
+- ~~Resmi plugin'ler ayrı paketler: `tcg/voyager-*-plugin`~~ — **yanlıştı**: bu paket adları Packagist'te yok (2026-10-03). Bkz. `03-voyager-plugin-sistemi.md` §1.3
 - `VoyagerEventServiceProvider` — event dinleyicileri
-- `VoyagerDummyServiceProvider` — publishable asset'ler
+- `VoyagerDummyServiceProvider` — dummy seeder'lar ve dummy içerik (`dummy_seeders`, `dummy_content` publish tag'leri)
 - `FormFieldsRegistered` event'i → **üçüncü parti formfield handler'ı bu event ile kaydedilir**
 - `VoyagerDummyServiceProvider` içinde `Voyager::formFields()` benzeri kayıt
 
-Resmi plugin'lar: `voyager-hooks`, `voyager-mail`, `voyager-notification`, `voyager-file-manager`,
+Eski (doğrulanamayan) plugin listesi — **kaynakta veya dokümanda geçmiyor**, yalnızca `larapack/voyager-hooks` gerçek bir pakettir ve 1.5'te kaldırıldı: `voyager-hooks`, `voyager-mail`, `voyager-notification`, `voyager-file-manager`,
 `voyager-json-editor`, `voyager-hello-dolly` (görsel/örnek plugin'ler).
 
 Detaylı liste ve yaşam döngüsü için ayrı araştırma dosyası gerekli (aşağıda link).
@@ -339,7 +348,7 @@ Detaylı liste ve yaşam döngüsü için ayrı araştırma dosyası gerekli (a�
 | `reorder_column()` | **sütun sıralaması** |
 
 `config('voyager.database.tables.hidden')` ile gizli tablolar:
-`migrations, data_rows, data_types, menu_items, password_resets, permission_role, settings`
+`migrations, data_rows, data_types, menu_items, password_resets, permission_role, personal_access_tokens, settings` (`personal_access_tokens` 1.8'de eklendi)
 
 **tardis farkı:** tardis'te database manager yok.
 
@@ -462,7 +471,7 @@ Widget'lar: `BaseDimmer` (Arrilot `AbstractWidget`), `PostDimmer`, `PageDimmer`,
 
 - `src/Translator.php` + `src/Translator/Collection.php`
 - `src/Helpers/helpersi18n.php`, `helperTranslations.php`
-- `publishable/lang/` — **31 dil** (al, am, ar, bg, ca, cs, de, el, en, es, fa, fi, fr, gl, id, it, ja, ku, mm, nl, pl, pt, pt_br, ro, ru, sv, tr, uk, vi, zh_CN, zh_TW)
+- `publishable/lang/` — **34 dil** (1.8: al, am, ar, az, bg, ca, cs, de, el, en, es, fa, fi, fr, gl, id, it, ja, km, ku, mm, my, nl, pl, pt, pt_br, ro, ru, sv, tr, uk, vi, zh_CN, zh_TW; `az`, `km`, `my` sonradan eklendi)
 - `config('voyager.multilingual')`: `enabled`, `default`, `locales[]`
 - BREAD alanlarının `display_name`'i çevirilebilir
   (`is_bread_translatable($dataRow)`, `prepareTranslationsFromArray`)
@@ -508,7 +517,7 @@ UI:
 
 ---
 
-## 14. Config bölümleri (8 ana başlık)
+## 14. Config bölümleri (11 grup)
 
 ```
 user          → VoyagerUser trait, model
@@ -516,13 +525,16 @@ controllers   → controller override noktaları
 models        → DataType, DataRow, Menu, Setting, Permission, Role, Category...
 storage       → medya disk'i, thumbnail ayarları
 database      → hidden tablolar, autoload_migrations
+multilingual  → enabled, default, locales[]
 dashboard     → panel widget'ları
 bread         → add_menu_item, default_menu, add_permission, default_role
 googlemaps    → Coordinates field için API key, merkez, zoom
+settings      → ayar sayfası seçenekleri
+media         → allowed_mimetypes (yorum satırı; varsayılan "*")
 ```
 
-Ek: `primary_color`, `show_dev_tips`, `additional_css`, `additional_js`,
-`media.allowed_mimetypes`, `multilingual.{enabled,default,locales}`.
+Ek düz anahtarlar: `hidden_files`, `primary_color`, `show_dev_tips`, `additional_css`,
+`additional_js`, `compass_in_production`.
 
 ---
 
@@ -541,8 +553,25 @@ Ek: `primary_color`, `show_dev_tips`, `additional_css`, `additional_js`,
 | **Media Manager** | Tam panel + crop + MIME politikası + `{uid}`/`{date}`/`{random}` şablonları | **Yok** | P2 |
 | **Settings** | key/value + group + order + event | **Yok** | P2 |
 | **Database Manager** | tablo/sütun yönetimi | **Yok** | P3 |
-| **i18n** | 31 dil, kural mesajları çevrilir | Kısmi | P2 |
+| **i18n** | 34 dil, kural mesajları çevrilir | Kısmi | P2 |
 | **Field tipleri** | 24 tip (color, coordinates, rich_text_box, hidden, multi-select eksikleri) | 19 tip | P2 |
+
+---
+
+## 15b. Güncel Tardis durumu (2026-10-03)
+
+§15'teki tablo 2026-09-29 anlık görüntüsüdür. O günden beri:
+
+| Konu | Şimdi |
+|---|---|
+| Validation kuralları | ✅ `FieldValidationRules` (liste olarak, `\|` içeren regex dahil) |
+| İzin kontrolü | 🟡 Sayfalar `BreadAuthorization` ile kontrol eder; plugin yoksa **fail-open** (`docs/notes.md` B9) |
+| Transaction | ✅ create/edit `DB::transaction` içinde |
+| Media Manager | ✅ var (`MediaManager`, media-browser); yükleme uzantı listesiyle sınırlı |
+| Settings | ✅ var (`SettingsManager`, JSON, group/validation) |
+| Database Manager | ✅ var (`/admin/database`) |
+| Field tipleri | 19 tip (değişmedi); Color/Coordinates/Hidden/RichTextBox hâlâ yok |
+| Options kaynağı | static options + ilişki (`searchOptions`); `{field}List()` benzeri yok |
 
 ---
 
@@ -550,7 +579,7 @@ Ek: `primary_color`, `show_dev_tips`, `additional_css`, `additional_js`,
 
 ```
 src/FormFields/*.php                      24 field handler
-resources/views/formfields/*.blade.php    24 field view
+resources/views/formfields/*.blade.php    23 field view
 src/Http/Controllers/Controller.php       insertUpdateData + validation (L45-255)
 src/Http/Controllers/VoyagerBreadController.php   BREAD builder + authorize
 src/Http/Controllers/VoyagerMediaController.php   Media Manager
@@ -566,7 +595,7 @@ src/Commands/*.php                        4 komut
 src/Events/*.php                          24 event
 src/Widgets/BaseDimmer.php
 publishable/config/voyager.php            8 config bölümü
-publishable/lang/                         31 dil
+publishable/lang/                         34 dil
 docs/                                     yerel doküman (bread/, core-concepts/, ...)
 ```
 

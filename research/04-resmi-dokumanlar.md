@@ -1,18 +1,18 @@
 # Resmi Dokümanlar — Tam Sayfa Dizini ve Özetler
 
 İndirilen sayfalar:
-- **Voyager 1.x:** `voyager-1x-docs/` — **37 sayfa** (tümü indirildi)
+- **Voyager 1.x:** `voyager-1x-docs/` — **38 sayfa** (2026-10-03: 37 sayfa + yeni `introduction.md`; site `llms.txt` sürümleri 1.0–1.6 ve `1.x` listeler, `1.x` bölümü **1.5**'i anlatır)
   Kaynak: `https://voyager-docs.devdojo.com/1.x/`
 - **Voyager 2.x:** `voyager-2x-docs/` — **55 dosya** (repodaki `docs/` klasörü)
   Kaynak: `https://github.com/voyager-admin/voyager/docs` = `https://voyager-admin.github.io/voyager/`
-  (Site ile repo birebir aynı — 52 içerik sayfası, doğrulandı)
+  (Site ile repo aynı içerik — `gh-pages` 55 HTML sayfası, repo 55 `.md` (54 + `de/index.md`); 2026-10-03'te 285 dosyanın tamamı yerel kopyayla birebir aynı bulundu. 2.x deposu 2022-10-21'den beri değişmedi.)
 
 > Her sayfa `.md` uzantısıyla doğrudan markdown olarak çekilebiliyor.
 > Ayrıca `https://voyager-docs.devdojo.com/llms.txt` tam indeks dosyası var.
 
 ---
 
-## BÖLÜM A — Voyager 1.x Dokümanları (37 sayfa)
+## BÖLÜM A — Voyager 1.x Dokümanları (38 sayfa)
 
 ### A.1 Getting Started (5 sayfa)
 
@@ -132,12 +132,17 @@
 
 | Kaynak | Kapsam | Durum |
 |---|---|---|
-| `github.com/thedevdojo/voyager` | 1.x **kaynak kodu** — 24 handler, controller, model, policy | ✅ Tam indirildi, okundu |
-| `voyager-docs.devdojo.com` | 1.x **37 doküman sayfası** | ✅ Tam indirildi |
-| `github.com/voyager-admin/voyager` | 2.x **kaynak kodu** + 55 doküman dosyası | ✅ Tam indirildi, okundu |
-| `voyager-admin.github.io/voyager/` | 2.x site — 52 içerik sayfası | ✅ Repo ile aynı doğrulandı, repo docs kopyalandı |
+| `github.com/thedevdojo/voyager` | 1.x **kaynak kodu** — 24 handler, controller, model, policy (`1.8`, `cb56948`, 2024-10-14) | ✅ Yeniden indirildi, sayılar doğrulandı |
+| `voyager-docs.devdojo.com` | 1.x **38 doküman sayfası** (1.5 sürümünü anlatır) | ✅ Yeniden indirildi, yerel kopyayla aynı (+ `introduction.md`) |
+| `github.com/voyager-admin/voyager` | 2.x **kaynak kodu** + 55 doküman dosyası (`2.x`, `47fb33b`, 2022-10-21) | ✅ Yeniden indirildi, doğrulandı |
+| `voyager-admin.github.io/voyager/` | 2.x site — 55 sayfa (build `5be699f`, 2022-10-20) | ✅ Repo ile aynı içerik doğrulandı |
 
 ---
+
+> **Not (2026-10-03):** Repo `docs/` klasörü (1.8) GitBook kaynağıdır (`bread/formfields/*`, `summary.md`) ve sitedeki render edilmiş
+> sayfalardan biçim olarak farklıdır; içerik farkları küçüktür: `getting-started/prerequisites` repoda Laravel 8/9'u,
+> sitede 6/7/8'i söyler, `upgrading` repoda 1.5→1.6 (TinyMCE 6), sitede 1.4→1.5 (hooks kaldırıldı). Kod (`composer.json`) ise
+> Laravel 11 ister — üç kaynak birbirinden farklı sürüm anlatır.
 
 ## BÖLÜM D — Dokümanlardan Çıkarılan En Değerli 10 Tespit
 

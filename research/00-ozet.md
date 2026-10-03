@@ -13,6 +13,8 @@ Kapsam: `packages/tardis` BREAD akışları + Voyager 1.x / Voyager 2.x karşıl
 > Voyager 1.x/2.x sistem detayları, plugin karşılaştırması, doküman kapsamı ve
 > öncelikli düzeltme listesi birleşik rapordadır.
 
+> **Yeniden doğrulama (2026-10-03):** dört kaynak yeniden indirilip rakamlar kaynakla karşılaştırıldı; düzeltmeler ilgili dosyaların başındaki "Yeniden doğrulama" kutularında. Öne çıkanlar: (1) 1.x'in güncel çizgisi `1.8` (Laravel 11), araştırma başta eski `1.x` branch'ine dayanıyordu; (2) "resmi `tcg/voyager-*` plugin'leri" **yanlıştı** — bu paketler yok, `larapack/voyager-hooks` 1.5'te kaldırıldı; (3) 2.x deposu 2022-10'dan beri donmuş ve BREAD yetkilendirmesi orada "To be implemented"; (4) birkaç sayı düzeltildi (media 8 action, settings 7 metod, 34 dil, 27/11 manager metodu).
+
 ---
 
 ## 1. BU RAPORU NASIL OKUMALI
@@ -23,9 +25,9 @@ Kapsam: `packages/tardis` BREAD akışları + Voyager 1.x / Voyager 2.x karşıl
 | 01 | `01-voyager-1x.md` | Voyager 1.x kaynak kodu araştırması — 23 field handler, BREAD akışı, policy, media, settings |
 | 02 | `02-voyager-2x.md` | Voyager 2.x kaynak kodu araştırması — 16 field sınıfı, lifecycle, plugin kontratları, BREAD JSON |
 | 03 | `03-voyager-plugin-sistemi.md` | **Plugin sistemi karşılaştırması** — 5 tip, 17 kontrat, Provider/Filter ayrımı |
-| 04 | `04-resmi-dokumanlar.md` | **Tüm doküman sayfalarının dizini ve özeti** (37 + 55) |
+| 04 | `04-resmi-dokumanlar.md` | **Tüm doküman sayfalarının dizini ve özeti** (38 + 55) |
 | 05 | `05-tardis-bulgulari-ve-fix-oncelikleri.md` | **Tardis bulguları — kanıt, etki, çözüm, test planı** |
-| — | `voyager-1x-docs/` | 37 indirilmiş resmi 1.x doküman sayfası |
+| — | `voyager-1x-docs/` | 38 indirilmiş resmi 1.x doküman sayfası |
 | — | `voyager-2x-docs/` | 55 kopyalanmış resmi 2.x doküman dosyası |
 
 **Önce 05, sonra 03, sonra 01/02 oku.** 04 bir referans dizinidir;
@@ -42,7 +44,7 @@ gerektiğinde tek tek sayfalara bakmak için.
    kayıt yolu incelendi. Render/UI eksikleri düzeltildi ve test edildi
    (365 test geçiyor). Derinlemesine davranış denetiminde **3 kritik
    güvenlik/veri bütünlüğü hatası** bulundu (aşağıda).
-2. **Voyager 1.x araştırması** — kaynak kod + 37 resmi doküman sayfası incelendi.
+2. **Voyager 1.x araştırması** — kaynak kod + 38 resmi doküman sayfası incelendi.
 3. **Voyager 2.x araştırması** — kaynak kod + 55 doküman dosyası incelendi.
 4. **Plugin sistemi** — her iki sürüm için ayrıntılı karşılaştırma yapıldı.
 5. **Dört kaynağın tamamı** indirildi ve `research/` altında saklandı.
@@ -127,10 +129,10 @@ Her biri için önce **regresyon testi**, sonra düzeltme.
 
 | Kaynak | Durum |
 |---|---|
-| `github.com/thedevdojo/voyager` (1.x) | ✅ Tam indirildi, okundu |
-| `voyager-docs.devdojo.com` (1.x) | ✅ 37/37 sayfa indirildi |
-| `github.com/voyager-admin/voyager` (2.x) | ✅ Tam indirildi, okundu |
-| `voyager-admin.github.io/voyager/` | ✅ Site, repo docs ile birebir aynı doğrulandı (52 sayfa) |
+| `github.com/thedevdojo/voyager` (1.x) | ✅ `1.8` @ `cb56948` (2024-10-14) yeniden okundu; ilk okuma `1.x` branch'i (2022-01) |
+| `voyager-docs.devdojo.com` (1.x) | ✅ 38/38 sayfa (2026-10-03 yeniden indirildi; site 1.5'i anlatır) |
+| `github.com/voyager-admin/voyager` (2.x) | ✅ `2.x` @ `47fb33b` (2022-10-21; repo o günden beri değişmedi) yeniden okundu |
+| `voyager-admin.github.io/voyager/` | ✅ Site, repo docs ile aynı içerik (55 sayfa; 2026-10-03'te 285 dosya birebir doğrulandı) |
 
 **Eksik bırakılmış hiçbir sayfa yok.** Dört kaynağın tamamı `research/`
 altında dosya olarak duruyor. Doküman sayfaları `.md` uzantısıyla doğrudan
