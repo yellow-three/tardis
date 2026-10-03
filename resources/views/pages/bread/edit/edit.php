@@ -7,6 +7,7 @@ use Livewire\Attributes\Title;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 use Tardis\Auth\BreadAuthorization;
+use Tardis\Bread\BreadDefinition;
 use Tardis\Bread\BreadManager;
 use Tardis\Bread\FieldValidationRules;
 use Tardis\Classes\Translation;
@@ -54,7 +55,7 @@ new #[Title('Edit')] #[Layout('tardis::layouts.admin')] class extends Component
 
         app(BreadAuthorization::class)->authorize('edit', $this->slug);
 
-        $record = $modelClass::findOrFail($id);
+        $record = BreadDefinition::fromArray($this->bread)->query()->findOrFail($id);
         $this->record = $record->toArray();
         $this->form = $this->record;
 
@@ -190,7 +191,7 @@ new #[Title('Edit')] #[Layout('tardis::layouts.admin')] class extends Component
         $modelClass = $this->bread['model'] ?? null;
 
         if ($modelClass && class_exists($modelClass)) {
-            $record = $modelClass::findOrFail($this->id);
+            $record = BreadDefinition::fromArray($this->bread)->query()->findOrFail($this->id);
 
             $fields = app(FormfieldManager::class)->fields($this->fields);
             $data = [];

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tardis\Auth;
 
+use Tardis\Bread\BreadManager;
 use Tardis\Contracts\Plugins\AuthorizationPlugin;
 use Tardis\Manager\PluginManager;
 
@@ -20,7 +21,19 @@ use Tardis\Manager\PluginManager;
  */
 class BreadAuthorization
 {
+    /** @var array<string, string> */
+    protected array $keys = [];
+
     public function __construct(protected ?PluginManager $plugins = null) {}
+
+    protected function lookupKey(string $slug): string
+    {
+        try {
+            return app(BreadManager::class)->find($slug)?->permissionKey() ?? $slug;
+        } catch (\Throwable) {
+            return $slug;
+        }
+    }
 
     /**
      * The permission slug a BREAD action is stored under.
@@ -28,6 +41,15 @@ class BreadAuthorization
     public static function ability(string $action, string $slug): string
     {
         return trim($action).' '.trim($slug);
+    }
+
+    /**
+     * The word abilities for a BREAD are built from: its definition's `policy`
+     * when it sets one, otherwise the slug itself.
+     */
+    public function keyFor(string $slug): string
+    {
+        return $this->keys[$slug] ??= $this->lookupKey($slug);
     }
 
     public function allows(string $action, string $slug, mixed $model = null): bool
@@ -38,7 +60,7 @@ class BreadAuthorization
             return true;
         }
 
-        return $auth->can(static::ability($action, $slug), $model);
+        return $auth->can(static::ability($action, $this->keyFor($slug)), $model);
     }
 
     public function authorize(string $action, string $slug, mixed $model = null): void

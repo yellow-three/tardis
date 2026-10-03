@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
+use Tardis\Http\BreadRoutes;
 
 Route::middleware(['web'])
     ->prefix(config('tardis.admin.prefix', 'admin'))
@@ -45,9 +46,7 @@ Route::middleware(['web', 'tardis.admin'])
         Route::livewire('/bread', 'tardis::pages.bread.manage')->name('bread.manage');
         Route::livewire('/bread/create', 'tardis::pages.bread-builder')->name('bread.create');
         Route::livewire('/bread/{slug}/edit', 'tardis::pages.bread-builder')->name('bread.edit');
-
-        Route::livewire('/{slug}', 'tardis::pages.bread.index')->name('bread.index');
-        Route::livewire('/{slug}/create', 'tardis::pages.bread.create')->name('bread.add');
-        Route::livewire('/{slug}/{id}', 'tardis::pages.bread.read')->name('bread.read');
-        Route::livewire('/{slug}/{id}/edit', 'tardis::pages.bread.edit')->name('bread.edit.item');
     });
+
+// BREAD routes are generated from the definitions, after every fixed screen.
+BreadRoutes::define();

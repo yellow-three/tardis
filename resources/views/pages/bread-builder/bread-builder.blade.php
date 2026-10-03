@@ -13,6 +13,7 @@
         'current' => ['badge-info', 'Current slug'],
         'taken' => ['badge-error', 'Already used'],
         'invalid' => ['badge-warning', 'Lowercase letters, numbers and dashes only'],
+        'reserved' => ['badge-error', 'Reserved for a built-in screen'],
         'empty' => ['badge-ghost', 'Not set yet'],
     ];
 @endphp

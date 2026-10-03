@@ -613,3 +613,40 @@ test('editing a BREAD keeps its own model selectable', function () {
         $cleanup();
     }
 });
+
+test('editing a definition keeps its components, policy and scope', function () {
+    $source = new JsonBreadSource($this->breadPath);
+    app()->instance(JsonBreadSource::class, $source);
+
+    $source->save([
+        'slug' => 'kept', 'model' => BreadBuilderTestModel::class, 'name' => 'Kept', 'name_plural' => 'Kepts',
+        'components' => ['browse' => 'acme::pages.list'], 'policy' => 'articles', 'scope' => 'published',
+        'fields' => [['name' => 'name', 'type' => 'text', 'browse' => true, 'read' => true, 'edit' => true, 'add' => true]],
+    ]);
+
+    Livewire::test('tardis::pages.bread-builder', ['slug' => 'kept'])
+        ->set('name', 'Kept renamed')
+        ->call('save')
+        ->assertHasNoErrors();
+
+    $bread = app(BreadManager::class)->find('kept');
+
+    expect($bread->name)->toBe('Kept renamed')
+        ->and($bread->components)->toBe(['browse' => 'acme::pages.list'])
+        ->and($bread->policy)->toBe('articles')
+        ->and($bread->scope)->toBe('published');
+});
+
+test('the builder refuses a slug reserved for a built-in screen', function () {
+    $source = new JsonBreadSource($this->breadPath);
+    app()->instance(JsonBreadSource::class, $source);
+
+    Livewire::test('tardis::pages.bread-builder')
+        ->set('model', BreadBuilderTestModel::class)
+        ->call('detectFields')
+        ->set('slug', 'settings')
+        ->call('save')
+        ->assertHasErrors('slug');
+
+    expect($source->has('settings'))->toBeFalse();
+});

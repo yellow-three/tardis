@@ -8,6 +8,7 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Log;
 use Tardis\Bread\BreadDefinition;
+use Tardis\Bread\ReservedSlugs;
 use Tardis\Manager\FormfieldManager;
 
 /**
@@ -115,6 +116,12 @@ class JsonBreadSource implements BreadSource
         }
 
         $this->assertValidSlug($slug);
+
+        if (ReservedSlugs::has($slug)) {
+            throw new \InvalidArgumentException(
+                sprintf('BREAD slug [%s] is reserved for a built-in admin screen.', $slug)
+            );
+        }
 
         $this->backup($slug);
 

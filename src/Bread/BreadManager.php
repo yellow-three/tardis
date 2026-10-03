@@ -23,9 +23,9 @@ class BreadManager
     {
         $this->bread->save($bread);
 
-        $slug = $bread instanceof BreadDefinition ? $bread->slug : (string) ($bread['slug'] ?? '');
+        $definition = $bread instanceof BreadDefinition ? $bread : BreadDefinition::fromArray($bread);
 
-        $this->provisionPermissions($slug);
+        $this->provisionPermissions($definition->permissionKey());
     }
 
     /**

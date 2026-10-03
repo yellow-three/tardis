@@ -6,6 +6,7 @@ use Livewire\Attributes\Locked;
 use Livewire\Attributes\Title;
 use Livewire\Component;
 use Tardis\Auth\BreadAuthorization;
+use Tardis\Bread\BreadDefinition;
 use Tardis\Bread\BreadManager;
 use Tardis\Events\BreadDeleted;
 
@@ -52,7 +53,7 @@ new #[Title('BREAD')] #[Layout('tardis::layouts.admin')] class extends Component
         DB::enableQueryLog();
         $start = hrtime(true);
 
-        $query = $model::query();
+        $query = BreadDefinition::fromArray($this->bread)->query();
 
         if (! empty($this->bread['order_column'])) {
             $query->orderBy($this->bread['order_column'], $this->bread['order_direction'] ?? 'asc');
@@ -109,7 +110,7 @@ new #[Title('BREAD')] #[Layout('tardis::layouts.admin')] class extends Component
             abort(404);
         }
 
-        $item = $model::findOrFail($id);
+        $item = BreadDefinition::fromArray($this->bread)->query()->findOrFail($id);
         $item->delete();
 
         BreadDeleted::dispatch($this->slug, $item);

@@ -175,7 +175,7 @@ class MenuManager
             ->all()
             ->map(fn (BreadDefinition $bread) => (new MenuItem($bread->namePlural, $this->breadMenuIcon($bread->icon)))
                 ->route('tardis.bread.index', ['slug' => $bread->slug])
-                ->permission(BreadAuthorization::ability('browse', $bread->slug))
+                ->permission(BreadAuthorization::ability('browse', $bread->permissionKey()))
                 ->section('BREAD')
                 ->activeOnRoutes([
                     'tardis.bread.index',

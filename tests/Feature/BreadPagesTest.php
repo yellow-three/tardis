@@ -134,6 +134,11 @@ test('the BREAD management table links every definition to the builder edit page
 });
 
 test('dynamic bread URLs resolve to Livewire page routes', function () {
+    $path = sys_get_temp_dir().'/tardis-bread-routes-pages-'.uniqid();
+    app()->instance(JsonBreadSource::class, $source = new JsonBreadSource($path));
+    $source->save(['slug' => 'posts', 'model' => 'BreadPageTestModel', 'name' => 'Post', 'name_plural' => 'Posts', 'fields' => []]);
+    reloadAdminRoutes();
+
     $routes = app('router')->getRoutes();
 
     expect($routes->match(Request::create('/admin/posts', 'GET'))->getName())
@@ -144,6 +149,8 @@ test('dynamic bread URLs resolve to Livewire page routes', function () {
         ->toBe('tardis.bread.read');
     expect($routes->match(Request::create('/admin/posts/1/edit', 'GET'))->getName())
         ->toBe('tardis.bread.edit.item');
+
+    File::deleteDirectory($path);
 });
 
 test('a markdown field renders as a multi-line editor instead of a single-line input', function () {
