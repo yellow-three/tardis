@@ -7,7 +7,7 @@ use Tardis\Auth\Abilities;
 use Tardis\Auth\BreadAuthorization;
 use Illuminate\Support\Facades\DB;
 
-new #[Title('Activity Log')] #[Layout('tardis::layouts.admin')] class extends Component
+new #[Title('tardis::activity.activity_log')] #[Layout('tardis::layouts.admin')] class extends Component
 {
     public array $activities = [];
 
@@ -118,21 +118,21 @@ new #[Title('Activity Log')] #[Layout('tardis::layouts.admin')] class extends Co
 }; ?>
 
 <div>
-    <x-tardis::page-header title="Activity Log" description="Track all system activities" />
+    <x-tardis::page-header :title="__('tardis::activity.activity_log')" :description="__('tardis::activity.track_all_system_activities')" />
 
     <!-- Filters -->
     <div class="card bg-base-100 mb-6 border border-base-300">
         <div class="card-body p-4">
             <div class="flex flex-wrap gap-4">
                 <div class="flex flex-col gap-2 flex-1 min-w-[200px]">
-                    <input type="text" wire:model.live.debounce.300ms="search" class="input input-sm" placeholder="Search..." />
+                    <input type="text" wire:model.live.debounce.300ms="search" class="input input-sm" placeholder="{{ __('tardis::activity.search') }}" />
                 </div>
                 <div class="flex flex-col gap-2">
                     <select wire:model.live="filterAction" class="select select-sm">
-                        <option value="">All Actions</option>
-                        <option value="created">Created</option>
-                        <option value="updated">Updated</option>
-                        <option value="deleted">Deleted</option>
+                        <option value="">{{ __('tardis::activity.all_actions') }}</option>
+                        <option value="created">{{ __('tardis::activity.created') }}</option>
+                        <option value="updated">{{ __('tardis::activity.updated') }}</option>
+                        <option value="deleted">{{ __('tardis::activity.deleted') }}</option>
                     </select>
                 </div>
             </div>
@@ -145,10 +145,10 @@ new #[Title('Activity Log')] #[Layout('tardis::layouts.admin')] class extends Co
             <table class="table table-sm">
                 <thead>
                     <tr>
-                        <th scope="col">Action</th>
-                        <th scope="col">Model</th>
-                        <th scope="col">User</th>
-                        <th scope="col">Time</th>
+                        <th scope="col">{{ __('tardis::activity.action') }}</th>
+                        <th scope="col">{{ __('tardis::activity.model') }}</th>
+                        <th scope="col">{{ __('tardis::activity.user') }}</th>
+                        <th scope="col">{{ __('tardis::activity.time') }}</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -168,7 +168,7 @@ new #[Title('Activity Log')] #[Layout('tardis::layouts.admin')] class extends Co
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="4" class="text-center py-8 text-base-content/50">No activities found</td>
+                            <td colspan="4" class="text-center py-8 text-base-content/50">{{ __('tardis::activity.no_activities_found') }}</td>
                         </tr>
                     @endforelse
                 </tbody>
@@ -179,7 +179,7 @@ new #[Title('Activity Log')] #[Layout('tardis::layouts.admin')] class extends Co
             <div class="card-body p-4 border-t border-base-200">
                 <div class="flex items-center justify-between">
                     <span class="text-sm text-base-content/60">
-                        Showing {{ ($page - 1) * $perPage + 1 }}-{{ min($page * $perPage, $totalRows) }} of {{ $totalRows }}
+                        {{ __('tardis::activity.showing', ['from' => ($page - 1) * $perPage + 1, 'to' => min($page * $perPage, $totalRows), 'total' => $totalRows]) }}
                     </span>
                     <div class="join">
                         <button wire:click="previousPage" class="join-item btn btn-sm" {{ $page <= 1 ? 'disabled' : '' }}>«</button>

@@ -8,7 +8,7 @@ use Tardis\Auth\Abilities;
 use Tardis\Auth\BreadAuthorization;
 use Tardis\Models\Role;
 
-new #[Title('Users')] #[Layout('tardis::layouts.admin')] class extends Component
+new #[Title('tardis::users.users')] #[Layout('tardis::layouts.admin')] class extends Component
 {
     public string $search = '';
 
@@ -103,7 +103,7 @@ new #[Title('Users')] #[Layout('tardis::layouts.admin')] class extends Component
         $superIds = Role::query()->whereIn('slug', $this->superAdminSlugs())->pluck('id')->all();
 
         if ($this->wouldRemoveLastSuperAdmin($user->getKey(), $roleIds, $superIds)) {
-            $this->error = 'At least one super administrator must remain.';
+            $this->error = __('tardis::users.super_admin_must_remain');
 
             return;
         }
@@ -117,7 +117,7 @@ new #[Title('Users')] #[Layout('tardis::layouts.admin')] class extends Component
         });
 
         $this->closeEdit();
-        session()->flash('message', 'Roles updated.');
+        session()->flash('message', __('tardis::users.roles_updated'));
     }
 
     /**

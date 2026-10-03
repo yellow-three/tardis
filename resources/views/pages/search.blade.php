@@ -6,7 +6,7 @@ use Livewire\Component;
 use Tardis\Auth\BreadAuthorization;
 use Tardis\Bread\BreadManager;
 
-new #[Title('Search')] #[Layout('tardis::layouts.admin')] class extends Component
+new #[Title('tardis::search.search')] #[Layout('tardis::layouts.admin')] class extends Component
 {
     public string $query = '';
 
@@ -94,7 +94,7 @@ new #[Title('Search')] #[Layout('tardis::layouts.admin')] class extends Componen
 }; ?>
 
 <div>
-    <x-tardis::page-header title="Search" description="Search across all BREADs" />
+    <x-tardis::page-header :title="__('tardis::search.search')" :description="__('tardis::search.search_across_all_breads')" />
 
     <!-- Search Input -->
     <div class="card bg-base-100 mb-6 border border-base-300">
@@ -104,16 +104,16 @@ new #[Title('Search')] #[Layout('tardis::layouts.admin')] class extends Componen
                     type="text"
                     wire:model.live.debounce.300ms="query"
                     class="input flex-1"
-                    placeholder="Search for anything…"
-                    aria-label="Search across BREAD resources"
+                    placeholder="{{ __('tardis::search.search_for_anything') }}"
+                    aria-label="{{ __('tardis::search.search_across_bread_resources') }}"
                     autocomplete="off"
                 />
                 <button wire:click="search" class="btn btn-primary gap-2">
                     <x-tardis::icon name="document-text" class="w-4 h-4" />
-                    Search
+                    {{ __('tardis::search.search') }}
                 </button>
                 @if ($query)
-                    <button wire:click="clearSearch" class="btn btn-ghost" aria-label="Clear search">
+                    <button wire:click="clearSearch" class="btn btn-ghost" aria-label="{{ __('tardis::search.clear_search') }}">
                         <x-tardis::icon name="x-mark" class="w-4 h-4" aria-hidden="true" />
                     </button>
                 @endif
@@ -127,8 +127,8 @@ new #[Title('Search')] #[Layout('tardis::layouts.admin')] class extends Componen
             <div class="card bg-base-100 border border-base-300" aria-live="polite">
                 <div class="card-body text-center py-12">
                     <x-tardis::icon name="document-text" class="w-16 h-16 mx-auto text-base-content/20" />
-                    <h3 class="text-lg font-semibold mt-4">No results found</h3>
-                    <p class="text-base-content/60 mt-2">Try a different search term</p>
+                    <h3 class="text-lg font-semibold mt-4">{{ __('tardis::search.no_results_found') }}</h3>
+                    <p class="text-base-content/60 mt-2">{{ __('tardis::search.try_a_different_search_term') }}</p>
                 </div>
             </div>
         @else

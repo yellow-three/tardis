@@ -8,7 +8,7 @@ use Tardis\Auth\BreadAuthorization;
 use Tardis\Models\Permission;
 use Tardis\Models\Role;
 
-new #[Title('Roles')] #[Layout('tardis::layouts.admin')] class extends Component
+new #[Title('tardis::roles.roles')] #[Layout('tardis::layouts.admin')] class extends Component
 {
     public array $roles = [];
 
@@ -107,11 +107,11 @@ new #[Title('Roles')] #[Layout('tardis::layouts.admin')] class extends Component
 }; ?>
 
 <div>
-    <x-tardis::page-header title="Roles" description="Manage user roles and their permissions">
+    <x-tardis::page-header :title="__('tardis::roles.roles')" :description="__('tardis::roles.manage_user_roles_and_their_permissions')">
         <x-slot:action>
             <button wire:click="$set('showAddModal', true)" class="btn btn-primary gap-2">
                 <x-tardis::icon name="plus" class="w-4 h-4" />
-                Add Role
+                {{ __('tardis::roles.add_role') }}
             </button>
         </x-slot:action>
     </x-tardis::page-header>
@@ -127,7 +127,7 @@ new #[Title('Roles')] #[Layout('tardis::layouts.admin')] class extends Component
                             <span class="badge badge-ghost badge-xs">{{ $perm['slug'] }}</span>
                         @endforeach
                         @if (empty($role['permissions']))
-                            <span class="text-xs text-base-content/40">No permissions</span>
+                            <span class="text-xs text-base-content/40">{{ __('tardis::roles.no_permissions') }}</span>
                         @endif
                     </div>
                     <div class="card-actions justify-end mt-4">
@@ -143,8 +143,8 @@ new #[Title('Roles')] #[Layout('tardis::layouts.admin')] class extends Component
         @empty
             <div class="col-span-full card bg-base-100">
                 <div class="card-body text-center py-12">
-                    <h3 class="text-lg font-semibold">No roles found</h3>
-                    <p class="text-base-content/60">Create a role to get started</p>
+                    <h3 class="text-lg font-semibold">{{ __('tardis::roles.no_roles_found') }}</h3>
+                    <p class="text-base-content/60">{{ __('tardis::roles.create_a_role_to_get_started') }}</p>
                 </div>
             </div>
         @endforelse
@@ -153,24 +153,24 @@ new #[Title('Roles')] #[Layout('tardis::layouts.admin')] class extends Component
     @if ($showAddModal)
         <dialog class="modal modal-open">
             <div class="modal-box">
-                <h3 class="font-bold text-lg">Add Role</h3>
+                <h3 class="font-bold text-lg">{{ __('tardis::roles.add_role') }}</h3>
                 <form wire:submit="createRole" class="space-y-4 py-4">
-                    <input type="text" wire:model="newName" class="input w-full" placeholder="Role name" />
-                    <input type="text" wire:model="newSlug" class="input w-full" placeholder="Slug (e.g., editor)" />
+                    <input type="text" wire:model="newName" class="input w-full" placeholder="{{ __('tardis::roles.role_name') }}" />
+                    <input type="text" wire:model="newSlug" class="input w-full" placeholder="{{ __('tardis::roles.slug_e_g_editor') }}" />
                 </form>
                 <div class="modal-action">
-                    <button wire:click="$set('showAddModal', false)" class="btn btn-ghost">Cancel</button>
-                    <button wire:click="createRole" class="btn btn-primary">Create</button>
+                    <button wire:click="$set('showAddModal', false)" class="btn btn-ghost">{{ __('tardis::roles.cancel') }}</button>
+                    <button wire:click="createRole" class="btn btn-primary">{{ __('tardis::roles.create') }}</button>
                 </div>
             </div>
-            <form method="dialog" class="modal-backdrop"><button wire:click="$set('showAddModal', false)">close</button></form>
+            <form method="dialog" class="modal-backdrop"><button wire:click="$set('showAddModal', false)">{{ __('tardis::roles.close') }}</button></form>
         </dialog>
     @endif
 
     @if ($showEditModal)
         <dialog class="modal modal-open">
             <div class="modal-box w-full max-w-lg">
-                <h3 class="font-bold text-lg">Edit Role Permissions</h3>
+                <h3 class="font-bold text-lg">{{ __('tardis::roles.edit_role_permissions') }}</h3>
                 <div class="py-4 max-h-96 overflow-y-auto">
                     @foreach ($allPermissions as $perm)
                         <label class="flex items-center gap-3 py-2 border-b border-base-200">
@@ -183,25 +183,25 @@ new #[Title('Roles')] #[Layout('tardis::layouts.admin')] class extends Component
                     @endforeach
                 </div>
                 <div class="modal-action">
-                    <button wire:click="$set('showEditModal', false)" class="btn btn-ghost">Cancel</button>
-                    <button wire:click="saveRolePermissions" class="btn btn-primary">Save</button>
+                    <button wire:click="$set('showEditModal', false)" class="btn btn-ghost">{{ __('tardis::roles.cancel') }}</button>
+                    <button wire:click="saveRolePermissions" class="btn btn-primary">{{ __('tardis::roles.save') }}</button>
                 </div>
             </div>
-            <form method="dialog" class="modal-backdrop"><button wire:click="$set('showEditModal', false)">close</button></form>
+            <form method="dialog" class="modal-backdrop"><button wire:click="$set('showEditModal', false)">{{ __('tardis::roles.close') }}</button></form>
         </dialog>
     @endif
 
     @if ($showDeleteModal)
         <dialog class="modal modal-open">
             <div class="modal-box">
-                <h3 class="font-bold text-lg">Delete Role</h3>
-                <p class="py-4">Are you sure you want to delete this role? Users with this role will lose their permissions.</p>
+                <h3 class="font-bold text-lg">{{ __('tardis::roles.delete_role') }}</h3>
+                <p class="py-4">{{ __('tardis::roles.are_you_sure_you_want_to_4956') }}</p>
                 <div class="modal-action">
-                    <button wire:click="$set('showDeleteModal', false)" class="btn btn-ghost">Cancel</button>
-                    <button wire:click="deleteRole" class="btn btn-error">Delete</button>
+                    <button wire:click="$set('showDeleteModal', false)" class="btn btn-ghost">{{ __('tardis::roles.cancel') }}</button>
+                    <button wire:click="deleteRole" class="btn btn-error">{{ __('tardis::roles.delete') }}</button>
                 </div>
             </div>
-            <form method="dialog" class="modal-backdrop"><button wire:click="$set('showDeleteModal', false)">close</button></form>
+            <form method="dialog" class="modal-backdrop"><button wire:click="$set('showDeleteModal', false)">{{ __('tardis::roles.close') }}</button></form>
         </dialog>
     @endif
 </div>

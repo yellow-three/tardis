@@ -6,7 +6,7 @@ use Livewire\Component;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Str;
 
-new #[Title('Reset Password')] #[Layout('tardis::layouts.auth')] class extends Component
+new #[Title('tardis::auth.reset_password')] #[Layout('tardis::layouts.auth')] class extends Component
 {
     public string $token = '';
 
@@ -43,7 +43,7 @@ new #[Title('Reset Password')] #[Layout('tardis::layouts.auth')] class extends C
         );
 
         $this->status = $status === Password::PASSWORD_RESET
-            ? 'Your password has been reset successfully.'
+            ? __('tardis::auth.password_reset_done')
             : __($status);
     }
 
@@ -54,27 +54,27 @@ new #[Title('Reset Password')] #[Layout('tardis::layouts.auth')] class extends C
 }; ?>
 
 <div>
-    <h2 class="card-title text-xl mb-4">Reset Password</h2>
+    <h2 class="card-title text-xl mb-4">{{ __('tardis::auth.reset_password') }}</h2>
 
     @if ($status)
         <div class="alert alert-success mb-4">
             <span>{{ $status }}</span>
         </div>
-        <a href="{{ route('tardis.login') }}" class="btn btn-primary btn-block">Login</a>
+        <a href="{{ route('tardis.login') }}" class="btn btn-primary btn-block">{{ __('tardis::auth.login') }}</a>
     @else
         <form wire:submit="resetPassword" class="space-y-4">
             <input type="hidden" wire:model="token" />
 
             <div class="flex flex-col gap-2">
                 <label class="label" for="email">
-                    <span class="text-base-content">Email address</span>
+                    <span class="text-base-content">{{ __('tardis::auth.email_address') }}</span>
                 </label>
                 <input
                     type="email"
                     id="email"
                     wire:model="email"
                     required
-                    placeholder="email@example.com"
+                    placeholder="{{ __('tardis::auth.email_example_com') }}"
                     class="input w-full"
                 />
                 @error('email')
@@ -86,7 +86,7 @@ new #[Title('Reset Password')] #[Layout('tardis::layouts.auth')] class extends C
 
             <div class="flex flex-col gap-2">
                 <label class="label" for="password">
-                    <span class="text-base-content">New Password</span>
+                    <span class="text-base-content">{{ __('tardis::auth.new_password') }}</span>
                 </label>
                 <input
                     type="password"
@@ -105,7 +105,7 @@ new #[Title('Reset Password')] #[Layout('tardis::layouts.auth')] class extends C
 
             <div class="flex flex-col gap-2">
                 <label class="label" for="password_confirmation">
-                    <span class="text-base-content">Confirm Password</span>
+                    <span class="text-base-content">{{ __('tardis::auth.confirm_password') }}</span>
                 </label>
                 <input
                     type="password"
@@ -118,7 +118,7 @@ new #[Title('Reset Password')] #[Layout('tardis::layouts.auth')] class extends C
             </div>
 
             <button type="submit" class="btn btn-primary btn-block">
-                Reset Password
+                {{ __('tardis::auth.reset_password') }}
             </button>
         </form>
     @endif

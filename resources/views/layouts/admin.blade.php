@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <title>{{ ($title ?? __('tardis::shell.brand.admin')) }} - {{ __('tardis::shell.brand.name') }}</title>
+    <title>{{ isset($title) ? __($title) : __('tardis::shell.brand.admin') }} - {{ __('tardis::shell.brand.name') }}</title>
 
     <x-tardis::theme-boot />
 
@@ -19,7 +19,7 @@
         <input id="tardis-drawer" type="checkbox" class="drawer-toggle" />
 
         <div class="drawer-content flex flex-col min-h-screen">
-            <x-tardis::admin-header :title="$title ?? __('tardis::shell.brand.admin')" />
+            <x-tardis::admin-header :title="isset($title) ? __($title) : __('tardis::shell.brand.admin')" />
 
             <main id="main-content" tabindex="-1" class="flex-1 p-4 lg:p-6">
                 {{ $slot }}

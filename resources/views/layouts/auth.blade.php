@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <title>{{ $title ?? __('tardis::auth.login.title') }} - {{ __('tardis::shell.brand.name') }}</title>
+    <title>{{ isset($title) ? __($title) : __('tardis::auth.login') }} - {{ __('tardis::shell.brand.name') }}</title>
 
     <x-tardis::theme-boot />
 
