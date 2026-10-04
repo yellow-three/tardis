@@ -34,6 +34,8 @@ Only SFC and MFC are allowed (see `.claude/AGENTS.md`). Large pages are MFC: `br
 
 **Faz 0 (2.0.0 cleanup) is done** — see `UPGRADE.md`. Remaining phases are in `docs/backlog.md` → *Voyager parity planı* (R22–R33): panel i18n, design system (+ theme/CSS/JS architecture), field system (one field contract; fixes B16), BREAD list, layouts/builder UX, plugins (hash-served assets, JS API), media, menu builder/widgets/appearance, translated content, install/doctor/system tools.
 
+- **R28 — Translated content**: BREAD labels/descriptions and translatable form fields store raw locale maps, resolved only for display; read pages show fallback badges for borrowed labels and values; menu titles are locale-aware with stable IDs; Bread builder preserves locale maps and trims per locale; FieldValidationRules supports 'all'/'active' modes. Coverage added for badges, tabs, and validation modes (857 passed).
+
 Known gaps: create/edit still draw field types with an inline `@if` chain (B16); `route:cache` needs a rebuild after creating a BREAD; theme loading still reads the manifest at register time (R31).
 
 ## Documentation map
