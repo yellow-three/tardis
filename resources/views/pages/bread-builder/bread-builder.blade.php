@@ -4,7 +4,7 @@
         __('tardis::builder.groups.numbers') => ['number', 'slider'],
         __('tardis::builder.groups.choice') => ['select', 'radio', 'checkbox', 'toggle', 'tags'],
         __('tardis::builder.groups.date_time') => ['date', 'datetime', 'time'],
-        __('tardis::builder.groups.file') => ['file'],
+        __('tardis::builder.groups.file') => ['file', 'media_picker'],
         __('tardis::builder.groups.relations') => ['belongs_to_many', 'has_many'],
     ];
 

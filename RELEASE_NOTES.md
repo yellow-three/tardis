@@ -6,7 +6,7 @@ Package version: `2.0.0` (`Tardis\Tardis::version()`), the breaking cleanup of t
 
 - Livewire 4 admin shell: dashboard, settings, plugins, media browser, activity log, search, database explorer, roles, permissions
 - Dynamic BREAD resources (browse / read / edit / add / delete) generated from JSON definitions, with a BREAD builder, timestamped backups and rollback
-- 19 form field types rendered through one registry (`FieldType` enum ↔ `FormfieldManager`), including relations and translatable fields
+- 22 form field types rendered through one registry (`FormfieldManager`), including relations, a media picker and translatable fields
 - Sidebar built from `MenuManager` and plugin-provided items; active-route detection for nested URLs
 - Plugin system with Authentication, Authorization, Formfield and Theme plugin contracts plus Provider/Filter feature interfaces
 - DaisyUI 5 theme engine: themes are data (`Theme`, `ThemeManager`, `storage/tardis/themes.json`), resolved on the server (user preference → Settings defaults → built-in) and written to `<html data-theme>` before first paint
@@ -115,3 +115,22 @@ composer lint   # clean
 - **Log viewer** reads only files under `tardis.system.logs.path` whose name matches `filename_pattern`, capped at `max_bytes`, and seeks to the end of the file rather than loading it.
 - **Command runner** is disabled by default and stays closed unless the environment is in `environments` (default `local`) *and* the command is in `allowlist` with its permitted arguments. The allowlist is re-checked at submit time rather than trusted from the form; there is no arbitrary command execution. Every attempt, refused ones included, is written to the activity log.
 - New abilities: `view system`, `view logs`, `run commands`. Run the permission seeder to create them.
+
+## Faz 7 — Multilingual content (R28)
+
+- **Translatable BREAD content.** BREAD field values, BREAD definition names and menu titles can hold a raw locale map instead of a single string. The map is stored as-is and only resolved for display, so no data is lost on a round-trip through the builder.
+- **Locale-aware fields and formfields** resolve through `resolvedLabel`, and the read page shows a fallback badge when a value is shown in a locale other than the active one.
+- **Menu titles** are locale-aware, keep stable `MenuItem` ids across locales and trim per locale.
+- **Bread builder round-trip** preserves locale maps and sanitizes each locale independently, so editing one locale never drops the others.
+- **Field validation modes**: `all` validates every locale's value, `active` only the current one, configurable per definition (`config/tardis.php`).
+- Language files gained `fallback_locale`; `en` and `tr` are both complete.
+
+## Faz 5 — Media field and editing
+
+- **`media_picker` form field** (`Tardis\Formfields\Types\MediaPickerField`), configurable with `mimes`/`allowed`, `min`/`max`, `disk`, `directory` and `show_folders`; it renders through `resources/views/formfields/media-picker.blade.php` and is grouped with `file` in the BREAD builder.
+- **Media picker page** with multi-select, enforcing `min`/`max` (and reporting the limit in the active locale), plus per-type filtering.
+- **Media edit screen** at `/admin/media/{id}/edit` (ability `rename media`) to edit name, alt text, caption and description.
+- **`caption` and `description`** columns added to `tardis_media` (migration `2026_10_04_000001_add_caption_description_to_tardis_media_table`).
+- **Configurable upload filename template** in `MediaManager` — tokens `{name}`, `{filename}`, `{ext}`, `{uid}`, `{random:n}` and `{date:...}` — with the resolved name sanitized by the same rules as the template input.
+- **`FilterMedia` plugin contract** so a plugin can filter the media listing.
+- New `lang/en/common.php` and `lang/tr/common.php`, and admin-screen authorization tests for the picker and edit screens.

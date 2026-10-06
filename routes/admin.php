@@ -42,6 +42,7 @@ Route::middleware(['web', 'tardis.locale', 'tardis.admin'])
         Route::livewire('/plugins', 'tardis::pages.plugins')->name('plugins.index');
         Route::livewire('/media', 'tardis::pages.media-browser')->name('media');
         Route::livewire('/media/browse', 'tardis::pages.media-browser')->name('media.browse');
+        Route::livewire('/media/{id}/edit', 'tardis::pages.media-edit')->name('media.edit');
         Route::livewire('/activity-log', 'tardis::pages.activity-log')->name('activity.index');
         Route::livewire('/database', 'tardis::pages.database')->name('database.index');
         Route::livewire('/database/create', 'tardis::pages.database.create')->name('database.create');

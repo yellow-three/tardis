@@ -12,6 +12,7 @@ use Tardis\Bread\BreadManager;
 use Tardis\Contracts\Plugins\AuthorizationPlugin;
 use Tardis\Manager\MenuManager;
 use Tardis\Manager\PluginManager;
+use Tardis\Models\Media;
 
 class ScreenGateUser extends Authenticatable
 {
@@ -51,6 +52,19 @@ function gateAllows(array $abilities): void
     $manager->enableByDefault('screen-gate');
 }
 
+/** A media row the edit screen can mount; the file itself is irrelevant here. */
+function mediaEditFixture(): Media
+{
+    return Media::create([
+        'name' => 'edit-me.jpg',
+        'original_name' => 'edit-me.jpg',
+        'path' => 'media/edit-me.jpg',
+        'disk' => 'public',
+        'mime_type' => 'image/jpeg',
+        'size' => 123,
+    ]);
+}
+
 beforeEach(function () {
     Schema::dropIfExists('users');
     Schema::create('users', function ($table) {
@@ -71,6 +85,12 @@ beforeEach(function () {
 test('each fixed screen refuses a user who lacks its ability', function (string $page, array $params, string $ability) {
     gateAllows([Abilities::ACCESS]);
 
+    // The media edit screen only mounts once the page may open, so the row
+    // has to exist for every case in this dataset.
+    if ($page === 'tardis::pages.media-edit') {
+        $params['id'] = mediaEditFixture()->id;
+    }
+
     Livewire::test($page, $params)->assertForbidden();
 })->with([
     'settings' => ['tardis::pages.settings', [], Abilities::SETTINGS],
@@ -87,6 +107,7 @@ test('each fixed screen refuses a user who lacks its ability', function (string 
     'permissions' => ['tardis::pages.permissions', [], Abilities::ROLES],
     'activity log' => ['tardis::pages.activity-log', [], Abilities::ACTIVITY],
     'media' => ['tardis::pages.media-browser', [], Abilities::MEDIA_BROWSE],
+    'media edit' => ['tardis::pages.media-edit', [], Abilities::MEDIA_RENAME],
     'system' => ['tardis::pages.system', [], Abilities::SYSTEM],
     'system logs' => ['tardis::pages.system.logs', [], Abilities::LOGS],
     'system commands' => ['tardis::pages.system.commands', [], Abilities::COMMANDS],
@@ -94,6 +115,10 @@ test('each fixed screen refuses a user who lacks its ability', function (string 
 
 test('each fixed screen opens for a user who holds its ability', function (string $page, array $params, string $ability) {
     gateAllows([$ability]);
+
+    if ($page === 'tardis::pages.media-edit') {
+        $params['id'] = mediaEditFixture()->id;
+    }
 
     Livewire::test($page, $params)->assertOk();
 })->with([
@@ -111,6 +136,7 @@ test('each fixed screen opens for a user who holds its ability', function (strin
     'permissions' => ['tardis::pages.permissions', [], Abilities::ROLES],
     'activity log' => ['tardis::pages.activity-log', [], Abilities::ACTIVITY],
     'media' => ['tardis::pages.media-browser', [], Abilities::MEDIA_BROWSE],
+    'media edit' => ['tardis::pages.media-edit', [], Abilities::MEDIA_RENAME],
     'system' => ['tardis::pages.system', [], Abilities::SYSTEM],
     'system logs' => ['tardis::pages.system.logs', [], Abilities::LOGS],
     'system commands' => ['tardis::pages.system.commands', [], Abilities::COMMANDS],
@@ -236,4 +262,57 @@ test('changing the dashboard layout needs its own ability', function () {
     gateAllows([Abilities::ACCESS, Abilities::DASHBOARD]);
 
     Livewire::test('tardis::pages.dashboard')->assertSee(__('tardis::dashboard.customize'))->call('toggleEditing')->assertOk();
+});
+
+test('media edit route requires appropriate abilities', function () {
+    $media = Media::create([
+        'name' => 'test.jpg',
+        'path' => 'media/test.jpg',
+        'mime_type' => 'image/jpeg',
+        'disk' => 'public',
+        'size' => 100,
+        'original_name' => 'test.jpg',
+    ]);
+
+    auth()->logout();
+    $this->get(route('tardis.media.edit', $media->id))->assertStatus(302);
+
+    $this->actingAs(ScreenGateUser::create(['name' => 'Ada', 'email' => 'ada2@example.test', 'password' => 'x']));
+
+    // ACCESS gets past the middleware; the page itself then demands its own
+    // ability, so every case below holds ACCESS and varies only the rest.
+    gateAllows([Abilities::ACCESS]);
+    $this->get(route('tardis.media.edit', $media->id))->assertStatus(403);
+
+    gateAllows([Abilities::ACCESS, Abilities::MEDIA_BROWSE]);
+    $this->get(route('tardis.media.edit', $media->id))->assertStatus(403);
+
+    gateAllows([Abilities::ACCESS, Abilities::MEDIA_BROWSE, Abilities::MEDIA_RENAME]);
+    $this->get(route('tardis.media.edit', $media->id))->assertStatus(200);
+
+    gateAllows([Abilities::ACCESS, Abilities::MEDIA_BROWSE, Abilities::MEDIA_RENAME, Abilities::MEDIA_DELETE]);
+    $this->get(route('tardis.media.edit', $media->id))->assertStatus(200);
+});
+
+test('deleting from the edit screen needs the delete ability on top of renaming', function () {
+    Storage::disk('public')->put('media/photo.jpg', 'bytes');
+    $media = mediaEditFixture();
+    $media->update(['path' => 'media/photo.jpg']);
+
+    // Opening the page only proves rename; delete() checks its own ability.
+    gateAllows([Abilities::MEDIA_RENAME]);
+
+    Livewire::test('tardis::pages.media-edit', ['id' => $media->id])
+        ->call('delete')->assertForbidden();
+
+    Storage::disk('public')->assertExists('media/photo.jpg');
+    expect(Media::query()->whereKey($media->id)->exists())->toBeTrue();
+
+    gateAllows([Abilities::MEDIA_RENAME, Abilities::MEDIA_DELETE]);
+
+    Livewire::test('tardis::pages.media-edit', ['id' => $media->id])
+        ->call('delete')->assertRedirect(route('tardis.media'));
+
+    Storage::disk('public')->assertMissing('media/photo.jpg');
+    expect(Media::query()->whereKey($media->id)->exists())->toBeFalse();
 });
