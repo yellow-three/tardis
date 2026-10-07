@@ -5,6 +5,7 @@ import { defineConfig } from 'vite';
  * script. emptyOutDir is off so it leaves the stylesheet build alone.
  */
 export default defineConfig({
+    publicDir: false,
     build: {
         outDir: 'resources/compiled',
         emptyOutDir: false,
