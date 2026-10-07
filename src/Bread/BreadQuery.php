@@ -19,6 +19,12 @@ class BreadQuery
 
     public const TRASHED = ['without', 'with', 'only'];
 
+    /** Comparison operators a named filter may use. */
+    public const OPERATORS = ['=', '!=', '>', '>=', '<', '<=', 'like'];
+
+    /** Field types backed by a relationship rather than a column. */
+    public const RELATION_TYPES = ['belongs_to_many', 'has_many'];
+
     /** Field types that have no column of their own. */
     protected const NO_COLUMN = ['belongs_to_many', 'has_many'];
 
@@ -156,12 +162,80 @@ class BreadQuery
             && in_array(SoftDeletes::class, class_uses_recursive($this->bread->model), true);
     }
 
-    public function listing(string $search = '', ?string $sort = null, string $direction = 'asc', int $perPage = 15, string $trashed = 'without'): BreadListing
+    /**
+     * Named filters declared in the layout, keyed by name. Each filter targets
+     * either a column (with an operator and value) or a model scope.
+     *
+     * @return array<string, array{key: string, label: string, color: ?string, icon: ?string, column: ?string, operator: string, value: mixed, scope: ?string}>
+     */
+    public function namedFilters(): array
+    {
+        $filters = [];
+
+        foreach ($this->filterOptions() as $key => $config) {
+            if (! is_array($config)) {
+                continue;
+            }
+
+            $name = (string) ($config['key'] ?? (is_string($key) ? $key : ($config['name'] ?? '')));
+            if ($name === '') {
+                continue;
+            }
+
+            $column = isset($config['column']) && $config['column'] !== '' ? (string) $config['column'] : null;
+            $scope = isset($config['scope']) && $config['scope'] !== '' ? (string) $config['scope'] : null;
+
+            // A filter is only actionable when it targets a column or a scope.
+            if ($column === null && $scope === null) {
+                continue;
+            }
+
+            $filters[$name] = [
+                'key' => $name,
+                'label' => (string) ($config['label'] ?? ucfirst(str_replace(['_', '-'], ' ', $name))),
+                'color' => isset($config['color']) ? (string) $config['color'] : null,
+                'icon' => isset($config['icon']) ? (string) $config['icon'] : null,
+                'column' => $column,
+                'operator' => $this->normalizeOperator((string) ($config['operator'] ?? '=')),
+                'value' => $config['value'] ?? null,
+                'scope' => $scope,
+            ];
+        }
+
+        return $filters;
+    }
+
+    /**
+     * Relations that visible columns read through, for eager loading.
+     *
+     * @return array<int, string>
+     */
+    public function eagerLoads(): array
+    {
+        $relations = [];
+
+        foreach ($this->browseColumns() as $field) {
+            if (! in_array($field['type'] ?? '', self::RELATION_TYPES, true)) {
+                continue;
+            }
+
+            $relation = (string) ($field['relation'] ?? $field['name'] ?? '');
+            if ($relation === '' || ! $this->hasRelation($relation)) {
+                continue;
+            }
+
+            $relations[] = $relation;
+        }
+
+        return array_values(array_unique($relations));
+    }
+
+    public function listing(string $search = '', ?string $sort = null, string $direction = 'asc', int $perPage = 15, string $trashed = 'without', array $columnSearch = [], array $activeFilters = []): BreadListing
     {
         DB::enableQueryLog();
         $start = hrtime(true);
 
-        $rows = $this->build($search, $sort, $direction, $trashed)
+        $rows = $this->build($search, $sort, $direction, $trashed, $columnSearch, $activeFilters)
             ->paginate(in_array($perPage, self::PER_PAGE_OPTIONS, true) ? $perPage : 15);
 
         $ms = round((hrtime(true) - $start) / 1_000_000, 2);
@@ -171,7 +245,7 @@ class BreadQuery
         return new BreadListing($rows, $ms, $this->warnings($queries));
     }
 
-    public function build(string $search = '', ?string $sort = null, string $direction = 'asc', string $trashed = 'without'): Builder
+    public function build(string $search = '', ?string $sort = null, string $direction = 'asc', string $trashed = 'without', array $columnSearch = [], array $activeFilters = []): Builder
     {
         $query = $this->bread->query();
 
@@ -181,6 +255,11 @@ class BreadQuery
                 'only' => $query->onlyTrashed(),
                 default => null,
             };
+        }
+
+        $eager = $this->eagerLoads();
+        if ($eager !== []) {
+            $query->with($eager);
         }
 
         $columns = $this->searchable();
@@ -197,6 +276,9 @@ class BreadQuery
             });
         }
 
+        $this->applyColumnSearch($query, $columnSearch);
+        $this->applyNamedFilters($query, $activeFilters);
+
         $direction = strtolower($direction) === 'desc' ? 'desc' : 'asc';
 
         if ($sort !== null && in_array($sort, $this->orderable(), true)) {
@@ -206,6 +288,113 @@ class BreadQuery
         }
 
         return $query;
+    }
+
+    /**
+     * Inline per-column search. Only columns the definition already declares as
+     * searchable are honoured, so a forged column name can never reach SQL.
+     *
+     * @param  array<string, mixed>  $columnSearch
+     */
+    protected function applyColumnSearch(Builder $query, array $columnSearch): void
+    {
+        $allowed = $this->searchable();
+        if ($allowed === []) {
+            return;
+        }
+
+        $grammar = $query->getQuery()->getGrammar();
+
+        foreach ($columnSearch as $column => $term) {
+            $column = (string) $column;
+            $term = is_string($term) ? trim($term) : '';
+
+            if ($term === '' || ! in_array($column, $allowed, true)) {
+                continue;
+            }
+
+            $escaped = '%'.str_replace(['!', '%', '_'], ['!!', '!%', '!_'], $term).'%';
+
+            $query->whereRaw($grammar->wrap($column)." like ? escape '!'", [$escaped]);
+        }
+    }
+
+    /**
+     * Named filters: a column comparison or a model scope. Unknown filters and
+     * columns the definition does not expose are silently ignored.
+     *
+     * @param  array<string|int, mixed>  $active  either {name: true} or a list of names
+     */
+    protected function applyNamedFilters(Builder $query, array $active): void
+    {
+        $defined = $this->namedFilters();
+        $keys = [];
+
+        foreach ($active as $key => $value) {
+            if (is_int($key)) {
+                $keys[] = (string) $value;
+            } elseif ($value) {
+                $keys[] = (string) $key;
+            }
+        }
+
+        foreach (array_unique($keys) as $key) {
+            $filter = $defined[$key] ?? null;
+            if ($filter === null) {
+                continue;
+            }
+
+            if ($filter['scope'] !== null && $this->hasScope($filter['scope'])) {
+                $query->scopes([$filter['scope']]);
+
+                continue;
+            }
+
+            if ($filter['column'] !== null && $this->columnExists($filter['column'])) {
+                $query->where($filter['column'], $filter['operator'], $filter['value']);
+            }
+        }
+    }
+
+    /** @return array<int|string, mixed> */
+    protected function filterOptions(): array
+    {
+        $layout = $this->bread->layout;
+
+        $filters = $layout['options']['filters']
+            ?? $layout['list']['options']['filters']
+            ?? $layout['browse']['options']['filters']
+            ?? [];
+
+        return is_array($filters) ? $filters : [];
+    }
+
+    protected function normalizeOperator(string $operator): string
+    {
+        $operator = strtolower(trim($operator));
+
+        return in_array($operator, self::OPERATORS, true) ? $operator : '=';
+    }
+
+    protected function hasRelation(string $relation): bool
+    {
+        return $this->bread->model !== ''
+            && class_exists($this->bread->model)
+            && method_exists($this->bread->model, $relation);
+    }
+
+    protected function hasScope(string $scope): bool
+    {
+        return $this->bread->model !== ''
+            && class_exists($this->bread->model)
+            && method_exists($this->bread->model, 'scope'.ucfirst($scope));
+    }
+
+    protected function columnExists(string $column): bool
+    {
+        $field = $this->bread->getField($column);
+
+        return $field !== null && $this->hasColumn($field);
     }
 
     protected function hasColumn(array $field): bool

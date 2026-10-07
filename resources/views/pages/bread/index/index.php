@@ -44,6 +44,12 @@ new #[Title('BREAD')] #[Layout('tardis::layouts.admin')] class extends Component
     /** @var array<int, int|string> ids ticked for a bulk action */
     public array $selected = [];
 
+    /** @var array<string, bool> named filters currently applied, keyed by name */
+    public array $filters = [];
+
+    /** @var array<string, string> inline per-column search terms, keyed by column */
+    public array $columnSearch = [];
+
     #[Locked]
     public array $bread = [];
 
@@ -81,6 +87,34 @@ new #[Title('BREAD')] #[Layout('tardis::layouts.admin')] class extends Component
         $this->resetPage();
     }
 
+    public function updatingColumnSearch(): void
+    {
+        $this->resetPage();
+    }
+
+    /** Toggle a named filter declared by the definition's layout. */
+    public function toggleFilter(string $name): void
+    {
+        if (! array_key_exists($name, $this->query()->namedFilters())) {
+            return;
+        }
+
+        $this->filters[$name] = ! ($this->filters[$name] ?? false);
+        $this->resetPage();
+    }
+
+    /** Reset every listing refinement (search, column search, filters, trashed, sort). */
+    public function clearFilters(): void
+    {
+        $this->search = '';
+        $this->columnSearch = [];
+        $this->filters = [];
+        $this->trashed = 'without';
+        $this->sort = '';
+        $this->direction = 'asc';
+        $this->resetPage();
+    }
+
     public function sortBy(string $column): void
     {
         if (! in_array($column, $this->query()->orderable(), true)) {
@@ -106,7 +140,28 @@ new #[Title('BREAD')] #[Layout('tardis::layouts.admin')] class extends Component
             return null;
         }
 
-        return $this->query()->listing($this->search, $this->sort ?: null, $this->direction, $this->perPage, $this->trashed);
+        return $this->query()->listing($this->search, $this->sort ?: null, $this->direction, $this->perPage, $this->trashed, $this->columnSearch, $this->filters);
+    }
+
+    /** @return array<string, array<string, mixed>> named filters declared by the layout */
+    public function getNamedFiltersProperty(): array
+    {
+        return $this->query()->namedFilters();
+    }
+
+    /** @return array<int, string> columns that accept an inline search term */
+    public function getSearchableColumnsProperty(): array
+    {
+        return $this->query()->searchable();
+    }
+
+    public function getHasFiltersProperty(): bool
+    {
+        return $this->search !== ''
+            || array_filter($this->columnSearch) !== []
+            || array_filter($this->filters) !== []
+            || $this->sort !== ''
+            || $this->trashed !== 'without';
     }
 
     public function getRowsProperty()
@@ -171,9 +226,70 @@ new #[Title('BREAD')] #[Layout('tardis::layouts.admin')] class extends Component
      */
     public function getFormfieldsProperty(): array
     {
-        return collect(app(FormfieldManager::class)->fields($this->visibleFields))
+        // Build from layout columns first so per-column config (relation target,
+        // label column, …) reaches the field type; fall back to browse fields.
+        $definitions = [];
+
+        foreach ($this->layoutFields as $field) {
+            if (isset($field['name'], $field['type'])) {
+                $definitions[$field['name']] = $field;
+            }
+        }
+
+        foreach ($this->visibleFields as $field) {
+            if (isset($field['name'], $field['type']) && ! isset($definitions[$field['name']])) {
+                $definitions[$field['name']] = $field;
+            }
+        }
+
+        return collect(app(FormfieldManager::class)->fields(array_values($definitions)))
             ->keyBy(fn (Formfield $field) => $field->name)
             ->all();
+    }
+
+    /**
+     * A relation cell: the first few related labels plus how many were hidden.
+     *
+     * @param  array<string, mixed>  $field
+     * @return array{items: array<int, array{label: string, url: ?string}>, more: int}
+     */
+    public function relationCell(Model $row, array $field): array
+    {
+        $relation = (string) ($field['relation'] ?? $field['name'] ?? '');
+
+        if ($relation === '' || ! method_exists($row, $relation)) {
+            return ['items' => [], 'more' => 0];
+        }
+
+        $related = $row->{$relation};
+
+        if (! $related instanceof Collection) {
+            $related = collect($related);
+        }
+
+        $limit = max(1, (int) ($field['display_limit'] ?? $field['limit'] ?? 3));
+        $labelColumn = (string) ($field['label_column'] ?? 'name');
+        $linkTo = isset($field['link_to']) && $field['link_to'] !== '' ? (string) $field['link_to'] : null;
+        $prefix = trim((string) config('tardis.admin.prefix', 'admin'), '/');
+
+        $items = $related->take($limit)->map(function (mixed $item) use ($labelColumn, $linkTo, $prefix): array {
+            $label = data_get($item, $labelColumn);
+            if ($label === null || $label === '') {
+                $label = data_get($item, 'name') ?? data_get($item, 'id') ?? '';
+            }
+
+            return [
+                'label' => (string) $label,
+                'url' => $linkTo !== null && is_object($item) && method_exists($item, 'getKey')
+                    ? url($prefix.'/'.$linkTo.'/'.$item->getKey())
+                    : null,
+            ];
+        })->all();
+
+        return [
+            'items' => $items,
+            'more' => max(0, $related->count() - $limit),
+        ];
     }
 
     public function getCreateUrlProperty(): string
