@@ -12,7 +12,7 @@ use Tardis\Manager\FormfieldManager;
 /**
  * Read-only reader for the legacy config/bread/{slug}.php definitions.
  *
- * BREAD definitions live in JSON (JsonBreadSource) since 2.0; this class only
+ * BREAD definitions live in JSON (JsonBreadSource) since 1.0; this class only
  * exists so `tardis:bread:migrate` can import what older installs still keep in
  * config/bread. It never writes. Each file must `return` an array shaped like
  * BreadDefinition::fromArray() expects; the slug falls back to the file name.

@@ -1,6 +1,6 @@
 # Tardis Release Notes
 
-Package version: `2.0.0` (`Tardis\Tardis::version()`), the breaking cleanup of the redesign. See [UPGRADE.md](UPGRADE.md) for every change you need to make.
+Package version: `1.0.0` (`Tardis\Tardis::version()`), the first release. See [UPGRADE.md](UPGRADE.md) for every change you need to make.
 
 ## What the package includes
 
@@ -17,7 +17,7 @@ Package version: `2.0.0` (`Tardis\Tardis::version()`), the breaking cleanup of t
 
 Pages follow the Livewire 4 page-first convention: simple screens are SFC, large ones are MFC (`bread/*`, `bread-builder`, `database/*`, `media-browser`, `settings`), and routes are `Route::livewire` routes. Class-based components are not used.
 
-## 2.0 — the cleanup (Faz 0)
+## 1.0 — the cleanup (Faz 0)
 
 - **Field types** come from the `FormfieldManager` registry; the closed `FieldType` enum is gone, so a host-registered type can be used in a BREAD definition.
 - **BREAD routes** are generated from the definitions (no `/{slug}` wildcard), so plugin routes are no longer swallowed. Definitions can carry `components`, `policy` and `scope`; slugs reserved for built-in screens are refused.
@@ -66,32 +66,32 @@ composer test   # 603 passed (1546 assertions)
 composer lint   # clean
 ```
 
-## 2.0 — panel i18n and design system (Faz 1 / 1b)
+## 1.0 — panel i18n and design system (Faz 1 / 1b)
 
 - **Translated panel**: every screen reads `tardis::` language files (`lang/en`, `lang/tr`). Publish with the `tardis-lang` tag to override or add a locale; `Locales` lists what is available. The locale is stored per user (`storage/tardis/preferences.json`) and switched from the header. A guard test fails on untranslated visible text in any Blade view.
 - **Theme engine**: the Vite theme manifest is gone. Light/dark/system mode and the light and dark theme are chosen per user, with global defaults under the Settings `appearance` keys. Custom themes can be saved with `ThemeManager::saveCustom()`.
 - **Core script**: a small IIFE (`dist/assets/app.js`, loaded before Livewire) provides the `theme` and `toasts` Alpine stores and the `window.Tardis` API (`component`, `on`, `toast`, `theme`, `csrf`).
 - **Design-system components**: `x-tardis::card`, `badge`, `modal`, `slide-in`, `toasts`, `loading-bar` and `theme-picker`.
 
-## 2.0 — field system (Faz 2, first part)
+## 1.0 — field system (Faz 2, first part)
 
 - **Create/edit render every field through its own view** (`Formfield::render()`), via `x-tardis::form-field`. A type registered by a plugin is now drawn with its own view instead of a text input; translatable fields get one control per locale.
 - **`Formfield::configure()`** reads the type-specific definition keys (`options`, `min`/`max`/`step`, `suggestions`, `language`, `with_time`, `from`, relation and file settings), so radio and checkbox options and slider limits reach their controls.
 - **`BreadSaver`** owns the field-to-column mapping, the NOT NULL guard, the transaction and the record events; the two pages no longer carry copies.
 - New field types: `color` and `hidden`.
 
-## 2.0 — BREAD listing (Faz 3, first part)
+## 1.0 — BREAD listing (Faz 3, first part)
 
 - **`BreadQuery`** builds the browse listing: search across the fields flagged `searchable` (LIKE wildcards are escaped), header-click sorting limited to visible `orderable` columns, a page-size selector and soft-delete views (hide / include / only). Nothing from the request reaches the SQL except values checked against the definition.
 - **Actions**: `Tardis::addAction($slug|'*', Action)`, `replaceAction()` and `manipulateActions()` through `ActionManager`. Delete, restore and permanent delete are stock actions; any action can be offered per row, and `bulk` actions run on ticked rows. Each record is authorised and looked up through the BREAD's scope, so a bulk run cannot touch a row the user may not act on.
 
-## 2.0 — plugin assets (Faz 4, first part)
+## 1.0 — plugin assets (Faz 4, first part)
 
 - **File assets**: `Asset::file($path)` ships a stylesheet or script from inside a package. Tardis serves it at `/admin/_assets/{hash}.css|js` with `Cache-Control: public, max-age=31536000, immutable` and an ETag; the hash comes from the file's content, so an update changes the URL and nothing needs publishing. The route resolves hashes only against registered assets (no request value becomes a path) and runs without middleware.
 - **Scope**: `->scope('admin'|'auth'|'both')`, `->routes('tardis.bread.*')` and `->ability('…')` declare where an asset is wanted; the others are not written. The login layout asks for `auth` assets.
 - `provideCSS()`/`provideJS()` may return an `Asset` or a list of them (mixed with inline text); plain strings still work.
 
-## 2.0 — plugin extensibility (Faz 4, rest)
+## 1.0 — plugin extensibility (Faz 4, rest)
 
 - **Routes**: plugins implementing `Provider\Routes` add routes inside the panel group (admin prefix, `tardis.` names, `web` + locale + `tardis.admin` middleware).
 - **Settings screen**: `Provider\SettingsComponent` names a Livewire component the Plugins page opens in a dialog.
@@ -99,7 +99,7 @@ composer lint   # clean
 - **CSP**: inline blocks carry a nonce (`tardis.csp.nonce` or Laravel's Vite nonce).
 - **Tooling**: `tardis:plugins [list|enable|disable]`; `tardis:make-plugin --with-assets` scaffolds CSS/JS sources, a Vite build and the `Asset::file()` wiring. The JavaScript surface is documented in [docs/JS.md](docs/JS.md).
 
-## 2.0 — menu builder, dashboard widgets, themes (Faz 6)
+## 1.0 — menu builder, dashboard widgets, themes (Faz 6)
 
 - **Menu builder** (`manage menus`): `storage/tardis/menus.json` layers hide, rename, section, order and custom links over the code-defined menu; deleting it restores the defaults. Custom link URLs are limited to http(s) and root-relative.
 - **Dashboard** is widget-driven: the stock cards are `Widget`s with their own abilities, plugins add more through `Provider\Widgets`, and an edit mode (`manage dashboard`) hides, re-orders and resizes them into `storage/tardis/dashboard.json`.
@@ -107,7 +107,7 @@ composer lint   # clean
 - **Theme editor** (`manage appearance`): create, edit and delete custom themes; built-ins can be duplicated.
 - New abilities: `manage dashboard`, `manage appearance` (`manage menus` now has a screen). Run the permission seeder to create them.
 
-## 2.0 — install, diagnostics and system tools (Faz 8)
+## 1.0 — install, diagnostics and system tools (Faz 8)
 
 - **`tardis:install`** — idempotent installer: migrate, seed permissions, publish assets, optionally create the first admin (`--email`, `--force`). Re-running it is safe; without `--force` the publish step leaves existing files alone.
 - **`tardis:doctor`** — install health report (PHP/Laravel versions, storage, `tardis_*` tables, published assets, route cache, authorization plugin, theme manifest, plugins, BREAD definitions). Prints a table, `--json` for scripts, and exits non-zero on failure so it can gate a deploy.
@@ -135,12 +135,12 @@ composer lint   # clean
 - **`FilterMedia` plugin contract** so a plugin can filter the media listing.
 - New `lang/en/common.php` and `lang/tr/common.php`, and admin-screen authorization tests for the picker and edit screens.
 
-## 2.0 — behaviour to know about when upgrading
+## 1.0 — behaviour to know about when upgrading
 
 - **Translatable validation is stricter by default** (`tardis.translation.validation` = `all`): a `required` translatable field must be filled in every locale. Set it to `active` to validate only the locale being edited. See UPGRADE.md.
 - **Model map** (`tardis.models`): `Role`, `Permission`, `Media` and `ActivityLog` can be swapped for subclasses; a class that does not exist or does not extend the base model is refused with an error naming the config key.
 
 
-## 2.0 — relation picker honours the related BREAD
+## 1.0 — relation picker honours the related BREAD
 
 `BelongsToManyField::searchOptions()` listed every record of the related model. When a BREAD manages that model, the picker now applies its `scope` and requires the `browse` ability on it (a user who may not browse it gets no options); an already selected id no longer bypasses either. A related model with no BREAD of its own is listed as before.

@@ -29,7 +29,7 @@ Son güncelleme: 2026-10-07 (Faz 3 / R24 tamamlandı). ID'ler `R` = roadmap sır
 | R10 | P2 | Asset iyileştirmeleri: content-hash cache busting + `ThemePlugin::getStyles()` kaldırıldı (tema artık doğrulanmış CSS değişkenleri) | ✅ Çözüldü | Faz 0 | `docs/constraints.md` → Tema sistemi |
 | R11 | P2 | BREAD tanım kaynağı: **JSON tek kaynak**; `config/bread` salt okunur içe aktarma (`LegacyConfigReader`) | ✅ Çözüldü | Faz 0 | `docs/constraints.md` → BREAD |
 | R18 | P2 | Auth/policy/config tutarsızlıkları: login `AuthenticationPlugin.attempt()` üzerinden, `BasePolicy` `BreadAuthorization`'dan, ölü config anahtarları kaldırıldı, plugin rotaları wildcard'a yenilmiyor | ✅ Çözüldü | Faz 0 | `RELEASE_NOTES.md` |
-| R21 | P0 | **Faz 0 — 2.0.0 temizliği:** `FieldType` → registry, `config/bread` salt okunur, `getStyles()` kalktı, `field()` stub'ı kalktı, BREAD rotaları tanımdan üretilir (`component`/`policy`/`scope`, rezerve slug'lar), BREAD olayları + listener'lar + çalışan activity log, `tardis.page` olayı, `Asset` + `Tardis::addCss/addJs`, `tardis:make-plugin` stub düzeltmeleri, sürüm `2.0.0` + `UPGRADE.md`. **Ertelenenler:** `addAfterFormField` → R23 (B16'ya bağlı), `addAction/replaceAction` → R24, model haritası → R33 | ✅ Çözüldü | `feat/phase-0-cleanup` | `UPGRADE.md` |
+| R21 | P0 | **Faz 0 — 1.0.0 temizliği:** `FieldType` → registry, `config/bread` salt okunur, `getStyles()` kalktı, `field()` stub'ı kalktı, BREAD rotaları tanımdan üretilir (`component`/`policy`/`scope`, rezerve slug'lar), BREAD olayları + listener'lar + çalışan activity log, `tardis.page` olayı, `Asset` + `Tardis::addCss/addJs`, `tardis:make-plugin` stub düzeltmeleri, sürüm `1.0.0` + `UPGRADE.md`. **Ertelenenler:** `addAfterFormField` → R23 (B16'ya bağlı), `addAction/replaceAction` → R24, model haritası → R33 | ✅ Çözüldü | `feat/phase-0-cleanup` | `UPGRADE.md` |
 | R28 | P2 | **Faz 7 — Çok dilli içerik.** Form içinde locale sekmeleri, 'tüm diller / aktif dil' doğrulama modu, listede aktif dil, BREAD etiketleri + menü başlıkları çevrilebilir (JSON kolon biçimi korunur) | ✅ Çözüldü | `feat/phase-7-translated-content` | `RELEASE_NOTES.md` |
 | R26 | P2 | **Faz 5 — Media entegrasyonu.** BREAD `media_picker` alanı, thumbnail + kırpma, `{uid}/{date:…}/{random:n}` dosya adı şablonu, tek yükleme doğrulaması (BREAD `FileField` dahil), media filter plugin'i | ✅ Çözüldü | `feat/phase-5-media` | `RELEASE_NOTES.md` |
 | R24 | P1 | **Faz 3 — BREAD liste.** `addAction/replaceAction/manipulateActions` kayıt API'si, `BreadQuery` servisi (V2 `Browsable` parçaları: arama, sütun filtresi, adlandırılmış filtre/scope, sıralama, soft-delete, eager load, `warnings[]`), BREAD başına `scope`, `Action` sınıflarının UI'ya bağlanması (satır + toplu), sunucu taraflı sırala/filtre/ara/sayfa boyutu, ilişki kolonları (eager load), soft-delete geri yükleme/kalıcı silme, aksiyon bazlı layout, browse accessor'ları. **Kalan dördü (`feat/phase-3-rest`): sütun-içi arama, adlandırılmış filtre rozetleri, ilişki kolonları, browse accessor'ları.** `BreadDefinition::getField()` düz-liste `fields` şeklini de çözecek şekilde düzeltildi (adlandırılmış filtrelerin `columnExists()`'te sessizce atlanmasının kök nedeni). | ✅ Çözüldü | `93f52f7` (`feat/phase-3-rest`) | PR #24 |
@@ -70,7 +70,7 @@ Amaç: Voyager 1'in olgun BREAD/menü/medya/kurulum deneyimini ve Voyager 2'nin 
 | Kapsam | Hepsi: alan sistemi, BREAD liste, plugin, çok dillilik, media, menü builder, dashboard widget'ları, kurulum, CSS/JS/tema yönetimi, izinler |
 | BREAD tanım kaynağı | **JSON tek kaynak**; `config/bread` yalnızca legacy içe aktarma, sonra kaldırılır |
 | Alan genişletme | **Registry + `FormfieldPlugin`**; `FieldType` enum'u kalkar |
-| Geriye uyumluluk | **Serbest kır, `2.0.0` çıkar** (redesign yayınlanmadı); `UPGRADE.md` ile |
+| Geriye uyumluluk | **Serbest kır, ilk sürüm `1.0.0` çıkar** (redesign yayınlanmadı); `UPGRADE.md` ile |
 | Çeviri verisi | **JSON kolon** (V2 biçimi, mevcut `translatable` alanlarla aynı) |
 | Menü depolama | **JSON dosyası** (`storage/tardis/menus.json`), kod tanımlı öğelerin üstüne bindirme |
 | Panel dili | **`lang/` dosyaları, EN varsayılan + TR** |
@@ -96,7 +96,7 @@ Her faz bir öncekinin üstüne yığılmış ayrı PR'dır; sıra bağımlılı
 
 | Faz | Teslimat | Neden bu sırada | Boyut |
 |---|---|---|---|
-| **0 — 2.0.0 temizliği** (R21) | Registry'ye geçiş, `ConfigBreadSource` kaldırma, `getStyles()` kaldırma, `field()` stub'ı, ölü config (B13), `BasePolicy` (B11), login → plugin (B12), `Routes` contract (B14), `UPGRADE.md` | Sonraki fazların hepsi bu API yüzeyine yazılır; BC bir kez kırılır | L |
+| **0 — 1.0.0 temizliği** (R21) | Registry'ye geçiş, `ConfigBreadSource` kaldırma, `getStyles()` kaldırma, `field()` stub'ı, ölü config (B13), `BasePolicy` (B11), login → plugin (B12), `Routes` contract (B14), `UPGRADE.md` | Sonraki fazların hepsi bu API yüzeyine yazılır; BC bir kez kırılır | L |
 | **1 — Panel i18n** (R22) | `lang/en`, `lang/tr`, `__()` her yerde, locale seçici | Her sonraki ekran çeviri anahtarıyla yazılmalı; sonradan taşımak ucuz değil | M |
 | **1b — Tasarım sistemi** (R31) | Ortak Blade bileşenleri (Card/Badge/SlideIn/Modal/Dropdown/Toast), yükleme çubuğu, kullanıcı kartı, tema anahtarı, marka ayarları | Sonraki tüm ekranlar bu bileşenlerle yazılır; i18n anahtarlarıyla birlikte gelir | M |
 | **2 — Alan sistemi** (R23) | `FormfieldPlugin`, lifecycle, add/edit kuralları, çevrilebilir mesajlar, eksik tipler | BREAD sayfaları, liste ve media picker buna dayanır | L |
@@ -142,7 +142,7 @@ Klasör yapısı, servis sağlayıcı akışı, BREAD veri modeli, liste/kaydetm
 ### Tema motoru kuralları
 
 1. `ThemeManager` `register()`'da I/O yapmaz; tembel çözülür ve sonuç tek istekte önbelleğe alınır (R19 biter).
-2. `ThemePlugin::getStyles()` kalkar (B8c, 2.0.0 serbest kırma); yerine yalnızca `getTheme(): array` (değişkenler) kalır.
+2. `ThemePlugin::getStyles()` kalkar (B8c, 1.0.0 serbest kırma); yerine yalnızca `getTheme(): array` (değişkenler) kalır.
 3. Tema doğrulaması tek yerde (`Theme::fromArray`): ad deseni, `colorScheme ∈ {light,dark}`, renk değerleri izinli desenle; geçersiz tema loglanıp atlanır (sayfa kırılmaz).
 4. FOUC koruması test altında kalır: sunucu tarafı çözümü ve `system` betiği için `ThemeFoucGuardTest` yeniden yazılır.
 5. DaisyUI yerleşik tema listesi `themes: all` yerine seçilmiş kısa listeyle sınırlanır (paket boyutu ve "seçilemeyen tema" tutarsızlığı biter); hangi temaların gönderileceği Faz 1b'de netleşir.
@@ -179,7 +179,7 @@ Klasör yapısı, servis sağlayıcı akışı, BREAD veri modeli, liste/kaydetm
 
 ### Faz dağılımı
 
-- **Faz 0 (R21):** stub `composer.json` düzeltmesi, `Tardis::addCss()/addJs()` ve `Asset` değer nesnesinin ilk hâli (eski string sözleşmesi geriye çalışmaz — 2.0.0 serbest kırma).
+- **Faz 0 (R21):** stub `composer.json` düzeltmesi, `Tardis::addCss()/addJs()` ve `Asset` değer nesnesinin ilk hâli (eski string sözleşmesi geriye çalışmaz — 1.0.0 serbest kırma).
 - **Faz 2 (R23):** `Formfield::assets()`; formfield plugin'leri varlıklarını alan sınıfında bildirir.
 - **Faz 4 (R25):** hash'li sunum rotası, kapsam/ability süzmesi, `window.Tardis` API'si, CSP nonce, `--with-assets`, plugin ayar bileşeni, `docs/JS.md`.
 - **Faz 8 (R29):** `tardis:doctor` plugin varlık denetimi (olmayan dosya, bozuk hash tablosu).

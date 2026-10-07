@@ -12,7 +12,7 @@ use Tardis\Manager\WidgetManager;
 
 test('Tardis facade is accessible', function () {
     $version = Tardis::version();
-    expect($version)->toBe('2.0.0');
+    expect($version)->toBe('1.0.0');
 });
 
 test('Tardis version returns string', function () {
