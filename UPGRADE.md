@@ -119,3 +119,9 @@ The command runner is **disabled by default**, and turning it on is not enough o
 Allowed entries are options only (`--flag` or `--option=value`); positional arguments are not supported.
 
 There is no arbitrary command execution: the allowlist is checked again at submit time, not trusted from the form. Every attempt is written to the activity log (`tardis.command`, action `executed` or `denied`, with the command, its options and the exit code), refused ones included, unless `tardis.activity_log.enabled` is false.
+
+## Translatable fields: validation now looks at every locale
+
+A translatable field holds one value per locale, and its rules (including `required`) are now applied to **each locale**. Before, `required` only asked whether the array was non-empty, so a record with one language filled in passed. After upgrading, a record that has a `required` translatable field with an empty locale cannot be saved until that locale is filled in.
+
+To keep the old, looser behaviour set `tardis.translation.validation` to `'active'` (only the locale being edited is validated), or set `"validation_mode": "active"` on a single field of a BREAD definition. Other changes from the same release: the create and edit forms show locales as tabs (`tardis.translation.tabs`, default on); BREAD names, descriptions, field labels and menu titles may be a locale map (`{"en": "Posts", "tr": "Yazılar"}`) or a translation key, and plain strings keep working.

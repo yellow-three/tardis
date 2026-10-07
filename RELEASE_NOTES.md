@@ -134,3 +134,9 @@ composer lint   # clean
 - **Configurable upload filename template** in `MediaManager` — tokens `{name}`, `{filename}`, `{ext}`, `{uid}`, `{random:n}` and `{date:...}` — with the resolved name sanitized by the same rules as the template input.
 - **`FilterMedia` plugin contract** so a plugin can filter the media listing.
 - New `lang/en/common.php` and `lang/tr/common.php`, and admin-screen authorization tests for the picker and edit screens.
+
+## 2.0 — behaviour to know about when upgrading
+
+- **Translatable validation is stricter by default** (`tardis.translation.validation` = `all`): a `required` translatable field must be filled in every locale. Set it to `active` to validate only the locale being edited. See UPGRADE.md.
+- **Model map** (`tardis.models`): `Role`, `Permission`, `Media` and `ActivityLog` can be swapped for subclasses; a class that does not exist or does not extend the base model is refused with an error naming the config key.
+
