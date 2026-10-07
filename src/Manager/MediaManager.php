@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use InvalidArgumentException;
 use Tardis\Models\Media;
+use Tardis\Support\ModelResolver;
 
 class MediaManager
 {
@@ -35,7 +36,7 @@ class MediaManager
         // storeAs() joins with its own separator, so it must not receive a trailing slash.
         $storedPath = $file->storeAs(rtrim($path, '/'), $name, $this->disk);
 
-        return Media::create([
+        return ModelResolver::media()::create([
             'name' => $name,
             'original_name' => $file->getClientOriginalName(),
             'path' => $storedPath,
@@ -102,7 +103,7 @@ class MediaManager
 
         $deleted = Storage::disk($this->disk)->delete($fullPath);
 
-        Media::query()->where('path', $fullPath)->delete();
+        ModelResolver::media()::query()->where('path', $fullPath)->delete();
 
         return $deleted;
     }
@@ -113,7 +114,7 @@ class MediaManager
 
         $deleted = Storage::disk($this->disk)->deleteDirectory($fullPath);
 
-        Media::query()->where('path', 'like', $fullPath.'/%')->delete();
+        ModelResolver::media()::query()->where('path', 'like', $fullPath.'/%')->delete();
 
         return $deleted;
     }
@@ -141,7 +142,7 @@ class MediaManager
             $this->syncDirectoryRename($source, $target);
         } else {
             // name tracks the current basename; original_name keeps the uploaded one.
-            Media::query()->where('path', $source)->update([
+            ModelResolver::media()::query()->where('path', $source)->update([
                 'path' => $target,
                 'name' => $newName,
             ]);
@@ -264,7 +265,7 @@ class MediaManager
     {
         $prefix = $from.'/';
 
-        Media::query()
+        ModelResolver::media()::query()
             ->where('path', 'like', $prefix.'%')
             ->orWhere('collection', 'like', $prefix.'%')
             ->orWhere('collection', $from)

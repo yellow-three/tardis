@@ -1,7 +1,7 @@
 <?php
 
 use Livewire\Component;
-use Tardis\Models\Media;
+use Tardis\Support\ModelResolver;
 
 new class extends Component
 {
@@ -11,8 +11,8 @@ new class extends Component
 
     public function mount(): void
     {
-        $this->count = Media::count();
-        $bytes = Media::sum('size');
+        $this->count = ModelResolver::media()::count();
+        $bytes = ModelResolver::media()::sum('size');
         $units = ['B', 'KB', 'MB', 'GB'];
         for ($i = 0; $bytes > 1024; $i++) {
             $bytes /= 1024;

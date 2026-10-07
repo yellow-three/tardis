@@ -1,5 +1,10 @@
 <?php
 
+use Tardis\Models\ActivityLog;
+use Tardis\Models\Media;
+use Tardis\Models\Permission;
+use Tardis\Models\Role;
+
 return [
 
     /*
@@ -131,6 +136,25 @@ return [
             'updated',
             'deleted',
         ],
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Model Mapping
+    |--------------------------------------------------------------------------
+    |
+    | The Eloquent models TARDIS uses for roles, permissions, media and the
+    | activity log. A host application may swap any of them for its own class,
+    | as long as it extends the package's base model (Voyager's useModel).
+    | A class that does not exist or does not extend the base model is refused
+    | with an error naming the key, the first time the model is needed.
+    |
+    */
+    'models' => [
+        'role' => Role::class,
+        'permission' => Permission::class,
+        'media' => Media::class,
+        'activity_log' => ActivityLog::class,
     ],
 
     /*

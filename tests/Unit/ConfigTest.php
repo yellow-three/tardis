@@ -58,3 +58,15 @@ test('keys nothing reads were removed so changing them is never a silent no-op',
         ->and(config('tardis.bread.soft_deletes'))->toBeNull()
         ->and(config('tardis.bread.timestamps'))->toBeNull();
 });
+
+test('the published config file keeps every documented section', function () {
+    // Read the file itself, not the merged runtime config: a rewrite that drops a
+    // block would otherwise be hidden by defaults supplied elsewhere.
+    $file = require __DIR__.'/../../config/tardis.php';
+
+    expect(array_keys($file))->toEqualCanonicalizing([
+        'admin', 'bread', 'database', 'assets', 'locales', 'translation',
+        'authorization', 'activity_log', 'models', 'system', 'csp',
+    ])->and($file['models'])->toHaveKeys(['role', 'permission', 'media', 'activity_log'])
+        ->and($file['system'])->toHaveKeys(['logs', 'commands', 'demo']);
+});

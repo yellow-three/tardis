@@ -5,7 +5,7 @@ use Livewire\Attributes\Title;
 use Livewire\Component;
 use Tardis\Auth\Abilities;
 use Tardis\Auth\BreadAuthorization;
-use Tardis\Models\Permission;
+use Tardis\Support\ModelResolver;
 
 new #[Title('tardis::permissions.permissions')] #[Layout('tardis::layouts.admin')] class extends Component
 {
@@ -40,7 +40,7 @@ new #[Title('tardis::permissions.permissions')] #[Layout('tardis::layouts.admin'
 
     public function loadPermissions(): void
     {
-        $this->permissions = Permission::all()->toArray();
+        $this->permissions = ModelResolver::permission()::all()->toArray();
     }
 
     public function createPermission(): void
@@ -50,7 +50,7 @@ new #[Title('tardis::permissions.permissions')] #[Layout('tardis::layouts.admin'
             'newSlug' => 'required|string|max:255|unique:tardis_permissions,slug',
         ]);
 
-        Permission::create([
+        ModelResolver::permission()::create([
             'name' => $this->newName,
             'slug' => $this->newSlug,
             'group' => $this->newGroup ?: null,
@@ -70,7 +70,7 @@ new #[Title('tardis::permissions.permissions')] #[Layout('tardis::layouts.admin'
     public function deletePermission(): void
     {
         if ($this->deleteId) {
-            Permission::findOrFail($this->deleteId)->delete();
+            ModelResolver::permission()::findOrFail($this->deleteId)->delete();
             $this->deleteId = null;
             $this->showDeleteModal = false;
             $this->loadPermissions();

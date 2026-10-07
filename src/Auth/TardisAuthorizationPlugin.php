@@ -7,7 +7,7 @@ namespace Tardis\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Tardis\Contracts\Plugins\AuthorizationPlugin;
-use Tardis\Models\Permission;
+use Tardis\Support\ModelResolver;
 
 class TardisAuthorizationPlugin implements AuthorizationPlugin
 {
@@ -58,7 +58,7 @@ class TardisAuthorizationPlugin implements AuthorizationPlugin
 
     public static function forBread(string $slug): void
     {
-        Permission::forBread($slug);
+        ModelResolver::permission()::forBread($slug);
     }
 
     /**

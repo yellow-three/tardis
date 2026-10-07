@@ -7,8 +7,7 @@ namespace Tardis\Database\Seeders;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Str;
 use Tardis\Auth\Abilities;
-use Tardis\Models\Permission;
-use Tardis\Models\Role;
+use Tardis\Support\ModelResolver;
 
 /**
  * Provisions the permissions and roles that TARDIS' own authorization plugin
@@ -36,7 +35,7 @@ class PermissionSeeder extends Seeder
      */
     public function syncForBread(string $slug): void
     {
-        Permission::forBread($slug);
+        ModelResolver::permission()::forBread($slug);
     }
 
     /**
@@ -48,7 +47,7 @@ class PermissionSeeder extends Seeder
             // The slug is the ability string itself, because that is the exact
             // value BreadAuthorization::ability() builds and the plugin
             // compares the permission slug against.
-            Permission::firstOrCreate(
+            ModelResolver::permission()::firstOrCreate(
                 ['slug' => $ability],
                 ['name' => $ability, 'group' => $group],
             );
@@ -70,15 +69,15 @@ class PermissionSeeder extends Seeder
             return;
         }
 
-        $roles = Role::whereIn('slug', $slugs)->get()->keyBy('slug');
+        $roles = ModelResolver::role()::whereIn('slug', $slugs)->get()->keyBy('slug');
 
         foreach ($slugs as $slug) {
-            $role = $roles->get($slug) ?? Role::firstOrCreate(
+            $role = $roles->get($slug) ?? ModelResolver::role()::firstOrCreate(
                 ['slug' => $slug],
                 ['name' => Str::headline($slug)],
             );
 
-            $role->permissions()->sync(Permission::query()->pluck('id'));
+            $role->permissions()->sync(ModelResolver::permission()::query()->pluck('id'));
         }
     }
 }

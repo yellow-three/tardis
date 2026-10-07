@@ -6,7 +6,7 @@ use Livewire\Attributes\Title;
 use Livewire\Component;
 use Tardis\Auth\Abilities;
 use Tardis\Auth\BreadAuthorization;
-use Tardis\Models\Role;
+use Tardis\Support\ModelResolver;
 
 new #[Title('tardis::users.users')] #[Layout('tardis::layouts.admin')] class extends Component
 {
@@ -61,7 +61,7 @@ new #[Title('tardis::users.users')] #[Layout('tardis::layouts.admin')] class ext
 
     public function getRolesProperty()
     {
-        return Role::query()->orderBy('name')->get(['id', 'name', 'slug'])->all();
+        return ModelResolver::role()::query()->orderBy('name')->get(['id', 'name', 'slug'])->all();
     }
 
     public function openEdit(int $userId): void
@@ -95,12 +95,12 @@ new #[Title('tardis::users.users')] #[Layout('tardis::layouts.admin')] class ext
         $user = $this->userModel()::query()->findOrFail($this->editUserId);
 
         // Only roles that exist can be granted, whatever the client sent.
-        $roleIds = Role::query()
+        $roleIds = ModelResolver::role()::query()
             ->whereIn('id', array_map('intval', $this->editRoleIds))
             ->pluck('id')
             ->all();
 
-        $superIds = Role::query()->whereIn('slug', $this->superAdminSlugs())->pluck('id')->all();
+        $superIds = ModelResolver::role()::query()->whereIn('slug', $this->superAdminSlugs())->pluck('id')->all();
 
         if ($this->wouldRemoveLastSuperAdmin($user->getKey(), $roleIds, $superIds)) {
             $this->error = __('tardis::users.super_admin_must_remain');

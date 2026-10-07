@@ -8,8 +8,7 @@ use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Tardis\Auth\Abilities;
-use Tardis\Models\Permission;
-use Tardis\Models\Role;
+use Tardis\Support\ModelResolver;
 
 /**
  * Optional demo data seeder for local/testing environments.
@@ -39,21 +38,21 @@ class DemoSeeder extends Seeder
         $this->seedPermissions();
 
         // Create demo roles
-        $adminRole = Role::firstOrCreate(
+        $adminRole = ModelResolver::role()::firstOrCreate(
             ['slug' => 'demo-admin'],
             ['name' => 'Demo Admin']
         );
 
-        $editorRole = Role::firstOrCreate(
+        $editorRole = ModelResolver::role()::firstOrCreate(
             ['slug' => 'demo-editor'],
             ['name' => 'Demo Editor']
         );
 
         // Assign permissions to roles
-        $adminPermissions = Permission::query()->pluck('id');
+        $adminPermissions = ModelResolver::permission()::query()->pluck('id');
         $adminRole->permissions()->sync($adminPermissions);
 
-        $editorPermissions = Permission::whereIn('slug', [
+        $editorPermissions = ModelResolver::permission()::whereIn('slug', [
             Abilities::ACCESS,
             'browse admin',
             Abilities::MEDIA_BROWSE,

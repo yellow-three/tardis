@@ -8,6 +8,7 @@ use Livewire\Component;
 use Tardis\Auth\Abilities;
 use Tardis\Auth\BreadAuthorization;
 use Tardis\Models\Media;
+use Tardis\Support\ModelResolver;
 
 new #[Title('tardis::media.edit_media')] #[Layout('tardis::layouts.admin')] class extends Component
 {
@@ -34,7 +35,7 @@ new #[Title('tardis::media.edit_media')] #[Layout('tardis::layouts.admin')] clas
     public function mount(int $id): void
     {
         $this->media_id = $id;
-        $this->media = Media::findOrFail($id);
+        $this->media = ModelResolver::media()::findOrFail($id);
         $this->name = $this->media->name;
         $this->original_name = $this->media->original_name;
         $this->alt_text = $this->media->alt_text;
