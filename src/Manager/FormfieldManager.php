@@ -13,6 +13,7 @@ use Tardis\Formfields\Types\FileField;
 use Tardis\Formfields\Types\HasManyField;
 use Tardis\Formfields\Types\HiddenField;
 use Tardis\Formfields\Types\MarkdownField;
+use Tardis\Formfields\Types\MediaPickerField;
 use Tardis\Formfields\Types\NumberField;
 use Tardis\Formfields\Types\PasswordField;
 use Tardis\Formfields\Types\RadioField;
@@ -55,6 +56,7 @@ class FormfieldManager
             'hidden' => HiddenField::class,
             'belongs_to_many' => BelongsToManyField::class,
             'has_many' => HasManyField::class,
+            'media_picker' => MediaPickerField::class,
         ];
     }
 
