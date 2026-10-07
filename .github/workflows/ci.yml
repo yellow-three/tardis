@@ -100,4 +100,8 @@ jobs:
         run: npm run build
 
       - name: Check the committed bundle is up to date
-        run: git diff --exit-code -- resources/compiled || (echo "resources/compiled is stale: run npm run build and commit it" && exit 1)
+        run: |
+          if ! git diff --exit-code -- resources/compiled; then
+            echo "resources/compiled is stale - run npm run build and commit it"
+            exit 1
+          fi
