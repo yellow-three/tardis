@@ -11,24 +11,28 @@ TARDIS is a Laravel admin framework package built around Livewire 4, DaisyUI and
 
 ## Installation
 
+> **0.1.0 is a pre-release for testing.** It is not on Packagist yet and the API may still change before 1.0. Install it from the GitHub repository:
+
 ```bash
-composer require yellow-three/tardis
+composer config repositories.tardis vcs https://github.com/yellow-three/tardis
+composer require yellow-three/tardis:^0.1
 ```
 
-Publish the package configuration if needed:
+Then let the installer migrate the database, seed the permissions, publish the compiled assets and create the first administrator:
+
+```bash
+php artisan tardis:install --email=you@example.com
+```
+
+`tardis:install` is safe to run again. The panel is then at `/admin` (the prefix is `tardis.admin.prefix`). Check the result with `php artisan tardis:doctor`.
+
+Publish the package configuration if you want to change it:
 
 ```bash
 php artisan vendor:publish --tag=tardis-config
 ```
 
-Publish the compiled admin assets and theme manifest as well:
-
-```bash
-php artisan vendor:publish --tag=tardis-assets --force
-php artisan vendor:publish --tag=tardis-themes-assets --force
-```
-
-Run these commands again after rebuilding the package assets with `npm run build`.
+The compiled admin assets are published by the installer (`--tag=tardis-assets`); run `php artisan vendor:publish --tag=tardis-assets --force` again after upgrading the package. When developing the package itself, rebuild them with `npm run build`.
 
 ## Current architecture
 
@@ -204,7 +208,7 @@ The explorer never lists, opens, alters or drops framework tables (`migrations`,
 
 Three read-mostly screens, each behind its own ability (`view system`, `view logs`, `run commands`). They appear as three separate sidebar entries rather than one collapsible group, so holding one ability never hides or strands a sibling.
 
-- **Diagnostics** runs the same checks as `tardis:doctor`: PHP version, Laravel version, storage permissions, database tables, published assets, route cache, the authorization plugin, the theme manifest, installed plugins and BREAD definitions.
+- **Diagnostics** runs the same checks as `tardis:doctor`: PHP version, Laravel version, storage permissions, database tables, published assets, route cache, the authorization plugin, the themes file, installed plugins and BREAD definitions.
 - **Log viewer** tails files under `tardis.system.logs.path` (default `storage/logs`). `filename_pattern` restricts which names may be opened, and `max_bytes` caps a single read — the reader seeks to the end, so a large log costs a seek rather than a full load.
 - **Command runner** is off by default. Even enabled, it stays closed unless the app runs in one of `tardis.system.commands.environments` (default `local`) *and* the command appears in `tardis.system.commands.allowlist` as `['name' => [...allowed args]]`. An empty allowlist allows nothing, so enabling the runner is never by itself enough to expose artisan to a browser.
 
@@ -256,7 +260,7 @@ See [UPGRADE.md](UPGRADE.md) when coming from a development build.
 
 | File | What it covers |
 |---|---|
-| [UPGRADE.md](UPGRADE.md) | Moving from a development build to 1.0 |
+| [UPGRADE.md](UPGRADE.md) | Moving from a development build to 0.1 |
 | [PROJECT_STATUS.md](PROJECT_STATUS.md) | Current state, verification and open follow-ups |
 | [RELEASE_NOTES.md](RELEASE_NOTES.md) | What the package includes and what changed |
 | [docs/PLUGIN_GUIDE.md](docs/PLUGIN_GUIDE.md) | Writing and enabling plugins |
