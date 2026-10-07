@@ -1,10 +1,11 @@
 @php
     $fieldGroups = [
-        __('tardis::builder.groups.text') => ['text', 'textarea', 'markdown', 'code_editor', 'slug', 'password', 'color', 'hidden'],
-        __('tardis::builder.groups.numbers') => ['number', 'slider'],
-        __('tardis::builder.groups.choice') => ['select', 'radio', 'checkbox', 'toggle', 'tags'],
+        __('tardis::builder.groups.text') => ['text', 'textarea', 'rich_text', 'markdown', 'code_editor', 'slug', 'password', 'color', 'hidden'],
+        __('tardis::builder.groups.numbers') => ['number', 'slider', 'coordinates'],
+        __('tardis::builder.groups.choice') => ['select', 'select_multiple', 'radio', 'checkbox', 'toggle', 'tags'],
         __('tardis::builder.groups.date_time') => ['date', 'datetime', 'time'],
         __('tardis::builder.groups.file') => ['file', 'media_picker'],
+        __('tardis::builder.groups.structured') => ['repeater', 'simple_array'],
         __('tardis::builder.groups.relations') => ['belongs_to_many', 'has_many'],
     ];
 

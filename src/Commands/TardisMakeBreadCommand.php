@@ -101,15 +101,14 @@ class TardisMakeBreadCommand extends Command
     }
 
     /**
-     * Map reflector-only types (image, email, simple_array) onto the
-     * supported registered field types so the resulting config always validates.
+     * Map reflector-only types (image, email) onto the supported registered
+     * field types so the resulting config always validates.
      */
     protected function normalizeFields(array $fields): array
     {
         $normalised = [
             'image' => 'file',
             'email' => 'text',
-            'simple_array' => 'tags',
         ];
 
         foreach ($fields as $name => $field) {

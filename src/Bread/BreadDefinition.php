@@ -184,6 +184,62 @@ class BreadDefinition
         return $query;
     }
 
+    /**
+     * Inject a field immediately after an existing one. A plugin uses this to
+     * extend a BREAD it does not own: the definition is spliced in place, so
+     * the new field survives a toArray()/fromArray() round-trip and renders
+     * wherever the anchor field does.
+     *
+     * @param  array<string, mixed>  $options  the field definition; a "name" is required
+     */
+    public function addAfterFormField(string $afterField, string $type, array $options = []): self
+    {
+        $options['type'] = $type;
+
+        if (! isset($options['name']) || $options['name'] === '') {
+            throw new \InvalidArgumentException('addAfterFormField() needs a field name in $options.');
+        }
+
+        $this->fields = static::insertAfter($this->fields, $afterField, $options);
+
+        return $this;
+    }
+
+    /**
+     * Splice a field into the list after the named anchor. A definition may key
+     * its fields by name or hold a plain list; the new field keeps that shape,
+     * and an anchor that does not exist appends rather than drops the field.
+     *
+     * @param  array<int|string, array<string, mixed>>  $fields
+     * @param  array<string, mixed>  $new
+     * @return array<int|string, array<string, mixed>>
+     */
+    protected static function insertAfter(array $fields, string $afterField, array $new): array
+    {
+        $result = [];
+        $inserted = false;
+
+        foreach ($fields as $key => $field) {
+            $result[$key] = $field;
+
+            if (! $inserted && is_array($field) && ($field['name'] ?? null) === $afterField) {
+                if (is_string($key)) {
+                    $result[$new['name']] = $new;
+                } else {
+                    $result[] = $new;
+                }
+
+                $inserted = true;
+            }
+        }
+
+        if (! $inserted) {
+            $result[] = $new;
+        }
+
+        return $result;
+    }
+
     public function getListLayout(): array
     {
         return $this->layout['list'] ?? $this->layout['browse'] ?? [];

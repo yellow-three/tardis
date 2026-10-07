@@ -7,6 +7,8 @@ use Livewire\Component;
 use Tardis\Auth\BreadAuthorization;
 use Tardis\Bread\BreadDefinition;
 use Tardis\Bread\BreadManager;
+use Tardis\Formfields\Formfield;
+use Tardis\Manager\FormfieldManager;
 
 new #[Title('View')] #[Layout('tardis::layouts.admin')] class extends Component
 {
@@ -80,5 +82,18 @@ new #[Title('View')] #[Layout('tardis::layouts.admin')] class extends Component
         }
 
         return array_values(array_filter($this->bread['fields'] ?? [], fn (array $field) => (bool) ($field['read'] ?? true)));
+    }
+
+    /**
+     * The field objects behind the detail view, keyed by name, so each value is
+     * shaped by its type (read()).
+     *
+     * @return array<string, Formfield>
+     */
+    public function getFormfieldsProperty(): array
+    {
+        return collect(app(FormfieldManager::class)->fields($this->fields))
+            ->keyBy(fn (Formfield $field) => $field->name)
+            ->all();
     }
 };

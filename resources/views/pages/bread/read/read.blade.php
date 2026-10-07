@@ -35,7 +35,9 @@
                     $stored = data_get($record, $name);
                     $translatable = ! empty($field['translatable']);
 
-                    $value = $translatable ? Translation::value($stored, $locales) : ($stored ?? '-');
+                    $value = $translatable
+                        ? Translation::value($stored, $locales)
+                        : (($this->formfields[$name] ?? null)?->read($stored) ?? $stored ?? '-');
                     $valueLocale = $translatable ? Translation::sourceLocale($stored, $locales) : null;
                 @endphp
 

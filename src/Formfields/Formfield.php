@@ -164,6 +164,62 @@ abstract class Formfield
     }
 
     /**
+     * The value a listing cell shows. The default is the stored value; a type
+     * overrides it to decorate (a colour badge, a relation label, a clipped
+     * string). The create/edit hook is deliberately separate from browse/read
+     * so a decorated value can never be written back.
+     */
+    public function browse(mixed $value): mixed
+    {
+        return $value;
+    }
+
+    /**
+     * The value the read (detail) page shows. See browse().
+     */
+    public function read(mixed $value): mixed
+    {
+        return $value;
+    }
+
+    /**
+     * Prepare a stored value for the edit form. The default hands the value
+     * through unchanged; a type may normalise it (a date to its input format).
+     */
+    public function edit(mixed $value): mixed
+    {
+        return $value;
+    }
+
+    /**
+     * The value a create form opens with. The default is the declared default,
+     * run through the hook so a type can derive one (today's date, a slug).
+     */
+    public function add(mixed $value): mixed
+    {
+        return $value;
+    }
+
+    /**
+     * Transform a submitted value on create. Delegates to transform() so every
+     * existing type keeps its write behaviour; a type may override.
+     */
+    public function store(mixed $value): mixed
+    {
+        return $this->transform($value);
+    }
+
+    /**
+     * Transform a submitted value on update, given the value being replaced.
+     * Delegates to store() by default, so an override that only cares about
+     * the new value can target store() alone.
+     */
+    public function update(mixed $value, mixed $old): mixed
+    {
+        return $this->store($value);
+    }
+
+    /**
      * Whether blank values (null/empty string) should be skipped entirely
      * instead of being transformed and persisted (e.g. password fields).
      */

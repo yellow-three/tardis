@@ -7,6 +7,7 @@ return [
         'choice' => 'Choice',
         'date_time' => 'Date & Time',
         'file' => 'File',
+        'structured' => 'Structured',
         'relations' => 'Relations',
     ],
     'slug_status' => [

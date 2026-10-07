@@ -68,6 +68,8 @@ new #[Title('Edit')] #[Layout('tardis::layouts.admin')] class extends Component
         $this->record = $record->toArray();
         $this->form = $this->record;
 
+        $fieldObjects = collect($this->formfields)->keyBy(fn (Formfield $field) => $field->name);
+
         foreach ($this->fields as $field) {
             $name = $field['name'] ?? null;
             $type = $field['type'] ?? null;
@@ -88,6 +90,9 @@ new #[Title('Edit')] #[Layout('tardis::layouts.admin')] class extends Component
                     $record->{$name} ?? null,
                     Translation::locales($field['locales'] ?? null),
                 );
+            } elseif ($fieldObjects->has($name)) {
+                // The stored value, shaped for the form control by the field.
+                $this->form[$name] = $fieldObjects->get($name)->edit($record->{$name} ?? null);
             }
         }
 
@@ -223,7 +228,7 @@ new #[Title('Edit')] #[Layout('tardis::layouts.admin')] class extends Component
 
     protected function validationRules(): array
     {
-        return FieldValidationRules::for($this->fields, $this->form, $this->activeLocale);
+        return FieldValidationRules::for($this->fields, $this->form, $this->activeLocale, 'edit');
     }
 
     public function save(): void

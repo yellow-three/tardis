@@ -37,9 +37,10 @@ class FieldValidationRules
      * @param  array<int, array<string, mixed>>  $fields
      * @param  array<string, mixed>  $form  The current form values, used to decide whether file rules apply.
      * @param  string|null  $activeLocale  The locale being edited, for "active" validation mode.
+     * @param  string  $context  "add" or "edit": picks validation_add / validation_edit over the shared list.
      * @return array<string, array<int, string>>
      */
-    public static function for(array $fields, array $form = [], ?string $activeLocale = null): array
+    public static function for(array $fields, array $form = [], ?string $activeLocale = null, string $context = 'add'): array
     {
         $rules = [];
 
@@ -47,6 +48,17 @@ class FieldValidationRules
             $name = $field['name'] ?? null;
 
             if (! is_string($name) || $name === '') {
+                continue;
+            }
+
+            // A page-specific rule list wins over the shared one, so a field
+            // can be required when added but optional (or unique-ignoring-self)
+            // when edited.
+            $field = static::withContext($field, $context);
+
+            if (static::hasElementRules($field)) {
+                static::addElementRules($rules, $field, $name, $form, $activeLocale);
+
                 continue;
             }
 
@@ -64,6 +76,84 @@ class FieldValidationRules
         }
 
         return $rules;
+    }
+
+    /**
+     * Replace a field's shared rule list with the one declared for the page
+     * being validated, when there is one. An empty override is ignored, so a
+     * blank "validation_edit" cannot silently drop every rule.
+     *
+     * @param  array<string, mixed>  $field
+     * @return array<string, mixed>
+     */
+    protected static function withContext(array $field, string $context): array
+    {
+        $key = $context === 'edit' ? 'validation_edit' : 'validation_add';
+
+        if (array_key_exists($key, $field) && static::normalise($field[$key]) !== ['nullable']) {
+            $field['validation'] = $field[$key];
+        }
+
+        return $field;
+    }
+
+    /**
+     * Whether a field declares rules for the individual items of an array
+     * value (a tag list, a repeater, a multi-select).
+     *
+     * @param  array<string, mixed>  $field
+     */
+    protected static function hasElementRules(array $field): bool
+    {
+        return isset($field['element_validation']) && $field['element_validation'] !== [] && $field['element_validation'] !== '';
+    }
+
+    /**
+     * Validate what a field holds (the container) and what each item of an
+     * array value holds (the elements). "required" and "array" stay on the
+     * container; the item rules are applied to "form.name.*", only when the
+     * array is present, so an optional empty list is not rejected.
+     *
+     * @param  array<string, array<int, string>>  $rules
+     * @param  array<string, mixed>  $field
+     * @param  array<string, mixed>  $form
+     */
+    protected static function addElementRules(array &$rules, array $field, string $name, array $form, ?string $activeLocale): void
+    {
+        $elements = static::makeNullable(static::normalise($field['element_validation']));
+
+        if (static::isTranslatable($field)) {
+            $rules['form.'.$name] = static::container($field);
+
+            foreach (static::validatedLocales($field, $activeLocale) as $locale) {
+                $rules['form.'.$name.'.'.$locale] = static::arrayContainer($field);
+                $rules['form.'.$name.'.'.$locale.'.*'] = $elements;
+            }
+
+            return;
+        }
+
+        $rules['form.'.$name] = static::arrayContainer($field);
+        $rules['form.'.$name.'.*'] = $elements;
+    }
+
+    /**
+     * Container rules for a field that holds a list: the declared container
+     * rules, plus "array" so a scalar submitted where a list belongs is
+     * rejected rather than iterated over.
+     *
+     * @param  array<string, mixed>  $field
+     * @return array<int, string>
+     */
+    protected static function arrayContainer(array $field): array
+    {
+        $container = static::container($field);
+
+        if (! in_array('array', $container, true)) {
+            $container[] = 'array';
+        }
+
+        return $container;
     }
 
     public static function isTranslatable(array $field): bool
