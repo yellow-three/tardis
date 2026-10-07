@@ -254,7 +254,7 @@
     // ----------------------------------------------------------- public API --
 
     window.Tardis = {
-        version: boot.version || '2',
+        version: boot.version || '1',
 
         /** Register an Alpine component: Tardis.component('chart', () => ({ ... })) */
         component: function (name, definition) {

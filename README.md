@@ -250,13 +250,13 @@ composer lint-fix
 - **Policies:** extend `Tardis\Policies\BasePolicy` — it asks the same authorization plugin the BREAD pages do.
 - **Per-BREAD overrides:** a definition may set `components` (replace a page's Livewire component), `policy` (ability word) and `scope` (model scope for listings and lookups). Slugs such as `settings`, `users` or `bread` are reserved.
 
-See [UPGRADE.md](UPGRADE.md) when coming from 1.x.
+See [UPGRADE.md](UPGRADE.md) when coming from a development build.
 
 ## Documentation
 
 | File | What it covers |
 |---|---|
-| [UPGRADE.md](UPGRADE.md) | Moving from 1.x to 2.0 |
+| [UPGRADE.md](UPGRADE.md) | Moving from a development build to 1.0 |
 | [PROJECT_STATUS.md](PROJECT_STATUS.md) | Current state, verification and open follow-ups |
 | [RELEASE_NOTES.md](RELEASE_NOTES.md) | What the package includes and what changed |
 | [docs/PLUGIN_GUIDE.md](docs/PLUGIN_GUIDE.md) | Writing and enabling plugins |
