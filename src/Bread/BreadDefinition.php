@@ -14,7 +14,7 @@ class BreadDefinition
         public string|array $namePlural,
         public array $fields = [],
         public array $relationships = [],
-        public array $layout = ['browse' => [], 'edit' => [], 'read' => []],
+        public array $layout = ['browse' => [], 'edit' => [], 'read' => [], 'list' => [], 'view' => [], 'field_order' => [], 'widths' => [], 'legends' => []],
         public array $actions = [],
         public array $validation = [],
         public ?string $icon = null,
@@ -95,6 +95,33 @@ class BreadDefinition
 
     public static function fromArray(array $data): self
     {
+        $layout = $data['layout'] ?? ['browse' => [], 'edit' => [], 'read' => []];
+        // Normalize to support named layouts (list/view) while preserving backward compat
+        if (! isset($layout['list'])) {
+            $layout['list'] = $layout['browse'] ?? [];
+        }
+        if (! isset($layout['view'])) {
+            $layout['view'] = $layout['read'] ?? [];
+        }
+        if (! isset($layout['field_order'])) {
+            $layout['field_order'] = [];
+        }
+        if (! isset($layout['browse'])) {
+            $layout['browse'] = $layout['list'] ?? [];
+        }
+        if (! isset($layout['read'])) {
+            $layout['read'] = $layout['view'] ?? [];
+        }
+        if (! isset($layout['edit'])) {
+            $layout['edit'] = $layout['edit'] ?? [];
+        }
+        if (! isset($layout['widths'])) {
+            $layout['widths'] = [];
+        }
+        if (! isset($layout['legends'])) {
+            $layout['legends'] = [];
+        }
+
         return new self(
             slug: $data['slug'] ?? '',
             model: $data['model'] ?? '',
@@ -102,7 +129,7 @@ class BreadDefinition
             namePlural: $data['name_plural'] ?? $data['name'] ?? '',
             fields: $data['fields'] ?? [],
             relationships: $data['relationships'] ?? [],
-            layout: $data['layout'] ?? ['browse' => [], 'edit' => [], 'read' => []],
+            layout: $layout,
             actions: $data['actions'] ?? [],
             validation: $data['validation'] ?? [],
             icon: $data['icon'] ?? null,
@@ -155,6 +182,21 @@ class BreadDefinition
         }
 
         return $query;
+    }
+
+    public function getListLayout(): array
+    {
+        return $this->layout['list'] ?? $this->layout['browse'] ?? [];
+    }
+
+    public function getViewLayout(): array
+    {
+        return $this->layout['view'] ?? $this->layout['read'] ?? [];
+    }
+
+    public function getFieldOrder(): array
+    {
+        return $this->layout['field_order'] ?? [];
     }
 
     public function getField(string $name): ?array

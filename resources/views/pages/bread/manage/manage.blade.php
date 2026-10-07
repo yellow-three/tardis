@@ -57,6 +57,8 @@
                             <th scope="col">{{ __('tardis::bread.name') }}</th>
                             <th scope="col">{{ __('tardis::bread.slug') }}</th>
                             <th scope="col">{{ __('tardis::bread.source') }}</th>
+                            <th scope="col">{{ __('tardis::bread.list_layout') }}</th>
+                            <th scope="col">{{ __('tardis::bread.view_layout') }}</th>
                             <th class="text-right" scope="col">{{ __('tardis::bread.actions') }}</th>
                         </tr>
                     </thead>
@@ -66,6 +68,17 @@
                                 <td class="font-semibold">{{ $bread->resolvedName() ?: $slug }}</td>
                                 <td><code class="badge badge-ghost badge-sm">{{ $slug }}</code></td>
                                 <td><span class="badge badge-info badge-sm">{{ __('tardis::bread.json') }}</span></td>
+                                <td>
+                                    @php
+                                        $layout = $bread->layout ?? [];
+                                        $listCount = count($layout['list'] ?? $layout['browse'] ?? []);
+                                        $viewCount = count($layout['view'] ?? $layout['read'] ?? []);
+                                    @endphp
+                                    <span class="badge badge-ghost badge-sm">{{ $listCount }}</span>
+                                </td>
+                                <td>
+                                    <span class="badge badge-ghost badge-sm">{{ $viewCount }}</span>
+                                </td>
                                 <td class="text-right">
                                     <div class="flex items-center justify-end gap-1">
                                         <div class="dropdown dropdown-end">

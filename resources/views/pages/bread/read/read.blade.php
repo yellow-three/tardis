@@ -11,8 +11,14 @@
     </x-tardis::page-header>
 
     <div class="card bg-base-100 border border-base-300">
-        <div class="card-body space-y-4">
-            @foreach ($this->fields as $field)
+        <div class="card-body grid grid-cols-6 gap-4">
+            @php
+                $layout = $bread['layout'] ?? [];
+                $widths = $layout['widths'] ?? [];
+                $legends = $layout['legends'] ?? [];
+                $spanClasses = [1 => 'col-span-1', 2 => 'col-span-2', 3 => 'col-span-3', 4 => 'col-span-4', 5 => 'col-span-5', 6 => 'col-span-6'];
+            @endphp
+            @foreach (($this->layoutFields ?? $this->fields) as $field)
                 @php
                     $name = $field['name'] ?? '';
                     $locales = $field['locales'] ?? null;
@@ -33,7 +39,17 @@
                     $valueLocale = $translatable ? Translation::sourceLocale($stored, $locales) : null;
                 @endphp
 
-                <div class="border-b border-base-300 pb-3">
+                @php
+                    $span = $widths[$name] ?? 6;
+                    $spanClass = $spanClasses[$span] ?? 'col-span-6';
+                    $legend = $legends[$name] ?? null;
+                @endphp
+
+                @if ($legend)
+                    <h3 class="col-span-full text-sm font-semibold uppercase tracking-wide text-base-content/70 border-b border-base-300 pb-1 mt-2">{{ $legend }}</h3>
+                @endif
+
+                <div class="border-b border-base-300 pb-3 {{ $spanClass }}">
                     <div class="text-xs uppercase tracking-wide text-base-content/50">
                         {{ $label }}
                         @if ($labelLocale)

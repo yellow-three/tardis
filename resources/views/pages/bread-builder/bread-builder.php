@@ -58,6 +58,27 @@ new #[Title('BREAD Builder')] #[Layout('tardis::layouts.admin')] class extends C
      */
     public array $readLayout = [];
 
+    public array $listLayout = [];
+
+    public array $viewLayout = [];
+
+    /**
+     * Per-field column width (1-6) for the read layout, keyed by field name.
+     * Persisted as `layout['widths']`; a missing key means full width (6).
+     */
+    public array $layoutWidths = [];
+
+    /**
+     * Optional section heading rendered above a read-layout field, keyed by
+     * field name. Persisted as `layout['legends']`.
+     */
+    public array $layoutLegends = [];
+
+    /**
+     * Field name whose options are shown in the slide-in drawer.
+     */
+    public ?string $drawerField = null;
+
     /**
      * User-defined display order for the step 2 field table.
      * Holds field names; `$fieldConfig` itself is never reindexed.
@@ -155,10 +176,14 @@ new #[Title('BREAD Builder')] #[Layout('tardis::layouts.admin')] class extends C
                 $this->orderColumn = $bread->orderColumn ?? null;
                 $this->orderDirection = $bread->orderDirection ?? 'asc';
                 $this->softDelete = $bread->softDelete;
-                $this->browseColumns = $bread->layout['browse'] ?? [];
+                $this->browseColumns = $bread->layout['browse'] ?? $bread->layout['list'] ?? [];
                 $this->editTabs = $bread->layout['edit'] ?? [];
-                $this->readLayout = $bread->layout['read'] ?? [];
+                $this->readLayout = $bread->layout['read'] ?? $bread->layout['view'] ?? [];
+                $this->listLayout = $bread->layout['list'] ?? $bread->layout['browse'] ?? [];
+                $this->viewLayout = $bread->layout['view'] ?? $bread->layout['read'] ?? [];
                 $this->fieldOrder = $bread->layout['field_order'] ?? [];
+                $this->layoutWidths = $bread->layout['widths'] ?? [];
+                $this->layoutLegends = $bread->layout['legends'] ?? [];
                 $this->components = $bread->components;
                 $this->policy = $bread->policy;
                 $this->scope = $bread->scope;
@@ -266,9 +291,13 @@ new #[Title('BREAD Builder')] #[Layout('tardis::layouts.admin')] class extends C
             'scope' => $this->scope,
             'layout' => [
                 'browse' => $this->browseColumns,
+                'list' => $this->listLayout ?: $this->browseColumns,
                 'edit' => $this->editTabs,
                 'read' => $this->readLayout,
+                'view' => $this->viewLayout ?: $this->readLayout,
                 'field_order' => $this->fieldOrder,
+                'widths' => $this->pruneLayoutMap($this->layoutWidths),
+                'legends' => $this->pruneLayoutMap($this->layoutLegends),
             ],
         ]);
 
@@ -601,6 +630,41 @@ new #[Title('BREAD Builder')] #[Layout('tardis::layouts.admin')] class extends C
         [$layout[$index], $layout[$target]] = [$layout[$target], $layout[$index]];
 
         $this->readLayout = $layout;
+    }
+
+    public function setFieldWidth(string $key, int $span): void
+    {
+        if (! isset($this->fieldConfig[$key])) {
+            return;
+        }
+
+        $this->layoutWidths[$key] = max(1, min(6, $span));
+    }
+
+    public function openFieldOptions(string $key): void
+    {
+        if (! isset($this->fieldConfig[$key])) {
+            return;
+        }
+
+        $this->drawerField = $key;
+        $this->dispatch('toggle-slide-in', open: true);
+    }
+
+    /**
+     * Drop layout-map entries whose field no longer exists, so stale keys
+     * never survive a save after fields were re-detected.
+     *
+     * @param  array<string, mixed>  $map
+     * @return array<string, mixed>
+     */
+    protected function pruneLayoutMap(array $map): array
+    {
+        return array_filter(
+            $map,
+            fn ($value, $key) => isset($this->fieldConfig[$key]) && $value !== '' && $value !== null,
+            ARRAY_FILTER_USE_BOTH
+        );
     }
 
     // ---------------------------------------------------------------------

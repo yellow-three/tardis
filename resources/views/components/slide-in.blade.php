@@ -3,7 +3,7 @@
 {{-- A side drawer for options that do not deserve a page. Toggle with $dispatch('toggle-slide-in'). --}}
 <div
     x-data="{ open: false }"
-    x-on:toggle-slide-in.window="open = ! open"
+    x-on:toggle-slide-in.window="open = (event.detail && typeof event.detail.open === 'boolean') ? event.detail.open : ! open"
     x-on:keydown.escape.window="open = false"
 >
     <aside

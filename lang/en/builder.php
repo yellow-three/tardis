@@ -137,6 +137,12 @@ return [
     ],
     'saved' => 'BREAD definition saved successfully.',
     'tab_n' => 'Tab :number',
+    'field_options' => 'Field options',
+    'field_label' => 'Field label',
+    'column_width' => 'Column width',
+    'section_heading' => 'Section heading',
+    'section_heading_placeholder' => 'Optional heading shown above this field',
+    'section_heading_hint' => 'Leave empty to show no heading.',
     'warnings' => [
         'slug_empty' => 'Slug is empty — set it on the Configure step.',
         'slug_taken' => 'Slug ":slug" already belongs to another BREAD definition.',

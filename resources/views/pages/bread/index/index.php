@@ -122,6 +122,36 @@ new #[Title('BREAD')] #[Layout('tardis::layouts.admin')] class extends Component
         return $this->listing?->warnings ?? [];
     }
 
+    public function getLayoutFieldsProperty(): array
+    {
+        $layout = $this->bread['layout'] ?? [];
+        $listLayout = $layout['list'] ?? $layout['browse'] ?? [];
+
+        if (! empty($listLayout) && is_array($listLayout)) {
+            $result = [];
+            foreach ($listLayout as $item) {
+                if (is_string($item)) {
+                    $field = collect($this->visibleFields)->first(fn ($f) => ($f['name'] ?? null) === $item);
+                    if ($field) {
+                        $result[] = $field;
+                    }
+                } elseif (is_array($item) && isset($item['name'])) {
+                    $field = collect($this->visibleFields)->first(fn ($f) => ($f['name'] ?? null) === $item['name']);
+                    if ($field) {
+                        $result[] = array_merge($field, $item);
+                    } else {
+                        $result[] = $item;
+                    }
+                }
+            }
+            if (! empty($result)) {
+                return $result;
+            }
+        }
+
+        return $this->visibleFields;
+    }
+
     public function getVisibleFieldsProperty(): array
     {
         if (empty($this->bread)) {

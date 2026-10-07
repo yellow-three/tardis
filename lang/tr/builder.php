@@ -137,6 +137,12 @@ return [
     ],
     'saved' => 'BREAD tanımı başarıyla kaydedildi.',
     'tab_n' => 'Sekme :number',
+    'field_options' => 'Alan seçenekleri',
+    'field_label' => 'Alan etiketi',
+    'column_width' => 'Sütun genişliği',
+    'section_heading' => 'Bölüm başlığı',
+    'section_heading_placeholder' => 'Bu alanın üzerinde gösterilecek isteğe bağlı başlık',
+    'section_heading_hint' => 'Boş bırakılırsa başlık gösterilmez.',
     'warnings' => [
         'slug_empty' => 'Kısa ad boş — Yapılandır adımında belirleyin.',
         'slug_taken' => '":slug" kısa adı başka bir BREAD tanımına ait.',
