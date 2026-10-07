@@ -28,7 +28,7 @@ class BreadSaver
      */
     public function create(string $slug, string $modelClass, array $fieldDefinitions, array $form): Model
     {
-        [$data, $relations] = $this->prepare($modelClass, $fieldDefinitions, $form);
+        [$data, $relations] = $this->prepare($modelClass, $fieldDefinitions, $form, 'create');
 
         // The parent row is inserted before the relations are written, so a
         // relation that dies mid-loop would otherwise leave a committed record
@@ -58,7 +58,7 @@ class BreadSaver
      */
     public function update(string $slug, Model $record, array $fieldDefinitions, array $form): array
     {
-        [$data, $relations] = $this->prepare($record::class, $fieldDefinitions, $form);
+        [$data, $relations] = $this->prepare($record::class, $fieldDefinitions, $form, 'update', $record);
 
         DB::transaction(function () use ($record, $data, $relations) {
             $record->update($data);
@@ -80,7 +80,7 @@ class BreadSaver
     /**
      * @return array{0: array<string, mixed>, 1: array<int, array{0: Formfield, 1: mixed}>}
      */
-    protected function prepare(string $modelClass, array $fieldDefinitions, array $form): array
+    protected function prepare(string $modelClass, array $fieldDefinitions, array $form, string $context = 'create', ?Model $existing = null): array
     {
         $fields = $this->formfields->fields($fieldDefinitions);
         $data = [];
@@ -99,7 +99,12 @@ class BreadSaver
                 continue;
             }
 
-            $data[$field->name] = $field->transform($value);
+            // The write lifecycle: create runs store(), update runs update()
+            // with the value being replaced, so a type can react to a change
+            // (re-hash a rotated password, re-encode a replaced file path).
+            $data[$field->name] = $context === 'update' && $existing !== null
+                ? $field->update($value, $existing->getAttribute($field->name))
+                : $field->store($value);
         }
 
         // A field left blank must not be written as NULL when the table refuses

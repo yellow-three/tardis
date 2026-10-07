@@ -51,8 +51,30 @@ new #[Title('Create')] #[Layout('tardis::layouts.admin')] class extends Componen
 
         app(BreadAuthorization::class)->authorize('add', $this->slug);
 
+        $this->initFieldDefaults();
         $this->initTranslatableFields();
         $this->initRelationSearch();
+    }
+
+    /**
+     * Open the form with each field's create-time value: the declared default,
+     * run through the field's add() hook so a type can derive one (today's
+     * date, a generated slug) before the user touches the form.
+     */
+    public function initFieldDefaults(): void
+    {
+        foreach (app(FormfieldManager::class)->fields($this->fields) as $field) {
+            if ($field->translatable) {
+                // Handled per locale by initTranslatableFields().
+                continue;
+            }
+
+            $value = $field->add($field->default);
+
+            if ($field->default !== null || $value !== null) {
+                $this->form[$field->name] = $value;
+            }
+        }
     }
 
     public function initTranslatableFields(): void
@@ -168,7 +190,7 @@ new #[Title('Create')] #[Layout('tardis::layouts.admin')] class extends Componen
 
     protected function validationRules(): array
     {
-        return FieldValidationRules::for($this->fields, $this->form, $this->activeLocale);
+        return FieldValidationRules::for($this->fields, $this->form, $this->activeLocale, 'add');
     }
 
     public function save(): void

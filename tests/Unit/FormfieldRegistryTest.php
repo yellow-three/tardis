@@ -22,6 +22,7 @@ test('the registry exposes every built-in field type', function () {
         'text', 'number', 'select', 'toggle', 'date', 'datetime', 'time',
         'textarea', 'password', 'file', 'checkbox', 'radio', 'slider',
         'slug', 'tags', 'markdown', 'code_editor', 'color', 'hidden', 'belongs_to_many', 'has_many', 'media_picker',
+        'select_multiple', 'rich_text', 'simple_array', 'repeater', 'coordinates',
     ]);
 });
 
@@ -46,7 +47,7 @@ test('normalize maps legacy detector names onto registered types', function () {
 
     expect($manager->normalize('image'))->toBe('file')
         ->and($manager->normalize('email'))->toBe('text')
-        ->and($manager->normalize('simple_array'))->toBe('tags');
+        ->and($manager->normalize('simple_array'))->toBe('simple_array');
 });
 
 test('normalize passes every registered type through unchanged', function () {

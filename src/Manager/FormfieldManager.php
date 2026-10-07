@@ -7,6 +7,7 @@ use Tardis\Formfields\Types\BelongsToManyField;
 use Tardis\Formfields\Types\CheckboxField;
 use Tardis\Formfields\Types\CodeEditorField;
 use Tardis\Formfields\Types\ColorField;
+use Tardis\Formfields\Types\CoordinatesField;
 use Tardis\Formfields\Types\DateField;
 use Tardis\Formfields\Types\DateTimeField;
 use Tardis\Formfields\Types\FileField;
@@ -17,7 +18,11 @@ use Tardis\Formfields\Types\MediaPickerField;
 use Tardis\Formfields\Types\NumberField;
 use Tardis\Formfields\Types\PasswordField;
 use Tardis\Formfields\Types\RadioField;
+use Tardis\Formfields\Types\RepeaterField;
+use Tardis\Formfields\Types\RichTextField;
 use Tardis\Formfields\Types\SelectField;
+use Tardis\Formfields\Types\SelectMultipleField;
+use Tardis\Formfields\Types\SimpleArrayField;
 use Tardis\Formfields\Types\SliderField;
 use Tardis\Formfields\Types\SlugField;
 use Tardis\Formfields\Types\TagsField;
@@ -57,6 +62,11 @@ class FormfieldManager
             'belongs_to_many' => BelongsToManyField::class,
             'has_many' => HasManyField::class,
             'media_picker' => MediaPickerField::class,
+            'select_multiple' => SelectMultipleField::class,
+            'rich_text' => RichTextField::class,
+            'simple_array' => SimpleArrayField::class,
+            'repeater' => RepeaterField::class,
+            'coordinates' => CoordinatesField::class,
         ];
     }
 
@@ -69,7 +79,6 @@ class FormfieldManager
     protected array $aliases = [
         'image' => 'file',
         'email' => 'text',
-        'simple_array' => 'tags',
     ];
 
     public function registerType(string $type, string $fieldClass): void

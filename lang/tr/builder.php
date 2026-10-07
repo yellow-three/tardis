@@ -7,6 +7,7 @@ return [
         'choice' => 'Seçim',
         'date_time' => 'Tarih ve saat',
         'file' => 'Dosya',
+        'structured' => 'Yapılandırılmış',
         'relations' => 'İlişkiler',
     ],
     'slug_status' => [

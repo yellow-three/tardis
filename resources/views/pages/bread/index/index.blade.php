@@ -96,11 +96,14 @@
                                 @endif
                                 @foreach (($this->layoutFields ?? $this->visibleFields) as $field)
                                     @php($fieldName = $field['name'] ?? '')
+                                    @php($value = data_get($row, $fieldName))
                                     <td>
                                         @if (! empty($field['translatable']))
-                                            {{ \Tardis\Classes\Translation::value(data_get($row, $fieldName), $field['locales'] ?? null) }}
+                                            {{ \Tardis\Classes\Translation::value($value, $field['locales'] ?? null) }}
+                                        @elseif ($browseField = ($this->formfields[$fieldName] ?? null))
+                                            {{ $browseField->browse($value) ?? '-' }}
                                         @else
-                                            {{ data_get($row, $fieldName, '-') }}
+                                            {{ $value ?? '-' }}
                                         @endif
                                     </td>
                                 @endforeach

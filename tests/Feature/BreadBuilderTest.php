@@ -65,7 +65,7 @@ test('detectFields normalizes detected types and pluralizes the model basename',
         ->assertSet('namePlural', 'Bread Builder Test Models')
         ->assertSet('fieldConfig.email.type', 'text')
         ->assertSet('fieldConfig.avatar.type', 'file')
-        ->assertSet('fieldConfig.tags.type', 'tags')
+        ->assertSet('fieldConfig.tags.type', 'simple_array')
         ->assertSet('step', 2);
 });
 

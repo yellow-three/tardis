@@ -15,7 +15,9 @@ use Tardis\Bread\BreadDefinition;
 use Tardis\Bread\BreadListing;
 use Tardis\Bread\BreadManager;
 use Tardis\Bread\BreadQuery;
+use Tardis\Formfields\Formfield;
 use Tardis\Manager\ActionManager;
+use Tardis\Manager\FormfieldManager;
 
 new #[Title('BREAD')] #[Layout('tardis::layouts.admin')] class extends Component
 {
@@ -159,6 +161,19 @@ new #[Title('BREAD')] #[Layout('tardis::layouts.admin')] class extends Component
         }
 
         return array_values(array_filter($this->bread['fields'] ?? [], fn (array $field) => (bool) ($field['browse'] ?? true)));
+    }
+
+    /**
+     * The field objects behind the listing, keyed by name, so each cell can ask
+     * its type how to show the value (browse()).
+     *
+     * @return array<string, Formfield>
+     */
+    public function getFormfieldsProperty(): array
+    {
+        return collect(app(FormfieldManager::class)->fields($this->visibleFields))
+            ->keyBy(fn (Formfield $field) => $field->name)
+            ->all();
     }
 
     public function getCreateUrlProperty(): string
