@@ -101,18 +101,29 @@ test('a record outside the scope cannot be read or edited', function () {
     $hidden = PolicyScopeModel::where('title', 'Hidden draft')->first();
 
     // findOrFail on the scoped query: a hidden record is "not found", the same
-    // answer a nonexistent id gets (the HTTP layer renders it as a 404).
-    expect(fn () => Livewire::test('tardis::pages.bread.read', ['slug' => 'things', 'id' => $hidden->id]))
-        ->toThrow(ModelNotFoundException::class);
-    expect(fn () => Livewire::test('tardis::pages.bread.edit', ['slug' => 'things', 'id' => $hidden->id]))
-        ->toThrow(ModelNotFoundException::class);
+    // answer a nonexistent id gets. Livewire 4.3 rethrows it from mount, 4.4+ renders
+    // it as the 404 response, so accept either.
+    foreach (['read', 'edit'] as $page) {
+        try {
+            $component = Livewire::test("tardis::pages.bread.{$page}", ['slug' => 'things', 'id' => $hidden->id]);
+        } catch (ModelNotFoundException) {
+            continue;
+        }
+
+        $component->assertNotFound();
+    }
 });
 
 test('a record outside the scope cannot be deleted from the listing', function () {
     $hidden = PolicyScopeModel::where('title', 'Hidden draft')->first();
 
-    expect(fn () => Livewire::test('tardis::pages.bread.index', ['slug' => 'things'])->call('delete', $hidden->id))
-        ->toThrow(ModelNotFoundException::class);
+    try {
+        Livewire::test('tardis::pages.bread.index', ['slug' => 'things'])
+            ->call('delete', $hidden->id)
+            ->assertNotFound();
+    } catch (ModelNotFoundException) {
+        // Livewire 4.3 rethrows it; 4.4+ renders the 404 response.
+    }
 
     expect(PolicyScopeModel::count())->toBe(2);
 });

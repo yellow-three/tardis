@@ -12,8 +12,9 @@ export default defineConfig({
         hotFile(),
         tailwindcss(),
     ],
+    publicDir: false,
     build: {
-        outDir: 'dist',
+        outDir: 'resources/compiled',
         rollupOptions: {
             input: {
                 app: 'resources/css/app.css',
