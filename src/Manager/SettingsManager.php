@@ -189,15 +189,26 @@ class SettingsManager
             throw new \RuntimeException('Invalid JSON data.');
         }
 
-        $count = 0;
-        foreach ($data as $item) {
-            if (isset($item['key'])) {
-                $this->create($item);
-                $count++;
+        $items = array_values(array_filter($data, fn ($item) => is_array($item) && isset($item['key'])));
+
+        // Validate everything before writing anything: a clash on the tenth item
+        // must not leave the first nine behind as a half-finished import.
+        $seen = [];
+        foreach ($items as $item) {
+            $fullKey = (new Setting($item))->getFullKey();
+
+            if (isset($seen[$fullKey]) || $this->findByKey($fullKey)) {
+                throw new \RuntimeException("Setting with key '{$fullKey}' already exists. Nothing was imported.");
             }
+
+            $seen[$fullKey] = true;
         }
 
-        return $count;
+        foreach ($items as $item) {
+            $this->create($item);
+        }
+
+        return count($items);
     }
 
     public function export(): string

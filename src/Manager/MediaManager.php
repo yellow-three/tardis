@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use InvalidArgumentException;
 use Tardis\Models\Media;
+use Tardis\Support\ModelResolver;
 
 class MediaManager
 {
@@ -26,15 +27,16 @@ class MediaManager
         UploadedFile $file,
         string $path = '',
         ?string $altText = null,
+        ?string $filenameTemplate = null,
     ): Media {
         $path = Str::finish($this->fullPath($path), '/');
 
-        $name = $this->getUniqueFileName($file, $path);
+        $name = $this->resolveFilenameTemplate($filenameTemplate, $file, $path);
 
         // storeAs() joins with its own separator, so it must not receive a trailing slash.
         $storedPath = $file->storeAs(rtrim($path, '/'), $name, $this->disk);
 
-        return Media::create([
+        return ModelResolver::media()::create([
             'name' => $name,
             'original_name' => $file->getClientOriginalName(),
             'path' => $storedPath,
@@ -101,7 +103,7 @@ class MediaManager
 
         $deleted = Storage::disk($this->disk)->delete($fullPath);
 
-        Media::query()->where('path', $fullPath)->delete();
+        ModelResolver::media()::query()->where('path', $fullPath)->delete();
 
         return $deleted;
     }
@@ -112,7 +114,7 @@ class MediaManager
 
         $deleted = Storage::disk($this->disk)->deleteDirectory($fullPath);
 
-        Media::query()->where('path', 'like', $fullPath.'/%')->delete();
+        ModelResolver::media()::query()->where('path', 'like', $fullPath.'/%')->delete();
 
         return $deleted;
     }
@@ -140,7 +142,7 @@ class MediaManager
             $this->syncDirectoryRename($source, $target);
         } else {
             // name tracks the current basename; original_name keeps the uploaded one.
-            Media::query()->where('path', $source)->update([
+            ModelResolver::media()::query()->where('path', $source)->update([
                 'path' => $target,
                 'name' => $newName,
             ]);
@@ -263,7 +265,7 @@ class MediaManager
     {
         $prefix = $from.'/';
 
-        Media::query()
+        ModelResolver::media()::query()
             ->where('path', 'like', $prefix.'%')
             ->orWhere('collection', 'like', $prefix.'%')
             ->orWhere('collection', $from)
@@ -326,6 +328,92 @@ class MediaManager
         return $tempFile;
     }
 
+    protected function resolveFilenameTemplate(?string $template, UploadedFile $file, string $path): string
+    {
+        $originalName = $file->getClientOriginalName();
+        $pathinfo = pathinfo($originalName);
+        $extension = isset($pathinfo['extension']) ? '.'.$pathinfo['extension'] : '';
+        $base = $pathinfo['filename'];
+
+        if (empty($template)) {
+            return $this->getUniqueFileName($file, $path);
+        }
+
+        // Every token must be on the allow-list, checked before substitution
+        // so substituted values are never re-scanned as tokens.
+        if (preg_match_all('/\{([^{}]*)\}/', $template, $matches) > 0) {
+            foreach ($matches[1] as $token) {
+                if (preg_match('/^(?:name|filename|ext|uid|random:\d+|date:.+)$/', $token) !== 1) {
+                    throw new InvalidArgumentException('Template contains unknown token');
+                }
+            }
+        }
+
+        $result = str_replace(
+            ['{name}', '{filename}', '{ext}', '{uid}'],
+            [$base, $originalName, ltrim($extension, '.'), (string) (auth()->id() ?? 'guest')],
+            $template,
+        );
+
+        $result = preg_replace_callback('/\{date:([^}]+)\}/', function ($m) {
+            return now()->format($m[1]);
+        }, $result);
+
+        $result = preg_replace_callback('/\{random:(\d+)\}/', function ($m) {
+            $n = (int) $m[1];
+            $n = max(1, min($n, 64));
+            $chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+            $rand = '';
+            for ($i = 0; $i < $n; $i++) {
+                $rand .= $chars[random_int(0, strlen($chars) - 1)];
+            }
+
+            return $rand;
+        }, $result);
+
+        // Validate the substituted result: the values that went in are not
+        // trusted, so the same rules the template got are applied to the output.
+        if (str_contains($result, "\0")) {
+            throw new InvalidArgumentException('Filename contains null bytes');
+        }
+
+        if (str_contains($result, '\\')) {
+            throw new InvalidArgumentException('Filename cannot contain backslashes');
+        }
+
+        if (str_starts_with($result, '/')) {
+            throw new InvalidArgumentException('Filename cannot start with /');
+        }
+
+        if (in_array('..', explode('/', str_replace('\\', '/', $result)), true)) {
+            throw new InvalidArgumentException('Filename cannot contain ".." path segments');
+        }
+
+        if (! str_contains($result, '.')) {
+            $result .= $extension;
+        } elseif (preg_match('/\.[^.]+$/', $result) === 0 && $extension) {
+            $result .= $extension;
+        }
+
+        if ($extension && str_ends_with($result, $extension.$extension)) {
+            $result = substr($result, 0, -strlen($extension));
+        }
+
+        $storage = Storage::disk($this->disk);
+        $count = 0;
+        $candidate = $result;
+        while ($storage->exists($path.$candidate)) {
+            $count++;
+            $pi = pathinfo($result);
+            $dir = $pi['dirname'] !== '.' ? $pi['dirname'].'/' : '';
+            $ext = isset($pi['extension']) ? '.'.$pi['extension'] : $extension;
+            $fn = $pi['filename'];
+            $candidate = $dir.$fn.'_'.$count.$ext;
+        }
+
+        return $candidate;
+    }
+
     protected function getUniqueFileName(UploadedFile $file, string $path): string
     {
         $name = $file->getClientOriginalName();
@@ -335,7 +423,8 @@ class MediaManager
         while ($storage->exists($path.$name)) {
             $count++;
             $pathinfo = pathinfo($file->getClientOriginalName());
-            $name = $pathinfo['filename'].'_'.$count.'.'.$pathinfo['extension'];
+            $extension = isset($pathinfo['extension']) ? '.'.$pathinfo['extension'] : '';
+            $name = $pathinfo['filename'].'_'.$count.$extension;
         }
 
         return $name;

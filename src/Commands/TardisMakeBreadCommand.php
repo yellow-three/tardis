@@ -6,6 +6,7 @@ use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 use Tardis\Bread\BreadDefinition;
+use Tardis\Bread\BreadManager;
 use Tardis\Bread\ModelReflector;
 use Tardis\Bread\Sources\JsonBreadSource;
 
@@ -45,7 +46,7 @@ class TardisMakeBreadCommand extends Command
             'search_key' => 'id',
         ]);
 
-        $source->save($definition);
+        app(BreadManager::class)->save($definition);
 
         $target = $source->path().'/'.$slug.'.json';
 
@@ -68,7 +69,7 @@ class TardisMakeBreadCommand extends Command
      * Build a fields array from the model fillable list and DB schema.
      *
      * The type returned by the model reflector is normalised to a supported
-     * FieldType value, and nullability from Schema::getColumns drives the
+     * registered field type, and nullability from Schema::getColumns drives the
      * required flag.
      */
     protected function buildFields(string $model, ?string $table): array
@@ -100,15 +101,14 @@ class TardisMakeBreadCommand extends Command
     }
 
     /**
-     * Map reflector-only types (image, email, simple_array) onto the
-     * supported FieldType values so the resulting config always validates.
+     * Map reflector-only types (image, email) onto the supported registered
+     * field types so the resulting config always validates.
      */
     protected function normalizeFields(array $fields): array
     {
         $normalised = [
             'image' => 'file',
             'email' => 'text',
-            'simple_array' => 'tags',
         ];
 
         foreach ($fields as $name => $field) {

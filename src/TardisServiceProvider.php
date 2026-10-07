@@ -5,21 +5,41 @@ declare(strict_types=1);
 namespace Tardis;
 
 use Illuminate\Support\Facades\Blade;
-use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\ServiceProvider;
 use Livewire\Livewire;
-use Tardis\Bread\Sources\ConfigBreadSource;
+use Tardis\Auth\TardisAuthorizationPlugin;
+use Tardis\Bread\Legacy\LegacyConfigReader;
+use Tardis\Commands\TardisAdminCommand;
 use Tardis\Commands\TardisBreadExportCommand;
 use Tardis\Commands\TardisBreadMigrateCommand;
+use Tardis\Commands\TardisDoctorCommand;
+use Tardis\Commands\TardisInstallCommand;
 use Tardis\Commands\TardisMakeBreadCommand;
 use Tardis\Commands\TardisMakeModelCommand;
 use Tardis\Commands\TardisMakePluginCommand;
+use Tardis\Commands\TardisPluginsCommand;
+use Tardis\Dashboard\DashboardLayout;
+use Tardis\Events\BreadRecordCreated;
+use Tardis\Events\BreadRecordDeleted;
+use Tardis\Events\BreadRecordUpdated;
+use Tardis\Events\BreadSaved;
 use Tardis\Http\Middleware\AdminMiddleware;
+use Tardis\Http\Middleware\SetPanelLocale;
+use Tardis\Listeners\LogBreadActivity;
+use Tardis\Listeners\ProvisionBreadPermissions;
+use Tardis\Manager\ActionManager;
 use Tardis\Manager\AssetManager;
+use Tardis\Manager\FormfieldManager;
+use Tardis\Manager\MenuManager;
 use Tardis\Manager\PluginManager;
 use Tardis\Manager\SettingsManager;
 use Tardis\Manager\ThemeManager;
+use Tardis\Manager\WidgetManager;
+use Tardis\Menu\MenuOverlay;
 use Tardis\Plugins\AuthenticationPlugin;
+use Tardis\Support\UserPreferences;
+use Tardis\Theme\ThemePreference;
 
 class TardisServiceProvider extends ServiceProvider
 {
@@ -35,56 +55,30 @@ class TardisServiceProvider extends ServiceProvider
             'tardis-icons'
         );
 
-        $this->mergeConfigFrom(
-            __DIR__.'/../config/tardis-themes.php',
-            'tardis-themes'
-        );
-
         $this->app->singleton(AssetManager::class);
+        $this->app->singleton(UserPreferences::class);
 
-        $this->app->singleton(ThemeManager::class, function ($app) {
-            $manager = new ThemeManager;
+        // One instance per manager: pages resolve them with app(Class::class)
+        // while host code goes through the Tardis facade, and anything
+        // registered on one copy (a menu item, a field type, a widget) would be
+        // invisible to the other.
+        $this->app->singleton(MenuOverlay::class);
+        $this->app->singleton(MenuManager::class);
+        $this->app->singleton(DashboardLayout::class);
+        $this->app->singleton(WidgetManager::class);
+        $this->app->singleton(SettingsManager::class);
+        $this->app->singleton(FormfieldManager::class);
+        $this->app->singleton(ActionManager::class);
 
-            $hotPath = AssetManager::packageHotPath();
+        // Plugin registrations must outlive the registration call: the manager
+        // is resolved again by every consumer (AdminMiddleware, MenuItem,
+        // BreadAuthorization), and a fresh instance each time would hand them
+        // an empty registry and silently disable every plugin.
+        $this->app->singleton(PluginManager::class);
 
-            if (file_exists($hotPath)) {
-                // Dev mode — try Vite dev server first, fallback to package disk
-                $viteUrl = rtrim((string) file_get_contents($hotPath), '/');
-                try {
-                    $manager->loadManifestFromUrl($viteUrl.'/tardis-assets/themes-manifest.json');
-                } catch (\Throwable $e) {
-                    // Vite dev server may not be reachable from Docker — read from disk
-                    $packageManifest = AssetManager::packageManifestPath();
-                    if (file_exists($packageManifest)) {
-                        try {
-                            $manager->loadManifest($packageManifest);
-                        } catch (\Throwable $e2) {
-                            Log::debug(
-                                'Vite dev manifest (disk fallback) not available: '.$e2->getMessage()
-                            );
-                        }
-                    }
-                }
-            } else {
-                // Production — read from disk
-                $manifestPath = config(
-                    'tardis-themes.manifest_path',
-                    public_path('tardis-assets/themes-manifest.json')
-                );
-
-                if (file_exists($manifestPath)) {
-                    try {
-                        $manager->loadManifest($manifestPath);
-                    } catch (\Throwable $e) {
-                        Log::warning(
-                            'Failed to load theme manifest: '.$e->getMessage()
-                        );
-                    }
-                }
-            }
-
-            return $manager;
-        });
+        // Resolved lazily and without I/O: themes are read when first asked for.
+        $this->app->singleton(ThemeManager::class);
+        $this->app->singleton(ThemePreference::class);
 
         $this->registerAliases();
         $this->registerPluginServiceProviders();
@@ -93,16 +87,18 @@ class TardisServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
-        Blade::directive('tardisStyles', function () {
-            return '<?php echo app(\\Tardis\\Manager\\AssetManager::class)->styles(); ?>';
+        Blade::directive('tardisStyles', function ($expression) {
+            return '<?php echo app(\\Tardis\\Manager\\AssetManager::class)->styles('.($expression ?: "'admin'").'); ?>';
         });
 
-        Blade::directive('tardisScripts', function () {
-            return '<?php echo app(\\Tardis\\Manager\\AssetManager::class)->scripts(); ?>';
+        Blade::directive('tardisScripts', function ($expression) {
+            return '<?php echo app(\\Tardis\\Manager\\AssetManager::class)->scripts('.($expression ?: "'admin'").'); ?>';
         });
 
+        $this->registerDefaultAuthorization();
         $this->registerLivewireNamespaces();
         $this->registerViews();
+        $this->registerTranslations();
 
         Blade::anonymousComponentPath(
             __DIR__.'/../resources/views/components',
@@ -114,6 +110,8 @@ class TardisServiceProvider extends ServiceProvider
         $this->registerPublishing();
         $this->registerMiddleware();
         $this->registerCommands();
+        $this->registerListeners();
+        $this->loadDefaultSettings();
     }
 
     /**
@@ -143,7 +141,23 @@ class TardisServiceProvider extends ServiceProvider
         // without Fortify or any other auth package.
         $manager = $this->app->make(PluginManager::class);
         $manager->register('tardis-auth', AuthenticationPlugin::class);
-        $manager->enable('tardis-auth');
+        $manager->enableByDefault('tardis-auth');
+
+    }
+
+    /**
+     * Registered in boot(), not register(): it reads host configuration, which
+     * is only final once every provider has registered.
+     */
+    protected function registerDefaultAuthorization(): void
+    {
+        if (! config('tardis.authorization.enabled', true)) {
+            return;
+        }
+
+        $manager = $this->app->make(PluginManager::class);
+        $manager->register('tardis-authorization', TardisAuthorizationPlugin::class);
+        $manager->enableByDefault('tardis-authorization');
     }
 
     protected function registerLivewireNamespaces(): void
@@ -152,6 +166,15 @@ class TardisServiceProvider extends ServiceProvider
             namespace: 'tardis',
             viewPath: __DIR__.'/../resources/views',
         );
+    }
+
+    protected function registerTranslations(): void
+    {
+        $this->loadTranslationsFrom(__DIR__.'/../lang', 'tardis');
+
+        $this->publishes([
+            __DIR__.'/../lang' => lang_path('vendor/tardis'),
+        ], 'tardis-lang');
     }
 
     protected function registerViews(): void
@@ -191,9 +214,6 @@ class TardisServiceProvider extends ServiceProvider
             __DIR__.'/../config/tardis-icons.php' => config_path('tardis-icons.php'),
         ], 'tardis-icons-config');
 
-        $this->publishes([
-            __DIR__.'/../public/tardis-assets' => public_path('tardis-assets'),
-        ], 'tardis-themes-assets');
     }
 
     protected function registerAliases(): void
@@ -202,8 +222,8 @@ class TardisServiceProvider extends ServiceProvider
             return new Tardis;
         });
 
-        $this->app->singleton(ConfigBreadSource::class, function () {
-            return new ConfigBreadSource(config_path('bread'));
+        $this->app->singleton(LegacyConfigReader::class, function () {
+            return new LegacyConfigReader(config_path('bread'));
         });
     }
 
@@ -211,17 +231,32 @@ class TardisServiceProvider extends ServiceProvider
     {
         $router = $this->app['router'];
         $router->aliasMiddleware('tardis.admin', AdminMiddleware::class);
+        $router->aliasMiddleware('tardis.locale', SetPanelLocale::class);
+    }
+
+    protected function registerListeners(): void
+    {
+        Event::listen(BreadSaved::class, ProvisionBreadPermissions::class);
+
+        Event::listen(
+            [BreadRecordCreated::class, BreadRecordUpdated::class, BreadRecordDeleted::class],
+            LogBreadActivity::class
+        );
     }
 
     protected function registerCommands(): void
     {
         if ($this->app->runningInConsole()) {
             $this->commands([
+                TardisAdminCommand::class,
                 TardisBreadExportCommand::class,
                 TardisBreadMigrateCommand::class,
+                TardisDoctorCommand::class,
+                TardisInstallCommand::class,
                 TardisMakeBreadCommand::class,
                 TardisMakeModelCommand::class,
                 TardisMakePluginCommand::class,
+                TardisPluginsCommand::class,
             ]);
         }
     }

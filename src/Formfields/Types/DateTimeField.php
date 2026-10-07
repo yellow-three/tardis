@@ -6,6 +6,8 @@ use Tardis\Formfields\Formfield;
 
 class DateTimeField extends Formfield
 {
+    protected array $configurable = ['with_time' => 'withTime'];
+
     public bool $withTime = true;
 
     public function withTime(bool $withTime = true): self
@@ -25,10 +27,10 @@ class DateTimeField extends Formfield
         return 'tardis::formfields.datetime';
     }
 
-    public function viewData(): array
+    protected function extraViewData(): array
     {
-        return array_merge(parent::viewData(), [
+        return [
             'withTime' => $this->withTime,
-        ]);
+        ];
     }
 }

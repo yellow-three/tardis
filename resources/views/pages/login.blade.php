@@ -2,9 +2,12 @@
 
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
+use Illuminate\Cache\RateLimiter;
+use Illuminate\Support\Str;
 use Livewire\Component;
+use Tardis\Manager\PluginManager;
 
-new #[Title('Login')] #[Layout('tardis::layouts.auth')] class extends Component
+new #[Title('tardis::auth.login')] #[Layout('tardis::layouts.auth')] class extends Component
 {
     public string $email = '';
 
@@ -26,13 +29,29 @@ new #[Title('Login')] #[Layout('tardis::layouts.auth')] class extends Component
     {
         $this->validate();
 
-        if (auth()->attempt([
-            'email' => $this->email,
-            'password' => $this->password,
-        ], $this->remember)) {
-            session()->regenerate();
-            $this->redirect(route('tardis.dashboard'));
+        $limiter = app(RateLimiter::class);
+        $key = Str::lower($this->email).'|'.request()->ip();
+
+        if ($limiter->tooManyAttempts($key, 5)) {
+            $this->error = __('tardis::auth.too_many_attempts', ['seconds' => $limiter->availableIn($key)]);
+
+            return;
         }
+
+        $plugin = app(PluginManager::class)->authenticationPlugin();
+
+        $signedIn = $plugin !== null
+            ? $plugin->attempt(['email' => $this->email, 'password' => $this->password], $this->remember)
+            : auth()->attempt(['email' => $this->email, 'password' => $this->password], $this->remember);
+
+        if ($signedIn) {
+            $limiter->clear($key);
+            $this->redirect($plugin !== null ? $plugin->redirectTo() : route('tardis.dashboard'));
+
+            return;
+        }
+
+        $limiter->hit($key);
 
         $this->error = __('auth.failed');
     }
@@ -53,9 +72,9 @@ new #[Title('Login')] #[Layout('tardis::layouts.auth')] class extends Component
     @endif
 
     <form wire:submit="login" class="space-y-4">
-        <div class="form-control">
+        <div class="flex flex-col gap-2">
             <label class="label" for="email">
-                <span class="label-text">Email address</span>
+                <span class="text-base-content">{{ __('tardis::auth.email_address') }}</span>
             </label>
             <input
                 type="email"
@@ -64,19 +83,19 @@ new #[Title('Login')] #[Layout('tardis::layouts.auth')] class extends Component
                 required
                 autofocus
                 autocomplete="email"
-                placeholder="email@example.com"
-                class="input input-bordered w-full @error('email') input-error @enderror"
+                placeholder="{{ __('tardis::auth.email_example_com') }}"
+                class="input w-full @error('email') input-error @enderror"
             />
             @error('email')
                 <label class="label">
-                    <span class="label-text-alt text-error">{{ $message }}</span>
+                    <span class="text-error">{{ $message }}</span>
                 </label>
             @enderror
         </div>
 
-        <div class="form-control">
+        <div class="flex flex-col gap-2">
             <label class="label" for="password">
-                <span class="label-text">Password</span>
+                <span class="text-base-content">{{ __('tardis::auth.password') }}</span>
             </label>
             <input
                 type="password"
@@ -85,28 +104,28 @@ new #[Title('Login')] #[Layout('tardis::layouts.auth')] class extends Component
                 required
                 autocomplete="current-password"
                 placeholder="••••••••"
-                class="input input-bordered w-full @error('password') input-error @enderror"
+                class="input w-full @error('password') input-error @enderror"
             />
             @error('password')
                 <label class="label">
-                    <span class="label-text-alt text-error">{{ $message }}</span>
+                    <span class="text-error">{{ $message }}</span>
                 </label>
             @enderror
         </div>
 
-        <div class="form-control">
+        <div class="flex flex-col gap-2">
             <label class="label cursor-pointer justify-start gap-3">
                 <input
                     type="checkbox"
                     wire:model="remember"
                     class="checkbox checkbox-primary checkbox-sm"
                 />
-                <span class="label-text">Remember me</span>
+                <span class="text-base-content">{{ __('tardis::auth.remember_me') }}</span>
             </label>
         </div>
 
         <button type="submit" class="btn btn-primary btn-block">
-            Log in
+            {{ __('tardis::auth.log_in') }}
         </button>
     </form>
 </div>

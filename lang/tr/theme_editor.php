@@ -1,0 +1,25 @@
+<?php
+
+return [
+    'title' => 'Temalar',
+    'description' => 'Özel renk temaları oluşturun. Kaydedilen tema tüm kullanıcılar için hemen kullanılabilir olur.',
+    'existing' => 'Temalarınız',
+    'none' => 'Henüz özel tema yok.',
+    'editor' => 'Tema düzenleyici',
+    'name' => 'Ad (harf, rakam, tire)',
+    'label' => 'Etiket',
+    'scheme' => 'Renk şeması',
+    'light' => 'Açık',
+    'dark' => 'Koyu',
+    'colors' => 'Renkler',
+    'save' => 'Temayı kaydet',
+    'new' => 'Yeni tema',
+    'duplicate' => 'Çoğalt',
+    'edit' => 'Düzenle',
+    'delete' => 'Sil',
+    'confirm_delete' => 'Bu tema silinsin mi?',
+    'invalid' => 'Tema kaydedilmedi. Harf, rakam ve tireden oluşan kısa bir ad ile en az primary, base-100 ve base-content için geçerli renkler girin.',
+    'saved' => 'Tema kaydedildi.',
+    'builtin' => 'Yerleşik',
+    'copy_of' => ':label kopyası',
+];

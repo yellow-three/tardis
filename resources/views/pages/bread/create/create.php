@@ -1,12 +1,17 @@
 <?php
 
-use Illuminate\Http\UploadedFile;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\Locked;
 use Livewire\Attributes\Title;
 use Livewire\Component;
 use Livewire\WithFileUploads;
+use Tardis\Auth\BreadAuthorization;
 use Tardis\Bread\BreadManager;
+use Tardis\Bread\BreadSaver;
+use Tardis\Bread\FieldValidationRules;
+use Tardis\Bread\MissingColumnsException;
 use Tardis\Classes\Translation;
+use Tardis\Formfields\Formfield;
 use Tardis\Formfields\Types\BelongsToManyField;
 use Tardis\Manager\FormfieldManager;
 
@@ -14,8 +19,10 @@ new #[Title('Create')] #[Layout('tardis::layouts.admin')] class extends Componen
 {
     use WithFileUploads;
 
+    #[Locked]
     public string $slug = '';
 
+    #[Locked]
     public array $bread = [];
 
     public array $form = [];
@@ -23,6 +30,13 @@ new #[Title('Create')] #[Layout('tardis::layouts.admin')] class extends Componen
     public array $relationSearch = [];
 
     public array $relationResults = [];
+
+    /**
+     * The locale a translatable field's control is showing. One locale for the
+     * whole page, so switching tabs reveals another language's inputs without
+     * discarding what has already been typed into the current one.
+     */
+    public string $activeLocale = '';
 
     public function mount(string $slug): void
     {
@@ -33,10 +47,34 @@ new #[Title('Create')] #[Layout('tardis::layouts.admin')] class extends Componen
             abort(404);
         }
 
-        $this->bread = $definition->toArray();
+        $this->bread = $definition->toDisplayArray();
 
+        app(BreadAuthorization::class)->authorize('add', $this->slug);
+
+        $this->initFieldDefaults();
         $this->initTranslatableFields();
         $this->initRelationSearch();
+    }
+
+    /**
+     * Open the form with each field's create-time value: the declared default,
+     * run through the field's add() hook so a type can derive one (today's
+     * date, a generated slug) before the user touches the form.
+     */
+    public function initFieldDefaults(): void
+    {
+        foreach (app(FormfieldManager::class)->fields($this->fields) as $field) {
+            if ($field->translatable) {
+                // Handled per locale by initTranslatableFields().
+                continue;
+            }
+
+            $value = $field->add($field->default);
+
+            if ($field->default !== null || $value !== null) {
+                $this->form[$field->name] = $value;
+            }
+        }
     }
 
     public function initTranslatableFields(): void
@@ -49,6 +87,44 @@ new #[Title('Create')] #[Layout('tardis::layouts.admin')] class extends Componen
             }
 
             $this->form[$name] = Translation::normalize(null, Translation::locales($field['locales'] ?? null));
+        }
+
+        $locales = $this->translatableLocales;
+        $current = (string) app()->getLocale();
+
+        $this->activeLocale = in_array($current, $locales, true) ? $current : ($locales[0] ?? '');
+    }
+
+    /**
+     * Every locale any translatable field on this page declares, in order.
+     *
+     * @return array<int, string>
+     */
+    public function getTranslatableLocalesProperty(): array
+    {
+        $locales = [];
+
+        foreach ($this->fields as $field) {
+            if (empty($field['translatable'])) {
+                continue;
+            }
+
+            foreach (Translation::locales($field['locales'] ?? null) as $locale) {
+                $locales[$locale] = true;
+            }
+        }
+
+        return array_keys($locales);
+    }
+
+    /**
+     * Only a locale one of these fields actually declares is accepted, so a
+     * crafted request cannot leave the page rendering a locale nothing has.
+     */
+    public function setActiveLocale(string $locale): void
+    {
+        if (in_array($locale, $this->translatableLocales, true)) {
+            $this->activeLocale = $locale;
         }
     }
 
@@ -93,6 +169,16 @@ new #[Title('Create')] #[Layout('tardis::layouts.admin')] class extends Componen
         );
     }
 
+    /**
+     * The field objects behind the form; each one renders its own control.
+     *
+     * @return array<int, Formfield>
+     */
+    public function getFormfieldsProperty(): array
+    {
+        return app(FormfieldManager::class)->fields($this->fields);
+    }
+
     public function getFieldsProperty(): array
     {
         if (empty($this->bread)) {
@@ -104,32 +190,7 @@ new #[Title('Create')] #[Layout('tardis::layouts.admin')] class extends Componen
 
     protected function validationRules(): array
     {
-        $rules = [];
-
-        foreach ($this->fields as $field) {
-            $name = $field['name'] ?? null;
-
-            if (! $name) {
-                continue;
-            }
-
-            $fieldRules = $field['validation'] ?? [];
-            $rules['form.'.$name] = in_array('required', $fieldRules, true) ? 'required' : 'nullable';
-
-            if (($field['type'] ?? null) === 'file' && ($this->form[$name] ?? null) instanceof UploadedFile) {
-                $rules['form.'.$name] .= '|file';
-
-                if (! empty($field['mimes'])) {
-                    $rules['form.'.$name] .= '|mimes:'.implode(',', (array) $field['mimes']);
-                }
-
-                if (! empty($field['max_size'])) {
-                    $rules['form.'.$name] .= '|max:'.(int) $field['max_size'];
-                }
-            }
-        }
-
-        return $rules;
+        return FieldValidationRules::for($this->fields, $this->form, $this->activeLocale, 'add');
     }
 
     public function save(): void
@@ -139,38 +200,22 @@ new #[Title('Create')] #[Layout('tardis::layouts.admin')] class extends Componen
         $modelClass = $this->bread['model'] ?? null;
 
         if (! $modelClass || ! class_exists($modelClass)) {
-            session()->flash('error', 'Unable to determine model class.');
+            session()->flash('error', __('tardis::bread.model_class_unknown'));
 
             return;
         }
 
-        $fields = app(FormfieldManager::class)->fields($this->fields);
-        $data = [];
-        $relations = [];
+        try {
+            app(BreadSaver::class)->create($this->slug, $modelClass, $this->fields, $this->form);
+        } catch (MissingColumnsException $e) {
+            $this->addError('form', __('tardis::bread.fields_required_by_database', [
+                'fields' => implode(', ', $e->columns),
+            ]));
 
-        foreach ($fields as $field) {
-            $value = $this->form[$field->name] ?? $field->default;
-
-            if ($field->skipWhenBlank() && blank($value)) {
-                continue;
-            }
-
-            if ($field->isRelation()) {
-                $relations[] = [$field, $value];
-
-                continue;
-            }
-
-            $data[$field->name] = $field->transform($value);
+            return;
         }
 
-        $model = $modelClass::create($data);
-
-        foreach ($relations as [$field, $value]) {
-            $field->stored($value, $model);
-        }
-
-        session()->flash('message', 'Item created successfully.');
+        session()->flash('message', __('tardis::bread.item_created'));
         $this->redirect(url(trim(config('tardis.admin.prefix', 'admin'), '/').'/'.$this->slug));
     }
 };

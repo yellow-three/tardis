@@ -110,3 +110,48 @@ test('menu item children defaults to empty collection', function () {
     expect($item->children)->toBeInstanceOf(Collection::class)
         ->and($item->children->isEmpty())->toBeTrue();
 });
+
+test('menu item resolves a locale map title for the active locale', function () {
+    $item = new MenuItem(['en' => 'Dashboard', 'tr' => 'Panel']);
+
+    expect($item->resolvedTitle('en'))->toBe('Dashboard')
+        ->and($item->resolvedTitle('tr'))->toBe('Panel');
+});
+
+test('menu item falls back to a filled locale when the active one is empty', function () {
+    $item = new MenuItem(['en' => 'Dashboard', 'tr' => '']);
+
+    expect($item->resolvedTitle('tr'))->toBe('Dashboard');
+});
+
+test('menu item leaves a plain string title untouched', function () {
+    expect((new MenuItem('Dashboard'))->resolvedTitle('tr'))->toBe('Dashboard');
+});
+
+test('menu item resolves a translation key title and leaves a missing key verbatim', function () {
+    expect((new MenuItem('bread.browse'))->resolvedTitle('tr'))->toBe(__('bread.browse'))
+        ->and((new MenuItem('Not a real key'))->resolvedTitle('tr'))->toBe('Not a real key');
+});
+
+test('menu item id stays the same in every locale so overlay entries survive a language switch', function () {
+    $item = new MenuItem(['en' => 'Dashboard', 'tr' => 'Panel']);
+
+    app()->setLocale('en');
+    $english = $item->id();
+
+    app()->setLocale('tr');
+    $turkish = $item->id();
+
+    expect($english)->toBe($turkish)
+        ->and($english)->toBe('dashboard')
+        ->and($item->resolvedTitle())->toBe('Panel');
+});
+
+test('menu item id prefers the route name and parameters over the title', function () {
+    $item = (new MenuItem(['en' => 'Posts', 'tr' => 'Yazılar']))->route('tardis.bread.index', ['slug' => 'posts']);
+
+    expect($item->id())->toBe('tardis.bread.index:posts')
+        ->and($item->id())->toBe((new MenuItem(['en' => 'Yazılar', 'tr' => 'Posts']))
+        ->route('tardis.bread.index', ['slug' => 'posts'])
+        ->id());
+});

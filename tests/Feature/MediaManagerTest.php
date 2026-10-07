@@ -275,3 +275,16 @@ test('downloadZip rejects a selection that yields no archivable file', function 
 
     Storage::disk('public')->assertExists('media/box/photo.jpg');
 });
+
+test('upload de-duplicates a colliding filename that has no extension', function () {
+    Storage::disk('public')->put('media/gallery/LICENSE', 'first');
+
+    $media = manager()->upload(UploadedFile::fake()->create('LICENSE', 1), 'gallery');
+
+    expect($media->name)->toBe('LICENSE_1');
+    Storage::disk('public')->assertExists('media/gallery/LICENSE_1');
+});
+
+test('the media manager is bound once as a singleton under its real class name', function () {
+    expect(app(MediaManager::class))->toBe(app(MediaManager::class));
+});

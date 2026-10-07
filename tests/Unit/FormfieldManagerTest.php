@@ -121,3 +121,30 @@ test('formfield manager fields maps file upload metadata', function () {
         ->and($fields[0]->disk)->toBe('public')
         ->and($fields[0]->directory)->toBe('avatars');
 });
+
+test('formfield manager fields keeps a locale map label and its locales', function () {
+    $manager = new FormfieldManager;
+
+    $fields = $manager->fields([
+        [
+            'name' => 'title',
+            'type' => 'text',
+            'label' => ['en' => 'Title', 'tr' => 'Başlık'],
+            'locales' => ['en', 'tr'],
+        ],
+    ]);
+
+    expect($fields[0]->label)->toBe(['en' => 'Title', 'tr' => 'Başlık'])
+        ->and($fields[0]->resolvedLabel('tr'))->toBe('Başlık');
+});
+
+test('formfield manager fields falls back to a readable name for an empty label', function () {
+    $manager = new FormfieldManager;
+
+    $fields = $manager->fields([
+        ['name' => 'first_name', 'type' => 'text', 'label' => []],
+    ]);
+
+    expect($fields[0]->label)->toBe('First name')
+        ->and($fields[0]->resolvedLabel('tr'))->toBe('First name');
+});

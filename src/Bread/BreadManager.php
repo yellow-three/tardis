@@ -6,6 +6,8 @@ namespace Tardis\Bread;
 
 use Illuminate\Support\Collection;
 use Tardis\Bread\Sources\JsonBreadSource;
+use Tardis\Events\BreadRemoved;
+use Tardis\Events\BreadSaved;
 
 class BreadManager
 {
@@ -18,7 +20,13 @@ class BreadManager
      */
     public function save(array|BreadDefinition $bread): void
     {
+        $definition = $bread instanceof BreadDefinition ? $bread : BreadDefinition::fromArray($bread);
+
+        $wasNew = ! $this->bread->has($definition->slug);
+
         $this->bread->save($bread);
+
+        BreadSaved::dispatch($definition, $wasNew);
     }
 
     public function find(string $slug): ?BreadDefinition
@@ -38,7 +46,13 @@ class BreadManager
 
     public function delete(string $slug): bool
     {
-        return $this->bread->delete($slug);
+        $deleted = $this->bread->delete($slug);
+
+        if ($deleted) {
+            BreadRemoved::dispatch($slug);
+        }
+
+        return $deleted;
     }
 
     public function backup(string $slug): ?string

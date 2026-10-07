@@ -3,6 +3,7 @@
 namespace Tardis;
 
 use Illuminate\Support\ServiceProvider;
+use Tardis\Manager\MediaManager;
 
 class TardisMediaServiceProvider extends ServiceProvider
 {

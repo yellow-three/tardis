@@ -3,16 +3,16 @@
     <div class="flex-1 min-w-0 space-y-4">
 
         {{-- Header: Title & Buttons --}}
-        <x-tardis::page-header title="Media Library" description="Manage your media files">
+        <x-tardis::page-header :title="__('tardis::media.media_library')" :description="__('tardis::media.manage_your_media_files')">
             <x-slot:action>
                 <div class="flex gap-2">
-                    <button wire:click="$set('showNewDirModal', true)" class="btn btn-outline gap-2 shadow-sm">
+                    <button wire:click="$set('showNewDirModal', true)" class="btn btn-outline gap-2">
                         <x-tardis::icon name="folder" class="w-4 h-4" />
-                        Create folder
+                        {{ __('tardis::media.create_folder') }}
                     </button>
-                    <label class="btn btn-primary gap-2 shadow-sm cursor-pointer">
+                    <label class="btn btn-primary gap-2 cursor-pointer">
                         <x-tardis::icon name="plus" class="w-4 h-4" />
-                        Upload
+                        {{ __('tardis::media.upload') }}
                         <input type="file" wire:key="media-upload-{{ $uploadInputKey }}" wire:model.live="newUploads" class="hidden" multiple />
                     </label>
                 </div>
@@ -21,14 +21,14 @@
 
         {{-- Session Messages --}}
         @if (session('message'))
-            <div class="alert alert-success shadow-sm">
+            <div class="alert alert-success">
                 <x-tardis::icon name="check-circle" class="w-5 h-5" />
                 <span>{{ session('message') }}</span>
             </div>
         @endif
 
         @if (session('error'))
-            <div class="alert alert-error shadow-sm">
+            <div class="alert alert-error">
                 <x-tardis::icon name="exclamation-circle" class="w-5 h-5" />
                 <span>{{ session('error') }}</span>
             </div>
@@ -36,14 +36,14 @@
 
         {{-- Upload Progress --}}
         @if (!empty($newUploads))
-            <div class="alert alert-info shadow-sm">
+            <div class="alert alert-info">
                 <span class="loading loading-spinner loading-sm"></span>
-                <span>Uploading {{ is_array($newUploads) ? count($newUploads).' files' : '1 file' }}...</span>
+                <span>{{ trans_choice('tardis::media.uploading', is_array($newUploads) ? count($newUploads) : 1, ['count' => is_array($newUploads) ? count($newUploads) : 1]) }}</span>
             </div>
         @endif
 
         {{-- Breadcrumbs --}}
-        <div class="flex justify-between items-center bg-base-100 p-2 rounded-xl border border-base-200 shadow-sm">
+        <div class="flex justify-between items-center bg-base-100 p-2 rounded-xl border border-base-200">
             <div class="text-sm breadcrumbs px-2 text-base-content/70">
                 <ul>
                     @foreach ($this->getBreadcrumbs() as $crumb)
@@ -59,7 +59,7 @@
             </div>
             <button wire:click="$set('showNewDirModal', true)" class="btn btn-sm btn-primary">
                 <x-tardis::icon name="folder" class="w-4 h-4" />
-                Create folder
+                {{ __('tardis::media.create_folder') }}
             </button>
         </div>
 
@@ -68,43 +68,43 @@
             {{-- Search --}}
             <div class="relative flex-1 min-w-[200px]">
                 <x-tardis::icon name="magnifying-glass" class="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-base-content/50" />
-                <input type="text" wire:model.live.debounce.300ms="searchQuery" placeholder="Search files or folder by name" class="input input-bordered w-full pl-10 bg-base-100 shadow-sm" />
+                <input type="text" wire:model.live.debounce.300ms="searchQuery" placeholder="{{ __('tardis::media.search_files_or_folder_by_name') }}" class="input w-full pl-10 bg-base-100" />
             </div>
 
             {{-- Filter Dropdown --}}
             <div class="dropdown dropdown-end">
-                <button tabindex="0" class="btn btn-outline bg-base-100 border-base-300 shadow-sm gap-2">
+                <button tabindex="0" class="btn btn-outline bg-base-100 border-base-300 gap-2">
                     <x-tardis::icon name="funnel" class="w-4 h-4" />
-                    Filter
+                    {{ __('tardis::media.filter') }}
                 </button>
                 <ul tabindex="0" class="dropdown-content menu p-4 shadow bg-base-100 rounded-box w-72 z-10 border border-base-200 mt-1">
-                    <li class="menu-title text-xs">Date</li>
+                    <li class="menu-title text-xs">{{ __('tardis::media.date') }}</li>
                     <li>
-                        <select wire:model.live="dateFilter" class="select select-bordered select-sm w-full">
-                            <option value="">Any time</option>
-                            <option value="today">Today</option>
-                            <option value="week">This week</option>
-                            <option value="month">This month</option>
-                            <option value="year">This year</option>
+                        <select wire:model.live="dateFilter" class="select select-sm w-full">
+                            <option value="">{{ __('tardis::media.any_time') }}</option>
+                            <option value="today">{{ __('tardis::media.today') }}</option>
+                            <option value="week">{{ __('tardis::media.this_week') }}</option>
+                            <option value="month">{{ __('tardis::media.this_month') }}</option>
+                            <option value="year">{{ __('tardis::media.this_year') }}</option>
                         </select>
                     </li>
-                    <li class="menu-title text-xs mt-2">Size</li>
+                    <li class="menu-title text-xs mt-2">{{ __('tardis::media.size') }}</li>
                     <li>
-                        <select wire:model.live="sizeFilter" class="select select-bordered select-sm w-full">
-                            <option value="">Any size</option>
+                        <select wire:model.live="sizeFilter" class="select select-sm w-full">
+                            <option value="">{{ __('tardis::media.any_size') }}</option>
                             <option value="small">< 1 MB</option>
                             <option value="medium">1-10 MB</option>
                             <option value="large">10-100 MB</option>
                             <option value="xlarge">> 100 MB</option>
                         </select>
                     </li>
-                    <li class="menu-title text-xs mt-2">Type</li>
+                    <li class="menu-title text-xs mt-2">{{ __('tardis::media.type') }}</li>
                     <li>
-                        <select wire:model.live="mimeTypeFilter" class="select select-bordered select-sm w-full">
-                            <option value="">All types</option>
-                            <option value="image">Images</option>
-                            <option value="video">Videos</option>
-                            <option value="application">Documents</option>
+                        <select wire:model.live="mimeTypeFilter" class="select select-sm w-full">
+                            <option value="">{{ __('tardis::media.all_types') }}</option>
+                            <option value="image">{{ __('tardis::media.images') }}</option>
+                            <option value="video">{{ __('tardis::media.videos') }}</option>
+                            <option value="application">{{ __('tardis::media.documents') }}</option>
                         </select>
                     </li>
                 </ul>
@@ -112,28 +112,28 @@
 
             {{-- Sort Dropdown --}}
             <div class="dropdown dropdown-end">
-                <button tabindex="0" class="btn btn-outline bg-base-100 border-base-300 shadow-sm gap-2">
+                <button tabindex="0" class="btn btn-outline bg-base-100 border-base-300 gap-2">
                     <x-tardis::icon name="chevron-up-down" class="w-4 h-4" />
-                    Sort
+                    {{ __('tardis::media.sort') }}
                 </button>
                 <ul tabindex="0" class="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-48 z-10 border border-base-200 mt-1">
-                    <li><a wire:click="$set('sortBy', 'name')" class="{{ $sortBy === 'name' ? 'active' : '' }}">
-                        <x-tardis::icon name="text" class="w-4 h-4" /> Sort by name
+                    <li><a wire:click="$set('sortBy', 'name')" class="{{ $sortBy === 'name' ? 'menu-active' : '' }}">
+                        <x-tardis::icon name="text" class="w-4 h-4" /> {{ __('tardis::media.sort_by_name') }}
                     </a></li>
-                    <li><a wire:click="$set('sortBy', 'updated')" class="{{ $sortBy === 'updated' ? 'active' : '' }}">
-                        <x-tardis::icon name="clock" class="w-4 h-4" /> Sort by updated
+                    <li><a wire:click="$set('sortBy', 'updated')" class="{{ $sortBy === 'updated' ? 'menu-active' : '' }}">
+                        <x-tardis::icon name="clock" class="w-4 h-4" /> {{ __('tardis::media.sort_by_updated') }}
                     </a></li>
-                    <li><a wire:click="$set('sortBy', 'size')" class="{{ $sortBy === 'size' ? 'active' : '' }}">
-                        <x-tardis::icon name="hashtag" class="w-4 h-4" /> Sort by size
+                    <li><a wire:click="$set('sortBy', 'size')" class="{{ $sortBy === 'size' ? 'menu-active' : '' }}">
+                        <x-tardis::icon name="hashtag" class="w-4 h-4" /> {{ __('tardis::media.sort_by_size') }}
                     </a></li>
-                    <li><a wire:click="$set('sortBy', 'type')" class="{{ $sortBy === 'type' ? 'active' : '' }}">
-                        <x-tardis::icon name="document-text" class="w-4 h-4" /> Sort by type
+                    <li><a wire:click="$set('sortBy', 'type')" class="{{ $sortBy === 'type' ? 'menu-active' : '' }}">
+                        <x-tardis::icon name="document-text" class="w-4 h-4" /> {{ __('tardis::media.sort_by_type') }}
                     </a></li>
                 </ul>
             </div>
 
             {{-- View Toggle --}}
-            <div class="join border border-base-300 shadow-sm rounded-lg bg-base-100">
+            <div class="join border border-base-300 rounded-lg bg-base-100">
                 <button wire:click="$set('viewMode', 'grid')" class="btn btn-ghost join-item px-3 {{ $viewMode === 'grid' ? 'btn-active' : '' }}">
                     <x-tardis::icon name="table-cells" class="w-5 h-5" />
                 </button>
@@ -146,23 +146,23 @@
         {{-- Results Count + Select All --}}
         @if (!empty($files) && empty($selectedFiles))
             <div class="flex justify-between items-center text-sm font-semibold text-base-content/60">
-                <span>ALL RESULTS &middot; {{ count($files) }}</span>
-                <button wire:click="selectAll" class="hover:text-primary transition-colors">Select all {{ count($files) }}</button>
+                <span>{{ __('tardis::media.all_results', ['count' => count($files)]) }}</span>
+                <button wire:click="selectAll" class="hover:text-primary transition-colors">{{ __('tardis::media.select_all', ['count' => count($files)]) }}</button>
             </div>
         @endif
 
         {{-- Bulk Actions Bar --}}
         @if (!empty($selectedFiles))
             <div class="flex items-center gap-2 px-4 py-3 bg-primary/5 border border-primary/20 rounded-xl">
-                <span class="text-sm font-medium">{{ count($selectedFiles) }} file(s) selected</span>
+                <span class="text-sm font-medium">{{ __('tardis::media.files_selected', ['count' => count($selectedFiles)]) }}</span>
                 <div class="ml-auto flex gap-2">
-                    <button wire:click="downloadSelected" class="btn btn-primary btn-sm gap-1 shadow-sm">
-                        <x-tardis::icon name="arrow-down-tray" class="w-4 h-4" /> Download
+                    <button wire:click="downloadSelected" class="btn btn-primary btn-sm gap-1">
+                        <x-tardis::icon name="arrow-down-tray" class="w-4 h-4" /> {{ __('tardis::media.download') }}
                     </button>
-                    <button wire:click="bulkDelete" class="btn btn-error btn-sm gap-1 shadow-sm">
-                        <x-tardis::icon name="x-mark" class="w-4 h-4" /> Delete
+                    <button wire:click="bulkDelete" class="btn btn-error btn-sm gap-1">
+                        <x-tardis::icon name="x-mark" class="w-4 h-4" /> {{ __('tardis::media.delete') }}
                     </button>
-                    <button wire:click="deselectAll" class="btn btn-ghost btn-sm">Clear</button>
+                    <button wire:click="deselectAll" class="btn btn-ghost btn-sm">{{ __('tardis::media.clear') }}</button>
                 </div>
             </div>
         @endif
@@ -180,26 +180,26 @@
         {{-- Files --}}
         @if (empty($files))
             {{-- Empty State --}}
-            <div class="card bg-base-100 shadow-sm border border-base-200">
+            <div class="card bg-base-100 border border-base-300">
                 <div class="card-body text-center py-16">
-                    <x-tardis::icon name="photo" class="w-20 h-20 mx-auto opacity-20" />
+                    <x-tardis::icon name="photo" class="w-20 h-20 mx-auto text-base-content/20" />
                     <h3 class="text-lg font-semibold mt-4">
                         @if ($searchQuery || $mimeTypeFilter || $dateFilter || $sizeFilter)
-                            No matching files
+                            {{ __('tardis::media.no_matching_files') }}
                         @else
-                            No files found
+                            {{ __('tardis::media.no_files_found') }}
                         @endif
                     </h3>
                     <p class="text-base-content/60 mt-2">
                         @if ($searchQuery || $mimeTypeFilter || $dateFilter || $sizeFilter)
-                            Try adjusting your filters
+                            {{ __('tardis::media.try_adjusting_filters') }}
                         @else
-                            Upload files or create a new folder
+                            {{ __('tardis::media.upload_or_create_folder') }}
                         @endif
                     </p>
                     @if ($searchQuery || $mimeTypeFilter || $dateFilter || $sizeFilter)
                         <button wire:click="$set('searchQuery', ''); $set('mimeTypeFilter', ''); $set('dateFilter', ''); $set('sizeFilter', '')" class="btn btn-ghost btn-sm mt-2">
-                            Clear filters
+                            {{ __('tardis::media.clear_filters') }}
                         </button>
                     @endif
                 </div>
@@ -214,19 +214,19 @@
                         @else
                             wire:click="showFileInfo('{{ $file['relative_path'] }}')"
                         @endif
-                        class="group relative aspect-square rounded-2xl overflow-hidden cursor-pointer shadow-sm border-2 transition-all duration-200 bg-base-100
+                        class="group relative aspect-square rounded-2xl overflow-hidden cursor-pointer  border-2 transition-all duration-200 bg-base-100
                             {{ $showInfoModal && $infoFile && ($infoFile['relative_path'] ?? '') === $file['relative_path'] ? 'border-primary ring-2 ring-primary/30' : 'border-transparent hover:border-base-300 hover:shadow-md' }}">
 
                         {{-- File Preview --}}
                         @if ($file['type'] === 'directory')
                             <div class="w-full h-full flex items-center justify-center bg-base-200">
-                                <x-tardis::icon name="folder" class="w-16 h-16 text-primary opacity-60" />
+                                <x-tardis::icon name="folder" class="w-16 h-16 text-primary/60" />
                             </div>
                         @elseif (str_starts_with($file['type'], 'image/'))
                             <img src="{{ $file['url'] }}" alt="{{ $file['name'] }}" class="object-cover w-full h-full" loading="lazy" />
                         @else
                             <div class="w-full h-full flex items-center justify-center bg-base-200">
-                                <x-tardis::icon name="document-text" class="w-12 h-12 opacity-30" />
+                                <x-tardis::icon name="document-text" class="w-12 h-12 text-base-content/30" />
                             </div>
                         @endif
 
@@ -259,17 +259,17 @@
             </div>
         @else
             {{-- List View (Table) --}}
-            <div class="card bg-base-100 shadow-sm border border-base-200">
+            <div class="card bg-base-100 border border-base-300">
                 <div class="overflow-x-auto">
                     <table class="table table-sm">
                         <thead>
                             <tr>
-                                <th class="w-10"></th>
-                                <th>Name</th>
-                                <th>Type</th>
-                                <th>Size</th>
-                                <th>Modified</th>
-                                <th class="w-20"></th>
+                                <th class="w-10" aria-hidden="true"></th>
+                                <th scope="col">{{ __('tardis::media.name') }}</th>
+                                <th scope="col">{{ __('tardis::media.type') }}</th>
+                                <th scope="col">{{ __('tardis::media.size') }}</th>
+                                <th scope="col">{{ __('tardis::media.modified') }}</th>
+                                <th class="w-20" aria-hidden="true"></th>
                             </tr>
                         </thead>
                         <tbody>
@@ -290,9 +290,9 @@
                                             <span class="font-medium">{{ $file['name'] }}</span>
                                         @endif
                                     </td>
-                                    <td class="text-sm opacity-60">{{ $file['type'] }}</td>
-                                    <td class="text-sm opacity-60">{{ $file['type'] !== 'directory' ? $this->formatSize($file['size']) : '-' }}</td>
-                                    <td class="text-sm opacity-60">
+                                    <td class="text-sm text-base-content/60">{{ $file['type'] }}</td>
+                                    <td class="text-sm text-base-content/60">{{ $file['type'] !== 'directory' ? $this->formatSize($file['size']) : '-' }}</td>
+                                    <td class="text-sm text-base-content/60">
                                         @if ($file['last_modified'] ?? null)
                                             {{ \Carbon\Carbon::createFromTimestamp($file['last_modified'])->format('M d, Y') }}
                                         @endif
@@ -304,13 +304,13 @@
                                             </button>
                                             <ul tabindex="0" class="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-40 z-10 border border-base-200">
                                                 <li><a wire:click="showFileInfo('{{ $file['relative_path'] }}')">
-                                                    <x-tardis::icon name="information-circle" class="w-4 h-4" /> Info
+                                                    <x-tardis::icon name="information-circle" class="w-4 h-4" /> {{ __('tardis::media.info') }}
                                                 </a></li>
                                                 <li><a wire:click="confirmRename('{{ $file['relative_path'] }}')">
-                                                    <x-tardis::icon name="pencil-square" class="w-4 h-4" /> Rename
+                                                    <x-tardis::icon name="pencil-square" class="w-4 h-4" /> {{ __('tardis::media.rename') }}
                                                 </a></li>
                                                 <li><a wire:click="confirmDelete('{{ $file['relative_path'] }}')" class="text-error">
-                                                    <x-tardis::icon name="x-mark" class="w-4 h-4" /> Delete
+                                                    <x-tardis::icon name="x-mark" class="w-4 h-4" /> {{ __('tardis::media.delete') }}
                                                 </a></li>
                                             </ul>
                                         </div>
@@ -328,7 +328,7 @@
     {{-- Right Sidebar: File Info Panel (DaisyUI card) --}}
     @if ($showInfoModal && $infoFile)
         <div class="w-80 flex-shrink-0">
-            <div class="card bg-base-100 border border-base-200 shadow-sm sticky top-20">
+            <div class="card bg-base-100 border border-base-300 sticky top-20">
                 <div class="card-body p-5 gap-4">
 
                     {{-- Preview Image --}}
@@ -358,28 +358,28 @@
                     <div class="collapse collapse-arrow bg-base-100 border-none rounded-none">
                         <input type="checkbox" wire:model.live="showInfoSection" />
                         <div class="collapse-title px-0 min-h-0 py-2 text-xs font-semibold text-base-content/50 uppercase tracking-wider">
-                            Information
+                            {{ __('tardis::media.information') }}
                         </div>
                         <div class="collapse-content px-0 text-sm space-y-3">
                             <div class="flex justify-between">
-                                <span class="text-base-content/70">Name</span>
+                                <span class="text-base-content/70">{{ __('tardis::media.name') }}</span>
                                 <span class="font-medium text-right ml-4 break-all">{{ $infoFile['name'] }}</span>
                             </div>
                             <div class="flex justify-between">
-                                <span class="text-base-content/70">Type</span>
+                                <span class="text-base-content/70">{{ __('tardis::media.type') }}</span>
                                 <span class="font-medium">{{ $infoFile['mime_type'] ?? 'directory' }}</span>
                             </div>
                             <div class="flex justify-between">
-                                <span class="text-base-content/70">Size</span>
+                                <span class="text-base-content/70">{{ __('tardis::media.size') }}</span>
                                 <span class="font-medium">{{ $this->formatSize($infoFile['size'] ?? 0) }}</span>
                             </div>
                             <div class="flex justify-between">
-                                <span class="text-base-content/70">Path</span>
+                                <span class="text-base-content/70">{{ __('tardis::media.path') }}</span>
                                 <span class="font-medium font-mono text-xs text-right break-all max-w-[180px]">{{ $infoFile['relative_path'] }}</span>
                             </div>
                             @if ($infoFile['last_modified'] ?? null)
                                 <div class="flex justify-between">
-                                    <span class="text-base-content/70">Modified</span>
+                                    <span class="text-base-content/70">{{ __('tardis::media.modified') }}</span>
                                     <span class="font-medium">{{ \Carbon\Carbon::createFromTimestamp($infoFile['last_modified'])->format('M d, Y H:i') }}</span>
                                 </div>
                             @endif
@@ -390,12 +390,12 @@
                     <div class="collapse collapse-arrow bg-base-100 border-none rounded-none">
                         <input type="checkbox" wire:model.live="showTagsSection" />
                         <div class="collapse-title px-0 min-h-0 py-2 text-xs font-semibold text-base-content/50 uppercase tracking-wider">
-                            Tags
+                            {{ __('tardis::media.tags') }}
                         </div>
                         <div class="collapse-content px-0">
                             <div class="join w-full">
-                                <input type="text" placeholder="New tag" class="input input-sm input-bordered join-item flex-1" />
-                                <button class="btn btn-primary btn-sm join-item">Save</button>
+                                <input type="text" placeholder="{{ __('tardis::media.new_tag') }}" class="input input-sm join-item flex-1" />
+                                <button class="btn btn-primary btn-sm join-item">{{ __('tardis::media.save') }}</button>
                             </div>
                         </div>
                     </div>
@@ -409,18 +409,18 @@
                             <a href="{{ $infoFile['url'] }}" target="_blank"
                                class="btn btn-outline btn-sm join-item justify-start gap-2">
                                 <x-tardis::icon name="arrow-down-tray" class="w-4 h-4" />
-                                Download
+                                {{ __('tardis::media.download') }}
                             </a>
                         @endif
                         <button wire:click="confirmRename('{{ $infoFile['relative_path'] }}')"
                                 class="btn btn-outline btn-sm join-item justify-start gap-2">
                             <x-tardis::icon name="pencil-square" class="w-4 h-4" />
-                            Rename
+                            {{ __('tardis::media.rename') }}
                         </button>
                         <button wire:click="confirmDelete('{{ $infoFile['relative_path'] }}')"
                                 class="btn btn-outline btn-error btn-sm join-item justify-start gap-2">
                             <x-tardis::icon name="x-mark" class="w-4 h-4" />
-                            Delete
+                            {{ __('tardis::media.delete') }}
                         </button>
                     </div>
 
@@ -433,22 +433,22 @@
 @if ($showNewDirModal)
     <dialog class="modal modal-open">
         <div class="modal-box">
-            <h3 class="font-bold text-lg">Create New Folder</h3>
+            <h3 class="font-bold text-lg">{{ __('tardis::media.create_new_folder') }}</h3>
             <form wire:submit="createDirectory" class="py-4">
-                <input type="text" wire:model="newDirectoryName" class="input input-bordered w-full" placeholder="Folder name" autofocus />
+                <input type="text" wire:model="newDirectoryName" class="input w-full" placeholder="{{ __('tardis::media.folder_name') }}" autofocus />
                 @error('newDirectoryName')
                     <label class="label">
-                        <span class="label-text-alt text-error">{{ $message }}</span>
+                        <span class="text-error">{{ $message }}</span>
                     </label>
                 @enderror
             </form>
             <div class="modal-action">
-                <button wire:click="$set('showNewDirModal', false)" class="btn btn-ghost">Cancel</button>
-                <button wire:click="createDirectory" class="btn btn-primary">Create</button>
+                <button wire:click="$set('showNewDirModal', false)" class="btn btn-ghost">{{ __('tardis::media.cancel') }}</button>
+                <button wire:click="createDirectory" class="btn btn-primary">{{ __('tardis::media.create') }}</button>
             </div>
         </div>
         <form method="dialog" class="modal-backdrop">
-            <button wire:click="$set('showNewDirModal', false)">close</button>
+            <button wire:click="$set('showNewDirModal', false)">{{ __('tardis::media.close') }}</button>
         </form>
     </dialog>
 @endif
@@ -457,22 +457,22 @@
 @if ($showRenameModal)
     <dialog class="modal modal-open">
         <div class="modal-box">
-            <h3 class="font-bold text-lg">Rename</h3>
+            <h3 class="font-bold text-lg">{{ __('tardis::media.rename') }}</h3>
             <form wire:submit="renameFile" class="py-4">
-                <input type="text" wire:model="renameNewName" class="input input-bordered w-full" autofocus />
+                <input type="text" wire:model="renameNewName" class="input w-full" autofocus />
                 @error('renameNewName')
                     <label class="label">
-                        <span class="label-text-alt text-error">{{ $message }}</span>
+                        <span class="text-error">{{ $message }}</span>
                     </label>
                 @enderror
             </form>
             <div class="modal-action">
-                <button wire:click="$set('showRenameModal', false)" class="btn btn-ghost">Cancel</button>
-                <button wire:click="renameFile" class="btn btn-primary">Rename</button>
+                <button wire:click="$set('showRenameModal', false)" class="btn btn-ghost">{{ __('tardis::media.cancel') }}</button>
+                <button wire:click="renameFile" class="btn btn-primary">{{ __('tardis::media.rename') }}</button>
             </div>
         </div>
         <form method="dialog" class="modal-backdrop">
-            <button wire:click="$set('showRenameModal', false)">close</button>
+            <button wire:click="$set('showRenameModal', false)">{{ __('tardis::media.close') }}</button>
         </form>
     </dialog>
 @endif
@@ -485,17 +485,17 @@
                 {{ $deleteIsBulk ? 'Delete ' . count($selectedFiles) . ' Item(s)' : ($deleteIsDirectory ? 'Delete Folder' : 'Delete File') }}
             </h3>
             @if ($deleteIsBulk)
-                <p class="py-4">Are you sure you want to delete <strong>{{ count($selectedFiles) }}</strong> selected item(s)? This cannot be undone.</p>
+                <p class="py-4">{!! __('tardis::media.confirm_delete_selected', ['count' => '<strong>'.count($selectedFiles).'</strong>']) !!}</p>
             @else
-                <p class="py-4">Are you sure you want to delete <strong>{{ $deletePath }}</strong>?</p>
+                <p class="py-4">{!! __('tardis::media.confirm_delete_path', ['path' => '<strong>'.e($deletePath).'</strong>']) !!}</p>
             @endif
             <div class="modal-action">
-                <button wire:click="$set('showDeleteModal', false)" class="btn btn-ghost">Cancel</button>
-                <button wire:click="deleteFile" class="btn btn-error">Delete</button>
+                <button wire:click="$set('showDeleteModal', false)" class="btn btn-ghost">{{ __('tardis::media.cancel') }}</button>
+                <button wire:click="deleteFile" class="btn btn-error">{{ __('tardis::media.delete') }}</button>
             </div>
         </div>
         <form method="dialog" class="modal-backdrop">
-            <button wire:click="$set('showDeleteModal', false)">close</button>
+            <button wire:click="$set('showDeleteModal', false)">{{ __('tardis::media.close') }}</button>
         </form>
     </dialog>
 @endif

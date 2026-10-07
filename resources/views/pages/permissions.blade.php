@@ -3,9 +3,11 @@
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
-use Tardis\Models\Permission;
+use Tardis\Auth\Abilities;
+use Tardis\Auth\BreadAuthorization;
+use Tardis\Support\ModelResolver;
 
-new #[Title('Permissions')] #[Layout('tardis::layouts.admin')] class extends Component
+new #[Title('tardis::permissions.permissions')] #[Layout('tardis::layouts.admin')] class extends Component
 {
     public array $permissions = [];
 
@@ -21,6 +23,16 @@ new #[Title('Permissions')] #[Layout('tardis::layouts.admin')] class extends Com
 
     public bool $showDeleteModal = false;
 
+    /**
+     * Runs on every request, not only on mount: Livewire keeps component state
+     * between updates, so a permission revoked after the page opened must
+     * still stop the next action.
+     */
+    public function boot(): void
+    {
+        app(BreadAuthorization::class)->authorizeAbility(Abilities::ROLES);
+    }
+
     public function mount(): void
     {
         $this->loadPermissions();
@@ -28,7 +40,7 @@ new #[Title('Permissions')] #[Layout('tardis::layouts.admin')] class extends Com
 
     public function loadPermissions(): void
     {
-        $this->permissions = Permission::all()->toArray();
+        $this->permissions = ModelResolver::permission()::all()->toArray();
     }
 
     public function createPermission(): void
@@ -38,7 +50,7 @@ new #[Title('Permissions')] #[Layout('tardis::layouts.admin')] class extends Com
             'newSlug' => 'required|string|max:255|unique:tardis_permissions,slug',
         ]);
 
-        Permission::create([
+        ModelResolver::permission()::create([
             'name' => $this->newName,
             'slug' => $this->newSlug,
             'group' => $this->newGroup ?: null,
@@ -58,7 +70,7 @@ new #[Title('Permissions')] #[Layout('tardis::layouts.admin')] class extends Com
     public function deletePermission(): void
     {
         if ($this->deleteId) {
-            Permission::findOrFail($this->deleteId)->delete();
+            ModelResolver::permission()::findOrFail($this->deleteId)->delete();
             $this->deleteId = null;
             $this->showDeleteModal = false;
             $this->loadPermissions();
@@ -67,24 +79,24 @@ new #[Title('Permissions')] #[Layout('tardis::layouts.admin')] class extends Com
 }; ?>
 
 <div>
-    <x-tardis::page-header title="Permissions" description="Manage system permissions">
+    <x-tardis::page-header :title="__('tardis::permissions.permissions')" :description="__('tardis::permissions.manage_system_permissions')">
         <x-slot:action>
             <button wire:click="$set('showAddModal', true)" class="btn btn-primary gap-2">
                 <x-tardis::icon name="plus" class="w-4 h-4" />
-                Add Permission
+                {{ __('tardis::permissions.add_permission') }}
             </button>
         </x-slot:action>
     </x-tardis::page-header>
 
-    <div class="card bg-base-100 shadow-sm">
+    <div class="card bg-base-100 border border-base-300">
         <div class="overflow-x-auto">
             <table class="table">
                 <thead>
                     <tr>
-                        <th>Name</th>
-                        <th>Slug</th>
-                        <th>Group</th>
-                        <th class="text-right">Actions</th>
+                        <th scope="col">{{ __('tardis::permissions.name') }}</th>
+                        <th scope="col">{{ __('tardis::permissions.slug') }}</th>
+                        <th scope="col">{{ __('tardis::permissions.group') }}</th>
+                        <th class="text-right" scope="col">{{ __('tardis::permissions.actions') }}</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -101,7 +113,7 @@ new #[Title('Permissions')] #[Layout('tardis::layouts.admin')] class extends Com
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="4" class="text-center py-8 opacity-50">No permissions found</td>
+                            <td colspan="4" class="text-center py-8 text-base-content/50">{{ __('tardis::permissions.no_permissions_found') }}</td>
                         </tr>
                     @endforelse
                 </tbody>
@@ -112,32 +124,32 @@ new #[Title('Permissions')] #[Layout('tardis::layouts.admin')] class extends Com
     @if ($showAddModal)
         <dialog class="modal modal-open">
             <div class="modal-box">
-                <h3 class="font-bold text-lg">Add Permission</h3>
+                <h3 class="font-bold text-lg">{{ __('tardis::permissions.add_permission') }}</h3>
                 <form wire:submit="createPermission" class="space-y-4 py-4">
-                    <input type="text" wire:model="newName" class="input input-bordered w-full" placeholder="Permission name" />
-                    <input type="text" wire:model="newSlug" class="input input-bordered w-full" placeholder="Slug (e.g., browse posts)" />
-                    <input type="text" wire:model="newGroup" class="input input-bordered w-full" placeholder="Group (optional)" />
+                    <input type="text" wire:model="newName" class="input w-full" placeholder="{{ __('tardis::permissions.permission_name') }}" />
+                    <input type="text" wire:model="newSlug" class="input w-full" placeholder="{{ __('tardis::permissions.slug_e_g_browse_posts') }}" />
+                    <input type="text" wire:model="newGroup" class="input w-full" placeholder="{{ __('tardis::permissions.group_optional') }}" />
                 </form>
                 <div class="modal-action">
-                    <button wire:click="$set('showAddModal', false)" class="btn btn-ghost">Cancel</button>
-                    <button wire:click="createPermission" class="btn btn-primary">Create</button>
+                    <button wire:click="$set('showAddModal', false)" class="btn btn-ghost">{{ __('tardis::permissions.cancel') }}</button>
+                    <button wire:click="createPermission" class="btn btn-primary">{{ __('tardis::permissions.create') }}</button>
                 </div>
             </div>
-            <form method="dialog" class="modal-backdrop"><button wire:click="$set('showAddModal', false)">close</button></form>
+            <form method="dialog" class="modal-backdrop"><button wire:click="$set('showAddModal', false)">{{ __('tardis::permissions.close') }}</button></form>
         </dialog>
     @endif
 
     @if ($showDeleteModal)
         <dialog class="modal modal-open">
             <div class="modal-box">
-                <h3 class="font-bold text-lg">Delete Permission</h3>
-                <p class="py-4">Are you sure you want to delete this permission?</p>
+                <h3 class="font-bold text-lg">{{ __('tardis::permissions.delete_permission') }}</h3>
+                <p class="py-4">{{ __('tardis::permissions.are_you_sure_you_want_to_651a') }}</p>
                 <div class="modal-action">
-                    <button wire:click="$set('showDeleteModal', false)" class="btn btn-ghost">Cancel</button>
-                    <button wire:click="deletePermission" class="btn btn-error">Delete</button>
+                    <button wire:click="$set('showDeleteModal', false)" class="btn btn-ghost">{{ __('tardis::permissions.cancel') }}</button>
+                    <button wire:click="deletePermission" class="btn btn-error">{{ __('tardis::permissions.delete') }}</button>
                 </div>
             </div>
-            <form method="dialog" class="modal-backdrop"><button wire:click="$set('showDeleteModal', false)">close</button></form>
+            <form method="dialog" class="modal-backdrop"><button wire:click="$set('showDeleteModal', false)">{{ __('tardis::permissions.close') }}</button></form>
         </dialog>
     @endif
 </div>

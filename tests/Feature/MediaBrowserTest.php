@@ -311,3 +311,20 @@ test('the file input is re-keyed after an upload so it can be re-selected', func
         // The selection buffer is emptied so the next pick is treated as a new upload.
         ->assertSet('newUploads', []);
 });
+
+test('the browser refuses executable and markup uploads that are not in the allowed list', function (string $name) {
+    Livewire::test('tardis::pages.media-browser')
+        ->set('newUploads', UploadedFile::fake()->create($name, 1))
+        ->assertHasErrors('newUploads.*');
+
+    Storage::disk('public')->assertMissing('media/'.$name);
+    expect(Media::query()->count())->toBe(0);
+})->with(['shell.php', 'page.html', 'run.phtml', 'payload.phar']);
+
+test('the browser still accepts an allowed upload type', function () {
+    Livewire::test('tardis::pages.media-browser')
+        ->set('newUploads', UploadedFile::fake()->create('report.pdf', 1))
+        ->assertHasNoErrors();
+
+    Storage::disk('public')->assertExists('media/report.pdf');
+});

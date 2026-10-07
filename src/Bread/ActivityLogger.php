@@ -3,6 +3,7 @@
 namespace Tardis\Bread;
 
 use Tardis\Models\ActivityLog;
+use Tardis\Support\ModelResolver;
 
 class ActivityLogger
 {
@@ -13,7 +14,7 @@ class ActivityLogger
         ?array $oldValues = null,
         ?array $newValues = null,
     ): ActivityLog {
-        return ActivityLog::create([
+        return ModelResolver::activityLog()::create([
             'user_id' => auth()->id(),
             'model_type' => $modelType,
             'model_id' => $modelId,

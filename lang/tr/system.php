@@ -1,0 +1,58 @@
+<?php
+
+return [
+    'system' => 'Sistem',
+    'system_tools' => 'Sistem Araçları',
+    'overview' => 'Genel bakış',
+    'logs' => 'Loglar',
+    'commands' => 'Komutlar',
+
+    // Doctor
+    'title' => 'Sistem',
+    'diagnostics' => 'Tanılama',
+    'run_checks' => 'Kontrolleri yeniden çalıştır',
+    'status' => 'Durum',
+    'check' => 'Kontrol',
+    'details' => 'Detaylar',
+    'passed' => 'Geçti',
+    'warnings' => 'Uyarılar',
+    'failed' => 'Başarısız',
+    'ok' => 'Tamam',
+    'warn' => 'Uyarı',
+    'error' => 'Başarısız',
+    'all_checks_passed' => 'Tüm kontroller geçti. Düzeltilecek bir şey yok.',
+    'checks_with_warnings' => ':count kontrol ilgi bekliyor.',
+    'checks_failed' => ':count kontrol başarısız.',
+    'no_issues' => 'Herhangi bir sorun tespit edilmedi.',
+    'read_only_notice' => 'Bu kontroller yalnızca durumu okur. Hiçbir şeyi değiştirmez.',
+
+    // Logs
+    'log_viewer' => 'Log Görüntüleyici',
+    'log_file' => 'Log dosyası',
+    'select_log' => 'Bir log dosyası seçin',
+    'no_log_files' => 'Log dosyası bulunamadı.',
+    'unavailable' => 'Bu log dosyası artık mevcut değil.',
+    'lines' => 'Satır',
+    'tail' => 'Son',
+    'refresh' => 'Yenile',
+    'empty_log' => 'Bu log dosyası boş.',
+    'truncated_notice' => 'Yalnızca dosyanın sonu gösteriliyor.',
+
+    // Commands
+    'command_runner' => 'Komut Çalıştırıcı',
+    'command' => 'Komut',
+    'select_command' => 'Bir komut seçin',
+    'no_allowed_commands' => 'Bu ortamda izin verilen komut yok.',
+    'arguments' => 'Argümanlar',
+    'allowed_options' => 'İzinli seçenekler',
+    'no_arguments' => 'Bu komut izinli seçenek almıyor.',
+    'run' => 'Çalıştır',
+    'running' => 'Çalışıyor...',
+    'output' => 'Çıktı',
+    'no_output' => 'Çıktı yok.',
+    'exit_code' => 'Çıkış kodu',
+    'runner_disabled' => 'Komut çalıştırıcı devre dışı.',
+    'runner_disabled_hint' => 'Yapılandırmada etkinleştirin ve komutlara izin verin.',
+    'not_allowed' => 'Bu komuta izin verilmiyor.',
+    'confirm_run' => 'Bu komut çalıştırılsın mı?',
+];

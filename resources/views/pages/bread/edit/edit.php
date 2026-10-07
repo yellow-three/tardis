@@ -1,12 +1,18 @@
 <?php
 
-use Illuminate\Http\UploadedFile;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\Locked;
 use Livewire\Attributes\Title;
 use Livewire\Component;
 use Livewire\WithFileUploads;
+use Tardis\Auth\BreadAuthorization;
+use Tardis\Bread\BreadDefinition;
 use Tardis\Bread\BreadManager;
+use Tardis\Bread\BreadSaver;
+use Tardis\Bread\FieldValidationRules;
+use Tardis\Bread\MissingColumnsException;
 use Tardis\Classes\Translation;
+use Tardis\Formfields\Formfield;
 use Tardis\Formfields\Types\BelongsToManyField;
 use Tardis\Manager\FormfieldManager;
 
@@ -14,12 +20,16 @@ new #[Title('Edit')] #[Layout('tardis::layouts.admin')] class extends Component
 {
     use WithFileUploads;
 
+    #[Locked]
     public string $slug = '';
 
+    #[Locked]
     public int|string $id = 0;
 
+    #[Locked]
     public array $bread = [];
 
+    #[Locked]
     public array $record = [];
 
     public array $form = [];
@@ -27,6 +37,13 @@ new #[Title('Edit')] #[Layout('tardis::layouts.admin')] class extends Component
     public array $relationSearch = [];
 
     public array $relationResults = [];
+
+    /**
+     * The locale a translatable field's control is showing. One locale for the
+     * whole page, so switching tabs reveals another language's inputs without
+     * discarding what has already been typed into the current one.
+     */
+    public string $activeLocale = '';
 
     public function mount(string $slug, int|string $id): void
     {
@@ -38,16 +55,20 @@ new #[Title('Edit')] #[Layout('tardis::layouts.admin')] class extends Component
             abort(404);
         }
 
-        $this->bread = $definition->toArray();
+        $this->bread = $definition->toDisplayArray();
         $modelClass = $this->bread['model'] ?? null;
 
         if (! $modelClass || ! class_exists($modelClass)) {
             abort(404);
         }
 
-        $record = $modelClass::findOrFail($id);
+        app(BreadAuthorization::class)->authorize('edit', $this->slug);
+
+        $record = BreadDefinition::fromArray($this->bread)->query()->findOrFail($id);
         $this->record = $record->toArray();
         $this->form = $this->record;
+
+        $fieldObjects = collect($this->formfields)->keyBy(fn (Formfield $field) => $field->name);
 
         foreach ($this->fields as $field) {
             $name = $field['name'] ?? null;
@@ -69,10 +90,51 @@ new #[Title('Edit')] #[Layout('tardis::layouts.admin')] class extends Component
                     $record->{$name} ?? null,
                     Translation::locales($field['locales'] ?? null),
                 );
+            } elseif ($fieldObjects->has($name)) {
+                // The stored value, shaped for the form control by the field.
+                $this->form[$name] = $fieldObjects->get($name)->edit($record->{$name} ?? null);
             }
         }
 
+        $locales = $this->translatableLocales;
+        $current = (string) app()->getLocale();
+
+        $this->activeLocale = in_array($current, $locales, true) ? $current : ($locales[0] ?? '');
+
         $this->initRelationSearch();
+    }
+
+    /**
+     * Every locale any translatable field on this page declares, in order.
+     *
+     * @return array<int, string>
+     */
+    public function getTranslatableLocalesProperty(): array
+    {
+        $locales = [];
+
+        foreach ($this->fields as $field) {
+            if (empty($field['translatable'])) {
+                continue;
+            }
+
+            foreach (Translation::locales($field['locales'] ?? null) as $locale) {
+                $locales[$locale] = true;
+            }
+        }
+
+        return array_keys($locales);
+    }
+
+    /**
+     * Only a locale one of these fields actually declares is accepted, so a
+     * crafted request cannot leave the page rendering a locale nothing has.
+     */
+    public function setActiveLocale(string $locale): void
+    {
+        if (in_array($locale, $this->translatableLocales, true)) {
+            $this->activeLocale = $locale;
+        }
     }
 
     public function initRelationSearch(): void
@@ -116,6 +178,45 @@ new #[Title('Edit')] #[Layout('tardis::layouts.admin')] class extends Component
         );
     }
 
+    /**
+     * The field objects behind the form; each one renders its own control.
+     *
+     * @return array<int, Formfield>
+     */
+    public function getFormfieldsProperty(): array
+    {
+        return app(FormfieldManager::class)->fields($this->fields);
+    }
+
+    public function getLayoutFieldsProperty(): array
+    {
+        $layout = $this->bread['layout'] ?? [];
+        $viewLayout = $layout['view'] ?? $layout['read'] ?? [];
+        $editLayout = $layout['edit'] ?? [];
+
+        if (! empty($viewLayout) && is_array($viewLayout)) {
+            $result = [];
+            foreach ($viewLayout as $item) {
+                if (is_string($item)) {
+                    $field = collect($this->fields)->first(fn ($f) => ($f['name'] ?? null) === $item);
+                    if ($field && ($field['read'] ?? true)) {
+                        $result[] = $field;
+                    }
+                } elseif (is_array($item) && isset($item['name'])) {
+                    $field = collect($this->fields)->first(fn ($f) => ($f['name'] ?? null) === $item['name']);
+                    if ($field && ($field['read'] ?? true)) {
+                        $result[] = array_merge($field, $item);
+                    }
+                }
+            }
+            if (! empty($result)) {
+                return $result;
+            }
+        }
+
+        return $this->fields;
+    }
+
     public function getFieldsProperty(): array
     {
         if (empty($this->bread)) {
@@ -127,32 +228,7 @@ new #[Title('Edit')] #[Layout('tardis::layouts.admin')] class extends Component
 
     protected function validationRules(): array
     {
-        $rules = [];
-
-        foreach ($this->fields as $field) {
-            $name = $field['name'] ?? null;
-
-            if (! $name) {
-                continue;
-            }
-
-            $fieldRules = $field['validation'] ?? [];
-            $rules['form.'.$name] = in_array('required', $fieldRules, true) ? 'required' : 'nullable';
-
-            if (($field['type'] ?? null) === 'file' && ($this->form[$name] ?? null) instanceof UploadedFile) {
-                $rules['form.'.$name] .= '|file';
-
-                if (! empty($field['mimes'])) {
-                    $rules['form.'.$name] .= '|mimes:'.implode(',', (array) $field['mimes']);
-                }
-
-                if (! empty($field['max_size'])) {
-                    $rules['form.'.$name] .= '|max:'.(int) $field['max_size'];
-                }
-            }
-        }
-
-        return $rules;
+        return FieldValidationRules::for($this->fields, $this->form, $this->activeLocale, 'edit');
     }
 
     public function save(): void
@@ -162,36 +238,20 @@ new #[Title('Edit')] #[Layout('tardis::layouts.admin')] class extends Component
         $modelClass = $this->bread['model'] ?? null;
 
         if ($modelClass && class_exists($modelClass)) {
-            $record = $modelClass::findOrFail($this->id);
+            $record = BreadDefinition::fromArray($this->bread)->query()->findOrFail($this->id);
 
-            $fields = app(FormfieldManager::class)->fields($this->fields);
-            $data = [];
-            $relations = [];
+            try {
+                app(BreadSaver::class)->update($this->slug, $record, $this->fields, $this->form);
+            } catch (MissingColumnsException $e) {
+                $this->addError('form', __('tardis::bread.fields_required_by_database', [
+                    'fields' => implode(', ', $e->columns),
+                ]));
 
-            foreach ($fields as $field) {
-                $value = $this->form[$field->name] ?? $field->default;
-
-                if ($field->skipWhenBlank() && blank($value)) {
-                    continue;
-                }
-
-                if ($field->isRelation()) {
-                    $relations[] = [$field, $value];
-
-                    continue;
-                }
-
-                $data[$field->name] = $field->transform($value);
-            }
-
-            $record->update($data);
-
-            foreach ($relations as [$field, $value]) {
-                $field->updated($value, $record);
+                return;
             }
         }
 
-        session()->flash('message', 'Item updated successfully.');
+        session()->flash('message', __('tardis::bread.item_updated'));
         $this->redirect(url(trim(config('tardis.admin.prefix', 'admin'), '/').'/'.$this->slug));
     }
 };

@@ -8,7 +8,8 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Log;
 use Tardis\Bread\BreadDefinition;
-use Tardis\Bread\FieldType;
+use Tardis\Bread\ReservedSlugs;
+use Tardis\Manager\FormfieldManager;
 
 /**
  * Stores BREAD definitions as JSON files, one file per slug, under
@@ -34,6 +35,10 @@ class JsonBreadSource implements BreadSource
 
     public function find(string $slug): ?BreadDefinition
     {
+        if (! static::isValidSlug($slug)) {
+            return null;
+        }
+
         $file = $this->fileFor($slug);
 
         if (! File::exists($file)) {
@@ -84,6 +89,10 @@ class JsonBreadSource implements BreadSource
 
     public function has(string $slug): bool
     {
+        if (! static::isValidSlug($slug)) {
+            return false;
+        }
+
         return File::exists($this->fileFor($slug));
     }
 
@@ -104,6 +113,14 @@ class JsonBreadSource implements BreadSource
 
         if (! is_string($slug) || $slug === '') {
             throw new \InvalidArgumentException('BREAD definition requires a slug.');
+        }
+
+        $this->assertValidSlug($slug);
+
+        if (ReservedSlugs::has($slug)) {
+            throw new \InvalidArgumentException(
+                sprintf('BREAD slug [%s] is reserved for a built-in admin screen.', $slug)
+            );
         }
 
         $this->backup($slug);
@@ -228,6 +245,8 @@ class JsonBreadSource implements BreadSource
      */
     public function rollback(string $slug, string $backup): bool
     {
+        $this->assertValidSlug($slug);
+
         if (! $this->backupNameIsValid($slug, $backup)) {
             throw new \InvalidArgumentException(
                 sprintf('Invalid backup name [%s] for slug [%s].', $backup, $slug)
@@ -289,8 +308,28 @@ class JsonBreadSource implements BreadSource
         return $removed;
     }
 
+    /**
+     * A slug becomes part of a file name, so anything that could address a path
+     * (separators, "..", a leading dot) is refused instead of being sanitised.
+     */
+    public static function isValidSlug(string $slug): bool
+    {
+        return preg_match('/^[A-Za-z0-9][A-Za-z0-9_-]*$/', $slug) === 1;
+    }
+
+    protected function assertValidSlug(string $slug): void
+    {
+        if (! static::isValidSlug($slug)) {
+            throw new \InvalidArgumentException(
+                sprintf('Invalid BREAD slug [%s]: use letters, digits, "-" and "_" only.', $slug)
+            );
+        }
+    }
+
     protected function fileFor(string $slug): string
     {
+        $this->assertValidSlug($slug);
+
         return rtrim($this->path(), DIRECTORY_SEPARATOR).DIRECTORY_SEPARATOR.$slug.'.json';
     }
 
@@ -311,7 +350,7 @@ class JsonBreadSource implements BreadSource
     {
         foreach ($fields as $field) {
             if (isset($field['type']) && is_string($field['type'])) {
-                FieldType::fromValue($field['type']);
+                app(FormfieldManager::class)->assertRegistered($field['type']);
             }
         }
     }

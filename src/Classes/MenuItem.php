@@ -5,12 +5,13 @@ declare(strict_types=1);
 namespace Tardis\Classes;
 
 use Illuminate\Support\Collection;
+use Illuminate\Support\Str;
 use Tardis\Contracts\Plugins\AuthorizationPlugin;
 use Tardis\Manager\PluginManager;
 
 class MenuItem
 {
-    public string $title;
+    public string|array $title;
 
     public ?string $icon = null;
 
@@ -45,15 +46,88 @@ class MenuItem
      */
     public string $activeMode = 'exact';
 
+    /**
+     * Explicit route names that mark this item active.
+     *
+     * Takes precedence over activeMode when set. Needed when a route name and
+     * its prefix are shared by unrelated screens: every BREAD resource uses
+     * `tardis.bread.index` with its own `{slug}`, and the BREAD builder pages
+     * sit under the same `tardis.bread.*` prefix while carrying the same
+     * `{slug}` — so no prefix heuristic can tell a resource screen apart from
+     * the builder screen for the definition of the same name.
+     *
+     * @var array<int, string>
+     */
+    public array $activeRouteNames = [];
+
     public bool $isDivider = false;
 
     public ?string $section = null;
 
-    public function __construct(string $title, ?string $icon = null)
+    /** Set when the administrator's menu overlay hides this item. */
+    public bool $overlayHidden = false;
+
+    /** The item's own opening in a new tab (custom links only). */
+    public bool $newTab = false;
+
+    /** Explicit stable id; see id(). */
+    public ?string $key = null;
+
+    public function __construct(string|array $title, ?string $icon = null)
     {
         $this->title = $title;
         $this->icon = $icon;
         $this->children = new Collection;
+    }
+
+    /**
+     * The title for the active locale.
+     *
+     * A title may be a plain string, a translation key or a locale map; only
+     * the map and the key are translated, so an already-resolved title comes
+     * back verbatim.
+     */
+    public function resolvedTitle(?string $locale = null): string
+    {
+        return Translation::label($this->title, null, $locale);
+    }
+
+    /**
+     * A stable identity for the menu overlay: the explicit key, else the route
+     * name with its parameters (every BREAD shares a route and differs by slug),
+     * else the url, else the title.
+     */
+    public function id(): string
+    {
+        if ($this->key !== null) {
+            return $this->key;
+        }
+
+        if ($this->routeName !== null) {
+            return $this->routeName.($this->routeParams === [] ? '' : ':'.implode(',', array_map('strval', $this->routeParams)));
+        }
+
+        return Str::slug($this->url ?? $this->stableTitle());
+    }
+
+    /**
+     * The title as stored, never resolved for the active locale.
+     *
+     * id() persists into menus.json, so it has to come out the same in every
+     * locale: a title resolved per request would orphan the overlay entry an
+     * administrator saved under another language. A locale map therefore falls
+     * back to its first translation, which is fixed by the definition rather
+     * than by the active locale.
+     */
+    protected function stableTitle(): string
+    {
+        if (! is_array($this->title)) {
+            return $this->title;
+        }
+
+        $first = reset($this->title);
+
+        return is_scalar($first) ? (string) $first : '';
     }
 
     public static function makeDivider(): self
@@ -117,6 +191,21 @@ class MenuItem
     }
 
     /**
+     * Set the exact route names that mark this item active.
+     *
+     * Use this instead of activeMode when a prefix match would also catch
+     * unrelated routes.
+     *
+     * @param  array<int, string>  $routeNames
+     */
+    public function activeOnRoutes(array $routeNames): self
+    {
+        $this->activeRouteNames = $routeNames;
+
+        return $this;
+    }
+
+    /**
      * Set the menu section/group label.
      * Sections are rendered as menu-title headers in grouped views.
      */
@@ -168,17 +257,21 @@ class MenuItem
     public function isActive(): bool
     {
         if ($this->routeName) {
+            if ($this->activeRouteNames !== []) {
+                return request()->routeIs($this->activeRouteNames) && $this->routeParamsMatch();
+            }
+
             if ($this->activeMode === 'prefix') {
                 $prefixRoute = $this->getParentRoute();
 
-                if ($prefixRoute && request()->routeIs($prefixRoute.'.*')) {
+                if ($prefixRoute && request()->routeIs($prefixRoute.'.*') && $this->routeParamsMatch()) {
                     return true;
                 }
 
-                return request()->routeIs($this->routeName.'*');
+                return request()->routeIs($this->routeName.'*') && $this->routeParamsMatch();
             }
 
-            return request()->routeIs($this->routeName);
+            return request()->routeIs($this->routeName) && $this->routeParamsMatch();
         }
 
         if ($this->url && $this->url !== '#') {
@@ -240,6 +333,35 @@ class MenuItem
         }
 
         return $this->routeName;
+    }
+
+    /**
+     * Check whether the current request's route parameters match this item's
+     * route parameters.
+     *
+     * Menu items can share a route name and differ only by a parameter — every
+     * BREAD resource uses `tardis.bread.index` with its own `{slug}` — so the
+     * route name on its own cannot tell them apart.
+     */
+    protected function routeParamsMatch(): bool
+    {
+        if ($this->routeParams === []) {
+            return true;
+        }
+
+        $route = request()->route();
+
+        if ($route === null) {
+            return false;
+        }
+
+        foreach ($this->routeParams as $key => $value) {
+            if ((string) $route->parameter($key) !== (string) $value) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     protected function resolveAuthorization(?PluginManager $plugins = null): mixed

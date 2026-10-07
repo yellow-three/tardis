@@ -5,10 +5,16 @@ declare(strict_types=1);
 namespace Tardis\Manager;
 
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Route;
+use Tardis\Auth\Abilities;
+use Tardis\Auth\BreadAuthorization;
+use Tardis\Bread\BreadDefinition;
+use Tardis\Bread\BreadManager;
 use Tardis\Classes\MenuItem;
 use Tardis\Classes\UserMenuItem;
 use Tardis\Contracts\Plugins\Features\Filter\FilterMenuItems;
 use Tardis\Contracts\Plugins\Features\Provider\MenuItems;
+use Tardis\Menu\MenuOverlay;
 
 class MenuManager
 {
@@ -51,55 +57,114 @@ class MenuManager
 
         // Register default sidebar menu items
         $this->addItems(
-            (new MenuItem('Dashboard', 'heroicon-o-home'))
+            (new MenuItem(__('tardis::menu.dashboard'), 'heroicon-o-home'))
                 ->route('tardis.dashboard')
-                ->section('Overview')
+                ->section(__('tardis::menu.sections.overview'))
                 ->order(0),
-            (new MenuItem('Media', 'heroicon-o-photo'))
+            (new MenuItem(__('tardis::menu.media'), 'heroicon-o-photo'))
                 ->route('tardis.media')
-                ->section('Overview')
+                ->permission(Abilities::MEDIA_BROWSE)
+                ->section(__('tardis::menu.sections.overview'))
                 ->activeMode('prefix')
                 ->order(10),
-            (new MenuItem('UI Components', 'heroicon-o-squares-2x2'))
+            (new MenuItem(__('tardis::menu.ui_components'), 'heroicon-o-squares-2x2'))
                 ->route('tardis.ui-components')
-                ->section('Overview')
+                ->section(__('tardis::menu.sections.overview'))
                 ->order(20),
-            (new MenuItem('Settings', 'heroicon-o-cog-6-tooth'))
+            (new MenuItem(__('tardis::menu.settings'), 'heroicon-o-cog-6-tooth'))
                 ->route('tardis.settings.index')
-                ->section('Management')
+                ->permission(Abilities::SETTINGS)
+                ->section(__('tardis::menu.sections.management'))
                 ->activeMode('prefix')
                 ->order(30),
-            (new MenuItem('Plugins', 'heroicon-o-puzzle-piece'))
+            (new MenuItem(__('tardis::menu.plugins'), 'heroicon-o-puzzle-piece'))
                 ->route('tardis.plugins.index')
-                ->section('Management')
+                ->permission(Abilities::PLUGINS)
+                ->section(__('tardis::menu.sections.management'))
                 ->order(40),
-            (new MenuItem('Database Explorer', 'heroicon-o-circle-stack'))
+            (new MenuItem(__('tardis::menu.theme_editor'), 'heroicon-o-swatch'))
+                ->route('tardis.themes.index')
+                ->permission(Abilities::APPEARANCE)
+                ->section(__('tardis::menu.sections.management'))
+                ->order(43),
+            (new MenuItem(__('tardis::menu.menu_builder'), 'heroicon-o-bars-3'))
+                ->route('tardis.menus.index')
+                ->permission(Abilities::MENUS)
+                ->section(__('tardis::menu.sections.management'))
+                ->order(42),
+            (new MenuItem(__('tardis::menu.database_explorer'), 'heroicon-o-circle-stack'))
                 ->route('tardis.database.index')
-                ->section('Management')
+                ->permission(Abilities::DATABASE)
+                ->section(__('tardis::menu.sections.management'))
                 ->activeMode('prefix')
                 ->order(45),
-            (new MenuItem('BREAD', 'heroicon-o-table-cells'))
+            (new MenuItem(__('tardis::menu.system'), 'heroicon-o-wrench-screwdriver'))
+                ->route('tardis.system.index')
+                ->permission(Abilities::SYSTEM)
+                ->section(__('tardis::menu.sections.management'))
+                ->order(47),
+            // Siblings rather than children of the entry above: a parent with
+            // visible children renders as a toggle without an href, which
+            // strands the diagnostics link as soon as either sub-screen is
+            // allowed. Siblings also let a user who holds only logs or only
+            // commands reach the one screen they can actually open.
+            (new MenuItem(__('tardis::menu.system_logs'), 'heroicon-o-document-text'))
+                ->route('tardis.system.logs')
+                ->permission(Abilities::LOGS)
+                ->section(__('tardis::menu.sections.management'))
+                ->order(48),
+            (new MenuItem(__('tardis::menu.system_commands'), 'heroicon-o-command-line'))
+                ->route('tardis.system.commands')
+                ->permission(Abilities::COMMANDS)
+                ->section(__('tardis::menu.sections.management'))
+                ->order(49),
+            (new MenuItem(__('tardis::menu.bread'), 'heroicon-o-table-cells'))
                 ->route('tardis.bread.manage')
-                ->section('Management')
-                ->activeMode('prefix')
+                ->permission(Abilities::BREAD)
+                ->section(__('tardis::menu.sections.management'))
+                // The builder screens share the tardis.bread.* prefix with the
+                // BREAD resource screens, so they are listed explicitly here
+                // instead of relying on a prefix match.
+                ->activeOnRoutes([
+                    'tardis.bread.manage',
+                    'tardis.bread.create',
+                    'tardis.bread.edit',
+                ])
                 ->order(50),
             MenuItem::makeDivider(),
-            (new MenuItem('Permissions', 'heroicon-o-lock-closed'))
+            (new MenuItem(__('tardis::menu.permissions'), 'heroicon-o-lock-closed'))
                 ->route('tardis.permissions')
-                ->section('Access')
+                ->permission(Abilities::ROLES)
+                ->section(__('tardis::menu.sections.access'))
                 ->order(60),
-            (new MenuItem('Roles', 'heroicon-o-user-group'))
+            (new MenuItem(__('tardis::menu.users'), 'heroicon-o-users'))
+                ->route('tardis.users.index')
+                ->permission(Abilities::USERS)
+                ->section(__('tardis::menu.sections.access'))
+                ->order(55),
+            (new MenuItem(__('tardis::menu.roles'), 'heroicon-o-user-group'))
                 ->route('tardis.roles')
-                ->section('Access')
+                ->permission(Abilities::ROLES)
+                ->section(__('tardis::menu.sections.access'))
                 ->order(70),
         );
 
+        // Register a sidebar entry for every BREAD definition
+        $this->addItems(...$this->breadMenuItems());
+
         // Register default user menu items
+        // The profile screen belongs to the host application (Breeze, Jetstream,
+        // Fortify...), so the link is only offered when that route exists.
+        if (Route::has('profile.edit')) {
+            $this->addItems(
+                (new UserMenuItem(__('tardis::menu.profile'), 'heroicon-o-user'))
+                    ->route('profile.edit')
+                    ->order(0),
+            );
+        }
+
         $this->addItems(
-            (new UserMenuItem('Profile', 'heroicon-o-user'))
-                ->route('profile.edit')
-                ->order(0),
-            (new UserMenuItem('Logout', 'heroicon-o-arrow-left-on-rectangle'))
+            (new UserMenuItem(__('tardis::menu.logout'), 'heroicon-o-arrow-left-on-rectangle'))
                 ->route('tardis.logout')
                 ->method('POST')
                 ->divider()
@@ -114,11 +179,117 @@ class MenuManager
             }
         }
 
+        // Links the administrator added in the menu builder
+        $this->addItems(...$this->customMenuItems());
+
         // Apply permission validation
         $this->validatePermissions($plugins);
 
         // Apply menu filters
         $this->applyFilters($plugins);
+
+        // The administrator's hide/rename/re-order choices go last
+        $this->applyOverlay();
+    }
+
+    /** @return array<int, MenuItem> */
+    protected function customMenuItems(): array
+    {
+        return array_map(function (array $link) {
+            $title = $link['title'] ?? '';
+
+            $item = (new MenuItem(is_array($title) ? $title : (string) $title, $link['icon'] ?? 'heroicon-o-link'))
+                ->url((string) $link['url'])
+                ->section($link['section'] ?? null)
+                ->order((int) ($link['order'] ?? 90));
+
+            $item->key = (string) $link['id'];
+            $item->newTab = (bool) ($link['new_tab'] ?? false);
+
+            if (! empty($link['permission'])) {
+                $item->permission((string) $link['permission']);
+            }
+
+            return $item;
+        }, app(MenuOverlay::class)->custom());
+    }
+
+    protected function applyOverlay(): void
+    {
+        $changes = app(MenuOverlay::class)->items();
+
+        if ($changes === []) {
+            return;
+        }
+
+        $apply = function (MenuItem $item) use ($changes, &$apply): void {
+            $entry = $item->isDivider ? null : ($changes[$item->id()] ?? null);
+
+            if ($entry !== null) {
+                $item->overlayHidden = ! empty($entry['hidden']);
+                $item->title = $entry['title'] ?? $item->title;
+                $item->order = $entry['order'] ?? $item->order;
+                $item->section = $entry['section'] ?? $item->section;
+            }
+
+            $item->children->each($apply);
+        };
+
+        $this->items->each($apply);
+    }
+
+    /**
+     * Build a sidebar menu item for every BREAD definition.
+     *
+     * Each item points at the resource's list screen
+     * (`tardis.bread.index` with the definition's slug), and stays active
+     * across that resource's own create/read/edit routes.
+     *
+     * The route names are listed explicitly rather than matched by prefix:
+     * `tardis.bread.*` also covers the BREAD builder pages, which carry the
+     * same `{slug}`, so a prefix match would highlight the "posts" resource
+     * while the posts *definition* was being edited.
+     *
+     * @return array<int, MenuItem>
+     */
+    protected function breadMenuItems(): array
+    {
+        return app(BreadManager::class)
+            ->all()
+            ->map(fn (BreadDefinition $bread) => (new MenuItem($bread->resolvedNamePlural(), $this->breadMenuIcon($bread->icon)))
+                ->route('tardis.bread.index', ['slug' => $bread->slug])
+                ->permission(BreadAuthorization::ability('browse', $bread->permissionKey()))
+                ->section(__('tardis::menu.sections.bread'))
+                ->activeOnRoutes([
+                    'tardis.bread.index',
+                    'tardis.bread.add',
+                    'tardis.bread.read',
+                    'tardis.bread.edit.item',
+                ])
+                ->order(100))
+            ->values()
+            ->all();
+    }
+
+    /**
+     * BREAD definitions store a short icon name (e.g. "link"), but the menu
+     * partial renders icons as Blade components, so the heroicon prefix has to
+     * be added to keep them resolvable.
+     */
+    protected function breadMenuIcon(?string $icon): string
+    {
+        $icon = trim((string) $icon);
+
+        if ($icon === '') {
+            return 'heroicon-o-table-cells';
+        }
+
+        // Already a fully qualified Blade component.
+        if (str_starts_with($icon, 'heroicon') || str_contains($icon, ':')) {
+            return $icon;
+        }
+
+        return 'heroicon-o-'.$icon;
     }
 
     /**
@@ -142,10 +313,10 @@ class MenuManager
     /**
      * Get all sidebar menu items as a flat collection (after permission validation).
      */
-    public function all(): Collection
+    public function all(bool $withHidden = false): Collection
     {
         return $this->items
-            ->filter(fn (MenuItem $item) => $item->isVisible())
+            ->filter(fn (MenuItem $item) => $item->isVisible() && ($withHidden || ! $item->overlayHidden))
             ->sortBy(fn (MenuItem $item) => $item->order)
             ->values();
     }

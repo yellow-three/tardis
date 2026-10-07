@@ -3,13 +3,31 @@
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
+use Tardis\Auth\Abilities;
+use Tardis\Auth\BreadAuthorization;
+use Tardis\Contracts\Plugins\Features\Provider\SettingsComponent;
 use Tardis\Facades\Tardis;
 
-new #[Title('Plugin Manager')] #[Layout('tardis::layouts.admin')] class extends Component
+new #[Title('tardis::plugins.plugin_manager')] #[Layout('tardis::layouts.admin')] class extends Component
 {
     public array $plugins = [];
 
     public int $enabledCount = 0;
+
+    public ?string $message = null;
+
+    /** Slug of the plugin whose settings dialog is open. */
+    public ?string $settingsFor = null;
+
+    /**
+     * Runs on every request, not only on mount: Livewire keeps component state
+     * between updates, so a permission revoked after the page opened must
+     * still stop the next action.
+     */
+    public function boot(): void
+    {
+        app(BreadAuthorization::class)->authorizeAbility(Abilities::PLUGINS);
+    }
 
     public function mount(): void
     {
@@ -28,11 +46,38 @@ new #[Title('Plugin Manager')] #[Layout('tardis::layouts.admin')] class extends 
                 'type' => $plugin['type'],
                 'description' => method_exists($instance, 'description') ? $instance->description() : null,
                 'enabled' => Tardis::plugins()->isEnabled($name),
+                'locked' => Tardis::plugins()->isLocked($name),
                 'version' => $info['version'] ?? null,
+                'settings' => $this->settingsComponentFor($name) !== null,
             ];
         })->toArray();
 
         $this->enabledCount = Tardis::plugins()->enabled()->count();
+    }
+
+    /**
+     * The settings component of an enabled plugin, resolved from the plugin
+     * itself: the name never comes from the request.
+     */
+    public function settingsComponentFor(string $slug): ?string
+    {
+        if (! Tardis::plugins()->isEnabled($slug)) {
+            return null;
+        }
+
+        $instance = Tardis::plugins()->get($slug);
+
+        return $instance instanceof SettingsComponent ? $instance->settingsComponent() : null;
+    }
+
+    public function openSettings(string $slug): void
+    {
+        $this->settingsFor = $this->settingsComponentFor($slug) !== null ? $slug : null;
+    }
+
+    public function closeSettings(): void
+    {
+        $this->settingsFor = null;
     }
 
     public function enable(string $name): void
@@ -43,48 +88,60 @@ new #[Title('Plugin Manager')] #[Layout('tardis::layouts.admin')] class extends 
 
     public function disable(string $name): void
     {
-        Tardis::plugins()->disable($name);
+        try {
+            Tardis::plugins()->disable($name);
+            $this->message = null;
+        } catch (\LogicException) {
+            $this->message = __('tardis::plugins.cannot_disable');
+        }
+
         $this->refreshPlugins();
     }
 }; ?>
 
 @php
 $typeLabels = [
-    'authentication' => ['label' => 'Auth', 'class' => 'badge-primary'],
-    'authorization' => ['label' => 'Permission', 'class' => 'badge-secondary'],
-    'formfield' => ['label' => 'Formfield', 'class' => 'badge-accent'],
-    'theme' => ['label' => 'Theme', 'class' => 'badge-info'],
-    'generic' => ['label' => 'Generic', 'class' => 'badge-ghost'],
-    'unknown' => ['label' => 'Unknown', 'class' => 'badge-neutral'],
+    'authentication' => ['label' => __('tardis::plugins.types.authentication'), 'class' => 'badge-primary'],
+    'authorization' => ['label' => __('tardis::plugins.types.authorization'), 'class' => 'badge-secondary'],
+    'formfield' => ['label' => __('tardis::plugins.types.formfield'), 'class' => 'badge-accent'],
+    'theme' => ['label' => __('tardis::plugins.types.theme'), 'class' => 'badge-info'],
+    'generic' => ['label' => __('tardis::plugins.types.generic'), 'class' => 'badge-ghost'],
+    'unknown' => ['label' => __('tardis::plugins.types.unknown'), 'class' => 'badge-neutral'],
 ];
 @endphp
 
 <div>
     <x-tardis::page-header
-        title="Plugin Manager"
-        :description="count($plugins) . ' plugin(s) registered · ' . $enabledCount . ' enabled'"
+        :title="__('tardis::plugins.plugin_manager')"
+        :description="__('tardis::plugins.summary', ['registered' => count($plugins), 'enabled' => $enabledCount])"
     />
 
+    @if ($message)
+        <div class="alert alert-warning mb-4" role="alert">
+            <span>{{ $message }}</span>
+        </div>
+    @endif
+
     @if (empty($plugins))
-        <div class="card bg-base-100 shadow">
+        <div class="card bg-base-100 border border-base-300">
             <div class="card-body text-center py-12">
-                <x-tardis::icon name="puzzle-piece" class="w-16 h-16 mx-auto opacity-30" />
-                <h3 class="text-lg font-semibold mt-4">No plugins installed</h3>
+                <x-tardis::icon name="puzzle-piece" class="w-16 h-16 mx-auto text-base-content/30" />
+                <h3 class="text-lg font-semibold mt-4">{{ __('tardis::plugins.no_plugins_installed') }}</h3>
                 <p class="text-base-content/60 mt-2">
-                    Install plugins via <code class="badge badge-ghost">composer require tardis/plugin-name</code>
+                    {{ __('tardis::plugins.install_via') }} <code class="badge badge-ghost">composer require tardis/plugin-name</code>
                 </p>
             </div>
         </div>
     @else
-        <div class="card bg-base-100 shadow">
+        <div class="card bg-base-100 border border-base-300">
             <div class="overflow-x-auto">
                 <table class="table">
                     <thead>
                         <tr>
-                            <th>Plugin</th>
-                            <th>Type</th>
-                            <th>Status</th>
-                            <th class="text-right">Actions</th>
+                            <th scope="col">{{ __('tardis::plugins.plugin') }}</th>
+                            <th scope="col">{{ __('tardis::plugins.type') }}</th>
+                            <th scope="col">{{ __('tardis::plugins.status') }}</th>
+                            <th class="text-right" scope="col">{{ __('tardis::plugins.actions') }}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -114,23 +171,34 @@ $typeLabels = [
                                     @if ($plugin['enabled'])
                                         <span class="badge badge-success badge-sm gap-1">
                                             <x-tardis::icon name="check-circle" class="w-3 h-3" />
-                                            Enabled
+                                            {{ __('tardis::plugins.enabled') }}
                                         </span>
                                     @else
                                         <span class="badge badge-ghost badge-sm gap-1">
                                             <x-tardis::icon name="x-circle" class="w-3 h-3" />
-                                            Disabled
+                                            {{ __('tardis::plugins.disabled') }}
                                         </span>
                                     @endif
                                 </td>
                                 <td class="text-right">
-                                    @if ($plugin['enabled'])
+                                    @if ($plugin['settings'])
+                                        <button type="button" wire:click="openSettings('{{ $plugin['slug'] }}')" class="btn btn-ghost btn-sm">
+                                            <x-tardis::icon name="cog-6-tooth" class="w-4 h-4" />
+                                            {{ __('tardis::plugins.settings') }}
+                                        </button>
+                                    @endif
+                                    @if ($plugin['locked'])
+                                        <span class="badge badge-ghost badge-sm gap-1">
+                                            <x-tardis::icon name="lock-closed" class="w-3 h-3" />
+                                            {{ __('tardis::plugins.required') }}
+                                        </span>
+                                    @elseif ($plugin['enabled'])
                                         <button
                                             wire:click="disable('{{ $plugin['slug'] }}')"
                                             class="btn btn-ghost btn-sm text-error"
                                         >
                                             <x-tardis::icon name="power" class="w-4 h-4" />
-                                            Disable
+                                            {{ __('tardis::plugins.disable') }}
                                         </button>
                                     @else
                                         <button
@@ -138,7 +206,7 @@ $typeLabels = [
                                             class="btn btn-ghost btn-sm text-success"
                                         >
                                             <x-tardis::icon name="power" class="w-4 h-4" />
-                                            Enable
+                                            {{ __('tardis::plugins.enable') }}
                                         </button>
                                     @endif
                                 </td>
@@ -146,6 +214,18 @@ $typeLabels = [
                         @endforeach
                     </tbody>
                 </table>
+            </div>
+        </div>
+    @endif
+
+    @if ($settingsFor && ($settingsName = $this->settingsComponentFor($settingsFor)))
+        <div class="modal modal-open" role="dialog" aria-modal="true" wire:keydown.escape.window="closeSettings">
+            <div class="modal-box max-w-3xl">
+                <livewire:dynamic-component :is="$settingsName" :key="'plugin-settings-'.$settingsFor" />
+
+                <div class="modal-action">
+                    <button type="button" wire:click="closeSettings" class="btn">{{ __('tardis::appearance.close') }}</button>
+                </div>
             </div>
         </div>
     @endif

@@ -6,28 +6,28 @@
 @endphp
 
 <div class="drawer-side z-40 is-drawer-close:overflow-visible">
-    <label for="tardis-drawer" aria-label="close sidebar" class="drawer-overlay"></label>
+    <label for="tardis-drawer" aria-label="{{ __('tardis::shell.close_sidebar') }}" class="drawer-overlay"></label>
 
-    <aside class="bg-base-100 min-h-full flex flex-col border-r border-base-300 transition-[width] duration-200 is-drawer-close:w-16 is-drawer-open:w-72">
+    <aside aria-label="{{ __('tardis::shell.main_navigation') }}" class="bg-base-100 min-h-full flex flex-col border-r border-base-300 transition-[width] duration-200 is-drawer-close:w-18 is-drawer-open:w-68">
         <div class="px-3 h-16 flex items-center gap-3 border-b border-base-300 is-drawer-close:justify-center">
-            <div class="bg-primary text-primary-content rounded-lg w-10 h-10 flex items-center justify-center shrink-0">
-                <span class="text-primary-content font-bold text-xl">T</span>
+            <div class="bg-primary text-primary-content rounded-lg w-9 h-9 flex items-center justify-center shrink-0 shadow-sm">
+                <span class="font-bold text-lg leading-none">T</span>
             </div>
-            <div class="tardis-sidebar-label">
-                <p class="font-bold text-base leading-tight">TARDIS</p>
-                <p class="text-xs text-base-content/60">Yönetim Paneli</p>
+            <div class="tardis-sidebar-label min-w-0">
+                <p class="font-bold text-sm leading-tight tracking-tight">{{ __('tardis::shell.brand.name') }}</p>
+                <p class="text-[11px] leading-tight text-base-content/60 truncate">{{ __('tardis::shell.brand.panel') }}</p>
             </div>
         </div>
 
-        <div class="flex-1 overflow-y-auto px-2 py-4 is-drawer-close:overflow-visible">
+        <div class="min-h-0 flex-1 overflow-y-auto px-2 py-4 is-drawer-close:overflow-visible">
             @php
-                $sections = $items->groupBy(fn ($item) => $item->section ?? 'General');
+                $sections = $items->groupBy(fn ($item) => $item->section ?? '__general__');
             @endphp
 
             @foreach ($sections as $sectionName => $sectionItems)
-                @if ($sectionName !== 'General')
-                    <div class="tardis-sidebar-label mb-3 px-2 pt-2">
-                        <p class="text-[10px] font-semibold uppercase tracking-[0.18em] text-base-content/40">{{ $sectionName }}</p>
+                @if ($sectionName !== '__general__')
+                    <div class="tardis-sidebar-label mb-2 px-2 pt-3">
+                        <p class="text-[11px] font-semibold uppercase tracking-widest text-base-content/45">{{ $sectionName }}</p>
                     </div>
                 @endif
 
@@ -41,7 +41,7 @@
 
         @php
             $user = auth()->user();
-            $userName = $user?->name ?: $user?->email ?: 'Admin';
+            $userName = $user?->name ?: $user?->email ?: __('tardis::shell.admin_fallback');
             $userInitial = mb_strtoupper(mb_substr($userName, 0, 1));
         @endphp
 
@@ -49,14 +49,14 @@
             <div
                data-tip="{{ $userName }}"
                class="flex items-center gap-3 p-2 rounded-lg is-drawer-close:tooltip is-drawer-close:tooltip-right is-drawer-close:justify-center">
-                <div class="avatar avatar-placeholder">
-                    <div class="bg-neutral text-neutral-content rounded-full w-10">
-                        <span>{{ $userInitial }}</span>
+                <div class="avatar avatar-placeholder shrink-0">
+                    <div class="bg-neutral text-neutral-content rounded-full w-9">
+                        <span class="text-sm font-medium">{{ $userInitial }}</span>
                     </div>
                 </div>
                 <div class="flex-1 min-w-0 tardis-sidebar-label">
                     <p class="font-medium text-sm truncate">{{ $userName }}</p>
-                    <p class="text-xs text-base-content/60 truncate">{{ $user?->email }}</p>
+                    <p class="text-[11px] text-base-content/60 truncate">{{ $user?->email }}</p>
                 </div>
             </div>
         </div>

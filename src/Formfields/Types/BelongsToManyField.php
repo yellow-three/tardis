@@ -2,11 +2,17 @@
 
 namespace Tardis\Formfields\Types;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Tardis\Auth\BreadAuthorization;
+use Tardis\Bread\BreadDefinition;
+use Tardis\Bread\BreadManager;
 use Tardis\Formfields\Formfield;
 
 class BelongsToManyField extends Formfield
 {
+    protected array $configurable = ['relation', 'model', 'label_column' => 'labelColumn'];
+
     public ?string $relation = null;
 
     public ?string $model = null;
@@ -32,7 +38,11 @@ class BelongsToManyField extends Formfield
             return [];
         }
 
-        $query = $this->model::query();
+        $query = $this->optionQuery();
+
+        if ($query === null) {
+            return [];
+        }
 
         if ($search !== '') {
             $query->where($this->labelColumn, 'like', '%'.$search.'%');
@@ -43,7 +53,9 @@ class BelongsToManyField extends Formfield
         $selectedIds = array_values(array_filter($selected, fn ($id) => $id !== null && $id !== ''));
 
         if (! empty($selectedIds)) {
-            $selectedOptions = $this->model::query()
+            // The same restricted query: a selected id must not reveal a record
+            // the scope or the user's permissions keep out of the picker.
+            $selectedOptions = $this->optionQuery()
                 ->whereIn('id', $selectedIds)
                 ->pluck($this->labelColumn, 'id')
                 ->all();
@@ -54,6 +66,31 @@ class BelongsToManyField extends Formfield
         return $options;
     }
 
+    /**
+     * The query the picker draws its options from.
+     *
+     * When a BREAD manages the related model, its scope applies and the user
+     * needs to be allowed to browse it, so the picker cannot list records the
+     * resource itself would hide. A model with no BREAD of its own is listed in
+     * full (there is no definition to defer to); null means "show nothing".
+     */
+    protected function optionQuery(): ?Builder
+    {
+        $bread = app(BreadManager::class)
+            ->all()
+            ->first(fn (BreadDefinition $definition) => ltrim($definition->model, '\\') === ltrim((string) $this->model, '\\'));
+
+        if ($bread === null) {
+            return $this->model::query();
+        }
+
+        if (! app(BreadAuthorization::class)->allows('browse', $bread->permissionKey())) {
+            return null;
+        }
+
+        return $bread->query();
+    }
+
     public function stored(mixed $value, Model $model): void
     {
         if (! $this->relation || ! $model->exists) {
@@ -62,7 +99,45 @@ class BelongsToManyField extends Formfield
 
         $ids = array_values(array_filter((array) $value, fn ($id) => $id !== null && $id !== ''));
 
-        $model->{$this->relation}()->sync($ids);
+        $model->{$this->relation}()->sync($this->resolvableIds($model, $ids));
+    }
+
+    /**
+     * Reduce the submitted ids to the ones the relation can actually resolve.
+     *
+     * sync() writes whatever it is handed straight into the pivot table, so an
+     * id naming no record — or one the related model's own scope excludes, such
+     * as a soft-deleted row — became a dangling pivot row that the read side
+     * then hid, leaving the selection quietly out of sync with the database.
+     *
+     * @param  array<int, mixed>  $ids
+     * @return array<int, mixed>
+     */
+    protected function resolvableIds(Model $model, array $ids): array
+    {
+        if ($ids === []) {
+            return [];
+        }
+
+        $relation = $model->{$this->relation}();
+        $related = $relation->getRelated();
+        $keyName = $related->getKeyName();
+
+        // Deliberately the related model's own query rather than the relation's:
+        // a BelongsToMany constrains its query to the rows already attached to
+        // this parent, which on create is nothing at all. Global scopes still
+        // apply, so an excluded record stays excluded.
+        $resolvable = array_flip(array_map(
+            'strval',
+            $related->newQuery()->whereIn($keyName, $ids)->pluck($keyName)->all(),
+        ));
+
+        // Keep the submitted values rather than the ones read back, so custom
+        // and string primary keys survive the round trip untouched.
+        return array_values(array_filter(
+            $ids,
+            static fn ($id): bool => isset($resolvable[(string) $id]),
+        ));
     }
 
     public function relation(string $relation): self
@@ -96,12 +171,12 @@ class BelongsToManyField extends Formfield
         return 'tardis::formfields.belongs-to-many';
     }
 
-    public function viewData(): array
+    protected function extraViewData(): array
     {
-        return array_merge(parent::viewData(), [
+        return [
             'relation' => $this->relation,
-            'model' => $this->model,
+            'relatedModel' => $this->model,
             'labelColumn' => $this->labelColumn,
-        ]);
+        ];
     }
 }

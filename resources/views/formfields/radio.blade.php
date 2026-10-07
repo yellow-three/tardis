@@ -1,16 +1,8 @@
-<div class="flex flex-wrap gap-3">
-    @foreach ($options as $value => $label)
-        <label class="flex items-center gap-2 cursor-pointer">
-            <input
-                type="radio"
-                name="{{ $name }}"
-                value="{{ $value }}"
-                @if($value === $value) checked @endif
-                class="radio radio-sm radio-primary"
-                {!! $disabled ? 'disabled' : '' !!}
-                {!! $readonly ? 'readonly' : '' !!}
-            />
-            <span class="label-text">{{ $label }}</span>
+<div class="flex flex-col gap-1">
+    @foreach ($options as $optionValue => $optionLabel)
+        <label class="label cursor-pointer justify-start gap-3">
+            <input type="radio" wire:model="{{ $model }}" value="{{ $optionValue }}" @disabled($disabled) class="radio radio-sm" />
+            <span class="text-base-content">{{ $optionLabel }}</span>
         </label>
     @endforeach
 </div>

@@ -4,10 +4,16 @@ namespace Tardis\Database\Factories;
 
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Tardis\Models\Media;
+use Tardis\Support\ModelResolver;
 
 class MediaFactory extends Factory
 {
     protected $model = Media::class;
+
+    public function modelName()
+    {
+        return ModelResolver::media();
+    }
 
     public function definition(): array
     {

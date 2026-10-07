@@ -1,0 +1,12 @@
+/*
+ * Plugin script. It runs after the Tardis core script, so window.Tardis exists.
+ * Bind to that API, not to Alpine or Livewire internals.
+ */
+window.Tardis.component('{{CAMEL_NAME}}', () => ({
+    count: 0,
+
+    increment() {
+        this.count++;
+        window.Tardis.toast('{{STUDLY_NAME}}: ' + this.count);
+    },
+}));

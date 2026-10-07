@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Str;
+use Tardis\Manager\FormfieldManager;
 
 class ModelReflector
 {
@@ -37,7 +38,7 @@ class ModelReflector
         $fields = [];
 
         foreach ($analysis['fillable'] as $field) {
-            $type = FieldType::normalize(self::guessFieldType($field, $analysis['casts']));
+            $type = app(FormfieldManager::class)->normalize(self::guessFieldType($field, $analysis['casts']));
 
             $fields[$field] = [
                 'name' => $field,

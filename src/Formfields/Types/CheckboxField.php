@@ -6,6 +6,8 @@ use Tardis\Formfields\Formfield;
 
 class CheckboxField extends Formfield
 {
+    protected array $configurable = ['options'];
+
     public array $options = [];
 
     public function options(array $options = []): self
@@ -25,10 +27,10 @@ class CheckboxField extends Formfield
         return 'tardis::formfields.checkbox';
     }
 
-    public function viewData(): array
+    protected function extraViewData(): array
     {
-        return array_merge(parent::viewData(), [
+        return [
             'options' => $this->options,
-        ]);
+        ];
     }
 }

@@ -1,0 +1,35 @@
+{
+    "slug": "bread-page-belongs-to-many",
+    "model": "BreadBelongsToManyPostModel",
+    "name": "Btm Post",
+    "name_plural": "Btm Posts",
+    "fields": [
+        {
+            "name": "title",
+            "type": "text",
+            "label": "Title",
+            "browse": true,
+            "read": true,
+            "edit": true,
+            "add": true,
+            "validation": [
+                "required"
+            ]
+        },
+        {
+            "name": "tags",
+            "type": "belongs_to_many",
+            "label": "Tags",
+            "browse": false,
+            "read": true,
+            "edit": true,
+            "add": true,
+            "relation": "tags",
+            "model": "BreadBelongsToManyTagModel",
+            "label_column": "name",
+            "validation": [
+                "nullable"
+            ]
+        }
+    ]
+}

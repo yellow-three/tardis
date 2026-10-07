@@ -1,10 +1,1 @@
-<input
-    type="text"
-    name="{{ $name }}"
-    value="{{ $value }}"
-    placeholder="{{ $placeholder ?? '' }}"
-    class="input input-bordered w-full"
-    {!! $disabled ? 'disabled' : '' !!}
-    {!! $readonly ? 'readonly' : '' !!}
-/>
-<p class="text-xs text-base-content/50 mt-1">Slug will be auto-generated from the source field</p>
+<input type="text" id="{{ $id }}" wire:model="{{ $model }}" @disabled($disabled) @readonly($readonly) placeholder="{{ $placeholder }}" class="input w-full"  @foreach ($extraAttributes as $attr => $attrValue) {{ $attr }}="{{ $attrValue }}" @endforeach />

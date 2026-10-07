@@ -2,26 +2,46 @@
 
 namespace Tardis\Bread\Actions;
 
+use Illuminate\Database\Eloquent\Model;
 use Tardis\Bread\Action;
+use Tardis\Events\BreadRecordDeleted;
 
 class DeleteAction extends Action
 {
-    public string $title = 'Delete';
+    public string $icon = 'trash';
 
-    public string $icon = 'x-mark';
+    public string $tone = 'error';
 
-    public string $method = 'DELETE';
-
-    public ?string $confirmMessage = 'Are you sure you want to delete this item?';
+    public ?string $permission = 'delete';
 
     public bool $bulk = true;
 
-    public function handle($model, array $ids = []): mixed
+    public function getTitle(): string
     {
-        if ($this->isBulk() && ! empty($ids)) {
-            return $model::whereIn('id', $ids)->delete();
-        }
+        return __('tardis::bread.delete');
+    }
 
-        return $model->delete();
+    public function getConfirmMessage(): ?string
+    {
+        return __('tardis::bread.confirm_delete_record');
+    }
+
+    public function getSuccessMessage(): string
+    {
+        return __('tardis::bread.item_deleted');
+    }
+
+    public function appliesTo(Model $record): bool
+    {
+        return ! (method_exists($record, 'trashed') && $record->trashed());
+    }
+
+    public function handle(Model $record, string $slug): mixed
+    {
+        $deleted = $record->delete();
+
+        BreadRecordDeleted::dispatch($slug, $record);
+
+        return $deleted;
     }
 }

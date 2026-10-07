@@ -1,11 +1,16 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use Livewire\Livewire;
 
-Route::middleware(config('tardis.admin.middleware', ['web', 'auth']))
-    ->prefix(config('tardis.admin.prefix', 'admin'))
-    ->group(function () {
-    // Route::livewire('/{{LOWERCASE_NAME}}', 'tardis-{{LOWERCASE_NAME}}::pages.admin.⚡{{LOWERCASE_NAME}}')
-    //     ->name('tardis.{{LOWERCASE_NAME}}');
-});
+// Uncomment to expose the starter page. No extra registration order or prefix is
+// needed: Tardis' BREAD routes are constrained to the slugs that have a
+// definition, so /admin/{{LOWERCASE_NAME}} is never swallowed. Avoid only giving
+// a BREAD the same slug as this route's first segment.
+//
+// Route::middleware(['web', 'tardis.admin'])
+//     ->prefix(config('tardis.admin.prefix', 'admin'))
+//     ->name('tardis.')
+//     ->group(function () {
+//         Route::livewire('/{{LOWERCASE_NAME}}', 'tardis-{{LOWERCASE_NAME}}::pages.admin.{{LOWERCASE_NAME}}')
+//             ->name('{{LOWERCASE_NAME}}');
+//     });

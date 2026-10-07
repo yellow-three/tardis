@@ -1,0 +1,21 @@
+import { defineConfig } from 'vite';
+
+// Builds the plugin's assets into dist/. The plugin serves them through
+// Asset::file(), so nothing has to be published into the host's public folder.
+export default defineConfig({
+    build: {
+        outDir: 'dist',
+        emptyOutDir: true,
+        rollupOptions: {
+            input: {
+                plugin: 'resources/js/plugin.js',
+                'plugin-css': 'resources/css/plugin.css',
+            },
+            output: {
+                entryFileNames: 'plugin.js',
+                assetFileNames: (info) => (info.names?.[0] ?? '').endsWith('.css') ? 'plugin.css' : '[name][extname]',
+                format: 'iife',
+            },
+        },
+    },
+});

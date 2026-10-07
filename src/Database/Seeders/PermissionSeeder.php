@@ -1,79 +1,83 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tardis\Database\Seeders;
 
 use Illuminate\Database\Seeder;
-use Spatie\Permission\Models\Permission;
-use Spatie\Permission\Models\Role;
+use Illuminate\Support\Str;
+use Tardis\Auth\Abilities;
+use Tardis\Support\ModelResolver;
 
+/**
+ * Provisions the permissions and roles that TARDIS' own authorization plugin
+ * reads.
+ *
+ * The plugin resolves abilities against the `tardis_*` tables, so seeding
+ * anything else leaves a host with rows its own guard never consults. The
+ * super admin role is created natively for the same reason: without it every
+ * user matches no role and the bypass configured in
+ * `tardis.authorization.super_admin_roles` can never apply.
+ */
 class PermissionSeeder extends Seeder
 {
-    protected array $adminPermissions = [
-        'browse admin',
-        'access admin',
-        'manage users',
-        'manage settings',
-        'manage plugins',
-        'manage menus',
-    ];
-
-    protected array $mediaPermissions = [
-        'browse media',
-        'read media',
-        'upload media',
-        'edit media',
-        'delete media',
-        'rename media',
-        'move media',
-    ];
-
     public function run(): void
     {
-        $this->createAdminPermissions();
-        $this->createMediaPermissions();
-        $this->ensureSuperAdminRole();
+        $this->createPermissions(Abilities::admin(), 'admin');
+        $this->createPermissions(Abilities::media(), 'media');
+        $this->ensureSuperAdminRoles();
     }
 
+    /**
+     * Expose the BREAD abilities of a page through the same helper the
+     * authorization plugin uses, so a seeded page and a visited page never
+     * disagree on the slug an ability is stored under.
+     */
     public function syncForBread(string $slug): void
     {
-        $actions = ['browse', 'read', 'edit', 'add', 'delete'];
+        ModelResolver::permission()::forBread($slug);
+    }
 
-        foreach ($actions as $action) {
-            Permission::findOrCreate(
-                "{$action} {$slug}",
-                config('permission.defaults.guard', 'web')
+    /**
+     * @param  array<int, string>  $abilities
+     */
+    protected function createPermissions(array $abilities, string $group): void
+    {
+        foreach ($abilities as $ability) {
+            // The slug is the ability string itself, because that is the exact
+            // value BreadAuthorization::ability() builds and the plugin
+            // compares the permission slug against.
+            ModelResolver::permission()::firstOrCreate(
+                ['slug' => $ability],
+                ['name' => $ability, 'group' => $group],
             );
         }
     }
 
-    protected function createAdminPermissions(): void
+    /**
+     * Create every role listed in the super admin configuration and give it
+     * all permissions, so a freshly seeded install is actually administrable.
+     */
+    protected function ensureSuperAdminRoles(): void
     {
-        foreach ($this->adminPermissions as $permission) {
-            Permission::findOrCreate(
-                $permission,
-                config('permission.defaults.guard', 'web')
-            );
+        $slugs = array_values(array_filter(array_map(
+            'strval',
+            (array) config('tardis.authorization.super_admin_roles', ['super-admin']),
+        )));
+
+        if ($slugs === []) {
+            return;
         }
-    }
 
-    protected function createMediaPermissions(): void
-    {
-        foreach ($this->mediaPermissions as $permission) {
-            Permission::findOrCreate(
-                $permission,
-                config('permission.defaults.guard', 'web')
+        $roles = ModelResolver::role()::whereIn('slug', $slugs)->get()->keyBy('slug');
+
+        foreach ($slugs as $slug) {
+            $role = $roles->get($slug) ?? ModelResolver::role()::firstOrCreate(
+                ['slug' => $slug],
+                ['name' => Str::headline($slug)],
             );
-        }
-    }
 
-    protected function ensureSuperAdminRole(): void
-    {
-        $roleName = config('tardis-permissions.super_admin_role', 'super-admin');
-
-        $role = Role::findOrCreate($roleName, config('permission.defaults.guard', 'web'));
-
-        if ($role->permissions()->count() === 0) {
-            $role->givePermissionTo(Permission::all());
+            $role->permissions()->sync(ModelResolver::permission()::query()->pluck('id'));
         }
     }
 }

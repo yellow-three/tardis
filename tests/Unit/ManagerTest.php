@@ -57,3 +57,42 @@ test('BreadManager delegates to the json source', function () {
         File::deleteDirectory($path);
     }
 });
+
+test('a settings import that clashes writes nothing', function () {
+    $manager = new SettingsManager;
+    $manager->create(['key' => 'taken', 'type' => 'text', 'name' => 'Taken', 'value' => 'a']);
+    $before = $manager->all()->count();
+
+    $json = json_encode([
+        ['key' => 'fresh', 'type' => 'text', 'name' => 'Fresh', 'value' => 'b'],
+        ['key' => 'taken', 'type' => 'text', 'name' => 'Taken', 'value' => 'c'],
+    ]);
+
+    expect(fn () => $manager->import($json))->toThrow(RuntimeException::class, 'Nothing was imported')
+        ->and($manager->all()->count())->toBe($before)
+        ->and($manager->findByKey('fresh'))->toBeNull();
+});
+
+test('a settings import with a duplicate inside the file writes nothing', function () {
+    $manager = new SettingsManager;
+
+    $json = json_encode([
+        ['key' => 'dup', 'type' => 'text', 'name' => 'One', 'value' => 'a'],
+        ['key' => 'dup', 'type' => 'text', 'name' => 'Two', 'value' => 'b'],
+    ]);
+
+    expect(fn () => $manager->import($json))->toThrow(RuntimeException::class)
+        ->and($manager->findByKey('dup'))->toBeNull();
+});
+
+test('a clean settings import returns how many settings it added', function () {
+    $manager = new SettingsManager;
+
+    $json = json_encode([
+        ['key' => 'a', 'type' => 'text', 'name' => 'A', 'value' => '1'],
+        ['key' => 'b', 'type' => 'text', 'name' => 'B', 'value' => '2'],
+        ['no-key' => true],
+    ]);
+
+    expect($manager->import($json))->toBe(2);
+});

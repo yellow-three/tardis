@@ -3,8 +3,12 @@
 namespace Tardis\Manager;
 
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Log;
+use Tardis\Contracts\Plugins\AuthenticationPlugin;
 use Tardis\Contracts\Plugins\AuthorizationPlugin;
+use Tardis\Contracts\Plugins\FormfieldPlugin;
 use Tardis\Contracts\Plugins\GenericPlugin;
+use Tardis\Contracts\Plugins\ThemePlugin;
 
 class PluginManager
 {
@@ -14,19 +18,59 @@ class PluginManager
 
     protected array $disabled = [];
 
-    public function __construct()
+    protected string $statePath;
+
+    /**
+     * The on/off switches live in a file, not the cache: a `cache:clear` during
+     * a deploy would otherwise silently re-enable every plugin an administrator
+     * had switched off.
+     */
+    public function __construct(?string $statePath = null)
     {
         $this->plugins = collect();
+        $this->statePath = $statePath ?? storage_path('tardis/plugins.json');
         $this->disabled = $this->loadDisabled();
     }
 
     protected function loadDisabled(): array
     {
-        try {
-            return cache()->get('tardis.plugins.disabled', []);
-        } catch (\Throwable) {
+        if (! is_file($this->statePath)) {
             return [];
         }
+
+        $data = json_decode((string) file_get_contents($this->statePath), true);
+
+        return is_array($data) && is_array($data['disabled'] ?? null)
+            ? array_values(array_filter($data['disabled'], 'is_string'))
+            : [];
+    }
+
+    protected function persistDisabled(): void
+    {
+        try {
+            $dir = dirname($this->statePath);
+
+            if (! is_dir($dir)) {
+                mkdir($dir, 0755, true);
+            }
+
+            $tmp = tempnam($dir, '.plugins-');
+            file_put_contents($tmp, json_encode(['disabled' => $this->disabled], JSON_PRETTY_PRINT)."\n");
+            rename($tmp, $this->statePath);
+        } catch (\Throwable $e) {
+            Log::warning('Could not persist the plugin state.', ['error' => $e->getMessage()]);
+        }
+    }
+
+    /**
+     * Authentication and authorization plugins guard the panel itself, so the
+     * UI must not be able to switch them off (it would remove every check).
+     */
+    public function isLocked(string $name): bool
+    {
+        $instance = $this->plugins->get($name)['instance'] ?? null;
+
+        return $instance instanceof AuthenticationPlugin || $instance instanceof AuthorizationPlugin;
     }
 
     public function register(string $name, string $pluginClass): void
@@ -46,35 +90,52 @@ class PluginManager
 
     public function enable(string $name): void
     {
-        $this->enabled[] = $name;
-        $this->disabled = array_values(array_diff($this->disabled, [$name]));
-        try {
-            cache()->put('tardis.plugins.disabled', $this->disabled);
-        } catch (\Throwable) {
-            // Cache not available yet (e.g. during early service registration or testing)
+        if (! in_array($name, $this->enabled, true)) {
+            $this->enabled[] = $name;
         }
+
+        $this->disabled = array_values(array_diff($this->disabled, [$name]));
+        $this->persistDisabled();
+    }
+
+    /**
+     * Turn a plugin on at boot unless an administrator switched it off.
+     *
+     * enable() is an explicit user action: it clears the stored disable and
+     * writes the cache. Calling it from a service provider would therefore undo
+     * every "disable" made on the Plugins page on the next request, and write
+     * to the cache on every request. Boot-time defaults go through here.
+     */
+    public function enableByDefault(string $name): void
+    {
+        if ((in_array($name, $this->disabled, true) && ! $this->isLocked($name)) || in_array($name, $this->enabled, true)) {
+            return;
+        }
+
+        $this->enabled[] = $name;
     }
 
     public function disable(string $name): void
     {
-        if (! in_array($name, $this->disabled)) {
+        if ($this->isLocked($name)) {
+            throw new \LogicException("Plugin [{$name}] protects the panel and cannot be disabled.");
+        }
+
+        if (! in_array($name, $this->disabled, true)) {
             $this->disabled[] = $name;
         }
+
         $this->enabled = array_values(array_diff($this->enabled, [$name]));
-        try {
-            cache()->put('tardis.plugins.disabled', $this->disabled);
-        } catch (\Throwable) {
-            // Cache not available yet (e.g. during early service registration or testing)
-        }
+        $this->persistDisabled();
     }
 
     public function isEnabled(string $name): bool
     {
-        if (in_array($name, $this->disabled)) {
+        if (in_array($name, $this->disabled, true) && ! $this->isLocked($name)) {
             return false;
         }
 
-        return in_array($name, $this->enabled) && $this->plugins->has($name);
+        return in_array($name, $this->enabled, true) && $this->plugins->has($name);
     }
 
     public function all(): Collection
@@ -98,6 +159,17 @@ class PluginManager
         return $plugin['instance'] ?? null;
     }
 
+    /**
+     * The plugin that signs users in. When more than one is enabled the one
+     * registered last wins, so a host plugin overrides the built-in default.
+     */
+    public function authenticationPlugin(): ?AuthenticationPlugin
+    {
+        $plugin = $this->enabledWith(AuthenticationPlugin::class)->last();
+
+        return $plugin instanceof AuthenticationPlugin ? $plugin : null;
+    }
+
     public function authorizationPlugins(): Collection
     {
         return $this->enabled()->filter(fn ($plugin) => $plugin['type'] === 'authorization');
@@ -118,7 +190,10 @@ class PluginManager
     public function resolveType(object $plugin): string
     {
         return match (true) {
+            $plugin instanceof AuthenticationPlugin => 'authentication',
             $plugin instanceof AuthorizationPlugin => 'authorization',
+            $plugin instanceof FormfieldPlugin => 'formfield',
+            $plugin instanceof ThemePlugin => 'theme',
             $plugin instanceof GenericPlugin => 'generic',
             default => 'unknown',
         };

@@ -26,14 +26,14 @@ Key points:
 
 Navigate to the BREAD management screen and explain the difference between:
 
-- fixed admin screens (Livewire)
-- dynamic resource screens (controller-driven CRUD)
+- fixed admin screens (dedicated Livewire pages)
+- dynamic resource screens (one set of Livewire pages rendered from a BREAD definition)
 
 This is a key architectural advantage of Tardis.
 
 ## 4. Create a resource
 
-Use the BREAD definition pattern to create a `posts` resource.
+Use the BREAD builder (`/admin/bread/create`) or `php artisan tardis:make-bread "App\Models\Post"` to create a `posts` resource.
 
 Explain:
 
@@ -59,17 +59,21 @@ Display a custom plugin with its own menu item and route.
 
 This demonstrates the extension story: the core admin can grow without monolithic changes.
 
-## 7. Close with architecture summary
+## 7. Show access control
+
+Open Roles and Permissions, grant `browse posts` to a role, and show the sidebar and `/admin/posts` follow it. Mention that an authorization plugin must be enabled for this to be enforced (see the README).
+
+## 8. Close with architecture summary
 
 Use this message as the closing summary:
 
-> Tardis separates fixed admin work from dynamic resource-driven CRUD. That gives the framework a clean blend of admin UX and flexibility for custom business entities.
+> Tardis separates fixed admin screens from dynamic, definition-driven CRUD. That gives the framework a clean blend of admin UX and flexibility for custom business entities.
 
 ## Suggested demo script
 
 ```text
 This is a Laravel admin framework built on Livewire 4.
 The shell is fixed and framework-driven, while entity screens are dynamic.
-That is why routes are explicit for the admin screens and controller-based for the BREAD resources.
+That is why the admin screens have explicit routes while BREAD resources share a wildcard route driven by metadata.
 Menu items come from the menu manager and plugins, and the admin remains modular and extensible.
 ```

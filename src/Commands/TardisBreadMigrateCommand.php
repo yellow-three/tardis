@@ -6,7 +6,8 @@ namespace Tardis\Commands;
 
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\File;
-use Tardis\Bread\Sources\ConfigBreadSource;
+use Tardis\Bread\BreadManager;
+use Tardis\Bread\Legacy\LegacyConfigReader;
 use Tardis\Bread\Sources\JsonBreadSource;
 
 class TardisBreadMigrateCommand extends Command
@@ -18,7 +19,7 @@ class TardisBreadMigrateCommand extends Command
 
     protected $description = 'Migrate BREAD definitions from config/bread to JSON storage';
 
-    public function handle(ConfigBreadSource $legacy, JsonBreadSource $json): int
+    public function handle(LegacyConfigReader $legacy, JsonBreadSource $json): int
     {
         $dryRun = (bool) $this->option('dry-run');
         $delete = (bool) $this->option('delete');
@@ -50,7 +51,7 @@ class TardisBreadMigrateCommand extends Command
                 continue;
             }
 
-            $json->save($definition);
+            app(BreadManager::class)->save($definition);
             $migrated++;
 
             if ($delete) {

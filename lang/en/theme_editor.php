@@ -1,0 +1,25 @@
+<?php
+
+return [
+    'title' => 'Themes',
+    'description' => 'Create custom colour themes. A theme is available to every user as soon as it is saved.',
+    'existing' => 'Your themes',
+    'none' => 'No custom themes yet.',
+    'editor' => 'Theme editor',
+    'name' => 'Name (letters, digits, dashes)',
+    'label' => 'Label',
+    'scheme' => 'Colour scheme',
+    'light' => 'Light',
+    'dark' => 'Dark',
+    'colors' => 'Colours',
+    'save' => 'Save theme',
+    'new' => 'New theme',
+    'duplicate' => 'Duplicate',
+    'edit' => 'Edit',
+    'delete' => 'Delete',
+    'confirm_delete' => 'Delete this theme?',
+    'invalid' => 'The theme was not saved. Use a short name of letters, digits and dashes, and valid colours for at least primary, base-100 and base-content.',
+    'saved' => 'Theme saved.',
+    'builtin' => 'Built-in',
+    'copy_of' => 'Copy of :label',
+];

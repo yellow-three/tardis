@@ -4,14 +4,17 @@ namespace Tardis\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Tardis\Support\ModelResolver;
 
 class Permission extends Model
 {
+    protected $table = 'tardis_permissions';
+
     protected $fillable = ['name', 'slug', 'group'];
 
     public function roles(): BelongsToMany
     {
-        return $this->belongsToMany(Role::class, 'tardis_permission_role');
+        return $this->belongsToMany(ModelResolver::role(), 'tardis_permission_role');
     }
 
     public static function forBread(string $slug): void

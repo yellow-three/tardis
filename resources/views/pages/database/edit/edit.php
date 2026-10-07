@@ -4,8 +4,11 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\Locked;
 use Livewire\Attributes\Title;
 use Livewire\Component;
+use Tardis\Auth\Abilities;
+use Tardis\Auth\BreadAuthorization;
 use Tardis\Database\Concerns\ManagesColumnDefinitions;
 use Tardis\Database\ModelGenerator;
 
@@ -13,6 +16,7 @@ new #[Title('Edit Table')] #[Layout('tardis::layouts.admin')] class extends Comp
 {
     use ManagesColumnDefinitions;
 
+    #[Locked]
     public string $selectedTable = '';
 
     /** @var array<int, array<string, mixed>> */
@@ -49,11 +53,21 @@ new #[Title('Edit Table')] #[Layout('tardis::layouts.admin')] class extends Comp
 
     public ?string $confirmDropColumn = null;
 
+    /**
+     * Runs on every request, not only on mount: Livewire keeps component state
+     * between updates, so a permission revoked after the page opened must
+     * still stop the next action.
+     */
+    public function boot(): void
+    {
+        app(BreadAuthorization::class)->authorizeAbility(Abilities::DATABASE);
+    }
+
     public function mount(string $table): void
     {
         $connection = config('database.default');
 
-        if (! Schema::connection($connection)->hasTable($table)) {
+        if ($this->isHiddenTable($table) || ! Schema::connection($connection)->hasTable($table)) {
             abort(404);
         }
 
@@ -87,7 +101,7 @@ new #[Title('Edit Table')] #[Layout('tardis::layouts.admin')] class extends Comp
 
             $this->totalRows = DB::connection($connection)->table($this->selectedTable)->count();
         } catch (Throwable $e) {
-            $this->error = 'Could not load table data: '.$e->getMessage();
+            $this->error = __('tardis::database.could_not_load_table_data', ['error' => $e->getMessage()]);
             $this->columns = [];
             $this->editColumns = [];
         }
@@ -140,7 +154,7 @@ new #[Title('Edit Table')] #[Layout('tardis::layouts.admin')] class extends Comp
                         $this->applyColumnDefinition($table, $column);
                     });
 
-                $this->message = 'Column added successfully.';
+                $this->message = __('tardis::database.column_added');
             } else {
                 // Existing row → rename first, then apply the new definition.
                 $original = $column['original'];
@@ -160,12 +174,12 @@ new #[Title('Edit Table')] #[Layout('tardis::layouts.admin')] class extends Comp
                         $this->applyColumnDefinition($t, $current, false, true);
                     });
 
-                $this->message = 'Column updated successfully.';
+                $this->message = __('tardis::database.column_updated');
             }
 
             $this->loadTableData();
         } catch (Throwable $e) {
-            $this->error = 'Could not save column: '.$e->getMessage();
+            $this->error = __('tardis::database.could_not_save_column', ['error' => $e->getMessage()]);
         }
     }
 
@@ -217,7 +231,7 @@ new #[Title('Edit Table')] #[Layout('tardis::layouts.admin')] class extends Comp
             $this->showAddColumnForm = false;
             $this->loadTableData();
         } catch (Throwable $e) {
-            $this->error = 'Could not add column: '.$e->getMessage();
+            $this->error = __('tardis::database.could_not_add_column', ['error' => $e->getMessage()]);
         }
     }
 
@@ -277,7 +291,7 @@ new #[Title('Edit Table')] #[Layout('tardis::layouts.admin')] class extends Comp
             $this->showEditColumnForm = false;
             $this->loadTableData();
         } catch (Throwable $e) {
-            $this->error = 'Could not update column: '.$e->getMessage();
+            $this->error = __('tardis::database.could_not_update_column', ['error' => $e->getMessage()]);
         }
     }
 
@@ -306,7 +320,7 @@ new #[Title('Edit Table')] #[Layout('tardis::layouts.admin')] class extends Comp
             $this->confirmDropColumn = null;
             $this->loadTableData();
         } catch (Throwable $e) {
-            $this->error = 'Could not drop column: '.$e->getMessage();
+            $this->error = __('tardis::database.could_not_drop_column', ['error' => $e->getMessage()]);
             $this->confirmDropColumn = null;
         }
     }
@@ -317,9 +331,9 @@ new #[Title('Edit Table')] #[Layout('tardis::layouts.admin')] class extends Comp
             app(ModelGenerator::class)->generate($this->selectedTable, $this->columns, ['force' => true]);
 
             $this->selectedTableHasModel = true;
-            $this->message = 'Model created successfully.';
+            $this->message = __('tardis::database.model_created');
         } catch (Throwable $e) {
-            $this->message = 'Model generation failed: '.$e->getMessage();
+            $this->message = __('tardis::database.model_failed', ['error' => $e->getMessage()]);
         }
     }
 
@@ -338,11 +352,11 @@ new #[Title('Edit Table')] #[Layout('tardis::layouts.admin')] class extends Comp
         try {
             Schema::connection(config('database.default'))->dropIfExists($this->selectedTable);
 
-            session()->flash('message', 'Table dropped successfully.');
+            session()->flash('message', __('tardis::database.table_dropped'));
 
             $this->redirect(route('tardis.database.index'));
         } catch (Throwable $e) {
-            $this->error = 'Could not drop table: '.$e->getMessage();
+            $this->error = __('tardis::database.could_not_drop_table', ['error' => $e->getMessage()]);
             $this->confirmDropTable = false;
         }
     }

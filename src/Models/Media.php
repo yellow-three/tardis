@@ -21,7 +21,7 @@ class Media extends Model
 
     protected $fillable = [
         'name', 'original_name', 'path', 'disk',
-        'mime_type', 'size', 'alt_text', 'collection', 'created_by',
+        'mime_type', 'size', 'alt_text', 'collection', 'created_by', 'caption', 'description',
     ];
 
     protected $appends = ['url', 'thumbnail_url', 'formatted_size'];

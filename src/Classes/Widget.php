@@ -2,6 +2,8 @@
 
 namespace Tardis\Classes;
 
+use Tardis\Auth\BreadAuthorization;
+
 class Widget
 {
     public string $component;
@@ -18,10 +20,29 @@ class Widget
 
     public int $order = 50;
 
+    /** Set when the dashboard layout hides this widget. */
+    public bool $layoutHidden = false;
+
+    /** Explicit stable id; see id(). */
+    public ?string $key = null;
+
     public function __construct(string $component, string $title)
     {
         $this->component = $component;
         $this->title = $title;
+    }
+
+    /** Stable identity for the saved dashboard layout. */
+    public function id(): string
+    {
+        return $this->key ?? $this->component;
+    }
+
+    public function key(string $key): self
+    {
+        $this->key = $key;
+
+        return $this;
     }
 
     public function width(int $width): self
@@ -61,10 +82,9 @@ class Widget
 
     public function isVisible(): bool
     {
-        if ($this->permission) {
-            return auth()->user()?->can($this->permission) ?? false;
-        }
-
-        return true;
+        // The same check every screen uses: with no authorization plugin deciding,
+        // a widget is shown; with one, the user needs the ability.
+        return $this->permission === null
+            || app(BreadAuthorization::class)->allowsAbility($this->permission);
     }
 }

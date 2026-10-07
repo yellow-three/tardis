@@ -18,7 +18,7 @@
         <div class="flex items-center gap-2 mt-0.5">
             <span class="badge badge-ghost badge-xs">{{ ucfirst($theme['colorScheme'] ?? 'light') }}</span>
             @if (!empty($theme['default']))
-                <span class="badge badge-primary badge-xs">Default</span>
+                <span class="badge badge-primary badge-xs">{{ __('tardis::misc.default') }}</span>
             @endif
         </div>
     </div>

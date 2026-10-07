@@ -2,30 +2,58 @@
 
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
+use Tardis\Http\BreadRoutes;
+use Tardis\Http\Controllers\AssetController;
+use Tardis\Http\Controllers\LocaleController;
+use Tardis\Http\Controllers\ThemeController;
+use Tardis\Http\PluginRoutes;
 
-Route::middleware(['web'])
+// Plugin and host assets, addressed by content hash. No middleware on purpose:
+// they are code, not data, the login page needs them too, and a session cookie
+// must never ride on a response that is cached for a year.
+Route::prefix(config('tardis.admin.prefix', 'admin'))
+    ->name('tardis.')
+    ->group(function () {
+        Route::get('/_assets/{hash}.{extension}', AssetController::class)
+            ->where(['hash' => '[a-f0-9]{16}', 'extension' => 'css|js'])
+            ->name('assets');
+    });
+
+Route::middleware(['web', 'tardis.locale'])
     ->prefix(config('tardis.admin.prefix', 'admin'))
     ->name('tardis.')
     ->group(function () {
+        Route::post('/preferences/locale', LocaleController::class)->name('preferences.locale');
+        Route::post('/preferences/theme', ThemeController::class)->name('preferences.theme');
+
         Route::livewire('/login', 'tardis::pages.login')->name('login');
         Route::livewire('/forgot-password', 'tardis::pages.forgot-password')->name('password.request');
         Route::livewire('/reset-password/{token}', 'tardis::pages.reset-password')->name('password.reset');
     });
 
-Route::middleware(['web', 'tardis.admin'])
+Route::middleware(['web', 'tardis.locale', 'tardis.admin'])
     ->prefix(config('tardis.admin.prefix', 'admin'))
     ->name('tardis.')
     ->group(function () {
         Route::livewire('/dashboard', 'tardis::pages.dashboard')->name('dashboard');
 
+        Route::livewire('/themes', 'tardis::pages.theme-editor')->name('themes.index');
+        Route::livewire('/menus', 'tardis::pages.menu-builder')->name('menus.index');
         Route::livewire('/plugins', 'tardis::pages.plugins')->name('plugins.index');
         Route::livewire('/media', 'tardis::pages.media-browser')->name('media');
         Route::livewire('/media/browse', 'tardis::pages.media-browser')->name('media.browse');
+        Route::livewire('/media/{id}/edit', 'tardis::pages.media-edit')->name('media.edit');
         Route::livewire('/activity-log', 'tardis::pages.activity-log')->name('activity.index');
         Route::livewire('/database', 'tardis::pages.database')->name('database.index');
         Route::livewire('/database/create', 'tardis::pages.database.create')->name('database.create');
         Route::livewire('/database/{table}/edit', 'tardis::pages.database.edit')->name('database.edit');
         Route::livewire('/settings', 'tardis::pages.settings')->name('settings.index');
+
+        // System tools. Each screen checks its own ability on mount and on
+        // every update, so the routes only carry the shared panel middleware.
+        Route::livewire('/system', 'tardis::pages.system')->name('system.index');
+        Route::livewire('/system/logs', 'tardis::pages.system.logs')->name('system.logs');
+        Route::livewire('/system/commands', 'tardis::pages.system.commands')->name('system.commands');
 
         Route::livewire('/search', 'tardis::pages.search')->name('search');
         Route::post('/logout', function () {
@@ -38,15 +66,17 @@ Route::middleware(['web', 'tardis.admin'])
 
         Route::livewire('/permissions', 'tardis::pages.permissions')->name('permissions');
         Route::livewire('/roles', 'tardis::pages.roles')->name('roles');
+        Route::livewire('/users', 'tardis::pages.users')->name('users.index');
 
         Route::livewire('/ui-components', 'tardis::pages.ui-components')->name('ui-components');
 
         Route::livewire('/bread', 'tardis::pages.bread.manage')->name('bread.manage');
         Route::livewire('/bread/create', 'tardis::pages.bread-builder')->name('bread.create');
         Route::livewire('/bread/{slug}/edit', 'tardis::pages.bread-builder')->name('bread.edit');
-
-        Route::livewire('/{slug}', 'tardis::pages.bread.index')->name('bread.index');
-        Route::livewire('/{slug}/create', 'tardis::pages.bread.create')->name('bread.add');
-        Route::livewire('/{slug}/{id}', 'tardis::pages.bread.read')->name('bread.read');
-        Route::livewire('/{slug}/{id}/edit', 'tardis::pages.bread.edit')->name('bread.edit.item');
     });
+
+// BREAD routes are generated from the definitions, after every fixed screen.
+BreadRoutes::define();
+
+// Plugins that provide routes add them inside the panel's own group.
+PluginRoutes::define();

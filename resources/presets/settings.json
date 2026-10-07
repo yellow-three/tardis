@@ -13,7 +13,10 @@
             "default_value": null,
             "rows": 1
         },
-        "validation": ["required", "max:255"]
+        "validation": [
+            "required",
+            "max:255"
+        ]
     },
     {
         "type": "text",
@@ -29,7 +32,10 @@
             "default_value": null,
             "rows": 1
         },
-        "validation": ["required", "max:255"]
+        "validation": [
+            "required",
+            "max:255"
+        ]
     },
     {
         "type": "text",
@@ -45,7 +51,9 @@
             "default_value": null,
             "rows": 1
         },
-        "validation": ["max:255"]
+        "validation": [
+            "max:255"
+        ]
     },
     {
         "type": "number",
@@ -59,7 +67,12 @@
             "min": 4,
             "max": 8
         },
-        "validation": ["required", "numeric", "min:4", "max:8"]
+        "validation": [
+            "required",
+            "numeric",
+            "min:4",
+            "max:8"
+        ]
     },
     {
         "type": "select",
@@ -74,7 +87,10 @@
             "show": "Show",
             "hide": "Hide"
         },
-        "validation": ["required", "in:show,hide"]
+        "validation": [
+            "required",
+            "in:show,hide"
+        ]
     },
     {
         "type": "toggle",
@@ -99,7 +115,10 @@
             "dark": "Dark (dark)",
             "system": "System preference"
         },
-        "validation": ["required", "in:light,dark,system"]
+        "validation": [
+            "required",
+            "in:light,dark,system"
+        ]
     },
     {
         "type": "text",
@@ -114,7 +133,9 @@
             "placeholder": "/",
             "default_value": "/"
         },
-        "validation": ["required"]
+        "validation": [
+            "required"
+        ]
     },
     {
         "type": "select",
@@ -129,7 +150,10 @@
             "local": "Local",
             "s3": "S3 Cloud"
         },
-        "validation": ["required", "in:public,local,s3"]
+        "validation": [
+            "required",
+            "in:public,local,s3"
+        ]
     },
     {
         "type": "number",
@@ -143,14 +167,31 @@
             "min": 1,
             "max": 128
         },
-        "validation": ["required", "numeric", "min:1", "max:128"]
+        "validation": [
+            "required",
+            "numeric",
+            "min:1",
+            "max:128"
+        ]
     },
     {
         "type": "simple_array",
         "group": "media",
         "key": "allowed-extensions",
         "name": "Allowed Extensions",
-        "value": ["jpg", "jpeg", "png", "gif", "webp", "svg", "pdf", "doc", "docx", "xls", "xlsx"],
+        "value": [
+            "jpg",
+            "jpeg",
+            "png",
+            "gif",
+            "webp",
+            "svg",
+            "pdf",
+            "doc",
+            "docx",
+            "xls",
+            "xlsx"
+        ],
         "info": "Comma-separated list of allowed file extensions",
         "translatable": false,
         "options": {},
@@ -167,7 +208,9 @@
         "options": {
             "placeholder": "/admin/dashboard"
         },
-        "validation": ["required"]
+        "validation": [
+            "required"
+        ]
     },
     {
         "type": "text",
@@ -180,7 +223,9 @@
         "options": {
             "placeholder": "/admin/login"
         },
-        "validation": ["required"]
+        "validation": [
+            "required"
+        ]
     },
     {
         "type": "number",
@@ -194,7 +239,12 @@
             "min": 6,
             "max": 128
         },
-        "validation": ["required", "numeric", "min:6", "max:128"]
+        "validation": [
+            "required",
+            "numeric",
+            "min:6",
+            "max:128"
+        ]
     },
     {
         "type": "toggle",
@@ -206,5 +256,63 @@
         "translatable": false,
         "options": {},
         "validation": []
+    },
+    {
+        "type": "select",
+        "group": "appearance",
+        "key": "mode",
+        "name": "Default Mode",
+        "value": "system",
+        "info": "Colour mode for users who have not chosen one",
+        "translatable": false,
+        "canBeTranslated": false,
+        "options": {
+            "light": "Light",
+            "dark": "Dark",
+            "system": "Follow system"
+        }
+    },
+    {
+        "type": "select",
+        "group": "appearance",
+        "key": "theme_light",
+        "name": "Default Light Theme",
+        "value": "tardis-light",
+        "info": "Theme used in light mode",
+        "translatable": false,
+        "canBeTranslated": false,
+        "options": {
+            "tardis-light": "TARDIS Light"
+        }
+    },
+    {
+        "type": "select",
+        "group": "appearance",
+        "key": "theme_dark",
+        "name": "Default Dark Theme",
+        "value": "tardis-dark",
+        "info": "Theme used in dark mode",
+        "translatable": false,
+        "canBeTranslated": false,
+        "options": {
+            "tardis-dark": "TARDIS Dark"
+        }
+    },
+    {
+        "type": "textarea",
+        "group": "appearance",
+        "key": "custom_css",
+        "name": "Custom CSS",
+        "value": "",
+        "info": "Extra CSS added to every admin page",
+        "translatable": false,
+        "canBeTranslated": false,
+        "options": {
+            "rows": 8
+        },
+        "validation": [
+            "nullable",
+            "max:20000"
+        ]
     }
 ]
