@@ -69,6 +69,15 @@ jobs:
       - name: Install dependencies
         run: composer install --no-interaction --no-progress --prefer-dist
 
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Build assets (dist is not versioned; the doctor and install tests read it)
+        run: npm ci && npm run build
+
       - name: Run tests with coverage
         run: vendor/bin/pest --coverage-clover coverage.xml --min=80
 
