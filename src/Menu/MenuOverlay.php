@@ -17,6 +17,9 @@ use InvalidArgumentException;
  *   { "items":  { "<item id>": { "hidden": true, "title": "…", "order": 5, "section": "…" } },
  *     "custom": [ { "id": "custom-ab12", "title": "…", "url": "…", "icon": "…", "section": "…",
  *                   "order": 90, "permission": null, "new_tab": false } ] }
+ *
+ * An item "title" may also be a locale map ({"en": "…", "tr": "…"}), which is how
+ * a retitle in one language keeps the others intact.
  */
 class MenuOverlay
 {
@@ -60,7 +63,8 @@ class MenuOverlay
         foreach ($changes as $key => $value) {
             match ($key) {
                 'hidden' => $value ? $entry['hidden'] = true : $this->forgetKey($entry, 'hidden'),
-                'title', 'section' => is_string($value) && trim($value) !== '' ? $entry[$key] = mb_substr(trim($value), 0, 120) : $this->forgetKey($entry, $key),
+                'title' => $this->title($value, $entry),
+                'section' => is_string($value) && trim($value) !== '' ? $entry['section'] = mb_substr(trim($value), 0, 120) : $this->forgetKey($entry, 'section'),
                 'order' => is_numeric($value) ? $entry['order'] = (int) $value : $this->forgetKey($entry, 'order'),
                 default => null,
             };
@@ -76,8 +80,42 @@ class MenuOverlay
     }
 
     /**
-     * Add a link. The url must be http(s) or root-relative; it is rendered as an
-     * href, so anything else (javascript:, data:) is refused.
+     * Store a title override, which is either a plain string or a locale map.
+     *
+     * A map is kept as a map so an administrator retitling an item in one
+     * language leaves the other translations alone; dropping to a single
+     * string here would quietly replace every locale at once.
+     */
+    protected function title(mixed $value, array &$entry): void
+    {
+        if (is_array($value)) {
+            $map = [];
+
+            foreach ($value as $locale => $translation) {
+                if (! is_scalar($translation)) {
+                    continue;
+                }
+
+                $translation = mb_substr(trim((string) $translation), 0, 120);
+
+                if ($translation !== '') {
+                    $map[(string) $locale] = $translation;
+                }
+            }
+
+            $map === [] ? $this->forgetKey($entry, 'title') : $entry['title'] = $map;
+
+            return;
+        }
+
+        is_string($value) && trim($value) !== ''
+            ? $entry['title'] = mb_substr(trim($value), 0, 120)
+            : $this->forgetKey($entry, 'title');
+    }
+
+    /**
+     * Add a link. The url must be http(s) or root-relative; it is rendered as
+     * an href, so anything else (javascript:, data:) is refused.
      *
      * @param  array<string, mixed>  $link
      */

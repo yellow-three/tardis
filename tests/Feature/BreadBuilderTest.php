@@ -650,3 +650,69 @@ test('the builder refuses a slug reserved for a built-in screen', function () {
 
     expect($source->has('settings'))->toBeFalse();
 });
+
+/** A definition whose three translatable labels are locale maps. */
+function saveLocaleMappedBread(string $path): void
+{
+    (new JsonBreadSource($path))->save([
+        'slug' => 'bread-builder-test',
+        'model' => BreadBuilderTestModel::class,
+        'name' => ['en' => 'Post', 'tr' => 'Yazi'],
+        'name_plural' => ['en' => 'Posts', 'tr' => 'Yazilar'],
+        'description' => ['en' => 'About posts', 'tr' => 'Yazilar hakkinda'],
+        'fields' => [
+            'name' => ['name' => 'name', 'type' => 'text', 'label' => 'Name', 'required' => false, 'browse' => true, 'read' => true, 'edit' => true, 'add' => true, 'validation' => []],
+        ],
+        'relationships' => [],
+    ]);
+}
+
+test('builder edit mode loads a locale map label and shows only the active locale', function () {
+    app()->instance(JsonBreadSource::class, new JsonBreadSource($this->breadPath));
+    saveLocaleMappedBread($this->breadPath);
+
+    // The inputs edit one locale at a time, so the map is what must survive
+    // behind them — the form has no room to show all of it.
+    Livewire::test('tardis::pages.bread-builder', ['slug' => 'bread-builder-test'])
+        ->assertSet('nameTranslations', ['en' => 'Post', 'tr' => 'Yazi'])
+        ->assertSet('name', 'Post')
+        ->assertSet('namePluralTranslations', ['en' => 'Posts', 'tr' => 'Yazilar'])
+        ->assertSet('namePlural', 'Posts')
+        ->assertSet('descriptionTranslations', ['en' => 'About posts', 'tr' => 'Yazilar hakkinda'])
+        ->assertSet('description', 'About posts');
+});
+
+test('saving an untouched locale map keeps every locale instead of flattening it', function () {
+    app()->instance(JsonBreadSource::class, new JsonBreadSource($this->breadPath));
+    saveLocaleMappedBread($this->breadPath);
+
+    Livewire::test('tardis::pages.bread-builder', ['slug' => 'bread-builder-test'])
+        ->call('save')
+        ->assertHasNoErrors();
+
+    // Opening the builder and saving it again must not quietly turn every
+    // locale into the single string the English tab happened to show.
+    $bread = app(BreadManager::class)->find('bread-builder-test');
+
+    expect($bread->name)->toBe(['en' => 'Post', 'tr' => 'Yazi'])
+        ->and($bread->namePlural)->toBe(['en' => 'Posts', 'tr' => 'Yazilar'])
+        ->and($bread->description)->toBe(['en' => 'About posts', 'tr' => 'Yazilar hakkinda']);
+});
+
+test('retyping a locale mapped label replaces the map with that one string', function () {
+    app()->instance(JsonBreadSource::class, new JsonBreadSource($this->breadPath));
+    saveLocaleMappedBread($this->breadPath);
+
+    Livewire::test('tardis::pages.bread-builder', ['slug' => 'bread-builder-test'])
+        ->set('name', 'Article')
+        ->call('save')
+        ->assertHasNoErrors();
+
+    // A deliberate edit means the user wants exactly what the input showed, so
+    // the untouched locales are dropped rather than kept behind a stale input.
+    $bread = app(BreadManager::class)->find('bread-builder-test');
+
+    expect($bread->name)->toBe('Article')
+        ->and($bread->namePlural)->toBe(['en' => 'Posts', 'tr' => 'Yazilar'])
+        ->and($bread->resolvedName())->toBe('Article');
+});

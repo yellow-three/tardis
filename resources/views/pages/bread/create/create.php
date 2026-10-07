@@ -31,6 +31,13 @@ new #[Title('Create')] #[Layout('tardis::layouts.admin')] class extends Componen
 
     public array $relationResults = [];
 
+    /**
+     * The locale a translatable field's control is showing. One locale for the
+     * whole page, so switching tabs reveals another language's inputs without
+     * discarding what has already been typed into the current one.
+     */
+    public string $activeLocale = '';
+
     public function mount(string $slug): void
     {
         $this->slug = $slug;
@@ -40,7 +47,7 @@ new #[Title('Create')] #[Layout('tardis::layouts.admin')] class extends Componen
             abort(404);
         }
 
-        $this->bread = $definition->toArray();
+        $this->bread = $definition->toDisplayArray();
 
         app(BreadAuthorization::class)->authorize('add', $this->slug);
 
@@ -58,6 +65,44 @@ new #[Title('Create')] #[Layout('tardis::layouts.admin')] class extends Componen
             }
 
             $this->form[$name] = Translation::normalize(null, Translation::locales($field['locales'] ?? null));
+        }
+
+        $locales = $this->translatableLocales;
+        $current = (string) app()->getLocale();
+
+        $this->activeLocale = in_array($current, $locales, true) ? $current : ($locales[0] ?? '');
+    }
+
+    /**
+     * Every locale any translatable field on this page declares, in order.
+     *
+     * @return array<int, string>
+     */
+    public function getTranslatableLocalesProperty(): array
+    {
+        $locales = [];
+
+        foreach ($this->fields as $field) {
+            if (empty($field['translatable'])) {
+                continue;
+            }
+
+            foreach (Translation::locales($field['locales'] ?? null) as $locale) {
+                $locales[$locale] = true;
+            }
+        }
+
+        return array_keys($locales);
+    }
+
+    /**
+     * Only a locale one of these fields actually declares is accepted, so a
+     * crafted request cannot leave the page rendering a locale nothing has.
+     */
+    public function setActiveLocale(string $locale): void
+    {
+        if (in_array($locale, $this->translatableLocales, true)) {
+            $this->activeLocale = $locale;
         }
     }
 
@@ -123,7 +168,7 @@ new #[Title('Create')] #[Layout('tardis::layouts.admin')] class extends Componen
 
     protected function validationRules(): array
     {
-        return FieldValidationRules::for($this->fields, $this->form);
+        return FieldValidationRules::for($this->fields, $this->form, $this->activeLocale);
     }
 
     public function save(): void

@@ -12,12 +12,12 @@
     <li>
         @if ($hasChildren)
             <details {{ $isExpanded ? 'open' : '' }}>
-                <summary aria-label="{{ $item->title }}" class="{{ $isActive ? 'menu-active' : '' }} flex items-center gap-2 is-drawer-close:tooltip is-drawer-close:tooltip-right is-drawer-close:after:hidden" data-tip="{{ $item->title }}">
+                <summary aria-label="{{ $item->resolvedTitle() }}" class="{{ $isActive ? 'menu-active' : '' }} flex items-center gap-2 is-drawer-close:tooltip is-drawer-close:tooltip-right is-drawer-close:after:hidden" data-tip="{{ $item->resolvedTitle() }}">
                     @if ($item->icon)
                         <x-dynamic-component :component="$item->icon" class="w-5 h-5 shrink-0" />
                     @endif
                     <span class="tardis-sidebar-label flex items-center gap-2 flex-1 min-w-0">
-                        <span class="truncate">{{ $item->title }}</span>
+                        <span class="truncate">{{ $item->resolvedTitle() }}</span>
                         @if ($item->badgeColor)
                             <span class="badge badge-{{ $item->badgeColor }} badge-sm ml-auto">
                                 {{ $item->badgeValue ?? '' }}
@@ -32,12 +32,12 @@
                 </ul>
             </details>
         @else
-            <a @if ($isActive) aria-current="page" @endif aria-label="{{ $item->title }}" href="{{ $item->href() }}" {!! $item->newTab ? 'target="_blank" rel="noopener noreferrer"' : 'wire:navigate' !!} class="{{ $isActive ? 'menu-active' : '' }} flex items-center gap-2 is-drawer-close:tooltip is-drawer-close:tooltip-right" data-tip="{{ $item->title }}">
+            <a @if ($isActive) aria-current="page" @endif aria-label="{{ $item->resolvedTitle() }}" href="{{ $item->href() }}" {!! $item->newTab ? 'target="_blank" rel="noopener noreferrer"' : 'wire:navigate' !!} class="{{ $isActive ? 'menu-active' : '' }} flex items-center gap-2 is-drawer-close:tooltip is-drawer-close:tooltip-right" data-tip="{{ $item->resolvedTitle() }}">
                 @if ($item->icon)
                     <x-dynamic-component :component="$item->icon" class="w-5 h-5 shrink-0" />
                 @endif
                 <span class="tardis-sidebar-label flex items-center gap-2 flex-1 min-w-0">
-                    <span class="truncate">{{ $item->title }}</span>
+                    <span class="truncate">{{ $item->resolvedTitle() }}</span>
                     @if ($item->badgeColor)
                         <span class="badge badge-{{ $item->badgeColor }} badge-sm ml-auto">
                             {{ $item->badgeValue ?? '' }}

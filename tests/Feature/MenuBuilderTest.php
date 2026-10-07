@@ -21,6 +21,19 @@ function menuTitles(bool $withHidden = false): array
     return freshMenu()->all($withHidden)->pluck('title')->all();
 }
 
+/**
+ * The sidebar titles a visitor in $locale actually sees, with locale maps and
+ * translation keys resolved.
+ *
+ * @return array<int, string>
+ */
+function resolvedMenuTitles(string $locale): array
+{
+    app()->setLocale($locale);
+
+    return freshMenu()->all()->map(fn ($item) => $item->resolvedTitle())->all();
+}
+
 test('the overlay is empty until something changes', function () {
     expect(app(MenuOverlay::class)->isEmpty())->toBeTrue();
 });
@@ -115,4 +128,30 @@ test('the builder page adds and removes a link and reports a bad url', function 
 
 test('the sidebar entry for the builder is listed', function () {
     expect(menuTitles())->toContain(__('tardis::menu.menu_builder'));
+});
+
+test('renaming a translated menu item rewrites only the active locale', function () {
+    app(MenuOverlay::class)->change('tardis.media', ['title' => ['en' => 'Files', 'tr' => 'Dosyalar']]);
+
+    app()->setLocale('tr');
+
+    Livewire::test('tardis::pages.menu-builder')
+        ->call('rename', 'tardis.media', 'Belgeler');
+
+    expect(resolvedMenuTitles('tr'))->toContain('Belgeler')
+        ->and(resolvedMenuTitles('tr'))->not->toContain('Dosyalar')
+        ->and(resolvedMenuTitles('en'))->toContain('Files');
+});
+
+test('an overlay title map is trimmed and capped per locale', function () {
+    app(MenuOverlay::class)->change('tardis.media', ['title' => [
+        'en' => '  Files  ',
+        'tr' => str_repeat('x', 200),
+    ]]);
+
+    $title = app(MenuOverlay::class)->items()['tardis.media']['title'];
+
+    expect($title)->toBeArray()
+        ->and($title['en'])->toBe('Files')
+        ->and($title['tr'])->toHaveLength(120);
 });

@@ -69,7 +69,7 @@ new #[Title('tardis::search.search')] #[Layout('tardis::layouts.admin')] class e
                 if ($items->isNotEmpty()) {
                     $this->results[] = [
                         'slug' => $slug,
-                        'name' => $bread->namePlural,
+                        'name' => $bread->resolvedNamePlural(),
                         'items' => $items->map(fn ($item) => [
                             'id' => $item->id,
                             'title' => $item->{$bread->searchKey} ?? "Item #{$item->id}",

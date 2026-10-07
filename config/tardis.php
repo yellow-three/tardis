@@ -73,6 +73,28 @@ return [
     // fall back to the application's current locale.
     'locales' => [],
 
+    'translation' => [
+        /*
+         * Which locales a translatable field's validation rules are applied to:
+         *
+         *  - "all"    every locale of the field must satisfy the rules. A
+         *             "required" field then rejects a record that has only one
+         *             of its translations filled in.
+         *  - "active" only the locale being edited has to satisfy them, so a
+         *             record can be filled in one language at a time.
+         *
+         * A field overrides this with its own "validation_mode" key.
+         */
+        'validation' => 'all',
+
+        /*
+         * Whether the create/edit pages show one control per locale as tabs.
+         * With this off, every locale's control is stacked and labelled, which
+         * is what the layout looked like before tabs existed.
+         */
+        'tabs' => true,
+    ],
+
     /*
     |--------------------------------------------------------------------------
     | Authorization Settings
