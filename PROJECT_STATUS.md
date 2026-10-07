@@ -1,6 +1,6 @@
 # Tardis Project Status
 
-Last verified: 2026-10-04 — `composer test` → 857 passed (2145 assertions), `composer lint` clean.
+Last verified: 2026-10-08 — `composer test` → 918 passed (2369 assertions), `composer lint` clean.
 
 ## Overview
 
@@ -27,7 +27,8 @@ Only SFC and MFC are allowed (see `.claude/AGENTS.md`). Large pages are MFC: `br
 
 ### Menu, themes, settings
 - `MenuManager` groups the sidebar and detects active nested URLs.
-- `ThemeManager` reads the Vite-generated `themes-manifest.json` (dev: Vite URL with disk fallback; prod: disk).
+- Themes are data: the built-ins ship in the compiled CSS, custom ones live in `storage/tardis/themes.json` (`ThemeManager`, edited under **Themes**). The server resolves the theme per request (user choice → Settings defaults → built-ins) and writes `data-theme`; there is no build-time manifest.
+- `MenuOverlay` (`menus.json`), `DashboardLayout` (`dashboard.json`) and `UserPreferences` (`preferences.json`) hold the administrator's menu, dashboard and per-user choices on top of what code defines.
 - `SettingsManager` persists to `storage/tardis/settings/settings.json`; the preset in `resources/presets/settings.json` is seeded on the first web boot when no file exists.
 
 ## Roadmap
@@ -36,7 +37,7 @@ Only SFC and MFC are allowed (see `.claude/AGENTS.md`). Large pages are MFC: `br
 
 - **R28 — Translated content**: BREAD labels/descriptions and translatable form fields store raw locale maps, resolved only for display; read pages show fallback badges for borrowed labels and values; menu titles are locale-aware with stable IDs; Bread builder preserves locale maps and trims per locale; FieldValidationRules supports 'all'/'active' modes. Coverage added for badges, tabs, and validation modes (857 passed).
 
-Known gaps: create/edit still draw field types with an inline `@if` chain (B16); `route:cache` needs a rebuild after creating a BREAD; theme loading still reads the manifest at register time (R31).
+Known gaps: `route:cache` needs a rebuild after creating a BREAD (routes are generated from the definitions). Open backlog items: R14 (Graphify MCP for OpenCode, tooling only) and the "açık" tails listed per phase in `docs/backlog.md`.
 
 ## Documentation map
 
