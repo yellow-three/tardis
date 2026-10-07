@@ -183,6 +183,35 @@ new #[Title('Edit')] #[Layout('tardis::layouts.admin')] class extends Component
         return app(FormfieldManager::class)->fields($this->fields);
     }
 
+    public function getLayoutFieldsProperty(): array
+    {
+        $layout = $this->bread['layout'] ?? [];
+        $viewLayout = $layout['view'] ?? $layout['read'] ?? [];
+        $editLayout = $layout['edit'] ?? [];
+
+        if (! empty($viewLayout) && is_array($viewLayout)) {
+            $result = [];
+            foreach ($viewLayout as $item) {
+                if (is_string($item)) {
+                    $field = collect($this->fields)->first(fn ($f) => ($f['name'] ?? null) === $item);
+                    if ($field && ($field['read'] ?? true)) {
+                        $result[] = $field;
+                    }
+                } elseif (is_array($item) && isset($item['name'])) {
+                    $field = collect($this->fields)->first(fn ($f) => ($f['name'] ?? null) === $item['name']);
+                    if ($field && ($field['read'] ?? true)) {
+                        $result[] = array_merge($field, $item);
+                    }
+                }
+            }
+            if (! empty($result)) {
+                return $result;
+            }
+        }
+
+        return $this->fields;
+    }
+
     public function getFieldsProperty(): array
     {
         if (empty($this->bread)) {

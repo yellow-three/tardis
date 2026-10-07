@@ -64,4 +64,8 @@ return [
     'selected_count' => ':count selected',
     'select' => 'Select',
     'fallback_locale' => 'There is no :locale translation yet, so this one is shown instead.',
+
+    // Layout
+    'list_layout' => 'List Layout',
+    'view_layout' => 'View Layout',
 ];

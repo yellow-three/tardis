@@ -34,9 +34,28 @@ class BreadQuery
     {
         $names = [];
 
-        foreach ($this->bread->fields as $field) {
-            if (! empty($field['searchable']) && $this->hasColumn($field)) {
-                $names[] = (string) $field['name'];
+        $layout = $this->bread->layout['list'] ?? $this->bread->layout['browse'] ?? [];
+        if (! empty($layout) && is_array($layout)) {
+            foreach ($layout as $key => $config) {
+                if (is_string($key) && is_array($config) && ! empty($config['searchable'])) {
+                    $field = $this->bread->getField($key);
+                    if ($field && $this->hasColumn($field)) {
+                        $names[] = (string) $key;
+                    }
+                } elseif (is_array($config) && isset($config['name']) && ! empty($config['searchable'])) {
+                    $field = $this->bread->getField($config['name']);
+                    if ($field && $this->hasColumn($field)) {
+                        $names[] = (string) $config['name'];
+                    }
+                }
+            }
+        }
+
+        if ($names === []) {
+            foreach ($this->bread->fields as $field) {
+                if (! empty($field['searchable']) && $this->hasColumn($field)) {
+                    $names[] = (string) $field['name'];
+                }
             }
         }
 
@@ -53,13 +72,77 @@ class BreadQuery
      *
      * @return array<int, string>
      */
+
+    /**
+     * Browse columns from layout (named list/browse) if defined, otherwise fallback to fields.
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    public function browseColumns(): array
+    {
+        $layout = $this->bread->layout['list'] ?? $this->bread->layout['browse'] ?? [];
+
+        if (! empty($layout) && is_array($layout)) {
+            $result = [];
+            foreach ($layout as $key => $config) {
+                if (is_string($key) && is_array($config)) {
+                    $field = $this->bread->getField($key);
+                    if ($field) {
+                        $result[] = array_merge($field, $config);
+                    }
+                } elseif (is_string($config)) {
+                    $field = $this->bread->getField($config);
+                    if ($field) {
+                        $result[] = $field;
+                    }
+                } elseif (is_array($config) && isset($config['name'])) {
+                    $field = $this->bread->getField($config['name']);
+                    if ($field) {
+                        $result[] = array_merge($field, $config);
+                    } else {
+                        $result[] = $config;
+                    }
+                }
+            }
+
+            return $result;
+        }
+
+        return $this->bread->getBrowseFields();
+    }
+
     public function orderable(): array
     {
         $names = [];
 
-        foreach ($this->bread->fields as $field) {
-            if (($field['browse'] ?? true) && ($field['orderable'] ?? true) && $this->hasColumn($field)) {
-                $names[] = (string) $field['name'];
+        $layout = $this->bread->layout['list'] ?? $this->bread->layout['browse'] ?? [];
+        if (! empty($layout) && is_array($layout)) {
+            foreach ($layout as $key => $config) {
+                if (is_string($key) && is_array($config)) {
+                    $orderable = $config['orderable'] ?? ($config['sortable'] ?? true);
+                    if ($orderable) {
+                        $field = $this->bread->getField($key);
+                        if ($field && $this->hasColumn($field)) {
+                            $names[] = (string) $key;
+                        }
+                    }
+                } elseif (is_array($config) && isset($config['name'])) {
+                    $orderable = $config['orderable'] ?? ($config['sortable'] ?? true);
+                    if ($orderable) {
+                        $field = $this->bread->getField($config['name']);
+                        if ($field && $this->hasColumn($field)) {
+                            $names[] = (string) $config['name'];
+                        }
+                    }
+                }
+            }
+        }
+
+        if ($names === []) {
+            foreach ($this->bread->fields as $field) {
+                if (($field['browse'] ?? true) && ($field['orderable'] ?? true) && $this->hasColumn($field)) {
+                    $names[] = (string) $field['name'];
+                }
             }
         }
 

@@ -69,7 +69,7 @@
                             @if ($bulkActions->isNotEmpty())
                                 <th class="w-8" scope="col"><span class="sr-only">{{ __('tardis::bread.select') }}</span></th>
                             @endif
-                            @foreach ($this->visibleFields as $field)
+                            @foreach (($this->layoutFields ?? $this->visibleFields) as $field)
                                 @php($fieldName = (string) ($field['name'] ?? ''))
                                 @php($sortable = in_array($fieldName, $this->query()->orderable(), true))
                                 <th scope="col" @if ($sortable && $sort === $fieldName) aria-sort="{{ $direction === 'desc' ? 'descending' : 'ascending' }}" @endif>
@@ -94,7 +94,7 @@
                                 @if ($bulkActions->isNotEmpty())
                                     <td><input type="checkbox" wire:model.live="selected" value="{{ $row->getKey() }}" class="checkbox checkbox-sm" aria-label="{{ __('tardis::bread.select') }}" /></td>
                                 @endif
-                                @foreach ($this->visibleFields as $field)
+                                @foreach (($this->layoutFields ?? $this->visibleFields) as $field)
                                     @php($fieldName = $field['name'] ?? '')
                                     <td>
                                         @if (! empty($field['translatable']))

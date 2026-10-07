@@ -18,7 +18,7 @@
     ];
 @endphp
 
-<div>
+<div x-data="builderLayout()">
     <x-tardis::page-header
         :title="$editMode ? __('tardis::builder.edit_bread') : __('tardis::builder.create_bread')"
         :description="$editMode ? __('tardis::builder.modify_definition') : __('tardis::builder.define_new_resource')"
@@ -413,18 +413,52 @@
 
                     <div class="mt-4 space-y-2">
                         @forelse ($readLayout as $position => $key)
-                            <div wire:key="read-{{ $key }}" class="flex items-center gap-3 p-2 rounded-box bg-base-200">
-                                <span class="badge badge-neutral badge-sm">{{ $position + 1 }}</span>
-                                <span class="font-medium flex-1">{{ $fieldConfig[$key]['label'] ?? $key }}</span>
-                                <button wire:click="moveReadField('{{ $key }}', -1)" class="btn btn-ghost btn-xs px-1" title="{{ __('tardis::builder.move_up') }}">
-                                    <x-tardis::icon name="chevron-up" class="w-3 h-3" />
-                                </button>
-                                <button wire:click="moveReadField('{{ $key }}', 1)" class="btn btn-ghost btn-xs px-1" title="{{ __('tardis::builder.move_down') }}">
-                                    <x-tardis::icon name="chevron-down" class="w-3 h-3" />
-                                </button>
-                                <button wire:click="toggleReadField('{{ $key }}')" class="btn btn-ghost btn-xs text-error" title="{{ __('tardis::builder.remove') }}">
-                                    <x-tardis::icon name="x-mark" class="w-3 h-3" />
-                                </button>
+                            <div
+                                wire:key="read-{{ $key }}"
+                                draggable="true"
+                                x-on:dragstart="startDrag('{{ $key }}', {{ $position }})"
+                                x-on:dragend="endDrag()"
+                                x-on:dragenter.prevent="dragEnter({{ $position }})"
+                                x-on:dragover.prevent
+                                x-on:drop.prevent="drop({{ $position }}, $wire.readLayout, arr => $wire.$set('readLayout', arr))"
+                                :class="dragOver === {{ $position }} ? 'ring-2 ring-primary' : ''"
+                                class="p-2 rounded-box bg-base-200 cursor-grab"
+                            >
+                                <div class="flex items-center gap-3">
+                                    <span class="badge badge-neutral badge-sm cursor-grab">{{ $position + 1 }}</span>
+                                    <span class="font-medium flex-1">{{ $fieldConfig[$key]['label'] ?? $key }}</span>
+                                    @if (! empty($layoutLegends[$key]))
+                                        <span class="badge badge-ghost badge-sm gap-1 max-w-40 truncate" title="{{ $layoutLegends[$key] }}">
+                                            <x-tardis::icon name="tag" class="w-3 h-3" />
+                                            {{ $layoutLegends[$key] }}
+                                        </span>
+                                    @endif
+                                    <button wire:click="moveReadField('{{ $key }}', -1)" class="btn btn-ghost btn-xs px-1" title="{{ __('tardis::builder.move_up') }}">
+                                        <x-tardis::icon name="chevron-up" class="w-3 h-3" />
+                                    </button>
+                                    <button wire:click="moveReadField('{{ $key }}', 1)" class="btn btn-ghost btn-xs px-1" title="{{ __('tardis::builder.move_down') }}">
+                                        <x-tardis::icon name="chevron-down" class="w-3 h-3" />
+                                    </button>
+                                    <button wire:click="openFieldOptions('{{ $key }}')" class="btn btn-ghost btn-xs px-1" title="{{ __('tardis::builder.field_options') }}">
+                                        <x-tardis::icon name="cog-6-tooth" class="w-3 h-3" />
+                                    </button>
+                                    <button wire:click="toggleReadField('{{ $key }}')" class="btn btn-ghost btn-xs text-error" title="{{ __('tardis::builder.remove') }}">
+                                        <x-tardis::icon name="x-mark" class="w-3 h-3" />
+                                    </button>
+                                </div>
+                                <div class="flex items-center gap-2 mt-2 pl-1">
+                                    <span class="text-[10px] uppercase tracking-wide text-base-content/50">{{ __('tardis::builder.column_width') }}</span>
+                                    <div class="flex items-center gap-0.5">
+                                        @foreach (range(1, 6) as $span)
+                                            <button
+                                                type="button"
+                                                wire:click="setFieldWidth('{{ $key }}', {{ $span }})"
+                                                class="w-5 h-5 rounded text-[10px] font-semibold flex items-center justify-center transition-colors {{ ($layoutWidths[$key] ?? 6) === $span ? 'bg-primary text-primary-content' : 'bg-base-300 text-base-content/60 hover:bg-base-content/25' }}"
+                                                title="{{ $span }}/6"
+                                            >{{ $span }}</button>
+                                        @endforeach
+                                    </div>
+                                </div>
                             </div>
                         @empty
                             <p class="text-sm text-base-content/50 py-4 text-center">{{ __('tardis::builder.no_fields_in_the_read_layout') }}</p>
@@ -446,6 +480,22 @@
                         </div>
                     @endif
                 @endif
+
+                <x-tardis::slide-in :title="__('tardis::builder.field_options')">
+                    @if ($drawerField && isset($fieldConfig[$drawerField]))
+                        <div class="space-y-4">
+                            <div>
+                                <label class="label" for="drawer-field-label">{{ __('tardis::builder.field_label') }}</label>
+                                <input id="drawer-field-label" type="text" class="input input-bordered w-full" wire:model="fieldConfig.{{ $drawerField }}.label" />
+                            </div>
+                            <div>
+                                <label class="label" for="drawer-field-legend">{{ __('tardis::builder.section_heading') }}</label>
+                                <input id="drawer-field-legend" type="text" class="input input-bordered w-full" wire:model="layoutLegends.{{ $drawerField }}" placeholder="{{ __('tardis::builder.section_heading_placeholder') }}" />
+                                <p class="text-xs text-base-content/50 mt-1">{{ __('tardis::builder.section_heading_hint') }}</p>
+                            </div>
+                        </div>
+                    @endif
+                </x-tardis::slide-in>
 
                 @if (($activeTab ?? '') === 'edit-layout')
                     <h2 class="card-title">{{ __('tardis::builder.edit_layout') }}</h2>

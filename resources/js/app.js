@@ -180,9 +180,64 @@
         };
     }
 
+
+    // ---------------------------------------------------------------- builder layout helpers --
+
+    function builderLayout() {
+        return {
+            dragging: null,
+            dragOver: null,
+
+            startDrag(field, index) {
+                this.dragging = { field: field, index: index };
+            },
+
+            endDrag() {
+                this.dragging = null;
+                this.dragOver = null;
+            },
+
+            dragEnter(index) {
+                this.dragOver = index;
+            },
+
+            drop(targetIndex, items, updateCallback) {
+                if (this.dragging === null) {
+                    return;
+                }
+                const from = this.dragging.index;
+                const to = targetIndex;
+                if (from === to) {
+                    this.endDrag();
+                    return;
+                }
+                const arr = items.slice();
+                const [moved] = arr.splice(from, 1);
+                arr.splice(to, 0, moved);
+                updateCallback(arr);
+                this.endDrag();
+            },
+
+            setColSpan(field, span, updateCallback) {
+                const s = Math.max(1, Math.min(6, parseInt(span) || 1));
+                updateCallback(field, s);
+            },
+
+            incSpan(field, current, updateCallback) {
+                this.setColSpan(field, (current || 1) + 1, updateCallback);
+            },
+
+            decSpan(field, current, updateCallback) {
+                this.setColSpan(field, (current || 1) - 1, updateCallback);
+            },
+        };
+    }
+
+
     whenAlpine(function (Alpine) {
         Alpine.store('theme', themeStore());
         Alpine.store('toasts', toastsStore());
+        Alpine.data('builderLayout', builderLayout);
     });
 
     // Livewire components can raise a toast with $this->dispatch('tardis-toast', message: '...', type: 'success').
