@@ -4,6 +4,7 @@ namespace Tardis\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Tardis\Support\ModelResolver;
 
 class Role extends Model
 {
@@ -13,7 +14,7 @@ class Role extends Model
 
     public function permissions(): BelongsToMany
     {
-        return $this->belongsToMany(Permission::class, 'tardis_permission_role');
+        return $this->belongsToMany(ModelResolver::permission(), 'tardis_permission_role');
     }
 
     public function users(): BelongsToMany

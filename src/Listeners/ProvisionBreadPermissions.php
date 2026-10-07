@@ -7,7 +7,7 @@ namespace Tardis\Listeners;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schema;
 use Tardis\Events\BreadSaved;
-use Tardis\Models\Permission;
+use Tardis\Support\ModelResolver;
 
 /**
  * Create the browse/read/edit/add/delete abilities for a BREAD the moment its
@@ -21,7 +21,7 @@ class ProvisionBreadPermissions
     {
         try {
             if (Schema::hasTable('tardis_permissions')) {
-                Permission::forBread($event->definition->permissionKey());
+                ModelResolver::permission()::forBread($event->definition->permissionKey());
             }
         } catch (\Throwable $e) {
             Log::warning('Could not provision BREAD permissions.', [

@@ -5,8 +5,7 @@ use Livewire\Attributes\Title;
 use Livewire\Component;
 use Tardis\Auth\Abilities;
 use Tardis\Auth\BreadAuthorization;
-use Tardis\Models\Permission;
-use Tardis\Models\Role;
+use Tardis\Support\ModelResolver;
 
 new #[Title('tardis::roles.roles')] #[Layout('tardis::layouts.admin')] class extends Component
 {
@@ -43,12 +42,12 @@ new #[Title('tardis::roles.roles')] #[Layout('tardis::layouts.admin')] class ext
     public function mount(): void
     {
         $this->loadRoles();
-        $this->allPermissions = Permission::all()->toArray();
+        $this->allPermissions = ModelResolver::permission()::all()->toArray();
     }
 
     public function loadRoles(): void
     {
-        $this->roles = Role::with('permissions')->get()->toArray();
+        $this->roles = ModelResolver::role()::with('permissions')->get()->toArray();
     }
 
     public function createRole(): void
@@ -58,7 +57,7 @@ new #[Title('tardis::roles.roles')] #[Layout('tardis::layouts.admin')] class ext
             'newSlug' => 'required|string|max:255|unique:tardis_roles,slug',
         ]);
 
-        Role::create([
+        ModelResolver::role()::create([
             'name' => $this->newName,
             'slug' => $this->newSlug,
         ]);
@@ -70,7 +69,7 @@ new #[Title('tardis::roles.roles')] #[Layout('tardis::layouts.admin')] class ext
 
     public function editRole(int $roleId): void
     {
-        $role = Role::findOrFail($roleId);
+        $role = ModelResolver::role()::findOrFail($roleId);
         $this->editRoleId = $roleId;
         $this->editRolePermissions = $role->permissions->pluck('id')->toArray();
         $this->showEditModal = true;
@@ -116,7 +115,7 @@ new #[Title('tardis::roles.roles')] #[Layout('tardis::layouts.admin')] class ext
     public function saveRolePermissions(): void
     {
         if ($this->editRoleId) {
-            $role = Role::findOrFail($this->editRoleId);
+            $role = ModelResolver::role()::findOrFail($this->editRoleId);
             $role->permissions()->sync($this->editRolePermissions);
             $this->showEditModal = false;
             $this->loadRoles();
@@ -132,7 +131,7 @@ new #[Title('tardis::roles.roles')] #[Layout('tardis::layouts.admin')] class ext
     public function deleteRole(): void
     {
         if ($this->deleteId) {
-            $role = Role::findOrFail($this->deleteId);
+            $role = ModelResolver::role()::findOrFail($this->deleteId);
             $role->permissions()->detach();
             $role->users()->detach();
             $role->delete();

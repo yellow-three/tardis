@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 use Tardis\Database\Seeders\PermissionSeeder;
-use Tardis\Models\Role;
+use Tardis\Support\ModelResolver;
 
 class TardisAdminCommand extends Command
 {
@@ -61,7 +61,7 @@ class TardisAdminCommand extends Command
         (new PermissionSeeder)->run();
 
         $slug = (string) (config('tardis.authorization.super_admin_roles')[0] ?? 'super-admin');
-        $role = Role::where('slug', $slug)->firstOrFail();
+        $role = ModelResolver::role()::where('slug', $slug)->firstOrFail();
 
         $alreadyAssigned = DB::table('tardis_role_user')
             ->where('role_id', $role->id)
