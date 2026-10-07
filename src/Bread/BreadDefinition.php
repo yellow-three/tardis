@@ -257,7 +257,18 @@ class BreadDefinition
 
     public function getField(string $name): ?array
     {
-        return $this->fields[$name] ?? null;
+        if (isset($this->fields[$name]) && is_array($this->fields[$name])) {
+            return $this->fields[$name];
+        }
+
+        // Definitions may key fields by name or hold a plain list; support both.
+        foreach ($this->fields as $field) {
+            if (is_array($field) && ($field['name'] ?? null) === $name) {
+                return $field;
+            }
+        }
+
+        return null;
     }
 
     public function getBrowseFields(): array

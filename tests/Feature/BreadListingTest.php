@@ -19,6 +19,23 @@ class ListingArticle extends Model
     protected $table = 'listing_articles';
 
     protected $guarded = [];
+
+    public function comments()
+    {
+        return $this->hasMany(ListingComment::class, 'listing_article_id');
+    }
+
+    public function scopeFresh($query)
+    {
+        return $query->where('views', '<', 5);
+    }
+}
+
+class ListingComment extends Model
+{
+    protected $table = 'listing_comments';
+
+    protected $guarded = [];
 }
 
 function listingBread(array $overrides = []): array
@@ -34,6 +51,7 @@ function listingBread(array $overrides = []): array
             ['name' => 'body', 'type' => 'textarea', 'label' => 'Body', 'browse' => true, 'searchable' => true, 'orderable' => false],
             ['name' => 'views', 'type' => 'number', 'label' => 'Views', 'browse' => true],
             ['name' => 'tags', 'type' => 'belongs_to_many', 'label' => 'Tags', 'browse' => true, 'searchable' => true],
+            ['name' => 'comments', 'type' => 'has_many', 'label' => 'Comments', 'browse' => true, 'relation' => 'comments', 'label_column' => 'body', 'display_limit' => 3, 'link_to' => 'comments'],
             ['name' => 'secret', 'type' => 'text', 'label' => 'Secret', 'browse' => false],
         ],
         'relationships' => [],
@@ -48,6 +66,13 @@ beforeEach(function () {
         $table->integer('views')->default(0);
         $table->timestamps();
         $table->softDeletes();
+    });
+
+    Schema::create('listing_comments', function (Blueprint $table) {
+        $table->id();
+        $table->foreignId('listing_article_id');
+        $table->string('body');
+        $table->timestamps();
     });
 
     ListingArticle::create(['title' => 'Alpha', 'body' => 'first post', 'views' => 5]);
@@ -149,4 +174,103 @@ test('the browse page restores and permanently deletes soft-deleted records', fu
     $page->set('trashed', 'only')->call('forceDelete', $gone->id);
 
     expect(ListingArticle::withTrashed()->find($gone->id))->toBeNull();
+});
+
+test('named filters apply a column comparison or a model scope', function () {
+    $bread = listingBread();
+    $bread['layout'] = ['options' => ['filters' => [
+        ['key' => 'popular', 'label' => 'Popular', 'column' => 'views', 'operator' => '>', 'value' => 4],
+        ['key' => 'fresh', 'label' => 'Fresh', 'scope' => 'fresh'],
+    ]]];
+    $query = new BreadQuery(BreadDefinition::fromArray($bread));
+
+    expect($query->namedFilters())->toHaveKeys(['popular', 'fresh'])
+        ->and(listingTitles($query, ['', null, 'asc', 'without', [], ['popular' => true]]))->toBe(['Alpha', 'Beta'])
+        ->and(listingTitles($query, ['', null, 'asc', 'without', [], ['fresh']]))->toBe(['Gamma 100%']);
+});
+
+test('named filters ignore unknown names, unknown columns and bad operators', function () {
+    $bread = listingBread();
+    $bread['layout'] = ['options' => ['filters' => [
+        ['key' => 'equal', 'column' => 'views', 'operator' => 'drop', 'value' => 5],
+        ['key' => 'injected', 'column' => 'title); drop table x; --', 'operator' => '=', 'value' => 'x'],
+    ]]];
+    $query = new BreadQuery(BreadDefinition::fromArray($bread));
+
+    // `drop` falls back to `=`, so only Alpha (views 5) matches; the unknown
+    // column and the missing filter never reach the query.
+    expect(listingTitles($query, ['', null, 'asc', 'without', [], ['equal' => true, 'injected' => true, 'missing' => true]]))
+        ->toBe(['Alpha']);
+});
+
+test('inline column search only honours searchable columns', function () {
+    $query = new BreadQuery(BreadDefinition::fromArray(listingBread()));
+
+    expect(listingTitles($query, ['', null, 'asc', 'without', ['title' => 'alp']]))->toBe(['Alpha'])
+        ->and(listingTitles($query, ['', null, 'asc', 'without', ['body' => 'second']]))->toBe(['Beta'])
+        ->and(listingTitles($query, ['', null, 'asc', 'without', ['secret' => 'x']]))->toHaveCount(3)
+        ->and(listingTitles($query, ['', null, 'asc', 'without', ['title' => '%']]))->toBe(['Gamma 100%']);
+});
+
+test('relation columns are eager loaded', function () {
+    $query = new BreadQuery(BreadDefinition::fromArray(listingBread()));
+
+    expect($query->eagerLoads())->toBe(['comments'])
+        ->and($query->build()->getEagerLoads())->toHaveKey('comments');
+});
+
+test('the browse page toggles named filters declared by the layout', function () {
+    $bread = listingBread();
+    $bread['layout'] = ['options' => ['filters' => [
+        ['key' => 'popular', 'label' => 'Popular', 'column' => 'views', 'operator' => '>', 'value' => 4],
+    ]]];
+    (new JsonBreadSource($this->path))->save($bread);
+
+    Livewire::test('tardis::pages.bread.index', ['slug' => 'articles'])
+        ->assertSee('Popular')
+        ->call('toggleFilter', 'popular')
+        ->assertSet('filters.popular', true)
+        ->assertSeeInOrder(['Alpha', 'Beta'])
+        ->assertDontSee('Gamma 100%')
+        ->call('toggleFilter', 'popular')
+        ->assertSet('filters.popular', false)
+        ->assertSee('Gamma 100%')
+        ->call('toggleFilter', 'does-not-exist')
+        ->assertSet('filters', ['popular' => false]);
+});
+
+test('the browse page shows related labels with a "+n more" overflow and links', function () {
+    $alpha = ListingArticle::where('title', 'Alpha')->first();
+    foreach (range(1, 5) as $i) {
+        ListingComment::create(['listing_article_id' => $alpha->id, 'body' => "Comment {$i}"]);
+    }
+
+    (new JsonBreadSource($this->path))->save(listingBread());
+
+    Livewire::test('tardis::pages.bread.index', ['slug' => 'articles'])
+        ->assertSeeInOrder(['Comment 1', 'Comment 2', 'Comment 3'])
+        ->assertSee('+2')
+        ->assertDontSee('Comment 4')
+        ->assertSee('admin/comments/'.$alpha->id, false);
+});
+
+test('clearFilters resets every listing refinement', function () {
+    (new JsonBreadSource($this->path))->save(listingBread());
+
+    Livewire::test('tardis::pages.bread.index', ['slug' => 'articles'])
+        ->set('search', 'Beta')
+        ->set('columnSearch.title', 'Beta')
+        ->set('trashed', 'only')
+        ->call('sortBy', 'views')
+        ->assertSet('search', 'Beta')
+        ->assertSet('hasFilters', true)
+        ->call('clearFilters')
+        ->assertSet('search', '')
+        ->assertSet('columnSearch', [])
+        ->assertSet('filters', [])
+        ->assertSet('trashed', 'without')
+        ->assertSet('sort', '')
+        ->assertSet('direction', 'asc')
+        ->assertSet('hasFilters', false)
+        ->assertSee('Alpha');
 });

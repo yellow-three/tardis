@@ -41,6 +41,34 @@
                     </div>
                 @endif
             </div>
+
+            @php($namedFilters = $this->namedFilters)
+            @if ($namedFilters !== [] || $this->hasFilters)
+                <div class="mt-4 flex flex-wrap items-center gap-2 border-t border-base-300 pt-4">
+                    @foreach ($namedFilters as $name => $filter)
+                        @php($active = (bool) ($filters[$name] ?? false))
+                        @php($tone = in_array($filter['color'] ?? '', ['primary', 'secondary', 'accent', 'info', 'success', 'warning', 'error', 'neutral'], true) ? $filter['color'] : 'primary')
+                        <button
+                            type="button"
+                            wire:click="toggleFilter('{{ $name }}')"
+                            class="badge gap-1 {{ $active ? 'badge-'.$tone : 'badge-outline' }} cursor-pointer"
+                            aria-pressed="{{ $active ? 'true' : 'false' }}"
+                        >
+                            @if ($filter['icon'])
+                                <x-tardis::icon :name="$filter['icon']" class="w-3.5 h-3.5" />
+                            @endif
+                            {{ $filter['label'] }}
+                        </button>
+                    @endforeach
+
+                    @if ($this->hasFilters)
+                        <button type="button" wire:click="clearFilters" class="btn btn-ghost btn-xs">
+                            <x-tardis::icon name="x-mark" class="w-3.5 h-3.5" />
+                            {{ __('tardis::bread.clear_filters') }}
+                        </button>
+                    @endif
+                </div>
+            @endif
         </div>
     </div>
 
@@ -72,6 +100,7 @@
                             @foreach (($this->layoutFields ?? $this->visibleFields) as $field)
                                 @php($fieldName = (string) ($field['name'] ?? ''))
                                 @php($sortable = in_array($fieldName, $this->query()->orderable(), true))
+                                @php($searchable = in_array($fieldName, $this->searchableColumns, true))
                                 <th scope="col" @if ($sortable && $sort === $fieldName) aria-sort="{{ $direction === 'desc' ? 'descending' : 'ascending' }}" @endif>
                                     @if ($sortable)
                                         <button type="button" wire:click="sortBy('{{ $fieldName }}')" class="inline-flex items-center gap-1 font-semibold">
@@ -82,6 +111,17 @@
                                         </button>
                                     @else
                                         {{ $field['label'] ?? ucfirst($fieldName) }}
+                                    @endif
+
+                                    @if ($searchable)
+                                        <input
+                                            type="search"
+                                            wire:model.live.debounce.400ms="columnSearch.{{ $fieldName }}"
+                                            class="input input-xs mt-1 w-full font-normal"
+                                            placeholder="{{ __('tardis::bread.filter') }}"
+                                            aria-label="{{ __('tardis::bread.filter') }}: {{ $field['label'] ?? ucfirst($fieldName) }}"
+                                            autocomplete="off"
+                                        />
                                     @endif
                                 </th>
                             @endforeach
@@ -96,14 +136,36 @@
                                 @endif
                                 @foreach (($this->layoutFields ?? $this->visibleFields) as $field)
                                     @php($fieldName = $field['name'] ?? '')
-                                    @php($value = data_get($row, $fieldName))
+                                    @php($isRelation = in_array($field['type'] ?? '', \Tardis\Bread\BreadQuery::RELATION_TYPES, true))
                                     <td>
-                                        @if (! empty($field['translatable']))
-                                            {{ \Tardis\Classes\Translation::value($value, $field['locales'] ?? null) }}
-                                        @elseif ($browseField = ($this->formfields[$fieldName] ?? null))
-                                            {{ $browseField->browse($value) ?? '-' }}
+                                        @if ($isRelation)
+                                            @php($cell = $this->relationCell($row, $field))
+                                            @if ($cell['items'] === [])
+                                                <span class="text-base-content/40">-</span>
+                                            @else
+                                                <span class="inline-flex flex-wrap items-center gap-1">
+                                                    @foreach ($cell['items'] as $item)
+                                                        @if ($item['url'])
+                                                            <a href="{{ $item['url'] }}" class="link link-hover">{{ $item['label'] }}</a>
+                                                        @else
+                                                            {{ $item['label'] }}
+                                                        @endif
+                                                        @unless ($loop->last)<span class="text-base-content/30">,</span>@endunless
+                                                    @endforeach
+                                                    @if ($cell['more'] > 0)
+                                                        <span class="text-base-content/60">+{{ $cell['more'] }} {{ __('tardis::bread.more') }}</span>
+                                                    @endif
+                                                </span>
+                                            @endif
                                         @else
-                                            {{ $value ?? '-' }}
+                                            @php($value = data_get($row, $field['accessor'] ?? $fieldName))
+                                            @if (! empty($field['translatable']))
+                                                {{ \Tardis\Classes\Translation::value($value, $field['locales'] ?? null) }}
+                                            @elseif ($browseField = ($this->formfields[$fieldName] ?? null))
+                                                {{ $browseField->browse($value) ?? '-' }}
+                                            @else
+                                                {{ $value ?? '-' }}
+                                            @endif
                                         @endif
                                     </td>
                                 @endforeach
