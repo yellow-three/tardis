@@ -36,9 +36,6 @@ Bu turdaki asıl yeni bulgu, `registerType()` API'sinin **fiilen erişilemez** o
 
 | # | Bulgu | Kod ref |
 |---|-------|---------|
-| B16 | **Create/edit sayfaları alan tipini satır içi `@if` zinciriyle çiziyor; `resources/views/formfields/*.blade.php` ve `Formfield::render()/viewData()` kullanılmıyor.** Registry artık özel tipleri doğruluyor ama `create.blade.php`/`edit.blade.php`'nin `@else` dalı bilinmeyen tipi düz metin kutusu olarak çiziyor — host'un kaydettiği alan sınıfının `render()` view'ı hiçbir yerde kullanılmaz. Faz 2'de (tek alan sözleşmesi, çok bağlam) çözülür; `addAfterFormField` kancası da buna bağlı. | `resources/views/pages/bread/{create,edit}/*.blade.php`, `src/Formfields/Formfield.php` |
-| B4 | **`searchOptions()` filtresiz** — ilişki seçicide tüm kayıtlar listeleniyor. Yalnızca görüntüleme; yazma yolu güvenli. | `BelongsToManyField::searchOptions()` |
-| B5 | **Authorization plugin yoksa fail-open** — kasıtlı, `MenuItem::isVisible()` ile aynı davranış ve kodda belgeli. Değiştirilirse Menü ile tutarsızlaşır. | `src/Auth/BreadAuthorization.php` |
 
 *Çözülünce ilgili satır silinir.*
 
@@ -51,5 +48,7 @@ Bu turdaki asıl yeni bulgu, `registerType()` API'sinin **fiilen erişilemez** o
 ---
 
 # Kabul edilen kısıt (kod değişikliği gerektirmiyor)
+
+- **Authorization plugin yoksa panel fail-open** (eski B5). Kasıtlı: `BreadAuthorization::allowsAbility()` ve `MenuItem::isVisible()` aynı kuralı izler; `tardis.authorization.enabled` varsayılan olarak `true` olduğu için bu yalnızca host'un yetkilendirmeyi bilerek kapattığı kurulumlarda geçerli. Değiştirilirse menü ile tutarsızlaşır.
 
 - **Dosya yüklemesi transaction dışında kalıyor.** `FileField::transform()` dosyayı satır yazılmadan **önce** diske taşıyor. Transaction eklemek yeni bir trade-off yaratmıyor, sadece DB atomikliğini düzeltiyor — rollback'in geri alamayacağı bir dosyayı geri almaya çalışmıyor. Mevcut orphan-file riski değişmedi.

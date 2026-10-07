@@ -140,3 +140,7 @@ composer lint   # clean
 - **Translatable validation is stricter by default** (`tardis.translation.validation` = `all`): a `required` translatable field must be filled in every locale. Set it to `active` to validate only the locale being edited. See UPGRADE.md.
 - **Model map** (`tardis.models`): `Role`, `Permission`, `Media` and `ActivityLog` can be swapped for subclasses; a class that does not exist or does not extend the base model is refused with an error naming the config key.
 
+
+## 2.0 — relation picker honours the related BREAD
+
+`BelongsToManyField::searchOptions()` listed every record of the related model. When a BREAD manages that model, the picker now applies its `scope` and requires the `browse` ability on it (a user who may not browse it gets no options); an already selected id no longer bypasses either. A related model with no BREAD of its own is listed as before.
