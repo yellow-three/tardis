@@ -38,6 +38,19 @@ new #[Title('Create')] #[Layout('tardis::layouts.admin')] class extends Componen
      */
     public string $activeLocale = '';
 
+    /**
+     * Runs on every request, not only on mount: Livewire keeps component state
+     * between requests, so a permission removed while the page is open has to
+     * stop the next one. mount() still authorises the first render, where the
+     * slug is not known yet.
+     */
+    public function boot(): void
+    {
+        if ($this->slug !== '') {
+            app(BreadAuthorization::class)->authorize('add', $this->slug);
+        }
+    }
+
     public function mount(string $slug): void
     {
         $this->slug = $slug;
