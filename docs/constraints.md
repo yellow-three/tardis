@@ -8,9 +8,9 @@ Bu dosya **kalıcı** (silinmeyen) kısıtları ve API/davranış gerçeklerini 
 
 ## BREAD — alan tipleri `FormfieldManager` kayıt defterinden doğrulanır
 
-BREAD tanımındaki her `type`, `FormfieldManager::assertRegistered()` ile kontrol edilir (JSON kaynak hem okurken hem yazarken). Kayıt defteri tek liste: yerleşik 19 tip + `registerType()` ile eklenenler; `image`, `email`, `simple_array` gibi dedektör adları `normalize()` ile kayıtlı tiplere eşlenir. Eski `FieldType` enum'u kaldırıldı.
+BREAD tanımındaki her `type`, `FormfieldManager::assertRegistered()` ile kontrol edilir (JSON kaynak hem okurken hem yazarken). Kayıt defteri tek liste: yerleşik 27 tip + `registerType()` ile eklenenler; `image`, `email`, `simple_array` gibi dedektör adları `normalize()` ile kayıtlı tiplere eşlenir. Eski `FieldType` enum'u kaldırıldı.
 
-**Sonuç**: Yeni bir alan tipi yalnızca `registerType()` ile eklenir ve BREAD tanımlarında hemen kullanılabilir — iki liste elle eşit tutulmaz. **Ancak** create/edit sayfaları tipi hâlâ satır içi `@if` zinciriyle çizer; özel tipin `render()` view'ı kullanılmaz (Faz 2, `docs/notes.md` → B16). `tests/Unit/FormfieldRegistryTest.php` her kayıtlı tipin örneklenebilir bir `Formfield` ve var olan bir view'a sahip olmasını pinler.
+**Sonuç**: Yeni bir alan tipi yalnızca `registerType()` ile eklenir ve BREAD tanımlarında hemen kullanılabilir — iki liste elle eşit tutulmaz. Create/edit sayfaları alanı `Formfield::render()` view'ından çizer, bu yüzden özel tip formda da görünür. `tests/Unit/FormfieldRegistryTest.php` her kayıtlı tipin örneklenebilir bir `Formfield` ve var olan bir view'a sahip olmasını pinler.
 
 ---
 
@@ -70,15 +70,40 @@ Authorization plugin'i yetenekleri `tardis_permissions` / `tardis_roles` üzerin
 
 ---
 
-## Tema sistemi — CSS variable tabanlı, `Alpine.store` ile
+## Tema sistemi — tema bir DaisyUI paletidir, sunucuda çözülür
 
-Tema, `CSS variable` anahtar-tokası üzerinden çalışıyor (`66c4ed7`). `ThemePlugin` yalnızca `getTheme()` (özel özellik → değer) sağlar; `AssetManager` adları/değerleri doğrulayıp `:root{…}` kuralını kendisi yazar, tema keyfi CSS enjekte edemez (`getStyles()` kaldırıldı).
+"Tema" bu pakette tek bir şey demektir: bir DaisyUI `data-theme` paleti (ad, `light|dark` şeması, `--color-*` değerleri). İki kaynağı vardır ve ikisi de `ThemeManager::all()` listesinde birleşir:
 
-**Sonuç**: Tema plugin'i CSS metni değil değişken verir; değerler yalnızca renk/uzunluk/sayı karakterleri taşıyabilir.
+| Kaynak | Nerede tanımlı | Sayfaya nasıl gelir |
+|---|---|---|
+| Yerleşik (`tardis-light`, `tardis-dark`) | `resources/css/app.css` içinde `@plugin "daisyui/theme"` **ve** `src/Theme/BuiltinThemes.php` (aynı değerler iki yerde; `ThemeTest` eşitliği pinler) | Derlenmiş `app.css`'in içinde (`@layer` altında) |
+| Özel | `storage/tardis/themes.json` (Themes ekranı, `manage appearance`) | `@tardisStyles` her sayfada `<style id="tardis-themes">` olarak yazar (`ThemeManager::css()`) |
 
-**Tema çözümlemesinin tek kaynağı `<x-tardis::theme-boot />`**: `<head>`'de ilk paint'ten önce çalışan blocking script ile Alpine store aynı temayı çözmek zorunda — store boot'ta `data-theme`'i yeniden yazdığı için iki taraf ayrışırsa flash geri gelir. Bu mantık `resources/views/components/theme-boot.blade.php` içinde yaşar ve admin/auth layout'ları `<x-tardis::theme-boot />` çağırarak devralır. **Yeni bir layout eklerken blocking script'i kopyalama; bileşeni çağır.** Aynı şekilde localStorage anahtar adları (`tardis-theme-mode`, `tardis-theme-light`, `tardis-theme-dark`) store ile birebir aynı kalmalı. `ThemeFoucGuardTest` bu eşleşmeyi, bileşenin `@tardisStyles`'tan önce geldiğini ve gerçekten render edilebildiğini pinler.
+`Theme::fromArray()` tek giriş kapısıdır: ad `[a-z0-9-]`, şema `light|dark`, renk anahtarı `Theme::COLORS` listesinden, değer `Theme::isSafeColor()` deseninden geçmek zorunda; geçersiz tema atlanır, sayfa kırılmaz. DaisyUI yerleşik temaları kapalıdır (`themes: false`).
 
-**Sonuç**: tema çözümlemesini layout'a kopyalamak, B7'deki "iki kaynak ayrışır" hatasının aynısını üretir — bu yüzden tekrar eden çözümleme yasak, manifest okuma da `AssetManager::availableThemes()` üzerinden yapılır.
+**Seçim sunucuda çözülür.** `ThemePreference::resolve()` sırası: kullanıcının kaydı (`storage/tardis/preferences.json`) → Settings `appearance.mode|theme_light|theme_dark` → `tardis-light` / `tardis-dark`. Layout `<html data-theme>`'i doğrudan yazar; `localStorage` kullanılmaz. `<x-tardis::theme-boot />` çekirdek betiğe veriyi (`window.__TARDIS__`) verir ve yalnızca `system` modunda `prefers-color-scheme`'e bakan tek satırlık engelleyici betiği ekler. Tarayıcıdaki değişiklik `Alpine.store('theme')` → `POST tardis.preferences.theme` ile kaydedilir.
+
+**`ThemePlugin` bir tema değildir.** `getTheme()` değişken adı → değer döndürür ve `AssetManager` bunu `:root{…}` kuralı olarak yazar. Seçicide görünmez, şeması yoktur ve katmansız `:root` kuralı olduğu için **hangi tema seçili olursa olsun** (açık/koyu dahil) o değişkeni ezer. Bu davranış bilinen bir tasarım sorunudur: `docs/notes.md` → B52; hedef yapı `docs/backlog.md` → *Tema, CSS/JS ve Vite: hedef yapı*.
+
+**Sonuç**: Yeni bir layout eklerken `data-theme`'i `ThemePreference::resolve()` sonucundan yaz ve `<x-tardis::theme-boot />`'u `@tardisStyles`'tan önce çağır; tema çözümlemesini kopyalama. Yerleşik bir temanın rengini değiştirirken `app.css` ve `BuiltinThemes.php`'yi birlikte değiştir. Tema listesini her yerde `ThemeManager`'dan oku.
+
+---
+
+## Varlıklar — çekirdek yayınlanır, plugin varlıkları hash'li rotadan sunulur
+
+`npm run build` iki Vite derlemesi çalıştırır: `vite.config.js` (`resources/css/app.css` → `resources/compiled/assets/app.css`, Tailwind 4 + DaisyUI 5) ve `vite.js.config.js` (`resources/js/app.js` → `app.js`, klasik IIFE; Livewire Alpine'i başlatmadan önce çalışması gerektiği için modül değil). `resources/compiled` depoya **commit edilir** ve CI derleme çıktısının commit'tekiyle aynı olduğunu denetler; host'ta Node gerekmez.
+
+| Varlık | Nasıl sunulur | Önbellek |
+|---|---|---|
+| Çekirdek `app.css` / `app.js` | `vendor:publish --tag=tardis-assets` ile `public/vendor/tardis/assets` altına kopyalanır | Sabit dosya adı + `?v=<md5>`; yayınlanan kopya paket güncellenince bayatlar (`tardis:doctor` bildirir) |
+| Plugin / host dosyası (`Asset::file()`) | `/{prefix}/_assets/{hash}.css|js` rotası (`AssetController`), yalnızca kayıtlı varlıklar | İçerik hash'i + `immutable`; yayınlama gerekmez |
+| Satır içi (`Asset::inlineCss/Js`, özel temalar, `appearance.custom_css`, `window.__TARDIS__`) | Sayfaya yazılır | Yok; CSP için nonce (`tardis.csp.nonce` ya da Vite nonce'u) |
+
+`@tardisStyles` sırası: çekirdek `app.css` → özel temalar → `appearance.custom_css` → `Tardis::addCss()` → plugin CSS → `ThemePlugin` değişkenleri → `tardis.assets.css`. `@tardisScripts` sırası: çekirdek `app.js` → `Tardis::addJs()` → plugin JS → `tardis.assets.js`; ardından `@livewireScripts`.
+
+Geliştirme modu: `npm run dev` `resources/hot` dosyasını yazar (`vite-plugins/hot-file.js`); dosya varken `AssetManager` çekirdek varlıkları Vite sunucusundan yükler. Laravel'in `Vite` facade'ı ve manifest'i kullanılmaz.
+
+**Sonuç**: Çekirdek CSS/JS'i değiştirdikten sonra `npm run build` çalıştır ve `resources/compiled`'ı aynı commit'e koy. Plugin varlığı için `public/`'e dosya kopyalama; `Asset::file()` kullan. Paket CSS'i yalnızca paketin kendi view'larındaki Tailwind sınıflarını içerir: plugin/host sayfası DaisyUI bileşen sınıflarını kullanır, gerisini kendi CSS'iyle getirir.
 
 ---
 
