@@ -16,7 +16,7 @@ use Tardis\Formfields\Formfield;
 use Tardis\Formfields\Types\BelongsToManyField;
 use Tardis\Manager\FormfieldManager;
 
-new #[Title('Edit')] #[Layout('tardis::layouts.admin')] class extends Component
+new #[Title('tardis::shell.titles.edit')] #[Layout('tardis::layouts.admin')] class extends Component
 {
     use WithFileUploads;
 

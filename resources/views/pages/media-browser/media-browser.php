@@ -11,7 +11,7 @@ use Tardis\Auth\Abilities;
 use Tardis\Auth\BreadAuthorization;
 use Tardis\Manager\MediaManager;
 
-new #[Title('Media')] #[Layout('tardis::layouts.admin')] class extends Component
+new #[Title('tardis::shell.titles.media')] #[Layout('tardis::layouts.admin')] class extends Component
 {
     use WithFileUploads;
 

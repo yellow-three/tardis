@@ -10,7 +10,7 @@ use Tardis\Auth\BreadAuthorization;
 use Tardis\Classes\Setting;
 use Tardis\Facades\Tardis;
 
-new #[Title('Settings')] #[Layout('tardis::layouts.admin')] class extends Component
+new #[Title('tardis::shell.titles.settings')] #[Layout('tardis::layouts.admin')] class extends Component
 {
     public array $groups = [];
 

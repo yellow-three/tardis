@@ -20,4 +20,18 @@ return [
     'footer' => '© :year TARDIS',
     'admin_fallback' => 'Admin',
     'unauthorized' => 'Unauthorized.',
+    'titles' => [
+        'bread' => 'BREAD',
+        'bread_builder' => 'BREAD Builder',
+        'bread_management' => 'BREAD Management',
+        'create' => 'Create',
+        'create_table' => 'Create Table',
+        'database_explorer' => 'Database Explorer',
+        'edit' => 'Edit',
+        'edit_table' => 'Edit Table',
+        'media' => 'Media',
+        'settings' => 'Settings',
+        'ui_components' => 'UI Components',
+        'view' => 'View',
+    ],
 ];

@@ -10,7 +10,7 @@ use Tardis\Bread\BreadManager;
 use Tardis\Formfields\Formfield;
 use Tardis\Manager\FormfieldManager;
 
-new #[Title('View')] #[Layout('tardis::layouts.admin')] class extends Component
+new #[Title('tardis::shell.titles.view')] #[Layout('tardis::layouts.admin')] class extends Component
 {
     #[Locked]
     public string $slug = '';

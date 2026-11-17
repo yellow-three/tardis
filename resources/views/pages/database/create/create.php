@@ -10,7 +10,7 @@ use Tardis\Auth\BreadAuthorization;
 use Tardis\Database\Concerns\ManagesColumnDefinitions;
 use Tardis\Database\ModelGenerator;
 
-new #[Title('Create Table')] #[Layout('tardis::layouts.admin')] class extends Component
+new #[Title('tardis::shell.titles.create_table')] #[Layout('tardis::layouts.admin')] class extends Component
 {
     use ManagesColumnDefinitions;
 
