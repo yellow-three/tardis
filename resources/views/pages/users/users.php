@@ -1,9 +1,11 @@
 <?php
 
+use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
+use Livewire\WithPagination;
 use Tardis\Auth\Abilities;
 use Tardis\Auth\BreadAuthorization;
 use Tardis\Auth\PrivilegeGuard;
@@ -11,6 +13,10 @@ use Tardis\Support\ModelResolver;
 
 new #[Title('tardis::users.users')] #[Layout('tardis::layouts.admin')] class extends Component
 {
+    use WithPagination;
+
+    public const PER_PAGE = 25;
+
     public string $search = '';
 
     public int|string|null $editUserId = null;
@@ -30,34 +36,43 @@ new #[Title('tardis::users.users')] #[Layout('tardis::layouts.admin')] class ext
         app(BreadAuthorization::class)->authorizeAbility(Abilities::USERS);
     }
 
-    public function getUsersProperty()
+    public function updatingSearch(): void
+    {
+        $this->resetPage();
+    }
+
+    /**
+     * One page of users with their Tardis role names. Paged rather than cut
+     * off at a fixed count, so every user stays reachable.
+     */
+    public function getUsersProperty(): LengthAwarePaginator
     {
         $model = $this->userModel();
-        $query = $model::query()->orderBy('id');
+        $query = $model::query()->orderBy((new $model)->getKeyName());
 
         if ($this->search !== '') {
-            $term = '%'.$this->search.'%';
+            $term = '%'.str_replace(['!', '%', '_'], ['!!', '!%', '!_'], $this->search).'%';
 
             $query->where(function ($q) use ($term) {
-                $q->where('email', 'like', $term)->orWhere('name', 'like', $term);
+                $q->whereRaw("email like ? escape '!'", [$term])->orWhereRaw("name like ? escape '!'", [$term]);
             });
         }
 
-        $users = $query->limit(100)->get();
+        $page = $query->paginate(self::PER_PAGE);
 
         $roles = DB::table('tardis_role_user as ru')
             ->join('tardis_roles as r', 'r.id', '=', 'ru.role_id')
-            ->whereIn('ru.user_id', $users->modelKeys())
+            ->whereIn('ru.user_id', $page->getCollection()->modelKeys())
             ->get(['ru.user_id', 'r.name'])
             ->groupBy('user_id')
             ->map(fn ($rows) => $rows->pluck('name')->all());
 
-        return $users->map(fn ($user) => [
+        return $page->through(fn ($user) => [
             'id' => $user->getKey(),
             'name' => $user->name ?? '',
             'email' => $user->email ?? '',
             'roles' => $roles->get($user->getKey(), []),
-        ])->all();
+        ]);
     }
 
     public function getRolesProperty()
