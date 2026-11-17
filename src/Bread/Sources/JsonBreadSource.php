@@ -22,6 +22,15 @@ use Tardis\Manager\FormfieldManager;
  */
 class JsonBreadSource implements BreadSource
 {
+    /**
+     * Parsed definitions of this instance, keyed by file. The source is bound
+     * per request (scoped), so this lives for one request and does not grow
+     * in a long-running worker.
+     *
+     * @var array<string, array{0: string, 1: BreadDefinition}> file => [content hash, definition]
+     */
+    private array $parsed = [];
+
     public function __construct(
         protected ?string $path = null,
     ) {}
@@ -45,7 +54,19 @@ class JsonBreadSource implements BreadSource
             return null;
         }
 
-        $data = json_decode((string) File::get($file), true);
+        $raw = (string) File::get($file);
+        $hash = hash('xxh128', $raw);
+
+        // Routes, the menu, search and every authorisation check read the
+        // definitions on each request; decoding and validating them again is
+        // the expensive part, so a file whose content has not changed is
+        // served from memory. Keyed by content, so an edit (from another
+        // process too) is picked up at once.
+        if (($this->parsed[$file][0] ?? null) === $hash) {
+            return clone $this->parsed[$file][1];
+        }
+
+        $data = json_decode($raw, true);
 
         if (! is_array($data)) {
             throw new \UnexpectedValueException(
@@ -57,7 +78,10 @@ class JsonBreadSource implements BreadSource
 
         $this->validateFieldTypes($data['fields'] ?? []);
 
-        return BreadDefinition::fromArray($data);
+        $definition = BreadDefinition::fromArray($data);
+        $this->parsed[$file] = [$hash, $definition];
+
+        return clone $definition;
     }
 
     public function all(): Collection

@@ -447,3 +447,21 @@ test('writing, backing up or rolling back a path-like slug is refused', function
 
     File::deleteDirectory($dir);
 })->with(['../escape', 'a/b', '..']);
+
+test('a definition read twice is parsed once and handed out as a copy', function () {
+    $path = sys_get_temp_dir().'/tardis-bread-memo-'.uniqid();
+    $source = new JsonBreadSource($path);
+    $source->save(['slug' => 'memo', 'model' => '', 'name' => 'Memo', 'fields' => [['name' => 'title', 'type' => 'text']]]);
+
+    $first = $source->find('memo');
+    $second = $source->find('memo');
+
+    expect($second)->toEqual($first)->not->toBe($first);
+
+    // An edit on disk is seen straight away.
+    File::put($path.'/memo.json', json_encode(['slug' => 'memo', 'model' => '', 'name' => 'Changed', 'fields' => []]));
+
+    expect($source->find('memo')->name)->toBe('Changed');
+
+    File::deleteDirectory($path);
+});
