@@ -5,6 +5,7 @@ declare(strict_types=1);
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Schema;
 use Livewire\Livewire;
@@ -273,4 +274,32 @@ test('clearFilters resets every listing refinement', function () {
         ->assertSet('direction', 'asc')
         ->assertSet('hasFilters', false)
         ->assertSee('Alpha');
+});
+
+test('the listing leaves the host query log as it found it', function () {
+    $query = new BreadQuery(BreadDefinition::fromArray(listingBread()));
+
+    // A host (or Debugbar/Telescope) that logs queries keeps logging.
+    DB::enableQueryLog();
+    $query->listing();
+    expect(DB::logging())->toBeTrue();
+
+    DB::disableQueryLog();
+    $query->listing();
+    expect(DB::logging())->toBeFalse();
+});
+
+test('only the listing own queries count towards its warnings', function () {
+    DB::enableQueryLog();
+
+    // Queries that ran earlier in the request are not the listing's doing.
+    foreach (range(1, 20) as $i) {
+        DB::select('select 1');
+    }
+
+    $listing = (new BreadQuery(BreadDefinition::fromArray(listingBread())))->listing();
+
+    expect($listing->warnings)->toBe([]);
+
+    DB::disableQueryLog();
 });

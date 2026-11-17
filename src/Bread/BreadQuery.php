@@ -232,15 +232,25 @@ class BreadQuery
 
     public function listing(string $search = '', ?string $sort = null, string $direction = 'asc', int $perPage = 15, string $trashed = 'without', array $columnSearch = [], array $activeFilters = []): BreadListing
     {
-        DB::enableQueryLog();
-        $start = hrtime(true);
+        // Timed against the host's own query log state: a host (or Debugbar,
+        // Telescope) that logs queries keeps logging, and queries that ran
+        // before this listing are not counted against it.
+        $connection = DB::connection();
+        $wasLogging = $connection->logging();
+        $offset = count($connection->getQueryLog());
+        $connection->enableQueryLog();
 
-        $rows = $this->build($search, $sort, $direction, $trashed, $columnSearch, $activeFilters)
-            ->paginate(in_array($perPage, self::PER_PAGE_OPTIONS, true) ? $perPage : 15);
-
-        $ms = round((hrtime(true) - $start) / 1_000_000, 2);
-        $queries = DB::getQueryLog();
-        DB::disableQueryLog();
+        try {
+            $start = hrtime(true);
+            $rows = $this->build($search, $sort, $direction, $trashed, $columnSearch, $activeFilters)
+                ->paginate(in_array($perPage, self::PER_PAGE_OPTIONS, true) ? $perPage : 15);
+            $ms = round((hrtime(true) - $start) / 1_000_000, 2);
+            $queries = array_slice($connection->getQueryLog(), $offset);
+        } finally {
+            if (! $wasLogging) {
+                $connection->disableQueryLog();
+            }
+        }
 
         return new BreadListing($rows, $ms, $this->warnings($queries));
     }
