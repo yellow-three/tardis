@@ -51,6 +51,9 @@ new #[Title('Edit Table')] #[Layout('tardis::layouts.admin')] class extends Comp
 
     public bool $confirmDropTable = false;
 
+    /** True where schema changes are switched off (production by default). */
+    public bool $readOnly = false;
+
     public ?string $confirmDropColumn = null;
 
     /**
@@ -72,6 +75,7 @@ new #[Title('Edit Table')] #[Layout('tardis::layouts.admin')] class extends Comp
         }
 
         $this->selectedTable = $table;
+        $this->readOnly = ! $this->schemaChangesAllowed();
         $this->selectedTableHasModel = app(ModelGenerator::class)->modelExists($table);
         $this->loadTableData();
     }
@@ -134,7 +138,7 @@ new #[Title('Edit Table')] #[Layout('tardis::layouts.admin')] class extends Comp
     {
         $column = $this->editColumns[$index] ?? null;
 
-        if ($column === null) {
+        if ($column === null || ! $this->guardSchemaChange()) {
             return;
         }
 
@@ -145,39 +149,25 @@ new #[Title('Edit Table')] #[Layout('tardis::layouts.admin')] class extends Comp
         $this->error = null;
 
         try {
-            $connection = config('database.default');
-
             if ($column['original'] === '') {
-                // Newly added row → persist the column.
-                Schema::connection($connection)
+                Schema::connection(config('database.default'))
                     ->table($this->selectedTable, function (Blueprint $table) use ($column) {
                         $this->applyColumnDefinition($table, $column);
                     });
 
+                $this->auditSchema('column_added', ['table' => $this->selectedTable, 'column' => $column['name'], 'type' => $column['type']]);
                 $this->message = __('tardis::database.column_added');
             } else {
-                // Existing row → rename first, then apply the new definition.
-                $original = $column['original'];
-                $renamed = $column['name'];
+                $result = $this->modifyColumn($this->selectedTable, $column['original'], $column);
 
-                if ($renamed !== $original) {
-                    Schema::connection($connection)
-                        ->table($this->selectedTable, function (Blueprint $t) use ($original, $renamed) {
-                            $t->renameColumn($original, $renamed);
-                        });
-                }
-
-                Schema::connection($connection)
-                    ->table($this->selectedTable, function (Blueprint $t) use ($column, $renamed) {
-                        $current = $column;
-                        $current['name'] = $renamed;
-                        $this->applyColumnDefinition($t, $current, false, true);
-                    });
-
-                $this->message = __('tardis::database.column_updated');
+                $this->message = $result === null
+                    ? __('tardis::database.column_unchanged')
+                    : __('tardis::database.column_updated');
             }
 
             $this->loadTableData();
+        } catch (DomainException $e) {
+            $this->error = $e->getMessage();
         } catch (Throwable $e) {
             $this->error = __('tardis::database.could_not_save_column', ['error' => $e->getMessage()]);
         }
@@ -218,7 +208,7 @@ new #[Title('Edit Table')] #[Layout('tardis::layouts.admin')] class extends Comp
 
     public function addColumn(): void
     {
-        if (! $this->validateColumn($this->newColumn, 0)) {
+        if (! $this->guardSchemaChange() || ! $this->validateColumn($this->newColumn, 0)) {
             return;
         }
 
@@ -227,6 +217,8 @@ new #[Title('Edit Table')] #[Layout('tardis::layouts.admin')] class extends Comp
                 ->table($this->selectedTable, function (Blueprint $table) {
                     $this->applyColumnDefinition($table, $this->newColumn);
                 });
+
+            $this->auditSchema('column_added', ['table' => $this->selectedTable, 'column' => $this->newColumn['name'], 'type' => $this->newColumn['type']]);
 
             $this->showAddColumnForm = false;
             $this->loadTableData();
@@ -259,37 +251,17 @@ new #[Title('Edit Table')] #[Layout('tardis::layouts.admin')] class extends Comp
 
     public function saveEditColumn(): void
     {
-        if (! $this->validateColumn($this->editColumn, 0)) {
+        if (! $this->guardSchemaChange() || ! $this->validateColumn($this->editColumn, 0)) {
             return;
         }
 
-        $table = $this->selectedTable;
-        $original = $this->editColumnOriginal;
-        $renamed = $this->editColumn['name'];
-
         try {
-            $connection = config('database.default');
-
-            // Rename first (must happen on the existing column before change()).
-            if ($renamed !== $original) {
-                Schema::connection($connection)
-                    ->table($table, function (Blueprint $t) use ($original, $renamed) {
-                        $t->renameColumn($original, $renamed);
-                    });
-
-                $this->editColumnOriginal = $renamed;
-            }
-
-            // Then apply the new definition to the (possibly renamed) column.
-            Schema::connection($connection)
-                ->table($table, function (Blueprint $t) use ($renamed) {
-                    $current = $this->editColumn;
-                    $current['name'] = $renamed;
-                    $this->applyColumnDefinition($t, $current, false, true);
-                });
-
+            $this->modifyColumn($this->selectedTable, $this->editColumnOriginal, $this->editColumn);
+            $this->editColumnOriginal = $this->editColumn['name'];
             $this->showEditColumnForm = false;
             $this->loadTableData();
+        } catch (DomainException $e) {
+            $this->error = $e->getMessage();
         } catch (Throwable $e) {
             $this->error = __('tardis::database.could_not_update_column', ['error' => $e->getMessage()]);
         }
@@ -307,7 +279,7 @@ new #[Title('Edit Table')] #[Layout('tardis::layouts.admin')] class extends Comp
 
     public function dropColumn(): void
     {
-        if (! $this->selectedTable || ! $this->confirmDropColumn) {
+        if (! $this->selectedTable || ! $this->confirmDropColumn || ! $this->guardSchemaChange()) {
             return;
         }
 
@@ -316,6 +288,8 @@ new #[Title('Edit Table')] #[Layout('tardis::layouts.admin')] class extends Comp
                 ->table($this->selectedTable, function (Blueprint $table) {
                     $table->dropColumn($this->confirmDropColumn);
                 });
+
+            $this->auditSchema('column_dropped', ['table' => $this->selectedTable, 'column' => $this->confirmDropColumn]);
 
             $this->confirmDropColumn = null;
             $this->loadTableData();
@@ -349,8 +323,15 @@ new #[Title('Edit Table')] #[Layout('tardis::layouts.admin')] class extends Comp
 
     public function dropTable(): void
     {
+        if (! $this->guardSchemaChange()) {
+            $this->confirmDropTable = false;
+
+            return;
+        }
+
         try {
             Schema::connection(config('database.default'))->dropIfExists($this->selectedTable);
+            $this->auditSchema('table_dropped', ['table' => $this->selectedTable]);
 
             session()->flash('message', __('tardis::database.table_dropped'));
 

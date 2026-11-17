@@ -65,4 +65,11 @@ return [
     'model_failed' => 'Model generation failed: :error',
     'table_dropped' => 'Table dropped successfully.',
     'could_not_drop_table' => 'Could not drop table: :error',
+    'invalid_table_name' => 'Table name must start with a letter and contain only lowercase letters, numbers and underscores.',
+    'invalid_column_name' => 'Column #:number name must start with a letter and contain only lowercase letters, numbers and underscores.',
+    'unsupported_column_type' => 'Unsupported column type [:type].',
+    'column_not_editable' => 'The editor cannot describe column [:column] exactly (its type, a primary key, auto-increment or unsigned), so changing it here could alter it. Rename it here, or change it with a migration.',
+    'column_unchanged' => 'Nothing changed.',
+    'schema_changes_disabled' => 'Schema changes are switched off in this environment. Use a migration.',
+    'read_only_notice' => 'Read-only: schema changes are switched off in this environment (tardis.database.schema_changes).',
 ];
