@@ -156,3 +156,12 @@ Fixes from the 2026-11-17 review (`docs/notes.md`). Each one is covered by a tes
 - **No privilege escalation from Users/Roles.** Nobody hands out more than they hold, only a super administrator gives or takes away the super-admin role, and that role cannot be deleted (`Tardis\Auth\PrivilegeGuard`).
 - **Database Explorer.** Column edits apply only what changed and refuse to re-declare a column the editor cannot describe exactly; schema changes are limited to `tardis.database.schema_changes.environments` (local, testing) and written to the activity log. "Create model" never overwrites an existing model.
 - **Smaller fixes.** Edit/read pages no longer put undisplayed columns in the page snapshot; global search applies the BREAD `scope`, escapes `%`/`_` and links to a page the user may open; the Spatie bridge treats an unknown permission as a denial and honours `super_admin_roles`; sign-out works without `access admin`; `/admin` leads to the dashboard; `ReservedSlugs` covers every fixed screen.
+
+## Faz 10 — robustness, first part (R35)
+
+- **One permission query per request** instead of one or two per check (a dashboard request went from 67 queries to a handful).
+- **Media "download selected" works**: the ZIP is the response, under a unique temporary name that is removed straight away; the server path no longer reaches the browser.
+- **BREAD listings leave the host's query log alone** and only count their own queries in the slow/too-many warnings.
+- **UUID and ULID keys** in BREAD row/bulk actions, the activity log (`activity_logs.model_id` is now a string; new migration) and the Users page.
+- **`AuthenticationPlugin`**: `guard()`, `nameField()` and `avatar()` are used; the three methods nothing called are removed from the contract (see UPGRADE.md).
+- **Smaller fixes**: media folder delete/rename escape LIKE wildcards; the Database Explorer list cannot be pointed at a hidden table; sorting adds the key as a tie-breaker; bulk actions are all or nothing; the Users screen is paginated.

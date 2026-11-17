@@ -57,6 +57,10 @@
                     @endforelse
                 </tbody>
             </table>
+
+            <div class="mt-4">
+                {{ $this->users->links() }}
+            </div>
         </div>
     </div>
 

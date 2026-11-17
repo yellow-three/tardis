@@ -4,7 +4,7 @@
     $menuManager = app(\Tardis\Manager\MenuManager::class);
     $menuManager->collectFromPlugins(app(\Tardis\Manager\PluginManager::class));
     $userMenuItems = $menuManager->userMenu();
-    $userName = auth()->user()?->name ?: auth()->user()?->email ?: __('tardis::shell.admin_fallback');
+    $userName = \Tardis\Support\PanelUser::name();
     $userInitial = mb_strtoupper(mb_substr($userName, 0, 1));
 @endphp
 

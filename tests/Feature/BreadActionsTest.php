@@ -135,3 +135,15 @@ test('the stock delete action is a bulk action', function () {
 
     expect(ActionItem::count())->toBe(2);
 });
+
+test('a bulk action is all or nothing', function () {
+    app(ActionManager::class)->add('items', PublishAction::class);
+
+    // The last id no longer exists (deleted in another tab, say).
+    Livewire::test('tardis::pages.bread.index', ['slug' => 'items'])
+        ->set('selected', [$this->items[0]->id, 999999])
+        ->call('runBulk', 'publish')
+        ->assertNotFound();
+
+    expect(ActionItem::pluck('status', 'title')->all())->toBe(['A' => 'draft', 'B' => 'draft', 'C' => 'draft']);
+});

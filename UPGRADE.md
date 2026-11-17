@@ -134,3 +134,9 @@ To keep the old, looser behaviour set `tardis.translation.validation` to `'activ
 - **BREAD definitions** whose `model` exists but is not an Eloquent model can no longer be saved, and their pages answer 404.
 - **Password reset**: the "link sent" message is the same for every address (`tardis::auth.reset_link_sent` changed); a published `lang/vendor/tardis` copy should take the new text and the new `reset_link_invalid` key.
 - **Routes**: `tardis.logout` is no longer inside the `tardis.admin` group, and a new `tardis.home` route answers `/admin`.
+
+## Faz 10 — `AuthenticationPlugin` contract
+
+- `loginComponent()`, `forgotPassword()` and `forgotPasswordView()` are removed from `Tardis\Contracts\Plugins\AuthenticationPlugin`: nothing in the package ever called them. Delete them from your plugin (keeping them is harmless).
+- `guard()`, `nameField()` and `avatar()` are now used: the default plugin reads, signs in and signs out through its guard, and the sidebar/header show the user through the plugin (`Tardis\Support\PanelUser`). An avatar must be an http(s) or root-relative URL.
+- `activity_logs.model_id` is a string column now (migration `2026_11_17_000001_allow_string_keys_in_activity_logs`), so run `php artisan migrate`.

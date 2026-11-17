@@ -12,7 +12,7 @@ class AuthenticationPlugin implements AuthenticationPluginContract
 {
     public function user(): mixed
     {
-        return Auth::user();
+        return Auth::guard($this->guard())->user();
     }
 
     public function attempt(array $credentials, bool $remember = false): bool
@@ -28,7 +28,7 @@ class AuthenticationPlugin implements AuthenticationPluginContract
 
     public function logout(Request $request): Request
     {
-        Auth::logout();
+        Auth::guard($this->guard())->logout();
 
         $request->session()->invalidate();
         $request->session()->regenerateToken();
@@ -41,28 +41,13 @@ class AuthenticationPlugin implements AuthenticationPluginContract
         return route('tardis.dashboard');
     }
 
-    public function loginComponent(): string
-    {
-        return 'tardis::pages.login';
-    }
-
     public function handleRequest(Request $request, \Closure $next): mixed
     {
-        if (! Auth::check()) {
+        if (! Auth::guard($this->guard())->check()) {
             return redirect()->guest(route('tardis.login'));
         }
 
         return $next($request);
-    }
-
-    public function forgotPassword(Request $request): mixed
-    {
-        return redirect()->route('tardis.login');
-    }
-
-    public function forgotPasswordView(): ?string
-    {
-        return null;
     }
 
     public function name(): string

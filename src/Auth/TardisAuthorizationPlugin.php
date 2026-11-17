@@ -92,16 +92,7 @@ class TardisAuthorizationPlugin implements AuthorizationPlugin
      */
     protected function holdsTardisPermission(mixed $user, string $ability): bool
     {
-        if (! $this->permissionTablesExist() || $user->getKey() === null) {
-            return false;
-        }
-
-        return DB::table('tardis_role_user as ru')
-            ->join('tardis_permission_role as pr', 'pr.role_id', '=', 'ru.role_id')
-            ->join('tardis_permissions as p', 'p.id', '=', 'pr.permission_id')
-            ->where('ru.user_id', $user->getKey())
-            ->where('p.slug', $ability)
-            ->exists();
+        return isset($this->grantsFor($user)['permissions'][$ability]);
     }
 
     /**
@@ -113,15 +104,54 @@ class TardisAuthorizationPlugin implements AuthorizationPlugin
             array_map('strval', (array) config('tardis.authorization.super_admin_roles', [])),
         ));
 
-        if ($roles === [] || ! $this->permissionTablesExist() || $user->getKey() === null) {
-            return false;
+        return $roles !== [] && array_intersect_key($this->grantsFor($user)['roles'], array_flip($roles)) !== [];
+    }
+
+    /**
+     * The user's role and permission slugs, read with one query and kept for
+     * the rest of the request: the sidebar alone asks about every menu item.
+     *
+     * The cache lives on the request, not on this (long-lived) plugin, so a
+     * role granted or removed is seen on the next request, and a long-running
+     * worker does not carry one request's answers into the next.
+     *
+     * @return array{roles: array<string, true>, permissions: array<string, true>}
+     */
+    protected function grantsFor(mixed $user): array
+    {
+        $empty = ['roles' => [], 'permissions' => []];
+
+        if (! $this->permissionTablesExist() || $user->getKey() === null) {
+            return $empty;
         }
 
-        return DB::table('tardis_role_user as ru')
+        $request = app()->bound('request') ? request() : null;
+        $key = 'tardis.grants.'.$user->getKey();
+
+        if ($request !== null && $request->attributes->has($key)) {
+            return $request->attributes->get($key);
+        }
+
+        $rows = DB::table('tardis_role_user as ru')
             ->join('tardis_roles as r', 'r.id', '=', 'ru.role_id')
+            ->leftJoin('tardis_permission_role as pr', 'pr.role_id', '=', 'ru.role_id')
+            ->leftJoin('tardis_permissions as p', 'p.id', '=', 'pr.permission_id')
             ->where('ru.user_id', $user->getKey())
-            ->whereIn('r.slug', $roles)
-            ->exists();
+            ->get(['r.slug as role', 'p.slug as permission']);
+
+        $grants = $empty;
+
+        foreach ($rows as $row) {
+            $grants['roles'][(string) $row->role] = true;
+
+            if ($row->permission !== null) {
+                $grants['permissions'][(string) $row->permission] = true;
+            }
+        }
+
+        $request?->attributes->set($key, $grants);
+
+        return $grants;
     }
 
     /**

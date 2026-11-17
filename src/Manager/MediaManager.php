@@ -119,7 +119,7 @@ class MediaManager
 
         $deleted = Storage::disk($this->disk)->deleteDirectory($fullPath);
 
-        ModelResolver::media()::query()->where('path', 'like', $fullPath.'/%')->delete();
+        ModelResolver::media()::query()->whereRaw("path like ? escape '!'", [$this->likePrefix($fullPath.'/')])->delete();
 
         return $deleted;
     }
@@ -295,6 +295,16 @@ class MediaManager
         }
     }
 
+    /**
+     * A LIKE pattern matching everything under $prefix. Folder names may hold
+     * _ and %, which LIKE would otherwise read as wildcards ("a_b" matching
+     * "axb"); "!" is the escape character, as in BreadQuery.
+     */
+    protected function likePrefix(string $prefix): string
+    {
+        return str_replace(['!', '%', '_'], ['!!', '!%', '!_'], $prefix).'%';
+    }
+
     protected function assertValidName(string $name, string $operation): void
     {
         if ($name === ''
@@ -317,8 +327,8 @@ class MediaManager
         $prefix = $from.'/';
 
         ModelResolver::media()::query()
-            ->where('path', 'like', $prefix.'%')
-            ->orWhere('collection', 'like', $prefix.'%')
+            ->whereRaw("path like ? escape '!'", [$this->likePrefix($prefix)])
+            ->orWhereRaw("collection like ? escape '!'", [$this->likePrefix($prefix)])
             ->orWhere('collection', $from)
             ->get(['id', 'path', 'collection'])
             ->each(function (Media $media) use ($from, $to) {

@@ -232,15 +232,25 @@ class BreadQuery
 
     public function listing(string $search = '', ?string $sort = null, string $direction = 'asc', int $perPage = 15, string $trashed = 'without', array $columnSearch = [], array $activeFilters = []): BreadListing
     {
-        DB::enableQueryLog();
-        $start = hrtime(true);
+        // Timed against the host's own query log state: a host (or Debugbar,
+        // Telescope) that logs queries keeps logging, and queries that ran
+        // before this listing are not counted against it.
+        $connection = DB::connection();
+        $wasLogging = $connection->logging();
+        $offset = count($connection->getQueryLog());
+        $connection->enableQueryLog();
 
-        $rows = $this->build($search, $sort, $direction, $trashed, $columnSearch, $activeFilters)
-            ->paginate(in_array($perPage, self::PER_PAGE_OPTIONS, true) ? $perPage : 15);
-
-        $ms = round((hrtime(true) - $start) / 1_000_000, 2);
-        $queries = DB::getQueryLog();
-        DB::disableQueryLog();
+        try {
+            $start = hrtime(true);
+            $rows = $this->build($search, $sort, $direction, $trashed, $columnSearch, $activeFilters)
+                ->paginate(in_array($perPage, self::PER_PAGE_OPTIONS, true) ? $perPage : 15);
+            $ms = round((hrtime(true) - $start) / 1_000_000, 2);
+            $queries = array_slice($connection->getQueryLog(), $offset);
+        } finally {
+            if (! $wasLogging) {
+                $connection->disableQueryLog();
+            }
+        }
 
         return new BreadListing($rows, $ms, $this->warnings($queries));
     }
@@ -283,8 +293,10 @@ class BreadQuery
 
         if ($sort !== null && in_array($sort, $this->orderable(), true)) {
             $query->orderBy($sort, $direction);
+            $this->orderByKey($query, $direction);
         } elseif ($this->bread->orderColumn) {
             $query->orderBy($this->bread->orderColumn, $this->bread->orderDirection === 'desc' ? 'desc' : 'asc');
+            $this->orderByKey($query, $this->bread->orderDirection === 'desc' ? 'desc' : 'asc');
         }
 
         return $query;
@@ -296,6 +308,19 @@ class BreadQuery
      *
      * @param  array<string, mixed>  $columnSearch
      */
+    /**
+     * Rows that tie on the sort column come back in no fixed order, so
+     * paging could show a row twice and skip another. The key breaks the tie.
+     */
+    protected function orderByKey(Builder $query, string $direction): void
+    {
+        $key = $query->getModel()->getQualifiedKeyName();
+
+        if (! in_array($key, array_column($query->getQuery()->orders ?? [], 'column'), true)) {
+            $query->orderBy($key, $direction);
+        }
+    }
+
     protected function applyColumnSearch(Builder $query, array $columnSearch): void
     {
         $allowed = $this->searchable();

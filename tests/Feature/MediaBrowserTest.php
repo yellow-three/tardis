@@ -372,3 +372,19 @@ test('the media manager refuses to upload a disallowed extension', function () {
 
     Storage::disk('public')->assertMissing('media/shell.php');
 });
+
+test('downloading the selection sends a ZIP and leaves nothing behind', function () {
+    Storage::disk('public')->put('media/photo.jpg', 'a');
+    Storage::disk('public')->put('media/notes.pdf', 'b');
+
+    $before = glob(storage_path('app/temp/*.zip')) ?: [];
+
+    Livewire::test('tardis::pages.media-browser')
+        ->set('selectedFiles', ['photo.jpg', 'notes.pdf'])
+        ->call('downloadSelected')
+        ->assertFileDownloaded('media-export.zip')
+        ->assertNotDispatched('download-zip')
+        ->assertSet('selectedFiles', []);
+
+    expect(glob(storage_path('app/temp/*.zip')) ?: [])->toBe($before);
+});

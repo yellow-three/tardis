@@ -127,3 +127,19 @@ test('removing every role from a plain user works', function () {
 
     expect(rolesOf($this->bob))->toBe([]);
 });
+
+test('every user is reachable through the pages', function () {
+    foreach (range(1, 30) as $i) {
+        UsersPageTestUser::create(['name' => 'User '.str_pad((string) $i, 2, '0', STR_PAD_LEFT), 'email' => "u{$i}@example.test"]);
+    }
+
+    $page = Livewire::test('tardis::pages.users');
+    $total = UsersPageTestUser::count();
+
+    expect($page->get('users')->total())->toBe($total)
+        ->and(count($page->get('users')->items()))->toBe(25);
+
+    $page->call('gotoPage', 2);
+
+    expect(count($page->get('users')->items()))->toBe($total - 25);
+});
