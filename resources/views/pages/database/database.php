@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\Locked;
 use Livewire\Attributes\Title;
 use Livewire\Component;
 use Tardis\Auth\Abilities;
@@ -17,6 +18,8 @@ new #[Title('Database Explorer')] #[Layout('tardis::layouts.admin')] class exten
     /** @var array<int, array{name: string, has_model: bool}> */
     public array $tables = [];
 
+    // Set only by selectTable()/viewTable(), which refuse hidden tables.
+    #[Locked]
     public ?string $selectedTable = null;
 
     /** @var array<int, array<string, mixed>> */
@@ -86,7 +89,7 @@ new #[Title('Database Explorer')] #[Layout('tardis::layouts.admin')] class exten
 
     public function loadTableData(): void
     {
-        if (! $this->selectedTable) {
+        if (! $this->selectedTable || $this->isHiddenTable($this->selectedTable)) {
             return;
         }
 

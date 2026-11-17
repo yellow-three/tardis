@@ -356,3 +356,11 @@ test('the table being edited cannot be swapped by the client', function () {
     expect(fn () => $component->set('selectedTable', 'users'))
         ->toThrow(CannotUpdateLockedPropertyException::class);
 });
+
+test('the explorer list will not load a hidden table chosen by the client', function () {
+    Livewire::test('tardis::pages.database')
+        ->set('selectedTable', 'migrations')
+        ->call('loadTableData')
+        ->assertSet('columns', [])
+        ->assertSet('totalRows', 0);
+})->throws(CannotUpdateLockedPropertyException::class);
