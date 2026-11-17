@@ -6,6 +6,7 @@ use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Livewire;
+use Tardis\Manager\MediaManager;
 use Tardis\Models\Media;
 
 beforeEach(function () {
@@ -327,4 +328,47 @@ test('the browser still accepts an allowed upload type', function () {
         ->assertHasNoErrors();
 
     Storage::disk('public')->assertExists('media/report.pdf');
+});
+
+test('renaming a file to an extension outside the allowed list is rejected', function (string $newName) {
+    Storage::disk('public')->put('media/photo.jpg', 'a');
+    seedMedia('media/photo.jpg');
+
+    Livewire::test('tardis::pages.media-browser')
+        ->call('confirmRename', 'photo.jpg')
+        ->set('renameNewName', $newName)
+        ->call('renameFile')
+        ->assertHasErrors('renameNewName');
+
+    Storage::disk('public')->assertExists('media/photo.jpg');
+    Storage::disk('public')->assertMissing('media/'.$newName);
+})->with(['shell.php', 'page.html', 'Shell.PHP', 'no-extension', 'photo.jpg.phtml']);
+
+test('renaming a file within the allowed list still works', function () {
+    Storage::disk('public')->put('media/photo.jpg', 'a');
+    seedMedia('media/photo.jpg');
+
+    Livewire::test('tardis::pages.media-browser')
+        ->call('confirmRename', 'photo.jpg')
+        ->set('renameNewName', 'holiday.PNG')
+        ->call('renameFile')
+        ->assertHasNoErrors();
+
+    Storage::disk('public')->assertExists('media/holiday.PNG');
+});
+
+test('the media manager itself refuses a disallowed extension', function () {
+    Storage::disk('public')->put('media/photo.jpg', 'a');
+
+    expect(fn () => app(MediaManager::class)->rename('photo.jpg', 'shell.php'))
+        ->toThrow(InvalidArgumentException::class);
+
+    Storage::disk('public')->assertExists('media/photo.jpg');
+});
+
+test('the media manager refuses to upload a disallowed extension', function () {
+    expect(fn () => app(MediaManager::class)->upload(UploadedFile::fake()->create('shell.php', 1)))
+        ->toThrow(InvalidArgumentException::class);
+
+    Storage::disk('public')->assertMissing('media/shell.php');
 });
