@@ -10,7 +10,7 @@ Uzun ömürlü, dalga dalga ilerleyen işlerin **roadmap** takibi. Kaynak: `.omo
 
 ## Current State
 
-**Bu bölüm projenin durumu için tek kaynaktır.** `PROJECT_STATUS.md` yalnızca mimari özetidir ve buraya bağlanır; `RELEASE_NOTES.md` yayınlanan değişiklikleri anlatır, durum tutmaz. Son doğrulama: 2026-11-17 — `composer test` → 1008 passed (2703 assertions), `composer lint` temiz. **Faz 9 (R34) ve Faz 10 (R35) master'da** (PR #36, #37, #38); Faz 10'un kalan parçaları `docs/notes.md`'de B29, B34, B35, B38, B41, B42 satırlarında. **Faz 10b (R56) ilk parça** (`feature/phase-10b-theme-assets`): tek tema kaynağı, `ThemePlugin::themes()`, DaisyUI biçim değişkenleri, açık Tailwind kaynakları. Kalan: çekirdek varlıkların hash'li sunumu, Vite geliştirme modu, editörde biçim düzenleme. Sonra Faz 10c (R57).
+**Bu bölüm projenin durumu için tek kaynaktır.** `PROJECT_STATUS.md` yalnızca mimari özetidir ve buraya bağlanır; `RELEASE_NOTES.md` yayınlanan değişiklikleri anlatır, durum tutmaz. Son doğrulama: 2026-11-17 — `composer test` → 1021 passed (2758 assertions), `composer lint` temiz. **Faz 9 (R34), Faz 10 (R35) ve Faz 10b'nin ilk parçası (R56) master'da** (PR #36–#39). Kalan parçalar `docs/notes.md`'de satırlarında. **Faz 10c (R57) hata dilimi** (`fix/phase-10c-core-api`): istek başına varlık yazımı, servis sağlayıcıda istek başı iş yok, facade/Tardis sınıfı, alt sağlayıcılar birleşti, kurulumda `view:clear`, kararlı direktif anahtarı. Sıradaki: R57'nin Livewire yapısı ve yeniden adlandırma PR'ı.
 
 Son güncelleme: 2026-11-17 (proje incelemesi; 1.0 yol haritası R34–R45, R56–R57 ve 1.x farkları R46–R55 eklendi, R22/R31/R32 durumları düzeltildi). ID'ler `R` = roadmap sırası; `notes.md` bulgularıyla (`B*`) karışmaz.
 
