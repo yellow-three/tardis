@@ -39,7 +39,7 @@ class TardisAuthorizationPlugin implements AuthorizationPlugin
         // A host application running Spatie's HasRoles trait answers for itself;
         // mixing its tables with TARDIS' own would only produce half-truths.
         if (method_exists($user, 'hasPermissionTo')) {
-            return (bool) $user->hasPermissionTo($ability);
+            return $this->hostAllows($user, $ability);
         }
 
         if ($this->isSuperAdmin($user)) {
@@ -47,6 +47,29 @@ class TardisAuthorizationPlugin implements AuthorizationPlugin
         }
 
         return $this->holdsTardisPermission($user, $ability);
+    }
+
+    /**
+     * Ask the host's own permission system. The configured super administrator
+     * roles still bypass every check, as they do on the Tardis tables. Spatie
+     * throws for a permission that was never created ("view logs" on a host
+     * that only seeded its own); that is a denial, not a server error.
+     */
+    protected function hostAllows(mixed $user, string $ability): bool
+    {
+        $superRoles = array_values(array_filter(
+            array_map('strval', (array) config('tardis.authorization.super_admin_roles', [])),
+        ));
+
+        try {
+            if ($superRoles !== [] && method_exists($user, 'hasRole') && $user->hasRole($superRoles)) {
+                return true;
+            }
+
+            return (bool) $user->hasPermissionTo($ability);
+        } catch (\Throwable) {
+            return false;
+        }
     }
 
     public function authorize(string $ability, mixed $model = null): void
