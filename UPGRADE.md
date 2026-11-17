@@ -125,3 +125,12 @@ There is no arbitrary command execution: the allowlist is checked again at submi
 A translatable field holds one value per locale, and its rules (including `required`) are now applied to **each locale**. Before, `required` only asked whether the array was non-empty, so a record with one language filled in passed. After upgrading, a record that has a `required` translatable field with an empty locale cannot be saved until that locale is filled in.
 
 To keep the old, looser behaviour set `tardis.translation.validation` to `'active'` (only the locale being edited is validated), or set `"validation_mode": "active"` on a single field of a BREAD definition. Other changes from the same release: the create and edit forms show locales as tabs (`tardis.translation.tabs`, default on); BREAD names, descriptions, field labels and menu titles may be a locale map (`{"en": "Posts", "tr": "Yazılar"}`) or a translation key, and plain strings keep working.
+
+## Faz 9 (security fixes) — behaviour that changed
+
+- **Database Explorer is read-only outside `local` and `testing`.** Set `tardis.database.schema_changes.environments` (or `enabled`) in a published `config/tardis.php` to change that. Editing a column the editor cannot describe exactly (for example `tinyint(1)`, an enum, a primary key or an `unsigned` column) is now refused; rename it in the explorer or change it with a migration.
+- **Users and Roles screens** can no longer grant more than the acting user holds, and only a super administrator can give or remove the super-admin role. Grant `super-admin` with `php artisan tardis:admin` if nobody holds it.
+- **Media**: a rename to an extension outside `tardis-media.allowed_mimes` is refused, and an extensionless upload needs an empty `allowed_mimes`. A filename template that ends in another extension now keeps the uploaded one (`{name}.php` stores `photo.php.png`).
+- **BREAD definitions** whose `model` exists but is not an Eloquent model can no longer be saved, and their pages answer 404.
+- **Password reset**: the "link sent" message is the same for every address (`tardis::auth.reset_link_sent` changed); a published `lang/vendor/tardis` copy should take the new text and the new `reset_link_invalid` key.
+- **Routes**: `tardis.logout` is no longer inside the `tardis.admin` group, and a new `tardis.home` route answers `/admin`.
