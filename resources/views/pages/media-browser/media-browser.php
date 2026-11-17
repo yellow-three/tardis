@@ -1,10 +1,12 @@
 <?php
 
 use Carbon\Carbon;
+use Illuminate\Support\Str;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
 use Livewire\WithFileUploads;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 use Tardis\Auth\Abilities;
 use Tardis\Auth\BreadAuthorization;
 use Tardis\Manager\MediaManager;
@@ -398,26 +400,37 @@ new #[Title('Media')] #[Layout('tardis::layouts.admin')] class extends Component
         $this->showDeleteModal = true;
     }
 
-    public function downloadSelected(): void
+    /**
+     * Send the selection as one ZIP. The archive gets a unique temporary name
+     * (two people downloading at once must not overwrite each other's file),
+     * is read and removed before the response goes out, and its server path
+     * never reaches the browser.
+     */
+    public function downloadSelected(): ?StreamedResponse
     {
         if (empty($this->selectedFiles)) {
-            return;
+            return null;
         }
 
         $manager = app(MediaManager::class);
 
         try {
-            $zipPath = $manager->downloadZip($this->selectedFiles);
+            $zipPath = $manager->downloadZip($this->selectedFiles, 'media-export-'.Str::random(16).'.zip');
         } catch (RuntimeException $e) {
             // Keep the selection so the user can adjust it instead of losing the work.
             session()->flash('error', $e->getMessage());
 
-            return;
+            return null;
         }
+
+        $contents = (string) file_get_contents($zipPath);
+        @unlink($zipPath);
 
         $this->selectedFiles = [];
 
-        $this->dispatch('download-zip', path: $zipPath);
+        return response()->streamDownload(function () use ($contents) {
+            echo $contents;
+        }, 'media-export.zip', ['Content-Type' => 'application/zip']);
     }
 
     public function getBreadcrumbs(): array
