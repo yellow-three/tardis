@@ -303,3 +303,12 @@ test('only the listing own queries count towards its warnings', function () {
 
     DB::disableQueryLog();
 });
+
+test('sorting adds the key as a tie-breaker so pages do not overlap', function () {
+    $query = new BreadQuery(BreadDefinition::fromArray(listingBread()));
+
+    $orders = $query->build(sort: 'views', direction: 'desc')->getQuery()->orders;
+
+    expect(array_column($orders, 'column'))->toBe(['views', 'listing_articles.id'])
+        ->and(array_column($orders, 'direction'))->toBe(['desc', 'desc']);
+});

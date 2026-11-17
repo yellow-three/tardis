@@ -2,6 +2,7 @@
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Locked;
@@ -338,11 +339,17 @@ new #[Title('BREAD')] #[Layout('tardis::layouts.admin')] class extends Component
 
         abort_unless($action->isBulk(), 404);
 
-        $done = 0;
+        // All or nothing: a record that vanished or a refused permission
+        // half-way must not leave the first rows changed and the rest not.
+        $done = DB::transaction(function () use ($action) {
+            $done = 0;
 
-        foreach (array_unique($this->selected) as $id) {
-            $done += (int) $this->perform($action, $this->findRecord($id));
-        }
+            foreach (array_unique($this->selected) as $id) {
+                $done += (int) $this->perform($action, $this->findRecord($id));
+            }
+
+            return $done;
+        });
 
         $this->selected = [];
 

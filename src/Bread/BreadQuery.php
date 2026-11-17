@@ -293,8 +293,10 @@ class BreadQuery
 
         if ($sort !== null && in_array($sort, $this->orderable(), true)) {
             $query->orderBy($sort, $direction);
+            $this->orderByKey($query, $direction);
         } elseif ($this->bread->orderColumn) {
             $query->orderBy($this->bread->orderColumn, $this->bread->orderDirection === 'desc' ? 'desc' : 'asc');
+            $this->orderByKey($query, $this->bread->orderDirection === 'desc' ? 'desc' : 'asc');
         }
 
         return $query;
@@ -306,6 +308,19 @@ class BreadQuery
      *
      * @param  array<string, mixed>  $columnSearch
      */
+    /**
+     * Rows that tie on the sort column come back in no fixed order, so
+     * paging could show a row twice and skip another. The key breaks the tie.
+     */
+    protected function orderByKey(Builder $query, string $direction): void
+    {
+        $key = $query->getModel()->getQualifiedKeyName();
+
+        if (! in_array($key, array_column($query->getQuery()->orders ?? [], 'column'), true)) {
+            $query->orderBy($key, $direction);
+        }
+    }
+
     protected function applyColumnSearch(Builder $query, array $columnSearch): void
     {
         $allowed = $this->searchable();
