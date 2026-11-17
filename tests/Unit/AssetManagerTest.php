@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Unit;
 
+use Illuminate\Http\Request;
 use Tardis\Contracts\Plugins\Features\Provider\CSS;
 use Tardis\Contracts\Plugins\Features\Provider\JS;
 use Tardis\Manager\AssetManager;
@@ -187,6 +188,8 @@ test('CSS content hash changes when the published bundle changes', function () {
         $firstHtml = (new AssetManager(app()))->styles();
 
         file_put_contents($cssPath, '.b{color:blue}');
+        // A later request: what was written is remembered per request.
+        app()->instance('request', Request::create('/admin'));
         $secondHtml = (new AssetManager(app()))->styles();
 
         preg_match('/app\.css\?v=([a-f0-9]+)/', $firstHtml, $first);

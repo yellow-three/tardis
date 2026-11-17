@@ -32,9 +32,7 @@ beforeEach(function () {
 
 function dashboardHtml(): string
 {
-    // The asset and theme managers are singletons that remember what they already
-    // rendered; a real request is a fresh process, so start each call clean.
-    app()->forgetInstance(AssetManager::class);
+    // The theme managers cache the theme list; start each call clean.
     app()->forgetInstance(ThemeManager::class);
     app()->forgetInstance(ThemePreference::class);
 
