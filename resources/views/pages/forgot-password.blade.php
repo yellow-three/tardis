@@ -4,6 +4,7 @@ use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
 use Illuminate\Support\Facades\Password;
+use Tardis\Auth\Notifications\ResetPasswordNotification;
 
 new #[Title('tardis::auth.forgot_password')] #[Layout('tardis::layouts.auth')] class extends Component
 {
@@ -11,22 +12,24 @@ new #[Title('tardis::auth.forgot_password')] #[Layout('tardis::layouts.auth')] c
 
     public ?string $status = null;
 
+    /**
+     * The answer is the same whether or not the address belongs to someone, so
+     * the form cannot be used to find out which addresses have an account.
+     * Only a malformed address is reported.
+     */
     public function sendResetLink(): void
     {
         $this->validate([
             'email' => 'required|email',
         ]);
 
-        $status = Password::sendResetLink(['email' => $this->email]);
+        Password::sendResetLink(['email' => $this->email], function ($user, string $token) {
+            if (method_exists($user, 'notify')) {
+                $user->notify(new ResetPasswordNotification($token));
+            }
+        });
 
-        $this->status = $status === Password::RESET_LINK_SENT
-            ? __('tardis::auth.reset_link_sent')
-            : __($status);
-    }
-
-    public function render()
-    {
-        return view('tardis::pages.forgot-password');
+        $this->status = __('tardis::auth.reset_link_sent');
     }
 }; ?>
 

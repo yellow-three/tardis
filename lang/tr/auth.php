@@ -16,6 +16,7 @@ return [
     'new_password' => 'Yeni parola',
     'confirm_password' => 'Parolayı doğrula',
     'too_many_attempts' => 'Çok fazla giriş denemesi. Lütfen :seconds saniye sonra tekrar deneyin.',
-    'reset_link_sent' => 'Parola sıfırlama bağlantınızı e-postayla gönderdik.',
+    'reset_link_sent' => 'Bu adrese ait bir hesap varsa parola sıfırlama bağlantısını e-postayla gönderdik.',
+    'reset_link_invalid' => 'Bu sıfırlama bağlantısı geçersiz ya da süresi dolmuş. Yeni bir bağlantı isteyin.',
     'password_reset_done' => 'Parolanız başarıyla sıfırlandı.',
 ];

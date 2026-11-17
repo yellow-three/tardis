@@ -16,6 +16,7 @@ return [
     'new_password' => 'New Password',
     'confirm_password' => 'Confirm Password',
     'too_many_attempts' => 'Too many login attempts. Please try again in :seconds seconds.',
-    'reset_link_sent' => 'We have emailed your password reset link.',
+    'reset_link_sent' => 'If an account exists for that address, we have emailed it a password reset link.',
+    'reset_link_invalid' => 'This reset link is invalid or has expired. Request a new one.',
     'password_reset_done' => 'Your password has been reset successfully.',
 ];

@@ -3,6 +3,7 @@
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Str;
 
@@ -18,38 +19,50 @@ new #[Title('tardis::auth.reset_password')] #[Layout('tardis::layouts.auth')] cl
 
     public ?string $status = null;
 
-    public function mount(?string $token = null, ?string $email = null): void
+    public function mount(?string $token = null): void
     {
         $this->token = $token ?? '';
-        $this->email = $email ?? '';
+        // The mailed link carries the address as a query parameter.
+        $email = request()->query('email');
+        $this->email = is_string($email) ? $email : '';
     }
 
     public function resetPassword(): void
     {
+        $this->status = null;
+
         $this->validate([
             'token' => 'required',
             'email' => 'required|email',
-            'password' => 'required|min:8|confirmed',
+            'password' => 'required|min:8',
+            'passwordConfirmation' => 'required|same:password',
+        ], attributes: [
+            'passwordConfirmation' => __('tardis::auth.confirm_password'),
         ]);
 
         $status = Password::reset(
-            ['email' => $this->email, 'password' => $this->password, 'password_confirmation' => $this->passwordConfirmation, 'token' => $this->token],
+            ['email' => $this->email, 'password' => $this->password, 'token' => $this->token],
             function ($user, $password) {
+                // Hashed here, not left to a model cast: a host model without
+                // the `hashed` cast would otherwise store the plain password.
+                // A model with the cast sees an existing hash and keeps it.
                 $user->forceFill([
-                    'password' => $password,
+                    'password' => Hash::make($password),
                     'remember_token' => Str::random(60),
                 ])->save();
             }
         );
 
-        $this->status = $status === Password::PASSWORD_RESET
-            ? __('tardis::auth.password_reset_done')
-            : __($status);
-    }
+        if ($status !== Password::PASSWORD_RESET) {
+            // One message for a bad token and an unknown address alike.
+            $this->addError('email', __('tardis::auth.reset_link_invalid'));
+            $this->reset('password', 'passwordConfirmation');
 
-    public function render()
-    {
-        return view('tardis::pages.reset-password');
+            return;
+        }
+
+        $this->status = __('tardis::auth.password_reset_done');
+        $this->reset('password', 'passwordConfirmation');
     }
 }; ?>
 
