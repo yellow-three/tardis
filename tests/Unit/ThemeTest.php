@@ -68,10 +68,12 @@ test('unknown colour keys are dropped, not written', function () {
         ->not->toHaveKey('sidebar')->not->toHaveKey('evil');
 });
 
-test('it renders a data-theme rule with the scheme, its colours and the shape defaults', function () {
+test('it renders a data-theme rule with the scheme, its colours and the status and shape defaults', function () {
     $css = Theme::fromArray(['name' => 'ocean', 'scheme' => 'dark', 'colors' => themeColors()])->css();
 
     expect($css)->toBe('[data-theme="ocean"]{color-scheme:dark;--color-primary:oklch(45% 0.2 260);--color-base-100:oklch(97% 0.01 260);--color-base-content:oklch(20% 0.05 260);'
+        .'--color-info:oklch(74% 0.16 232.661);--color-info-content:oklch(29% 0.066 243.157);--color-success:oklch(76% 0.177 163.223);--color-success-content:oklch(37% 0.077 168.94);'
+        .'--color-warning:oklch(82% 0.189 84.429);--color-warning-content:oklch(41% 0.112 45.904);--color-error:oklch(71% 0.194 13.428);--color-error-content:oklch(27% 0.105 12.094);'
         .'--radius-selector:0.5rem;--radius-field:0.25rem;--radius-box:0.5rem;--size-selector:0.25rem;--size-field:0.25rem;--border:1px;--depth:1;--noise:0;}');
 });
 

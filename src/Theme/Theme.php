@@ -42,6 +42,22 @@ final class Theme
         'noise' => '0',
     ];
 
+    /**
+     * DaisyUI's own status colours. A theme that does not set them gets
+     * these: without them alerts, badges and buttons in info/success/warning/
+     * error render grey, because the stylesheet ships no theme of its own.
+     */
+    public const STATUS_DEFAULTS = [
+        'info' => 'oklch(74% 0.16 232.661)',
+        'info-content' => 'oklch(29% 0.066 243.157)',
+        'success' => 'oklch(76% 0.177 163.223)',
+        'success-content' => 'oklch(37% 0.077 168.94)',
+        'warning' => 'oklch(82% 0.189 84.429)',
+        'warning-content' => 'oklch(41% 0.112 45.904)',
+        'error' => 'oklch(71% 0.194 13.428)',
+        'error-content' => 'oklch(27% 0.105 12.094)',
+    ];
+
     /** Without these a theme cannot render readable text on a surface. */
     public const REQUIRED = ['primary', 'base-100', 'base-content'];
 
@@ -145,7 +161,7 @@ final class Theme
     {
         $declarations = 'color-scheme:'.$this->scheme.';';
 
-        foreach ($this->colors as $key => $value) {
+        foreach ($this->colors + self::STATUS_DEFAULTS as $key => $value) {
             $declarations .= '--color-'.$key.':'.$value.';';
         }
 

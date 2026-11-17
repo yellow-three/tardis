@@ -115,3 +115,11 @@ test('a theme plugin no longer writes a global :root override', function () {
 
     expect(app(AssetManager::class)->styles())->not->toMatch('/<style[^>]*>:root\{/');
 });
+
+test('a theme keeps its own status colours and gets DaisyUI defaults for the rest', function () {
+    $css = Theme::fromArray(oceanTheme(['colors' => ['primary' => '#0ea5e9', 'base-100' => '#0b1220', 'base-content' => '#e2e8f0', 'error' => '#ff0000']]))->css();
+
+    expect($css)->toContain('--color-error:#ff0000;')
+        ->not->toContain('--color-error:oklch(71%')
+        ->toContain('--color-success:oklch(76% 0.177 163.223);');
+});
