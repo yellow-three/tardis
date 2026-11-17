@@ -2,7 +2,7 @@
 
 Plugin and host scripts talk to the panel through `window.Tardis`. It is versioned (`Tardis.version`); anything not listed here (the Alpine stores, the boot payload) is internal and may change between releases. A breaking change to this page only ships in a major version.
 
-The core script (`dist/assets/app.js`) is loaded **before** Livewire starts Alpine and before any plugin script, so `window.Tardis` always exists when your code runs.
+The core script (`resources/compiled/assets/app.js`) is loaded **before** Livewire starts Alpine and before any plugin script, so `window.Tardis` always exists when your code runs.
 
 | Member | What it does |
 |---|---|

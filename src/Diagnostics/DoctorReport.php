@@ -186,7 +186,7 @@ final class DoctorReport
     private static function checkAssets(): CheckResult
     {
         $published = public_path('vendor/tardis/assets');
-        $source = dirname(__DIR__, 2).'/dist/assets';
+        $source = dirname(__DIR__, 2).'/resources/compiled/assets';
         $files = ['app.css', 'app.js'];
 
         $missing = [];
