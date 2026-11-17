@@ -328,7 +328,7 @@ new #[Title('Edit Table')] #[Layout('tardis::layouts.admin')] class extends Comp
     public function generateModel(): void
     {
         try {
-            app(ModelGenerator::class)->generate($this->selectedTable, $this->columns, ['force' => true]);
+            app(ModelGenerator::class)->generate($this->selectedTable, $this->columns);
 
             $this->selectedTableHasModel = true;
             $this->message = __('tardis::database.model_created');

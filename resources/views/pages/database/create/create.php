@@ -97,7 +97,7 @@ new #[Title('Create Table')] #[Layout('tardis::layouts.admin')] class extends Co
                         Schema::connection($connection)->getIndexes($this->newTableName)
                     );
 
-                    app(ModelGenerator::class)->generate($this->newTableName, $columns, ['force' => true]);
+                    app(ModelGenerator::class)->generate($this->newTableName, $columns);
 
                     session()->flash('message', __('tardis::database.table_and_model_created'));
                 } catch (Throwable $e) {
