@@ -40,8 +40,9 @@
         </div>
 
         @php
-            $user = auth()->user();
-            $userName = $user?->name ?: $user?->email ?: __('tardis::shell.admin_fallback');
+            $user = \Tardis\Support\PanelUser::current();
+            $userName = \Tardis\Support\PanelUser::name($user);
+            $userAvatar = \Tardis\Support\PanelUser::avatar($user);
             $userInitial = mb_strtoupper(mb_substr($userName, 0, 1));
         @endphp
 
@@ -49,11 +50,19 @@
             <div
                data-tip="{{ $userName }}"
                class="flex items-center gap-3 p-2 rounded-lg is-drawer-close:tooltip is-drawer-close:tooltip-right is-drawer-close:justify-center">
-                <div class="avatar avatar-placeholder shrink-0">
-                    <div class="bg-neutral text-neutral-content rounded-full w-9">
-                        <span class="text-sm font-medium">{{ $userInitial }}</span>
+                @if ($userAvatar)
+                    <div class="avatar shrink-0">
+                        <div class="rounded-full w-9">
+                            <img src="{{ $userAvatar }}" alt="" />
+                        </div>
                     </div>
-                </div>
+                @else
+                    <div class="avatar avatar-placeholder shrink-0">
+                        <div class="bg-neutral text-neutral-content rounded-full w-9">
+                            <span class="text-sm font-medium">{{ $userInitial }}</span>
+                        </div>
+                    </div>
+                @endif
                 <div class="flex-1 min-w-0 tardis-sidebar-label">
                     <p class="font-medium text-sm truncate">{{ $userName }}</p>
                     <p class="text-[11px] text-base-content/60 truncate">{{ $user?->email }}</p>

@@ -35,25 +35,10 @@ interface AuthenticationPlugin
     public function redirectTo(): string;
 
     /**
-     * Login page Livewire component name (e.g. 'tardis::pages.login').
-     */
-    public function loginComponent(): string;
-
-    /**
      * Handle authentication in admin middleware.
      * Return the handled request or abort.
      */
     public function handleRequest(Request $request, \Closure $next): mixed;
-
-    /**
-     * Handle forgot password request.
-     */
-    public function forgotPassword(Request $request): mixed;
-
-    /**
-     * Forgot password view component name.
-     */
-    public function forgotPasswordView(): ?string;
 
     /**
      * Plugin name identifier.
@@ -71,7 +56,8 @@ interface AuthenticationPlugin
     public function avatar(mixed $user): ?string;
 
     /**
-     * The auth guard to use.
+     * The auth guard to use. The default plugin reads, signs in and signs out
+     * through it; the panel shell reads the user through user().
      */
     public function guard(): string;
 }
