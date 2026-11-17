@@ -57,7 +57,13 @@ new #[Title('View')] #[Layout('tardis::layouts.admin')] class extends Component
             abort(404);
         }
 
-        $this->record = BreadDefinition::fromArray($this->bread)->query()->findOrFail($id)->toArray();
+        $record = BreadDefinition::fromArray($this->bread)->query()->findOrFail($id);
+
+        // Only the key and the columns this page shows reach the browser.
+        $this->record = array_intersect_key(
+            $record->toArray(),
+            array_flip([$record->getKeyName(), ...array_filter(array_column($this->fields, 'name'))]),
+        );
     }
 
     public function getLayoutFieldsProperty(): array
