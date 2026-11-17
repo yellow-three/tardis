@@ -10,7 +10,7 @@ Uzun ömürlü, dalga dalga ilerleyen işlerin **roadmap** takibi. Kaynak: `.omo
 
 ## Current State
 
-**Bu bölüm projenin durumu için tek kaynaktır.** `PROJECT_STATUS.md` yalnızca mimari özetidir ve buraya bağlanır; `RELEASE_NOTES.md` yayınlanan değişiklikleri anlatır, durum tutmaz. Son doğrulama: 2026-11-17 — `composer test` → 994 passed (2582 assertions), `composer lint` temiz. **Faz 9 (R34) bitti** (PR #36). **Faz 10 (R35) ilk dilim** (`fix/phase-10-robustness`): yetki önbelleği, ZIP indirme, query log, UUID anahtarlar, `AuthenticationPlugin` sözleşmesi, medya `LIKE` kaçışı, gizli tablo, kararlı sıralama, Users sayfalama. Faz 10'un kalanı: B35, B36, B38, B39, B43. Açık bulgular `docs/notes.md`.
+**Bu bölüm projenin durumu için tek kaynaktır.** `PROJECT_STATUS.md` yalnızca mimari özetidir ve buraya bağlanır; `RELEASE_NOTES.md` yayınlanan değişiklikleri anlatır, durum tutmaz. Son doğrulama: 2026-11-17 — `composer test` → 1003 passed (2693 assertions), `composer lint` temiz. **Faz 9 (R34) bitti** (PR #36, master'da). **Faz 10 (R35) büyük ölçüde bitti:** PR #37 (master'da) ve `fix/phase-10b-remaining` (başlık çevirisi, `strict_types`, tanım önbelleği, durum dosyası kilidi, genişletilmiş denetim kaydı). Kalan parçalar `docs/notes.md`'de B29, B34, B35, B38, B41, B42 satırlarında; sıradaki faz 10b (R56, tema ve varlık mimarisi).
 
 Son güncelleme: 2026-11-17 (proje incelemesi; 1.0 yol haritası R34–R45, R56–R57 ve 1.x farkları R46–R55 eklendi, R22/R31/R32 durumları düzeltildi). ID'ler `R` = roadmap sırası; `notes.md` bulgularıyla (`B*`) karışmaz.
 

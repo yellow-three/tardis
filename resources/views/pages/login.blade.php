@@ -53,12 +53,14 @@ new #[Title('tardis::auth.login')] #[Layout('tardis::layouts.auth')] class exten
 
         if ($signedIn) {
             $limiter->clear($key);
+            app(\Tardis\Bread\ActivityLogger::class)->audit('tardis.auth', 'signed_in');
             $this->redirect($plugin !== null ? $plugin->redirectTo() : route('tardis.dashboard'));
 
             return;
         }
 
         $limiter->hit($key);
+        app(\Tardis\Bread\ActivityLogger::class)->audit('tardis.auth', 'sign_in_failed', ['email' => mb_substr($this->email, 0, 255)]);
 
         $this->error = __('auth.failed');
     }

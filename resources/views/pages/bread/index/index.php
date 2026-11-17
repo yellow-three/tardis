@@ -20,7 +20,7 @@ use Tardis\Formfields\Formfield;
 use Tardis\Manager\ActionManager;
 use Tardis\Manager\FormfieldManager;
 
-new #[Title('BREAD')] #[Layout('tardis::layouts.admin')] class extends Component
+new #[Title('tardis::shell.titles.bread')] #[Layout('tardis::layouts.admin')] class extends Component
 {
     use WithPagination;
 

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tardis\Formfields\Types;
 
 use Illuminate\Support\Facades\Hash;

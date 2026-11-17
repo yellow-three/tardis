@@ -11,7 +11,7 @@ use Tardis\Auth\BreadAuthorization;
 use Tardis\Database\Concerns\ManagesColumnDefinitions;
 use Tardis\Database\ModelGenerator;
 
-new #[Title('Database Explorer')] #[Layout('tardis::layouts.admin')] class extends Component
+new #[Title('tardis::shell.titles.database_explorer')] #[Layout('tardis::layouts.admin')] class extends Component
 {
     use ManagesColumnDefinitions;
 

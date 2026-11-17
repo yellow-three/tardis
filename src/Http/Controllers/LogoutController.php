@@ -6,6 +6,7 @@ namespace Tardis\Http\Controllers;
 
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Tardis\Bread\ActivityLogger;
 use Tardis\Manager\PluginManager;
 
 /**
@@ -19,6 +20,9 @@ class LogoutController
 {
     public function __invoke(Request $request, PluginManager $plugins): RedirectResponse
     {
+        // Written before the session ends, so the entry still names the user.
+        app(ActivityLogger::class)->audit('tardis.auth', 'signed_out');
+
         $plugin = $plugins->authenticationPlugin();
 
         if ($plugin !== null) {

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tardis\Bread\Actions;
 
 use Illuminate\Database\Eloquent\Model;

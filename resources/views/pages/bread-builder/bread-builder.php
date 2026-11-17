@@ -13,7 +13,7 @@ use Tardis\Bread\ReservedSlugs;
 use Tardis\Classes\Translation;
 use Tardis\Manager\FormfieldManager;
 
-new #[Title('BREAD Builder')] #[Layout('tardis::layouts.admin')] class extends Component
+new #[Title('tardis::shell.titles.bread_builder')] #[Layout('tardis::layouts.admin')] class extends Component
 {
     public int $step = 1;
 

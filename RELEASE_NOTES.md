@@ -165,3 +165,12 @@ Fixes from the 2026-11-17 review (`docs/notes.md`). Each one is covered by a tes
 - **UUID and ULID keys** in BREAD row/bulk actions, the activity log (`activity_logs.model_id` is now a string; new migration) and the Users page.
 - **`AuthenticationPlugin`**: `guard()`, `nameField()` and `avatar()` are used; the three methods nothing called are removed from the contract (see UPGRADE.md).
 - **Smaller fixes**: media folder delete/rename escape LIKE wildcards; the Database Explorer list cannot be pointed at a hidden table; sorting adds the key as a tie-breaker; bulk actions are all or nothing; the Users screen is paginated.
+
+## Faz 10 — robustness, second part (R35)
+
+- **Page titles** of the BREAD pages, builder, Database Explorer, settings, media and UI components are translated (they were English in every language); a test checks every page title.
+- **`declare(strict_types=1)`** in every class under `src/`, kept by a Pest arch test.
+- **BREAD definitions are parsed once per request** (cached by content hash on a per-request `JsonBreadSource`).
+- **Plugin switches and user preferences** are written under a file lock and change only what was asked for, so concurrent requests no longer undo each other (`Tardis\Support\JsonFile`).
+- **Activity log**: sign-in, failed sign-in, sign-out, role permission changes, user role changes and plugin switches are logged; entries carry IP address and user agent (new migration).
+- The test suite sets `memory_limit=512M` in `phpunit.xml.dist`.

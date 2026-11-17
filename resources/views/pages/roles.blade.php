@@ -130,6 +130,13 @@ new #[Title('tardis::roles.roles')] #[Layout('tardis::layouts.admin')] class ext
             }
 
             $role->permissions()->sync($this->editRolePermissions);
+
+            $slugs = fn (array $ids) => ModelResolver::permission()::query()->whereIn('id', $ids)->orderBy('slug')->pluck('slug')->all();
+            app(\Tardis\Bread\ActivityLogger::class)->audit('tardis.role', 'permissions_changed', [
+                'role' => $role->slug,
+                'added' => $slugs(array_diff(array_map('intval', $this->editRolePermissions), array_map('intval', $current))),
+                'removed' => $slugs(array_diff(array_map('intval', $current), array_map('intval', $this->editRolePermissions))),
+            ], $role->getKey());
             $this->showEditModal = false;
             $this->loadRoles();
         }

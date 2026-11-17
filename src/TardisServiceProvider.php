@@ -10,6 +10,7 @@ use Illuminate\Support\ServiceProvider;
 use Livewire\Livewire;
 use Tardis\Auth\TardisAuthorizationPlugin;
 use Tardis\Bread\Legacy\LegacyConfigReader;
+use Tardis\Bread\Sources\JsonBreadSource;
 use Tardis\Commands\TardisAdminCommand;
 use Tardis\Commands\TardisBreadExportCommand;
 use Tardis\Commands\TardisBreadMigrateCommand;
@@ -79,6 +80,12 @@ class TardisServiceProvider extends ServiceProvider
         // Resolved lazily and without I/O: themes are read when first asked for.
         $this->app->singleton(ThemeManager::class);
         $this->app->singleton(ThemePreference::class);
+
+        // One BREAD source per request: every consumer (routes, menu, search,
+        // authorisation) resolves BreadManager with it, so they share the
+        // parsed definitions, and a long-running worker starts each request
+        // with a fresh read.
+        $this->app->scoped(JsonBreadSource::class);
 
         $this->registerAliases();
         $this->registerPluginServiceProviders();

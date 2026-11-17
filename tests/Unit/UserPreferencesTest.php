@@ -65,5 +65,6 @@ test('the file is written atomically and never leaves temp files behind', functi
         $prefs->set($i, 'locale', 'en');
     }
 
-    expect(array_map('basename', File::files(dirname($this->prefsFile))))->toBe(['preferences.json']);
+    // The .lock file is the write lock (JsonFile), kept on purpose; no temp file remains.
+    expect(array_map('basename', File::files(dirname($this->prefsFile))))->toBe(['preferences.json', 'preferences.json.lock']);
 });

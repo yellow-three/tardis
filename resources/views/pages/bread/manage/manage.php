@@ -9,7 +9,7 @@ use Tardis\Auth\BreadAuthorization;
 use Tardis\Bread\BreadManager;
 use Tardis\Bread\Legacy\LegacyConfigReader;
 
-new #[Title('BREAD Management')] #[Layout('tardis::layouts.admin')] class extends Component
+new #[Title('tardis::shell.titles.bread_management')] #[Layout('tardis::layouts.admin')] class extends Component
 {
     /**
      * Runs on every request, not only on mount: Livewire keeps component state
