@@ -32,6 +32,7 @@ use Tardis\Listeners\ProvisionBreadPermissions;
 use Tardis\Manager\ActionManager;
 use Tardis\Manager\AssetManager;
 use Tardis\Manager\FormfieldManager;
+use Tardis\Manager\MediaManager;
 use Tardis\Manager\MenuManager;
 use Tardis\Manager\PluginManager;
 use Tardis\Manager\SettingsManager;
@@ -56,6 +57,11 @@ class TardisServiceProvider extends ServiceProvider
             'tardis-icons'
         );
 
+        $this->mergeConfigFrom(
+            __DIR__.'/../config/tardis-media.php',
+            'tardis-media'
+        );
+
         $this->app->singleton(AssetManager::class);
         $this->app->singleton(UserPreferences::class);
 
@@ -70,6 +76,7 @@ class TardisServiceProvider extends ServiceProvider
         $this->app->singleton(SettingsManager::class);
         $this->app->singleton(FormfieldManager::class);
         $this->app->singleton(ActionManager::class);
+        $this->app->singleton(MediaManager::class);
 
         // Plugin registrations must outlive the registration call: the manager
         // is resolved again by every consumer (AdminMiddleware, MenuItem,
@@ -88,7 +95,6 @@ class TardisServiceProvider extends ServiceProvider
         $this->app->scoped(JsonBreadSource::class);
 
         $this->registerAliases();
-        $this->registerPluginServiceProviders();
     }
 
     public function boot(): void
@@ -201,6 +207,10 @@ class TardisServiceProvider extends ServiceProvider
             __DIR__.'/../config/tardis-icons.php' => config_path('tardis-icons.php'),
         ], 'tardis-icons-config');
 
+        $this->publishes([
+            __DIR__.'/../config/tardis-media.php' => config_path('tardis-media.php'),
+        ], 'tardis-media-config');
+
     }
 
     protected function registerAliases(): void
@@ -253,11 +263,5 @@ class TardisServiceProvider extends ServiceProvider
             TardisMakePluginCommand::class,
             TardisPluginsCommand::class,
         ]);
-    }
-
-    protected function registerPluginServiceProviders(): void
-    {
-        $this->app->register(TardisPluginManagerServiceProvider::class);
-        $this->app->register(TardisMediaServiceProvider::class);
     }
 }

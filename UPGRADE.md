@@ -147,3 +147,9 @@ To keep the old, looser behaviour set `tardis.translation.validation` to `'activ
 - **`ThemePlugin::getTheme()` is replaced by `themes(): array`.** A theme plugin now returns whole theme definitions (the same shape as a `themes.json` entry: `name`, `scheme`, `label`, `colors`, optional `shape`), which appear in the theme picker. The old method wrote an unlayered `:root{…}` rule that overrode every theme, dark mode included; to override individual variables on purpose, ship a stylesheet through `Provider\CSS`.
 - **Built-in themes are no longer in the compiled stylesheet.** They are defined once in `Tardis\Theme\BuiltinThemes` and written at runtime with the other themes. Republish the assets (`php artisan vendor:publish --tag=tardis-assets --force`).
 - **Themes now set DaisyUI's shape variables** (`--radius-*`, `--size-*`, `--border`, `--depth`, `--noise`), which were never set before; corners and borders of components render with DaisyUI's defaults. A theme may change them with `shape`.
+
+## Faz 10c — service provider and facade
+
+- `Tardis\TardisPluginManagerServiceProvider` and `Tardis\TardisMediaServiceProvider` are gone; their work (views, media config, migrations, `MediaManager`) is in `TardisServiceProvider`. Remove them if you registered them yourself.
+- The facade gains `themes()`, `assets()`, `actions()` and `media()`. `Tardis::version()` reports Composer's version for a tagged install.
+- Settings: without `storage/tardis/settings/settings.json` the shipped preset is used as the starting point and the file is written on the first save; it is no longer created on the first web request. The CLI now sees the same defaults as the web.
