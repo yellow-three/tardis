@@ -11,6 +11,7 @@ use Tardis\Contracts\Plugins\AuthorizationPlugin;
 use Tardis\Contracts\Plugins\FormfieldPlugin;
 use Tardis\Contracts\Plugins\GenericPlugin;
 use Tardis\Contracts\Plugins\ThemePlugin;
+use Tardis\Support\JsonFile;
 
 class PluginManager
 {
@@ -47,18 +48,26 @@ class PluginManager
             : [];
     }
 
-    protected function persistDisabled(): void
+    /**
+     * Store one plugin's switch. The stored list is re-read under a lock and
+     * only this plugin is added or removed, so a request that loaded the
+     * list earlier cannot undo another request's change.
+     */
+    protected function persistDisabled(string $name, bool $disabled): void
     {
         try {
-            $dir = dirname($this->statePath);
+            $data = JsonFile::update($this->statePath, function (array $data) use ($name, $disabled) {
+                $list = array_values(array_filter((array) ($data['disabled'] ?? []), 'is_string'));
+                $list = array_values(array_diff($list, [$name]));
 
-            if (! is_dir($dir)) {
-                mkdir($dir, 0755, true);
-            }
+                if ($disabled) {
+                    $list[] = $name;
+                }
 
-            $tmp = tempnam($dir, '.plugins-');
-            file_put_contents($tmp, json_encode(['disabled' => $this->disabled], JSON_PRETTY_PRINT)."\n");
-            rename($tmp, $this->statePath);
+                return ['disabled' => $list];
+            }, JSON_PRETTY_PRINT);
+
+            $this->disabled = $data['disabled'];
         } catch (\Throwable $e) {
             Log::warning('Could not persist the plugin state.', ['error' => $e->getMessage()]);
         }
@@ -97,7 +106,7 @@ class PluginManager
         }
 
         $this->disabled = array_values(array_diff($this->disabled, [$name]));
-        $this->persistDisabled();
+        $this->persistDisabled($name, false);
     }
 
     /**
@@ -128,7 +137,7 @@ class PluginManager
         }
 
         $this->enabled = array_values(array_diff($this->enabled, [$name]));
-        $this->persistDisabled();
+        $this->persistDisabled($name, true);
     }
 
     public function isEnabled(string $name): bool

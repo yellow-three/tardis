@@ -39,10 +39,11 @@ class UserPreferences
             return;
         }
 
-        $data = $this->read();
-        $data[(string) $userId][$key] = $value;
+        $this->write(function (array $data) use ($userId, $key, $value) {
+            $data[(string) $userId][$key] = $value;
 
-        $this->write($data);
+            return $data;
+        });
     }
 
     public function forget(int|string|null $userId, string $key): void
@@ -51,14 +52,15 @@ class UserPreferences
             return;
         }
 
-        $data = $this->read();
-        unset($data[(string) $userId][$key]);
+        $this->write(function (array $data) use ($userId, $key) {
+            unset($data[(string) $userId][$key]);
 
-        if (($data[(string) $userId] ?? []) === []) {
-            unset($data[(string) $userId]);
-        }
+            if (($data[(string) $userId] ?? []) === []) {
+                unset($data[(string) $userId]);
+            }
 
-        $this->write($data);
+            return $data;
+        });
     }
 
     /**
@@ -76,20 +78,14 @@ class UserPreferences
     }
 
     /**
-     * @param  array<string, array<string, mixed>>  $data
+     * Apply a change to the stored preferences under the file lock.
+     *
+     * @param  callable(array<string, array<string, mixed>>): array<string, array<string, mixed>>  $change
      */
-    protected function write(array $data): void
+    protected function write(callable $change): void
     {
         try {
-            $dir = dirname($this->path);
-
-            if (! is_dir($dir)) {
-                mkdir($dir, 0755, true);
-            }
-
-            $tmp = tempnam($dir, '.prefs-');
-            file_put_contents($tmp, json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE)."\n");
-            rename($tmp, $this->path);
+            JsonFile::update($this->path, $change);
         } catch (\Throwable $e) {
             Log::warning('Could not persist panel preferences.', ['error' => $e->getMessage()]);
         }
