@@ -63,6 +63,7 @@ class TardisServiceProvider extends ServiceProvider
         );
 
         $this->app->singleton(AssetManager::class);
+        $this->app->alias(AssetManager::class, 'tardis.assets');
         $this->app->singleton(UserPreferences::class);
 
         // One instance per manager: pages resolve them with app(Class::class)
@@ -99,12 +100,14 @@ class TardisServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        // Compiled views keep this code until view:clear, so it names a stable
+        // container key rather than the class, which may move.
         Blade::directive('tardisStyles', function ($expression) {
-            return '<?php echo app(\\Tardis\\Manager\\AssetManager::class)->styles('.($expression ?: "'admin'").'); ?>';
+            return "<?php echo app('tardis.assets')->styles(".($expression ?: "'admin'").'); ?>';
         });
 
         Blade::directive('tardisScripts', function ($expression) {
-            return '<?php echo app(\\Tardis\\Manager\\AssetManager::class)->scripts('.($expression ?: "'admin'").'); ?>';
+            return "<?php echo app('tardis.assets')->scripts(".($expression ?: "'admin'").'); ?>';
         });
 
         // Plugins are registered in boot(): register() only binds, so nothing

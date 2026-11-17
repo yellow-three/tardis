@@ -44,6 +44,11 @@ class TardisInstallCommand extends Command
             '--force' => (bool) $this->option('force'),
         ]) === 0);
 
+        // Livewire compiles the package components into the view cache and
+        // renews them by file time; a release unpacked by Composer can carry
+        // older times than the cached copy, so clear it after every install.
+        $this->components->task('Clearing compiled views', fn (): bool => $this->call('view:clear') === 0);
+
         $email = trim((string) $this->option('email'));
 
         if ($email === '') {
