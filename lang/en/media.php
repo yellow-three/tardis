@@ -1,6 +1,7 @@
 <?php
 
 return [
+    'extension_not_allowed' => 'Files can only end in: :extensions.',
     'all_results' => 'ALL RESULTS · :count',
     'all_types' => 'All types',
     'alt_text' => 'Alt Text',

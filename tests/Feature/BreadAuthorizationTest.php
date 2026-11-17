@@ -482,3 +482,46 @@ test('search only lists resources the user may browse', function () {
         ->set('query', 'Confidential')
         ->assertSee('Confidential report');
 });
+
+test('a permission revoked while the edit page is open stops the next request', function () {
+    authzSchema();
+    bindAuthzBread();
+    allowAbilities(['edit bread-page-authz']);
+
+    $this->actingAs(authzUser());
+
+    $record = BreadAuthzTestModel::create(['title' => 'Original']);
+
+    $page = Livewire::test('tardis::pages.bread.edit', ['slug' => 'bread-page-authz', 'id' => $record->id])
+        ->assertOk()
+        ->set('form.title', 'Changed after revocation');
+
+    // mount() ran once; Livewire does not run it again for later requests.
+    RecordingAuthorizationPlugin::$allowed = [];
+
+    $page->call('save')->assertForbidden();
+
+    expect($record->fresh()->title)->toBe('Original');
+});
+
+test('every bread page re-checks its ability on later requests', function (string $component, string $ability, array $params) {
+    authzSchema();
+    bindAuthzBread();
+    allowAbilities([$ability.' bread-page-authz']);
+
+    $this->actingAs(authzUser());
+
+    $record = BreadAuthzTestModel::create(['title' => 'Original']);
+
+    $page = Livewire::test($component, ['slug' => 'bread-page-authz'] + ($params === [] ? [] : ['id' => $record->id]))
+        ->assertOk();
+
+    RecordingAuthorizationPlugin::$allowed = [];
+
+    $page->call('$refresh')->assertForbidden();
+})->with([
+    'browse' => ['tardis::pages.bread.index', 'browse', []],
+    'add' => ['tardis::pages.bread.create', 'add', []],
+    'read' => ['tardis::pages.bread.read', 'read', ['id']],
+    'edit' => ['tardis::pages.bread.edit', 'edit', ['id']],
+]);

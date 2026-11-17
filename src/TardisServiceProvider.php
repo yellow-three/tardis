@@ -232,6 +232,13 @@ class TardisServiceProvider extends ServiceProvider
         $router = $this->app['router'];
         $router->aliasMiddleware('tardis.admin', AdminMiddleware::class);
         $router->aliasMiddleware('tardis.locale', SetPanelLocale::class);
+
+        // Livewire sends every request after the first to its own endpoint and
+        // re-applies only the route middleware it is told to persist. Without
+        // this the panel's guard runs once, on the page load, and a page that
+        // was open when the session ended (or the role was removed) keeps
+        // answering.
+        Livewire::addPersistentMiddleware([AdminMiddleware::class]);
     }
 
     protected function registerListeners(): void

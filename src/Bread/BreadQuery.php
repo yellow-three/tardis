@@ -158,7 +158,7 @@ class BreadQuery
     public function supportsTrashed(): bool
     {
         return $this->bread->softDelete
-            && class_exists($this->bread->model)
+            && BreadDefinition::isModelClass($this->bread->model)
             && in_array(SoftDeletes::class, class_uses_recursive($this->bread->model), true);
     }
 
@@ -379,14 +379,14 @@ class BreadQuery
     protected function hasRelation(string $relation): bool
     {
         return $this->bread->model !== ''
-            && class_exists($this->bread->model)
+            && BreadDefinition::isModelClass($this->bread->model)
             && method_exists($this->bread->model, $relation);
     }
 
     protected function hasScope(string $scope): bool
     {
         return $this->bread->model !== ''
-            && class_exists($this->bread->model)
+            && BreadDefinition::isModelClass($this->bread->model)
             && method_exists($this->bread->model, 'scope'.ucfirst($scope));
     }
 

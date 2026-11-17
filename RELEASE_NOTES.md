@@ -144,3 +144,15 @@ composer lint   # clean
 ## 0.1 — relation picker honours the related BREAD
 
 `BelongsToManyField::searchOptions()` listed every record of the related model. When a BREAD manages that model, the picker now applies its `scope` and requires the `browse` ability on it (a user who may not browse it gets no options); an already selected id no longer bypasses either. A related model with no BREAD of its own is listed as before.
+
+## Faz 9 — security and broken flows (R34)
+
+Fixes from the 2026-11-17 review (`docs/notes.md`). Each one is covered by a test that reproduced it first.
+
+- **Panel guard on Livewire updates.** `AdminMiddleware` is now persistent middleware, so every Livewire request after the first is authenticated and checked for `access admin`; before, a page left open after sign-out kept answering. BREAD pages also re-check their ability on every request (`boot()`).
+- **Password reset works.** The mail links to the panel's own reset page (`Tardis\Auth\Notifications\ResetPasswordNotification`; the host's reset mails are untouched), the confirmation field is checked correctly, a bad token is shown as an error, the new password is hashed even without a `hashed` cast, the link's `?email=` fills the form, and the request form answers the same for known and unknown addresses.
+- **Media extensions.** Renaming a file keeps to `tardis-media.allowed_mimes` (the check lives in `MediaManager`, so upload and rename share it), and a filename template can no longer change the stored extension.
+- **BREAD models.** Only a concrete Eloquent model can back a BREAD (`BreadDefinition::isModelClass()`); a definition pointing at any other class is refused when saved and answered with 404.
+- **No privilege escalation from Users/Roles.** Nobody hands out more than they hold, only a super administrator gives or takes away the super-admin role, and that role cannot be deleted (`Tardis\Auth\PrivilegeGuard`).
+- **Database Explorer.** Column edits apply only what changed and refuse to re-declare a column the editor cannot describe exactly; schema changes are limited to `tardis.database.schema_changes.environments` (local, testing) and written to the activity log. "Create model" never overwrites an existing model.
+- **Smaller fixes.** Edit/read pages no longer put undisplayed columns in the page snapshot; global search applies the BREAD `scope`, escapes `%`/`_` and links to a page the user may open; the Spatie bridge treats an unknown permission as a denial and honours `super_admin_roles`; sign-out works without `access admin`; `/admin` leads to the dashboard; `ReservedSlugs` covers every fixed screen.

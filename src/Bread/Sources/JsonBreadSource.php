@@ -123,9 +123,17 @@ class JsonBreadSource implements BreadSource
             );
         }
 
-        $this->backup($slug);
-
         $this->validateFieldTypes($data['fields'] ?? []);
+
+        // A class that does not exist (yet) is allowed: the pages answer 404
+        // until it does. One that exists must be an Eloquent model.
+        $model = $data['model'] ?? '';
+
+        if (is_string($model) && $model !== '' && class_exists($model) && ! BreadDefinition::isModelClass($model)) {
+            throw new \InvalidArgumentException(sprintf('BREAD model [%s] is not an Eloquent model.', $model));
+        }
+
+        $this->backup($slug);
 
         $content = json_encode(
             $data,

@@ -4,6 +4,7 @@ use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
 use Tardis\Auth\BreadAuthorization;
+use Tardis\Bread\BreadDefinition;
 use Tardis\Bread\BreadManager;
 
 new #[Title('tardis::search.search')] #[Layout('tardis::layouts.admin')] class extends Component
@@ -57,23 +58,39 @@ new #[Title('tardis::search.search')] #[Layout('tardis::layouts.admin')] class e
             }
 
             $model = $bread->model;
-            if (! class_exists($model)) {
+            if (! BreadDefinition::isModelClass($model)) {
                 continue;
             }
 
             try {
-                $items = $model::where($bread->searchKey, 'like', '%'.$this->query.'%')
+                // Through the definition, so its scope applies here as it does
+                // on the listing; % and _ in the query are matched literally.
+                $term = '%'.str_replace(['!', '%', '_'], ['!!', '!%', '!_'], $this->query).'%';
+                $query = $bread->query();
+                $column = $query->getQuery()->getGrammar()->wrap($bread->searchKey);
+
+                $items = $query->whereRaw($column." like ? escape '!'", [$term])
                     ->limit(5)
                     ->get();
+
+                // Link to the page the user may open: edit, else read, else the
+                // listing filtered to the record (browse is all they hold).
+                $route = match (true) {
+                    $authorization->allows('edit', (string) $slug) => 'tardis.bread.edit.item',
+                    $authorization->allows('read', (string) $slug) => 'tardis.bread.read',
+                    default => null,
+                };
 
                 if ($items->isNotEmpty()) {
                     $this->results[] = [
                         'slug' => $slug,
                         'name' => $bread->resolvedNamePlural(),
                         'items' => $items->map(fn ($item) => [
-                            'id' => $item->id,
-                            'title' => $item->{$bread->searchKey} ?? "Item #{$item->id}",
-                            'url' => route('tardis.bread.edit.item', ['slug' => $slug, 'id' => $item->id]),
+                            'id' => $item->getKey(),
+                            'title' => $item->{$bread->searchKey} ?? '#'.$item->getKey(),
+                            'url' => $route !== null
+                                ? route($route, ['slug' => $slug, 'id' => $item->getKey()])
+                                : route('tardis.bread.index', ['slug' => $slug, 'search' => (string) $item->{$bread->searchKey}]),
                         ])->toArray(),
                     ];
                 }

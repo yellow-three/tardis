@@ -18,4 +18,6 @@ return [
     'are_you_sure_you_want_to_4956' => 'Are you sure you want to delete this role? Users with this role will lose their permissions.',
     'delete' => 'Delete',
     'toggle_all' => 'Toggle all',
+    'cannot_grant_beyond_own' => 'You cannot add permissions you do not hold yourself.',
+    'cannot_delete_super_admin' => 'The super administrator role cannot be deleted.',
 ];

@@ -1,4 +1,11 @@
 <div>
+    @if ($readOnly)
+        <div class="alert alert-warning mb-4" role="status">
+            <x-tardis::icon name="lock-closed" class="w-5 h-5" />
+            <span>{{ __('tardis::database.read_only_notice') }}</span>
+        </div>
+    @endif
+
     <x-tardis::page-header :title="__('tardis::database.edit_table')" :description="$selectedTable" />
 
     <div class="flex items-center gap-2 mb-4">

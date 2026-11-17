@@ -29,9 +29,14 @@ class MediaManager
         ?string $altText = null,
         ?string $filenameTemplate = null,
     ): Media {
+        $this->assertAllowedExtension($file->getClientOriginalName(), 'upload');
+
         $path = Str::finish($this->fullPath($path), '/');
 
         $name = $this->resolveFilenameTemplate($filenameTemplate, $file, $path);
+
+        // A filename template may end in a different extension than the file.
+        $this->assertAllowedExtension($name, 'upload');
 
         // storeAs() joins with its own separator, so it must not receive a trailing slash.
         $storedPath = $file->storeAs(rtrim($path, '/'), $name, $this->disk);
@@ -133,6 +138,12 @@ class MediaManager
         }
 
         $wasDirectory = $storage->directoryExists($source);
+
+        // Upload validation is pointless if a rename can turn photo.jpg into
+        // shell.php on a public disk, so files keep to the same list.
+        if (! $wasDirectory) {
+            $this->assertAllowedExtension($newName, 'rename');
+        }
 
         if (! $storage->move($source, $target)) {
             return false;
@@ -242,6 +253,46 @@ class MediaManager
         }
 
         return rtrim($this->basePath.'/'.$path, '/');
+    }
+
+    /**
+     * Extensions a stored file may end in (tardis-media.allowed_mimes), lower
+     * case. An empty list means the host turned the restriction off.
+     *
+     * @return list<string>
+     */
+    public function allowedExtensions(): array
+    {
+        return array_values(array_unique(array_filter(array_map(
+            fn ($extension) => strtolower(ltrim(trim((string) $extension), '.')),
+            (array) config('tardis-media.allowed_mimes', []),
+        ))));
+    }
+
+    public function isAllowedFileName(string $name): bool
+    {
+        $allowed = $this->allowedExtensions();
+
+        if ($allowed === []) {
+            return true;
+        }
+
+        $extension = strtolower(pathinfo($name, PATHINFO_EXTENSION));
+
+        return $extension !== '' && in_array($extension, $allowed, true);
+    }
+
+    /**
+     * The check lives here, not only in the screens that call this class, so a
+     * new upload or rename surface cannot forget it.
+     */
+    protected function assertAllowedExtension(string $name, string $operation): void
+    {
+        if (! $this->isAllowedFileName($name)) {
+            throw new InvalidArgumentException(
+                $operation.'() name ['.$name.'] has an extension outside tardis-media.allowed_mimes.'
+            );
+        }
     }
 
     protected function assertValidName(string $name, string $operation): void
@@ -389,9 +440,10 @@ class MediaManager
             throw new InvalidArgumentException('Filename cannot contain ".." path segments');
         }
 
-        if (! str_contains($result, '.')) {
-            $result .= $extension;
-        } elseif (preg_match('/\.[^.]+$/', $result) === 0 && $extension) {
+        // The stored file always keeps the uploaded file's extension: a template
+        // decides the name, never the type, so "{name}-{ext}" cannot leave a
+        // file ending in "-png" and a template cannot produce "x.php".
+        if ($extension !== '' && strcasecmp('.'.pathinfo($result, PATHINFO_EXTENSION), $extension) !== 0) {
             $result .= $extension;
         }
 

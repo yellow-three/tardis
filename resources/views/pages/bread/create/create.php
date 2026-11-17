@@ -6,6 +6,7 @@ use Livewire\Attributes\Title;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 use Tardis\Auth\BreadAuthorization;
+use Tardis\Bread\BreadDefinition;
 use Tardis\Bread\BreadManager;
 use Tardis\Bread\BreadSaver;
 use Tardis\Bread\FieldValidationRules;
@@ -38,6 +39,19 @@ new #[Title('Create')] #[Layout('tardis::layouts.admin')] class extends Componen
      */
     public string $activeLocale = '';
 
+    /**
+     * Runs on every request, not only on mount: Livewire keeps component state
+     * between requests, so a permission removed while the page is open has to
+     * stop the next one. mount() still authorises the first render, where the
+     * slug is not known yet.
+     */
+    public function boot(): void
+    {
+        if ($this->slug !== '') {
+            app(BreadAuthorization::class)->authorize('add', $this->slug);
+        }
+    }
+
     public function mount(string $slug): void
     {
         $this->slug = $slug;
@@ -48,6 +62,10 @@ new #[Title('Create')] #[Layout('tardis::layouts.admin')] class extends Componen
         }
 
         $this->bread = $definition->toDisplayArray();
+
+        if (! BreadDefinition::isModelClass($this->bread['model'] ?? null)) {
+            abort(404);
+        }
 
         app(BreadAuthorization::class)->authorize('add', $this->slug);
 
@@ -199,7 +217,7 @@ new #[Title('Create')] #[Layout('tardis::layouts.admin')] class extends Componen
 
         $modelClass = $this->bread['model'] ?? null;
 
-        if (! $modelClass || ! class_exists($modelClass)) {
+        if (! BreadDefinition::isModelClass($modelClass)) {
             session()->flash('error', __('tardis::bread.model_class_unknown'));
 
             return;

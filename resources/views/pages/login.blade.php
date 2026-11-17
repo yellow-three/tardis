@@ -25,6 +25,13 @@ new #[Title('tardis::auth.login')] #[Layout('tardis::layouts.auth')] class exten
         ];
     }
 
+    public function mount(): void
+    {
+        if (auth()->check()) {
+            $this->redirect(route('tardis.dashboard'));
+        }
+    }
+
     public function login(): void
     {
         $this->validate();

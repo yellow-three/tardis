@@ -65,4 +65,11 @@ return [
     'model_failed' => 'Model üretilemedi: :error',
     'table_dropped' => 'Tablo başarıyla silindi.',
     'could_not_drop_table' => 'Tablo silinemedi: :error',
+    'invalid_table_name' => 'Tablo adı bir harfle başlamalı ve yalnızca küçük harf, rakam ve alt çizgi içermelidir.',
+    'invalid_column_name' => ':number numaralı sütunun adı bir harfle başlamalı ve yalnızca küçük harf, rakam ve alt çizgi içermelidir.',
+    'unsupported_column_type' => 'Desteklenmeyen sütun tipi [:type].',
+    'column_not_editable' => 'Düzenleyici [:column] sütununu birebir tanımlayamıyor (tipi, birincil anahtar, otomatik artan ya da unsigned olması); burada değiştirmek sütunu bozabilir. Burada yalnızca yeniden adlandırın ya da bir migration ile değiştirin.',
+    'column_unchanged' => 'Değişiklik yok.',
+    'schema_changes_disabled' => 'Bu ortamda şema değişiklikleri kapalı. Bir migration kullanın.',
+    'read_only_notice' => 'Salt okunur: bu ortamda şema değişiklikleri kapalı (tardis.database.schema_changes).',
 ];

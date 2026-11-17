@@ -39,6 +39,14 @@ return [
     |
     */
     'database' => [
+        // Where the explorer may change the schema (create, alter and drop
+        // tables and columns). Everywhere else it is read-only and the schema
+        // belongs to migrations. Every change is written to the activity log.
+        'schema_changes' => [
+            'enabled' => true,
+            'environments' => ['local', 'testing'],
+        ],
+
         'hidden_tables' => [
             'migrations',
             'password_resets',

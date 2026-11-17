@@ -156,5 +156,6 @@ return [
         'tab_without_fields' => '":tab" düzenleme sekmesine alan atanmamış.',
         'soft_delete_disabled' => 'Model SoftDeletes kullanıyor ama bu BREAD için yumuşak silme kapalı.',
     ],
+    'model_not_eloquent' => 'Bu sınıf bir Eloquent modeli değil.',
     'model_not_found' => 'Model sınıfı bulunamadı.',
 ];

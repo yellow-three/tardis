@@ -314,6 +314,14 @@ new #[Title('Media')] #[Layout('tardis::layouts.admin')] class extends Component
         ]);
 
         $manager = app(MediaManager::class);
+        if (! $this->isDirectory((string) $this->renamePath) && ! $manager->isAllowedFileName($this->renameNewName)) {
+            $this->addError('renameNewName', __('tardis::media.extension_not_allowed', [
+                'extensions' => implode(', ', $manager->allowedExtensions()),
+            ]));
+
+            return;
+        }
+
         $manager->rename($this->renamePath, $this->renameNewName);
 
         $this->renamePath = null;

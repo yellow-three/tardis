@@ -1,10 +1,10 @@
 <?php
 
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use Tardis\Http\BreadRoutes;
 use Tardis\Http\Controllers\AssetController;
 use Tardis\Http\Controllers\LocaleController;
+use Tardis\Http\Controllers\LogoutController;
 use Tardis\Http\Controllers\ThemeController;
 use Tardis\Http\PluginRoutes;
 
@@ -26,6 +26,11 @@ Route::middleware(['web', 'tardis.locale'])
         Route::post('/preferences/locale', LocaleController::class)->name('preferences.locale');
         Route::post('/preferences/theme', ThemeController::class)->name('preferences.theme');
 
+        // Outside the panel group: a user without "access admin" must be able
+        // to sign out, and the root has to reach the login page for a guest.
+        Route::post('/logout', LogoutController::class)->name('logout');
+        Route::get('/', fn () => redirect()->route('tardis.dashboard'))->name('home');
+
         Route::livewire('/login', 'tardis::pages.login')->name('login');
         Route::livewire('/forgot-password', 'tardis::pages.forgot-password')->name('password.request');
         Route::livewire('/reset-password/{token}', 'tardis::pages.reset-password')->name('password.reset');
@@ -42,7 +47,7 @@ Route::middleware(['web', 'tardis.locale', 'tardis.admin'])
         Route::livewire('/plugins', 'tardis::pages.plugins')->name('plugins.index');
         Route::livewire('/media', 'tardis::pages.media-browser')->name('media');
         Route::livewire('/media/browse', 'tardis::pages.media-browser')->name('media.browse');
-        Route::livewire('/media/{id}/edit', 'tardis::pages.media-edit')->name('media.edit');
+        Route::livewire('/media/{id}/edit', 'tardis::pages.media-edit')->whereNumber('id')->name('media.edit');
         Route::livewire('/activity-log', 'tardis::pages.activity-log')->name('activity.index');
         Route::livewire('/database', 'tardis::pages.database')->name('database.index');
         Route::livewire('/database/create', 'tardis::pages.database.create')->name('database.create');
@@ -56,14 +61,6 @@ Route::middleware(['web', 'tardis.locale', 'tardis.admin'])
         Route::livewire('/system/commands', 'tardis::pages.system.commands')->name('system.commands');
 
         Route::livewire('/search', 'tardis::pages.search')->name('search');
-        Route::post('/logout', function () {
-            Auth::logout();
-            request()->session()->invalidate();
-            request()->session()->regenerateToken();
-
-            return redirect()->route('tardis.login');
-        })->name('logout');
-
         Route::livewire('/permissions', 'tardis::pages.permissions')->name('permissions');
         Route::livewire('/roles', 'tardis::pages.roles')->name('roles');
         Route::livewire('/users', 'tardis::pages.users')->name('users.index');

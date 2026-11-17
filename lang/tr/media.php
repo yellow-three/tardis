@@ -1,6 +1,7 @@
 <?php
 
 return [
+    'extension_not_allowed' => 'Dosya uzantısı yalnızca şunlardan biri olabilir: :extensions.',
     'all_results' => 'TÜM SONUÇLAR · :count',
     'all_types' => 'Tüm türler',
     'alt_text' => 'Alternatif metin',

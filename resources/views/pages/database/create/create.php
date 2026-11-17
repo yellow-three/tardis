@@ -19,6 +19,9 @@ new #[Title('Create Table')] #[Layout('tardis::layouts.admin')] class extends Co
     /** @var array<int, array{name: string, type: string, length: string, nullable: bool, default: string, primary: bool}> */
     public array $newTableColumns = [];
 
+    /** True where schema changes are switched off (production by default). */
+    public bool $readOnly = false;
+
     public bool $createAutoId = true;
 
     public bool $createTimestamps = true;
@@ -39,6 +42,7 @@ new #[Title('Create Table')] #[Layout('tardis::layouts.admin')] class extends Co
 
     public function mount(): void
     {
+        $this->readOnly = ! $this->schemaChangesAllowed();
         $this->newTableColumns = [$this->emptyColumn()];
     }
 
@@ -55,6 +59,10 @@ new #[Title('Create Table')] #[Layout('tardis::layouts.admin')] class extends Co
 
     public function createTable(): void
     {
+        if (! $this->guardSchemaChange()) {
+            return;
+        }
+
         if (! $this->validateTableName($this->newTableName)) {
             return;
         }
@@ -90,6 +98,8 @@ new #[Title('Create Table')] #[Layout('tardis::layouts.admin')] class extends Co
                 }
             });
 
+            $this->auditSchema('table_created', ['table' => $this->newTableName, 'columns' => array_column($columns, 'name')]);
+
             if ($this->createModel) {
                 try {
                     $columns = $this->withColumnKeys(
@@ -97,7 +107,7 @@ new #[Title('Create Table')] #[Layout('tardis::layouts.admin')] class extends Co
                         Schema::connection($connection)->getIndexes($this->newTableName)
                     );
 
-                    app(ModelGenerator::class)->generate($this->newTableName, $columns, ['force' => true]);
+                    app(ModelGenerator::class)->generate($this->newTableName, $columns);
 
                     session()->flash('message', __('tardis::database.table_and_model_created'));
                 } catch (Throwable $e) {

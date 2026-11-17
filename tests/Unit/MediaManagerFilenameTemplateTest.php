@@ -70,6 +70,17 @@ test('only allowed tokens are used', function () {
         ->toContain('.png');
 });
 
+test('a template cannot change the stored extension', function () {
+    Storage::fake('public');
+    $manager = new MediaManager(['disk' => 'public']);
+
+    $media = $manager->upload(UploadedFile::fake()->image('test.png'), '', null, '{name}-{ext}');
+    expect($media->name)->toBe('test-png.png');
+
+    $media = $manager->upload(UploadedFile::fake()->image('photo.png'), '', null, '{name}.php');
+    expect($media->name)->toBe('photo.php.png');
+});
+
 test('rejects the removed {extension} token alias', function () {
     Storage::fake('public');
     $manager = new MediaManager(['disk' => 'public']);

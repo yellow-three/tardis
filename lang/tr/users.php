@@ -15,4 +15,6 @@ return [
     'save' => 'Kaydet',
     'super_admin_must_remain' => 'En az bir süper yönetici kalmalıdır.',
     'roles_updated' => 'Roller güncellendi.',
+    'cannot_change_super_admin' => 'Süper yönetici rolünü yalnızca bir süper yönetici verebilir ya da geri alabilir.',
+    'cannot_assign_beyond_own' => 'Kendinizde olmayan izinleri veren bir rolü atayamazsınız.',
 ];

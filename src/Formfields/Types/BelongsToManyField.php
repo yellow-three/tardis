@@ -34,7 +34,7 @@ class BelongsToManyField extends Formfield
      */
     public function searchOptions(string $search = '', array $selected = [], int $limit = 50): array
     {
-        if (! $this->model || ! class_exists($this->model)) {
+        if (! BreadDefinition::isModelClass($this->model)) {
             return [];
         }
 
