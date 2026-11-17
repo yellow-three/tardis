@@ -8,50 +8,50 @@ use Tardis\TardisServiceProvider;
 
 beforeEach(function () {
     $this->settingsFile = storage_path('tardis/settings/settings.json');
-    $this->hadFile = File::exists($this->settingsFile);
-    $this->backup = $this->hadFile ? File::get($this->settingsFile) : null;
     File::delete($this->settingsFile);
     app()->forgetInstance(SettingsManager::class);
 });
 
 afterEach(function () {
-    $this->hadFile ? File::put($this->settingsFile, $this->backup) : File::delete($this->settingsFile);
+    File::delete($this->settingsFile);
     app()->forgetInstance(SettingsManager::class);
 });
 
-function runProviderDefaults(bool $console): void
-{
-    $app = app();
-    $flag = new ReflectionProperty($app, 'isRunningInConsole');
-    $original = $flag->getValue($app);
-    $flag->setValue($app, $console);
-
-    try {
-        $provider = new TardisServiceProvider($app);
-        (new ReflectionMethod($provider, 'loadDefaultSettings'))->invoke($provider);
-    } finally {
-        $flag->setValue($app, $original);
-    }
-}
-
-test('the preset is seeded on first web boot when no settings file exists', function () {
-    runProviderDefaults(false);
-
-    expect(File::exists($this->settingsFile))->toBeTrue()
-        ->and(app(SettingsManager::class)->get('admin.title'))->toBe('TARDIS Admin');
+/**
+ * The preset used to be written by the service provider, which checked for
+ * the file on every web request and wrote it from a GET. It is now the
+ * starting point the manager reads when there is no file yet; nothing is
+ * written until an administrator saves.
+ */
+test('without a settings file the preset values are used', function () {
+    expect(app(SettingsManager::class)->get('admin.title'))->toBe('TARDIS Admin');
 });
 
-test('the preset is not written from the console', function () {
-    runProviderDefaults(true);
+test('reading the settings never writes the file', function () {
+    app(SettingsManager::class)->all();
 
     expect(File::exists($this->settingsFile))->toBeFalse();
 });
 
-test('an existing settings file is never overwritten by the preset', function () {
+test('saving writes the file, starting from the preset', function () {
+    app(SettingsManager::class)->set('admin.title', 'My Panel');
+
+    expect(File::exists($this->settingsFile))->toBeTrue();
+
+    app()->forgetInstance(SettingsManager::class);
+
+    expect(app(SettingsManager::class)->get('admin.title'))->toBe('My Panel')
+        ->and(app(SettingsManager::class)->get('appearance.mode'))->not->toBeNull();
+});
+
+test('an existing settings file is never mixed with the preset', function () {
     File::ensureDirectoryExists(dirname($this->settingsFile));
     File::put($this->settingsFile, '[]');
 
-    runProviderDefaults(false);
+    expect(app(SettingsManager::class)->get('admin.title'))->toBeNull()
+        ->and(File::get($this->settingsFile))->toBe('[]');
+});
 
-    expect(File::get($this->settingsFile))->toBe('[]');
+test('the service provider no longer touches the settings file at boot', function () {
+    expect(method_exists(TardisServiceProvider::class, 'loadDefaultSettings'))->toBeFalse();
 });

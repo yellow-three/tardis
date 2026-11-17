@@ -105,8 +105,9 @@ test('names can be listed per scheme', function () {
         ->and($fresh->names('light'))->toBe(['tardis-light', 'paper']);
 });
 
-test('without any stored choice the built-in themes and dark mode apply', function () {
-    expect(app(ThemePreference::class)->resolve(null))->toBe(['mode' => 'dark', 'light' => 'tardis-light', 'dark' => 'tardis-dark']);
+test('without any stored choice the shipped settings preset applies', function () {
+    // resources/presets/settings.json: system mode, built-in themes.
+    expect(app(ThemePreference::class)->resolve(null))->toBe(['mode' => 'system', 'light' => 'tardis-light', 'dark' => 'tardis-dark']);
 });
 
 test('the global defaults in settings apply when the user chose nothing', function () {
@@ -114,7 +115,7 @@ test('the global defaults in settings apply when the user chose nothing', functi
     $themes->saveCustom(customTheme('ocean'));
 
     foreach ([['mode', 'light'], ['theme_light', 'tardis-light'], ['theme_dark', 'ocean']] as [$key, $value]) {
-        Tardis::settings()->create(['group' => 'appearance', 'key' => $key, 'name' => $key, 'type' => 'text', 'value' => $value]);
+        Tardis::settings()->set('appearance.'.$key, $value);
     }
 
     expect((new ThemePreference(new ThemeManager, app(UserPreferences::class), Tardis::settings()))->resolve(null))
@@ -122,7 +123,7 @@ test('the global defaults in settings apply when the user chose nothing', functi
 });
 
 test('a user choice overrides the global default, slot by slot', function () {
-    Tardis::settings()->create(['group' => 'appearance', 'key' => 'mode', 'name' => 'Mode', 'type' => 'text', 'value' => 'light']);
+    Tardis::settings()->set('appearance.mode', 'light');
     app(UserPreferences::class)->set(5, 'theme', ['mode' => 'dark']);
 
     expect(app(ThemePreference::class)->resolve(5))->toBe(['mode' => 'dark', 'light' => 'tardis-light', 'dark' => 'tardis-dark'])
@@ -132,8 +133,9 @@ test('a user choice overrides the global default, slot by slot', function () {
 test('a stored choice that is no longer valid falls back instead of failing', function () {
     app(UserPreferences::class)->set(5, 'theme', ['mode' => 'sepia', 'light' => 'deleted-theme', 'dark' => 'tardis-light']);
 
-    // 'tardis-light' is a light theme and cannot fill the dark slot either.
-    expect(app(ThemePreference::class)->resolve(5))->toBe(['mode' => 'dark', 'light' => 'tardis-light', 'dark' => 'tardis-dark']);
+    // An invalid mode falls back to the settings default ('system' in the
+    // preset); 'tardis-light' is a light theme and cannot fill the dark slot.
+    expect(app(ThemePreference::class)->resolve(5))->toBe(['mode' => 'system', 'light' => 'tardis-light', 'dark' => 'tardis-dark']);
 });
 
 test('saving stores a validated choice for the user', function () {

@@ -89,7 +89,6 @@ class TardisServiceProvider extends ServiceProvider
 
         $this->registerAliases();
         $this->registerPluginServiceProviders();
-        $this->registerDefaultAuth();
     }
 
     public function boot(): void
@@ -102,6 +101,9 @@ class TardisServiceProvider extends ServiceProvider
             return '<?php echo app(\\Tardis\\Manager\\AssetManager::class)->scripts('.($expression ?: "'admin'").'); ?>';
         });
 
+        // Plugins are registered in boot(): register() only binds, so nothing
+        // is resolved (or read from storage) before every provider has run.
+        $this->registerDefaultAuth();
         $this->registerDefaultAuthorization();
         $this->registerLivewireNamespaces();
         $this->registerViews();
@@ -118,28 +120,6 @@ class TardisServiceProvider extends ServiceProvider
         $this->registerMiddleware();
         $this->registerCommands();
         $this->registerListeners();
-        $this->loadDefaultSettings();
-    }
-
-    /**
-     * Load default settings from the preset file on first install.
-     */
-    protected function loadDefaultSettings(): void
-    {
-        if ($this->app->runningInConsole()) {
-            return;
-        }
-
-        $presetPath = __DIR__.'/../resources/presets/settings.json';
-
-        if (! file_exists(storage_path('tardis/settings/settings.json'))) {
-            try {
-                $manager = $this->app->make(SettingsManager::class);
-                $manager->loadPreset($presetPath);
-            } catch (\Throwable) {
-                // Storage not available yet (e.g. during package discovery)
-            }
-        }
     }
 
     protected function registerDefaultAuth(): void
@@ -260,19 +240,19 @@ class TardisServiceProvider extends ServiceProvider
 
     protected function registerCommands(): void
     {
-        if ($this->app->runningInConsole()) {
-            $this->commands([
-                TardisAdminCommand::class,
-                TardisBreadExportCommand::class,
-                TardisBreadMigrateCommand::class,
-                TardisDoctorCommand::class,
-                TardisInstallCommand::class,
-                TardisMakeBreadCommand::class,
-                TardisMakeModelCommand::class,
-                TardisMakePluginCommand::class,
-                TardisPluginsCommand::class,
-            ]);
-        }
+        // Not limited to the console: the panel's command runner calls
+        // Artisan from a web request and may be allowed to run these.
+        $this->commands([
+            TardisAdminCommand::class,
+            TardisBreadExportCommand::class,
+            TardisBreadMigrateCommand::class,
+            TardisDoctorCommand::class,
+            TardisInstallCommand::class,
+            TardisMakeBreadCommand::class,
+            TardisMakeModelCommand::class,
+            TardisMakePluginCommand::class,
+            TardisPluginsCommand::class,
+        ]);
     }
 
     protected function registerPluginServiceProviders(): void

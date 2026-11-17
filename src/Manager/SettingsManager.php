@@ -87,17 +87,20 @@ class SettingsManager
         if ($this->settings === null || $force) {
             $this->ensureDirectoryExists();
 
-            if (! File::exists($this->path)) {
-                File::put($this->path, '[]');
-            }
-
-            $content = File::get($this->path);
-            $data = json_decode($content, true) ?? [];
+            // No file yet: start from the preset shipped with the package. It
+            // is only read here; the file is written when someone saves.
+            $source = File::exists($this->path) ? $this->path : self::presetPath();
+            $data = File::exists($source) ? (json_decode(File::get($source), true) ?? []) : [];
 
             $this->settings = collect($data)->map(
                 fn (array $item) => new Setting($item)
             );
         }
+    }
+
+    public static function presetPath(): string
+    {
+        return dirname(__DIR__, 2).'/resources/presets/settings.json';
     }
 
     public function loadPreset(string $path): void
