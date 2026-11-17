@@ -1,4 +1,11 @@
-@import 'tailwindcss';
+/* Classes are collected only from the package's own templates and scripts
+   (and the PHP that hands class names to them), not from the whole project:
+   a word in docs/ or tests/ that looks like a utility must not change the
+   committed bundle. */
+@import 'tailwindcss' source(none);
+@source "../views";
+@source "../js";
+@source "../../src";
 @plugin "daisyui" {
     themes: false;
 }
