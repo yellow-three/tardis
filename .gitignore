@@ -43,3 +43,6 @@ resources/hot
 /research/voyager-1.7.zip
 /research/voyager-2.x/
 /research/voyager-2.x.zip
+
+# JsonBreadSource backups written by a test that saves into the fixtures
+/tests/Fixtures/bread/*.backup.*.json
