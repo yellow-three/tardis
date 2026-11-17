@@ -290,3 +290,26 @@ test('upload de-duplicates a colliding filename that has no extension', function
 test('the media manager is bound once as a singleton under its real class name', function () {
     expect(app(MediaManager::class))->toBe(app(MediaManager::class));
 });
+
+test('deleting a folder whose name holds LIKE wildcards leaves look-alike folders alone', function () {
+    Storage::disk('public')->put('media/a_b/one.jpg', '1');
+    Storage::disk('public')->put('media/axb/two.jpg', '2');
+    $keep = Media::factory()->create(['name' => 'two.jpg', 'original_name' => 'two.jpg', 'path' => 'media/axb/two.jpg', 'disk' => 'public', 'collection' => 'media/axb']);
+    Media::factory()->create(['name' => 'one.jpg', 'original_name' => 'one.jpg', 'path' => 'media/a_b/one.jpg', 'disk' => 'public', 'collection' => 'media/a_b']);
+
+    manager()->deleteDirectory('a_b');
+
+    expect(Media::query()->whereKey($keep->id)->exists())->toBeTrue()
+        ->and(Media::query()->where('path', 'media/a_b/one.jpg')->exists())->toBeFalse();
+});
+
+test('renaming a folder whose name holds LIKE wildcards only moves its own rows', function () {
+    Storage::disk('public')->put('media/a_b/one.jpg', '1');
+    Storage::disk('public')->put('media/axb/two.jpg', '2');
+    Media::factory()->create(['name' => 'one.jpg', 'original_name' => 'one.jpg', 'path' => 'media/a_b/one.jpg', 'disk' => 'public', 'collection' => 'media/a_b']);
+    $other = Media::factory()->create(['name' => 'two.jpg', 'original_name' => 'two.jpg', 'path' => 'media/axb/two.jpg', 'disk' => 'public', 'collection' => 'media/axb']);
+
+    manager()->rename('a_b', 'renamed');
+
+    expect($other->fresh()->path)->toBe('media/axb/two.jpg');
+});
