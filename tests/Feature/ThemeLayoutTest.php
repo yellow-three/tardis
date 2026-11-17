@@ -74,12 +74,13 @@ test('the boot data carries the themes, the choice and where to save it', functi
         ->and($data['theme'])->toHaveKey('csrf');
 });
 
-test('runtime themes are written as css in the head', function () {
-    expect(dashboardHtml())->not->toContain('id="tardis-themes"');
+test('themes are written as css in the head', function () {
+    expect(dashboardHtml())->toContain('<style id="tardis-themes">:where(:root),[data-theme="tardis-light"]{')
+        ->not->toContain('[data-theme="ocean"]');
 
     (new ThemeManager)->saveCustom(['name' => 'ocean', 'scheme' => 'dark', 'colors' => ['primary' => '#336699', 'base-100' => '#101820', 'base-content' => '#eeeeee']]);
 
-    expect(dashboardHtml())->toContain('<style id="tardis-themes">[data-theme="ocean"]{');
+    expect(dashboardHtml())->toContain('[data-theme="ocean"]{');
 });
 
 test('the core script is a file loaded before Livewire and the inline theme store is gone', function () {

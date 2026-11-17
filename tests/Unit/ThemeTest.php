@@ -68,10 +68,11 @@ test('unknown colour keys are dropped, not written', function () {
         ->not->toHaveKey('sidebar')->not->toHaveKey('evil');
 });
 
-test('it renders a data-theme rule with the scheme and its colours', function () {
+test('it renders a data-theme rule with the scheme, its colours and the shape defaults', function () {
     $css = Theme::fromArray(['name' => 'ocean', 'scheme' => 'dark', 'colors' => themeColors()])->css();
 
-    expect($css)->toBe('[data-theme="ocean"]{color-scheme:dark;--color-primary:oklch(45% 0.2 260);--color-base-100:oklch(97% 0.01 260);--color-base-content:oklch(20% 0.05 260);}');
+    expect($css)->toBe('[data-theme="ocean"]{color-scheme:dark;--color-primary:oklch(45% 0.2 260);--color-base-100:oklch(97% 0.01 260);--color-base-content:oklch(20% 0.05 260);'
+        .'--radius-selector:0.5rem;--radius-field:0.25rem;--radius-box:0.5rem;--size-selector:0.25rem;--size-field:0.25rem;--border:1px;--depth:1;--noise:0;}');
 });
 
 test('the preview colours come from the theme colours', function () {
@@ -80,16 +81,11 @@ test('the preview colours come from the theme colours', function () {
     expect($theme->previewColors())->toContain('oklch(45% 0.2 260)', '#abcdef');
 });
 
-test('the built-in themes are valid and declared in the stylesheet', function () {
-    $css = file_get_contents(__DIR__.'/../../resources/css/app.css');
-
+test('the built-in themes are valid', function () {
     expect(BuiltinThemes::all())->not->toBeEmpty();
 
     foreach (BuiltinThemes::all() as $definition) {
-        $theme = Theme::fromArray($definition + ['builtin' => true]);
-
-        expect($theme)->not->toBeNull("built-in theme {$definition['name']} is invalid")
-            ->and($css)->toContain('name: "'.$definition['name'].'"');
+        expect(Theme::fromArray($definition + ['builtin' => true]))->not->toBeNull("built-in theme {$definition['name']} is invalid");
     }
 });
 

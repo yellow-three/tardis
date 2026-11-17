@@ -85,13 +85,13 @@ test('a built-in theme cannot be deleted', function () {
     expect((new ThemeManager)->deleteCustom('tardis-dark'))->toBeFalse();
 });
 
-test('only runtime themes produce css, the built-in ones live in the stylesheet', function () {
+test('every theme, built-in ones included, produces its css here', function () {
     $manager = new ThemeManager;
     $manager->saveCustom(customTheme('ocean'));
 
     $css = (new ThemeManager)->css();
 
-    expect($css)->toContain('[data-theme="ocean"]{')->not->toContain('tardis-dark');
+    expect($css)->toContain('[data-theme="ocean"]{')->toContain('[data-theme="tardis-dark"]{');
 });
 
 test('names can be listed per scheme', function () {

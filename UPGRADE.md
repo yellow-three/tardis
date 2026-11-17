@@ -141,3 +141,9 @@ To keep the old, looser behaviour set `tardis.translation.validation` to `'activ
 - `guard()`, `nameField()` and `avatar()` are now used: the default plugin reads, signs in and signs out through its guard, and the sidebar/header show the user through the plugin (`Tardis\Support\PanelUser`). An avatar must be an http(s) or root-relative URL.
 - `activity_logs.model_id` is a string column now (migration `2026_11_17_000001_allow_string_keys_in_activity_logs`), so run `php artisan migrate`.
 - `activity_logs` gains `ip_address`, `user_agent` and indexes on `created_at` and `user_id` (migration `2026_11_17_000002_add_request_details_to_activity_logs`). Sign-in, failed sign-in, sign-out, role permission changes, user role changes and plugin switches are now logged as well (`model_type` `tardis.auth`, `tardis.role`, `tardis.user_roles`, `tardis.plugin`).
+
+## Faz 10b — themes
+
+- **`ThemePlugin::getTheme()` is replaced by `themes(): array`.** A theme plugin now returns whole theme definitions (the same shape as a `themes.json` entry: `name`, `scheme`, `label`, `colors`, optional `shape`), which appear in the theme picker. The old method wrote an unlayered `:root{…}` rule that overrode every theme, dark mode included; to override individual variables on purpose, ship a stylesheet through `Provider\CSS`.
+- **Built-in themes are no longer in the compiled stylesheet.** They are defined once in `Tardis\Theme\BuiltinThemes` and written at runtime with the other themes. Republish the assets (`php artisan vendor:publish --tag=tardis-assets --force`).
+- **Themes now set DaisyUI's shape variables** (`--radius-*`, `--size-*`, `--border`, `--depth`, `--noise`), which were never set before; corners and borders of components render with DaisyUI's defaults. A theme may change them with `shape`.

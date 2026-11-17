@@ -26,6 +26,22 @@ final class Theme
         'warning', 'warning-content', 'error', 'error-content',
     ];
 
+    /**
+     * DaisyUI 5 shape variables, without the leading --, and DaisyUI's own
+     * light-theme defaults. Components size and round themselves from these,
+     * so every theme sets all of them.
+     */
+    public const SHAPE = [
+        'radius-selector' => '0.5rem',
+        'radius-field' => '0.25rem',
+        'radius-box' => '0.5rem',
+        'size-selector' => '0.25rem',
+        'size-field' => '0.25rem',
+        'border' => '1px',
+        'depth' => '1',
+        'noise' => '0',
+    ];
+
     /** Without these a theme cannot render readable text on a surface. */
     public const REQUIRED = ['primary', 'base-100', 'base-content'];
 
@@ -38,6 +54,8 @@ final class Theme
         public readonly string $label,
         public readonly array $colors,
         public readonly bool $builtin,
+        public readonly array $shape = [],
+        public readonly string $source = 'custom',
     ) {}
 
     /**
@@ -76,11 +94,30 @@ final class Theme
             }
         }
 
+        $shape = [];
+
+        foreach ((array) ($definition['shape'] ?? []) as $key => $value) {
+            if (! array_key_exists($key, self::SHAPE)) {
+                continue;
+            }
+
+            if (! is_scalar($value) || ! self::isSafeLength((string) $value)) {
+                return null;
+            }
+
+            $shape[$key] = trim((string) $value);
+        }
+
         $label = isset($definition['label']) && is_string($definition['label']) && trim($definition['label']) !== ''
             ? trim($definition['label'])
             : Str::headline($name);
 
-        return new self($name, $scheme, $label, $colors, (bool) ($definition['builtin'] ?? false));
+        $builtin = (bool) ($definition['builtin'] ?? false);
+        $source = in_array($definition['source'] ?? null, ['builtin', 'plugin', 'custom'], true)
+            ? $definition['source']
+            : ($builtin ? 'builtin' : 'custom');
+
+        return new self($name, $scheme, $label, $colors, $builtin, $shape, $source);
     }
 
     public static function isSafeColor(string $value): bool
@@ -91,10 +128,20 @@ final class Theme
     }
 
     /**
-     * The rule that makes this theme selectable. Built-in themes come from the
-     * compiled stylesheet; this is for themes added at runtime.
+     * A length or a plain number: "0.5rem", "1px", "0", "1.25". Nothing that
+     * could close the declaration it is written into.
      */
-    public function css(): string
+    public static function isSafeLength(string $value): bool
+    {
+        return preg_match('/^\d*\.?\d+(?:rem|em|px|%)?$/', trim($value)) === 1;
+    }
+
+    /**
+     * The rule that makes this theme selectable. Every theme, built-in ones
+     * included, is written from here; $default also makes it the theme of a
+     * page that has no data-theme.
+     */
+    public function css(bool $default = false): string
     {
         $declarations = 'color-scheme:'.$this->scheme.';';
 
@@ -102,7 +149,13 @@ final class Theme
             $declarations .= '--color-'.$key.':'.$value.';';
         }
 
-        return '[data-theme="'.$this->name.'"]{'.$declarations.'}';
+        foreach ($this->shape + self::SHAPE as $key => $value) {
+            $declarations .= '--'.$key.':'.$value.';';
+        }
+
+        $selector = '[data-theme="'.$this->name.'"]';
+
+        return ($default ? ':where(:root),' : '').$selector.'{'.$declarations.'}';
     }
 
     /**
@@ -127,6 +180,8 @@ final class Theme
             'colors' => $this->colors,
             'preview' => $this->previewColors(),
             'builtin' => $this->builtin,
+            'source' => $this->source,
+            'shape' => $this->shape + self::SHAPE,
         ];
     }
 }

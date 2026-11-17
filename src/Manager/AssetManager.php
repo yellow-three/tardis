@@ -9,7 +9,6 @@ use Illuminate\Support\Facades\Vite;
 use Tardis\Assets\Asset;
 use Tardis\Contracts\Plugins\Features\Provider\CSS;
 use Tardis\Contracts\Plugins\Features\Provider\JS;
-use Tardis\Contracts\Plugins\ThemePlugin;
 
 class AssetManager
 {
@@ -98,7 +97,7 @@ class AssetManager
         }
         $html .= '<link rel="stylesheet" href="'.$cssUrl.'">'.PHP_EOL;
 
-        // 1a. Runtime themes (the built-in ones are in the stylesheet)
+        // 1a. Every theme (built-in, plugin, custom); the stylesheet has none
         $themeCss = app(ThemeManager::class)->css();
 
         if ($themeCss !== '') {
@@ -123,15 +122,6 @@ class AssetManager
             $html .= $item instanceof Asset
                 ? ($this->wanted([$item], $scope) === [] ? '' : $this->render($item))
                 : '<style'.$this->nonceAttribute().'>'.$item.'</style>'.PHP_EOL;
-        }
-
-        // 3. ThemePlugin variables
-        foreach ($this->plugins()->enabledWith(ThemePlugin::class) as $theme) {
-            $rule = $this->themeRule($theme->getTheme());
-
-            if ($rule !== '') {
-                $html .= '<style'.$this->nonceAttribute().'>'.$rule.'</style>'.PHP_EOL;
-            }
         }
 
         // 4. Host-configured stylesheets come last so they can override the rest
@@ -174,33 +164,6 @@ class AssetManager
         }
 
         return $html;
-    }
-
-    /**
-     * Turn theme variables into a :root rule. Names must be custom properties
-     * and values may only contain characters a colour, length or number needs,
-     * so a value cannot close the rule or the <style> element.
-     *
-     * @param  array<string, mixed>  $variables
-     */
-    private function themeRule(array $variables): string
-    {
-        $declarations = '';
-
-        foreach ($variables as $name => $value) {
-            $value = trim((string) $value);
-
-            if (preg_match('/^--[a-z0-9][a-z0-9_-]*$/i', (string) $name) !== 1
-                || preg_match('/^[#a-z0-9%.,()\/\s_+-]+$/i', $value) !== 1
-                || stripos($value, 'url(') !== false
-                || stripos($value, 'javascript') !== false) {
-                continue;
-            }
-
-            $declarations .= $name.':'.$value.';';
-        }
-
-        return $declarations === '' ? '' : ':root{'.$declarations.'}';
     }
 
     /**

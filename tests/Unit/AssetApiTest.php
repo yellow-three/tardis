@@ -60,7 +60,8 @@ test('an inline asset cannot close its own element', function () {
 
     $styles = app(AssetManager::class)->styles();
 
-    // Only the element's own closing tag may appear.
-    expect(substr_count($styles, '</style>'))->toBe(1)
+    // Every <style> is closed exactly once: the asset's own closing tag is escaped.
+    expect(substr_count($styles, '</style>'))->toBe(substr_count($styles, '<style'))
+        ->and($styles)->toContain('.a{}<\\/style>')
         ->and($styles)->not->toContain('</script>');
 });

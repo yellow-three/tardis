@@ -72,20 +72,19 @@ Authorization plugin'i yetenekleri `tardis_permissions` / `tardis_roles` üzerin
 
 ## Tema sistemi — tema bir DaisyUI paletidir, sunucuda çözülür
 
-"Tema" bu pakette tek bir şey demektir: bir DaisyUI `data-theme` paleti (ad, `light|dark` şeması, `--color-*` değerleri). İki kaynağı vardır ve ikisi de `ThemeManager::all()` listesinde birleşir:
+"Tema" bu pakette tek bir şey demektir: bir DaisyUI `data-theme` paleti (ad, `light|dark` şeması, `--color-*` değerleri ve DaisyUI 5'in biçim değişkenleri `--radius-*`, `--size-*`, `--border`, `--depth`, `--noise`). Üç kaynağı vardır ve hepsi `ThemeManager::all()` listesinde birleşir; CSS'e yalnızca `ThemeManager::css()` çevirir:
 
-| Kaynak | Nerede tanımlı | Sayfaya nasıl gelir |
+| Kaynak | Nerede tanımlı | Not |
 |---|---|---|
-| Yerleşik (`tardis-light`, `tardis-dark`) | `resources/css/app.css` içinde `@plugin "daisyui/theme"` **ve** `src/Theme/BuiltinThemes.php` (aynı değerler iki yerde; `ThemeTest` eşitliği pinler) | Derlenmiş `app.css`'in içinde (`@layer` altında) |
-| Özel | `storage/tardis/themes.json` (Themes ekranı, `manage appearance`) | `@tardisStyles` her sayfada `<style id="tardis-themes">` olarak yazar (`ThemeManager::css()`) |
+| Yerleşik (`tardis-light`, `tardis-dark`) | `src/Theme/BuiltinThemes.php` (tek yer) | İlk açık yerleşik tema `:where(:root)` ile `data-theme`'siz sayfanın da temasıdır |
+| Plugin | `ThemePlugin::themes()` (themes.json girdisiyle aynı biçim) | Seçicide görünür; yerleşik bir temanın adını alamaz |
+| Özel | `storage/tardis/themes.json` (Themes ekranı, `manage appearance`) | |
 
-`Theme::fromArray()` tek giriş kapısıdır: ad `[a-z0-9-]`, şema `light|dark`, renk anahtarı `Theme::COLORS` listesinden, değer `Theme::isSafeColor()` deseninden geçmek zorunda; geçersiz tema atlanır, sayfa kırılmaz. DaisyUI yerleşik temaları kapalıdır (`themes: false`).
+`resources/css/app.css` tema tanımlamaz (`@plugin "daisyui" { themes: false; }`); temalar `@tardisStyles` içinde `<style id="tardis-themes">` olarak yazılır. `Theme::fromArray()` tek giriş kapısıdır: ad `[a-z0-9-]`, şema `light|dark`, renk `Theme::isSafeColor()`, biçim değeri `Theme::isSafeLength()`; bilinmeyen anahtar atılır, geçersiz değer temayı reddeder. Bir temanın vermediği biçim değişkeni DaisyUI'nin açık tema varsayılanını alır (`Theme::SHAPE`) — bunlar yazılmazsa bileşenlerin köşe ve kenarlıkları geçersiz değer alır.
 
 **Seçim sunucuda çözülür.** `ThemePreference::resolve()` sırası: kullanıcının kaydı (`storage/tardis/preferences.json`) → Settings `appearance.mode|theme_light|theme_dark` → `tardis-light` / `tardis-dark`. Layout `<html data-theme>`'i doğrudan yazar; `localStorage` kullanılmaz. `<x-tardis::theme-boot />` çekirdek betiğe veriyi (`window.__TARDIS__`) verir ve yalnızca `system` modunda `prefers-color-scheme`'e bakan tek satırlık engelleyici betiği ekler. Tarayıcıdaki değişiklik `Alpine.store('theme')` → `POST tardis.preferences.theme` ile kaydedilir.
 
-**`ThemePlugin` bir tema değildir.** `getTheme()` değişken adı → değer döndürür ve `AssetManager` bunu `:root{…}` kuralı olarak yazar. Seçicide görünmez, şeması yoktur ve katmansız `:root` kuralı olduğu için **hangi tema seçili olursa olsun** (açık/koyu dahil) o değişkeni ezer. Bu davranış bilinen bir tasarım sorunudur: `docs/notes.md` → B52; hedef yapı `docs/backlog.md` → *Tema, CSS/JS ve Vite: hedef yapı*.
-
-**Sonuç**: Yeni bir layout eklerken `data-theme`'i `ThemePreference::resolve()` sonucundan yaz ve `<x-tardis::theme-boot />`'u `@tardisStyles`'tan önce çağır; tema çözümlemesini kopyalama. Yerleşik bir temanın rengini değiştirirken `app.css` ve `BuiltinThemes.php`'yi birlikte değiştir. Tema listesini her yerde `ThemeManager`'dan oku.
+**Sonuç**: Yerleşik bir temayı değiştirirken yalnızca `BuiltinThemes.php`'yi değiştir. Bir plugin palet sunmak istiyorsa `ThemePlugin::themes()` kullanır; tek tük değişken ezmek (tema dışı stil) `Provider\CSS` ile yapılır. Yeni bir layout eklerken `data-theme`'i `ThemePreference::resolve()` sonucundan yaz ve `<x-tardis::theme-boot />`'u `@tardisStyles`'tan önce çağır; tema listesini her yerde `ThemeManager`'dan oku.
 
 ---
 
@@ -97,9 +96,9 @@ Authorization plugin'i yetenekleri `tardis_permissions` / `tardis_roles` üzerin
 |---|---|---|
 | Çekirdek `app.css` / `app.js` | `vendor:publish --tag=tardis-assets` ile `public/vendor/tardis/assets` altına kopyalanır | Sabit dosya adı + `?v=<md5>`; yayınlanan kopya paket güncellenince bayatlar (`tardis:doctor` bildirir) |
 | Plugin / host dosyası (`Asset::file()`) | `/{prefix}/_assets/{hash}.css|js` rotası (`AssetController`), yalnızca kayıtlı varlıklar | İçerik hash'i + `immutable`; yayınlama gerekmez |
-| Satır içi (`Asset::inlineCss/Js`, özel temalar, `appearance.custom_css`, `window.__TARDIS__`) | Sayfaya yazılır | Yok; CSP için nonce (`tardis.csp.nonce` ya da Vite nonce'u) |
+| Satır içi (`Asset::inlineCss/Js`, temalar, `appearance.custom_css`, `window.__TARDIS__`) | Sayfaya yazılır | Yok; CSP için nonce (`tardis.csp.nonce` ya da Vite nonce'u) |
 
-`@tardisStyles` sırası: çekirdek `app.css` → özel temalar → `appearance.custom_css` → `Tardis::addCss()` → plugin CSS → `ThemePlugin` değişkenleri → `tardis.assets.css`. `@tardisScripts` sırası: çekirdek `app.js` → `Tardis::addJs()` → plugin JS → `tardis.assets.js`; ardından `@livewireScripts`.
+`@tardisStyles` sırası: çekirdek `app.css` → tüm temalar → `appearance.custom_css` → `Tardis::addCss()` → plugin CSS → `tardis.assets.css`. `@tardisScripts` sırası: çekirdek `app.js` → `Tardis::addJs()` → plugin JS → `tardis.assets.js`; ardından `@livewireScripts`.
 
 Geliştirme modu: `npm run dev` `resources/hot` dosyasını yazar (`vite-plugins/hot-file.js`); dosya varken `AssetManager` çekirdek varlıkları Vite sunucusundan yükler. Laravel'in `Vite` facade'ı ve manifest'i kullanılmaz.
 
