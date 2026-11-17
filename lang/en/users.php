@@ -15,4 +15,6 @@ return [
     'save' => 'Save',
     'super_admin_must_remain' => 'At least one super administrator must remain.',
     'roles_updated' => 'Roles updated.',
+    'cannot_change_super_admin' => 'Only a super administrator can give or take away the super administrator role.',
+    'cannot_assign_beyond_own' => 'You cannot assign a role that grants permissions you do not hold yourself.',
 ];

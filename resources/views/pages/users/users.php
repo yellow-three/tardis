@@ -6,6 +6,7 @@ use Livewire\Attributes\Title;
 use Livewire\Component;
 use Tardis\Auth\Abilities;
 use Tardis\Auth\BreadAuthorization;
+use Tardis\Auth\PrivilegeGuard;
 use Tardis\Support\ModelResolver;
 
 new #[Title('tardis::users.users')] #[Layout('tardis::layouts.admin')] class extends Component
@@ -101,6 +102,15 @@ new #[Title('tardis::users.users')] #[Layout('tardis::layouts.admin')] class ext
             ->all();
 
         $superIds = ModelResolver::role()::query()->whereIn('slug', $this->superAdminSlugs())->pluck('id')->all();
+
+        $current = DB::table('tardis_role_user')->where('user_id', $user->getKey())->pluck('role_id')->all();
+        $denial = app(PrivilegeGuard::class)->roleChangeDenial(auth()->user(), $current, $roleIds);
+
+        if ($denial !== null) {
+            $this->error = __($denial === 'super_admin' ? 'tardis::users.cannot_change_super_admin' : 'tardis::users.cannot_assign_beyond_own');
+
+            return;
+        }
 
         if ($this->wouldRemoveLastSuperAdmin($user->getKey(), $roleIds, $superIds)) {
             $this->error = __('tardis::users.super_admin_must_remain');

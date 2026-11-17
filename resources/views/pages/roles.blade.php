@@ -5,6 +5,7 @@ use Livewire\Attributes\Title;
 use Livewire\Component;
 use Tardis\Auth\Abilities;
 use Tardis\Auth\BreadAuthorization;
+use Tardis\Auth\PrivilegeGuard;
 use Tardis\Support\ModelResolver;
 
 new #[Title('tardis::roles.roles')] #[Layout('tardis::layouts.admin')] class extends Component
@@ -28,6 +29,8 @@ new #[Title('tardis::roles.roles')] #[Layout('tardis::layouts.admin')] class ext
     public bool $showDeleteModal = false;
 
     public array $allPermissions = [];
+
+    public ?string $error = null;
 
     /**
      * Runs on every request, not only on mount: Livewire keeps component state
@@ -71,6 +74,7 @@ new #[Title('tardis::roles.roles')] #[Layout('tardis::layouts.admin')] class ext
     {
         $role = ModelResolver::role()::findOrFail($roleId);
         $this->editRoleId = $roleId;
+        $this->error = null;
         $this->editRolePermissions = $role->permissions->pluck('id')->toArray();
         $this->showEditModal = true;
     }
@@ -116,6 +120,15 @@ new #[Title('tardis::roles.roles')] #[Layout('tardis::layouts.admin')] class ext
     {
         if ($this->editRoleId) {
             $role = ModelResolver::role()::findOrFail($this->editRoleId);
+
+            $current = $role->permissions()->pluck($role->permissions()->getRelated()->getQualifiedKeyName())->all();
+
+            if (! app(PrivilegeGuard::class)->mayGrantPermissions(auth()->user(), $current, $this->editRolePermissions)) {
+                $this->error = __('tardis::roles.cannot_grant_beyond_own');
+
+                return;
+            }
+
             $role->permissions()->sync($this->editRolePermissions);
             $this->showEditModal = false;
             $this->loadRoles();
@@ -125,6 +138,7 @@ new #[Title('tardis::roles.roles')] #[Layout('tardis::layouts.admin')] class ext
     public function confirmDelete(int $id): void
     {
         $this->deleteId = $id;
+        $this->error = null;
         $this->showDeleteModal = true;
     }
 
@@ -132,6 +146,14 @@ new #[Title('tardis::roles.roles')] #[Layout('tardis::layouts.admin')] class ext
     {
         if ($this->deleteId) {
             $role = ModelResolver::role()::findOrFail($this->deleteId);
+
+            // Deleting it would lock every administrator out at once.
+            if (in_array((int) $role->getKey(), app(PrivilegeGuard::class)->superAdminRoleIds(), true)) {
+                $this->error = __('tardis::roles.cannot_delete_super_admin');
+
+                return;
+            }
+
             $role->permissions()->detach();
             $role->users()->detach();
             $role->delete();
@@ -234,6 +256,9 @@ new #[Title('tardis::roles.roles')] #[Layout('tardis::layouts.admin')] class ext
                         </section>
                     @endforeach
                 </div>
+                @if ($error)
+                    <div class="alert alert-error mt-2" role="alert"><span>{{ $error }}</span></div>
+                @endif
                 <div class="modal-action">
                     <button wire:click="$set('showEditModal', false)" class="btn btn-ghost">{{ __('tardis::roles.cancel') }}</button>
                     <button wire:click="saveRolePermissions" class="btn btn-primary">{{ __('tardis::roles.save') }}</button>
@@ -248,6 +273,9 @@ new #[Title('tardis::roles.roles')] #[Layout('tardis::layouts.admin')] class ext
             <div class="modal-box">
                 <h3 class="font-bold text-lg">{{ __('tardis::roles.delete_role') }}</h3>
                 <p class="py-4">{{ __('tardis::roles.are_you_sure_you_want_to_4956') }}</p>
+                @if ($error)
+                    <div class="alert alert-error mt-2" role="alert"><span>{{ $error }}</span></div>
+                @endif
                 <div class="modal-action">
                     <button wire:click="$set('showDeleteModal', false)" class="btn btn-ghost">{{ __('tardis::roles.cancel') }}</button>
                     <button wire:click="deleteRole" class="btn btn-error">{{ __('tardis::roles.delete') }}</button>
