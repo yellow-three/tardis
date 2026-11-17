@@ -6,6 +6,7 @@ namespace Tardis\Manager;
 
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
+use Tardis\Contracts\Plugins\ThemePlugin;
 use Tardis\Theme\BuiltinThemes;
 use Tardis\Theme\Theme;
 
@@ -38,9 +39,21 @@ class ThemeManager
         }
 
         $themes = collect(BuiltinThemes::all())
-            ->map(fn (array $definition) => Theme::fromArray($definition))
+            ->map(fn (array $definition) => Theme::fromArray($definition + ['source' => 'builtin']))
             ->filter()
             ->values();
+
+        foreach ($this->pluginDefinitions() as $definition) {
+            $theme = is_array($definition) ? Theme::fromArray(['builtin' => false] + $definition + ['source' => 'plugin']) : null;
+
+            if ($theme === null || $themes->contains(fn (Theme $existing) => $existing->name === $theme->name)) {
+                Log::notice('Skipping an invalid or duplicate plugin theme.', ['theme' => is_array($definition) ? ($definition['name'] ?? null) : null]);
+
+                continue;
+            }
+
+            $themes->push($theme);
+        }
 
         foreach ($this->readCustom() as $definition) {
             $theme = is_array($definition) ? Theme::fromArray($definition) : null;
@@ -80,14 +93,40 @@ class ThemeManager
     }
 
     /**
-     * CSS for the runtime themes only; the built-in ones are in the stylesheet.
+     * The CSS of every theme. This is the only place themes become CSS: the
+     * stylesheet carries none, so a built-in theme is defined once (in
+     * BuiltinThemes). The first light built-in is also the theme of a page
+     * without data-theme.
      */
     public function css(): string
     {
+        $default = $this->all()->first(fn (Theme $theme) => $theme->builtin && $theme->scheme === 'light');
+
         return $this->all()
-            ->reject(fn (Theme $theme) => $theme->builtin)
-            ->map(fn (Theme $theme) => $theme->css())
+            ->map(fn (Theme $theme) => $theme->css($theme === $default))
             ->implode('');
+    }
+
+    /**
+     * Theme definitions offered by enabled ThemePlugins.
+     *
+     * @return list<mixed>
+     */
+    protected function pluginDefinitions(): array
+    {
+        $definitions = [];
+
+        foreach (app(PluginManager::class)->enabledWith(ThemePlugin::class) as $plugin) {
+            try {
+                foreach ((array) $plugin->themes() as $definition) {
+                    $definitions[] = $definition;
+                }
+            } catch (\Throwable $e) {
+                Log::warning('A theme plugin failed to list its themes.', ['plugin' => $plugin::class, 'error' => $e->getMessage()]);
+            }
+        }
+
+        return $definitions;
     }
 
     /**
@@ -97,7 +136,7 @@ class ThemeManager
      */
     public function saveCustom(array $definition): bool
     {
-        $theme = Theme::fromArray($definition);
+        $theme = Theme::fromArray(['builtin' => false] + $definition);
 
         if ($theme === null || collect(BuiltinThemes::all())->contains(fn (array $builtin) => $builtin['name'] === $theme->name)) {
             return false;
@@ -105,7 +144,7 @@ class ThemeManager
 
         $custom = collect($this->readCustom())
             ->reject(fn ($existing) => is_array($existing) && ($existing['name'] ?? null) === $theme->name)
-            ->push(['name' => $theme->name, 'scheme' => $theme->scheme, 'label' => $theme->label, 'colors' => $theme->colors])
+            ->push(array_filter(['name' => $theme->name, 'scheme' => $theme->scheme, 'label' => $theme->label, 'colors' => $theme->colors, 'shape' => $theme->shape]))
             ->values()
             ->all();
 

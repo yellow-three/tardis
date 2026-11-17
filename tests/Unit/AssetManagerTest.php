@@ -6,7 +6,6 @@ namespace Tests\Unit;
 
 use Tardis\Contracts\Plugins\Features\Provider\CSS;
 use Tardis\Contracts\Plugins\Features\Provider\JS;
-use Tardis\Contracts\Plugins\ThemePlugin;
 use Tardis\Manager\AssetManager;
 use Tardis\Manager\PluginManager;
 use Tardis\Manager\SettingsManager;
@@ -115,69 +114,7 @@ test('styles uses production URL when hot file does not exist', function () {
     expect($html)->not->toContain('/resources/css/app.css');
 });
 
-class ThemePluginFixture implements ThemePlugin
-{
-    /** @var array<string, string> */
-    public static array $variables = [];
-
-    public function name(): string
-    {
-        return 'test-theme';
-    }
-
-    public function description(): string
-    {
-        return 'Test theme';
-    }
-
-    public function getTheme(): array
-    {
-        return static::$variables;
-    }
-}
-
-function themePluginFixture(array $variables): ThemePluginFixture
-{
-    ThemePluginFixture::$variables = $variables;
-
-    return new ThemePluginFixture;
-}
-
-test('a ThemePlugin contributes its CSS variables', function () {
-    $pluginManager = app(PluginManager::class);
-    $pluginManager->register('test-theme', themePluginFixture(['--color-primary' => '#ff0000', '--tardis-radius' => '0.5rem'])::class);
-    $pluginManager->enableByDefault('test-theme');
-
-    $html = app(AssetManager::class)->styles();
-
-    expect($html)->toContain(':root{')
-        ->toContain('--color-primary:#ff0000;')
-        ->toContain('--tardis-radius:0.5rem;');
-});
-
-test('theme variables that are not safe custom properties are dropped', function () {
-    $pluginManager = app(PluginManager::class);
-    $pluginManager->register('test-theme', themePluginFixture([
-        '--ok' => 'oklch(45% 0.2 260)',
-        'color' => 'red',
-        '--bad name' => 'red',
-        '--evil' => 'red;} body{display:none',
-        '--url' => 'url(javascript:alert(1))',
-        '--close' => '</style><script>x</script>',
-    ])::class);
-    $pluginManager->enableByDefault('test-theme');
-
-    $html = app(AssetManager::class)->styles();
-
-    expect($html)->toContain('--ok:oklch(45% 0.2 260);')
-        ->not->toContain('display:none')
-        ->not->toContain('javascript:')
-        ->not->toContain('<script>x')
-        ->not->toContain('--bad name')
-        ->not->toContain('--evil')
-        ->not->toContain('--url')
-        ->not->toContain('--close');
-});
+// ThemePlugin is a theme source now; see ThemeSourceTest.
 
 test('published CSS URL carries a content hash so redeploys bust the cache', function () {
     @unlink(AssetManager::packageHotPath());

@@ -11,13 +11,17 @@ interface ThemePlugin
     public function description(): string;
 
     /**
-     * CSS custom properties the theme sets (name => value), e.g.
-     * ['--color-primary' => 'oklch(45% 0.2 260)'].
+     * Themes this plugin adds to the panel, as data: each entry has the shape
+     * of a themes.json entry (name, scheme "light"|"dark", label, colors and
+     * an optional shape). They appear in the theme picker next to the
+     * built-in and custom ones.
      *
-     * Only data is accepted: Tardis validates the names and values and writes
-     * the rule itself, so a theme cannot inject arbitrary CSS.
+     * Tardis validates every value and writes the CSS itself, so a theme
+     * cannot inject arbitrary CSS; an invalid entry, or one that reuses a
+     * built-in theme's name, is skipped. To change something other than a
+     * theme's palette, provide a stylesheet through Provider\CSS instead.
      *
-     * @return array<string, string>
+     * @return list<array<string, mixed>>
      */
-    public function getTheme(): array;
+    public function themes(): array;
 }

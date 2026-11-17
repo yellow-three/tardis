@@ -174,3 +174,10 @@ Fixes from the 2026-11-17 review (`docs/notes.md`). Each one is covered by a tes
 - **Plugin switches and user preferences** are written under a file lock and change only what was asked for, so concurrent requests no longer undo each other (`Tardis\Support\JsonFile`).
 - **Activity log**: sign-in, failed sign-in, sign-out, role permission changes, user role changes and plugin switches are logged; entries carry IP address and user agent (new migration).
 - The test suite sets `memory_limit=512M` in `phpunit.xml.dist`.
+
+## Faz 10b — themes, first part (R56)
+
+- **One source per theme.** Built-in themes live only in `Tardis\Theme\BuiltinThemes`; the stylesheet declares none and `ThemeManager` writes every theme (built-in, plugin, custom).
+- **`ThemePlugin::themes()`** adds selectable themes; the old `getTheme()` `:root` override, which beat every theme including dark mode, is gone (see UPGRADE.md).
+- **DaisyUI shape variables** (`--radius-*`, `--size-*`, `--border`, `--depth`, `--noise`) are set by every theme, with DaisyUI's defaults; they were never set, so component corners and borders were invalid. A theme can change them with `shape`.
+- **Tailwind only scans the package's own templates**, so the committed bundle no longer depends on docs or tests (36 unused selectors dropped).

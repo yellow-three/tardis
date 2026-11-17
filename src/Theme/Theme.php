@@ -26,6 +26,38 @@ final class Theme
         'warning', 'warning-content', 'error', 'error-content',
     ];
 
+    /**
+     * DaisyUI 5 shape variables, without the leading --, and DaisyUI's own
+     * light-theme defaults. Components size and round themselves from these,
+     * so every theme sets all of them.
+     */
+    public const SHAPE = [
+        'radius-selector' => '0.5rem',
+        'radius-field' => '0.25rem',
+        'radius-box' => '0.5rem',
+        'size-selector' => '0.25rem',
+        'size-field' => '0.25rem',
+        'border' => '1px',
+        'depth' => '1',
+        'noise' => '0',
+    ];
+
+    /**
+     * DaisyUI's own status colours. A theme that does not set them gets
+     * these: without them alerts, badges and buttons in info/success/warning/
+     * error render grey, because the stylesheet ships no theme of its own.
+     */
+    public const STATUS_DEFAULTS = [
+        'info' => 'oklch(74% 0.16 232.661)',
+        'info-content' => 'oklch(29% 0.066 243.157)',
+        'success' => 'oklch(76% 0.177 163.223)',
+        'success-content' => 'oklch(37% 0.077 168.94)',
+        'warning' => 'oklch(82% 0.189 84.429)',
+        'warning-content' => 'oklch(41% 0.112 45.904)',
+        'error' => 'oklch(71% 0.194 13.428)',
+        'error-content' => 'oklch(27% 0.105 12.094)',
+    ];
+
     /** Without these a theme cannot render readable text on a surface. */
     public const REQUIRED = ['primary', 'base-100', 'base-content'];
 
@@ -38,6 +70,8 @@ final class Theme
         public readonly string $label,
         public readonly array $colors,
         public readonly bool $builtin,
+        public readonly array $shape = [],
+        public readonly string $source = 'custom',
     ) {}
 
     /**
@@ -76,11 +110,30 @@ final class Theme
             }
         }
 
+        $shape = [];
+
+        foreach ((array) ($definition['shape'] ?? []) as $key => $value) {
+            if (! array_key_exists($key, self::SHAPE)) {
+                continue;
+            }
+
+            if (! is_scalar($value) || ! self::isSafeLength((string) $value)) {
+                return null;
+            }
+
+            $shape[$key] = trim((string) $value);
+        }
+
         $label = isset($definition['label']) && is_string($definition['label']) && trim($definition['label']) !== ''
             ? trim($definition['label'])
             : Str::headline($name);
 
-        return new self($name, $scheme, $label, $colors, (bool) ($definition['builtin'] ?? false));
+        $builtin = (bool) ($definition['builtin'] ?? false);
+        $source = in_array($definition['source'] ?? null, ['builtin', 'plugin', 'custom'], true)
+            ? $definition['source']
+            : ($builtin ? 'builtin' : 'custom');
+
+        return new self($name, $scheme, $label, $colors, $builtin, $shape, $source);
     }
 
     public static function isSafeColor(string $value): bool
@@ -91,18 +144,34 @@ final class Theme
     }
 
     /**
-     * The rule that makes this theme selectable. Built-in themes come from the
-     * compiled stylesheet; this is for themes added at runtime.
+     * A length or a plain number: "0.5rem", "1px", "0", "1.25". Nothing that
+     * could close the declaration it is written into.
      */
-    public function css(): string
+    public static function isSafeLength(string $value): bool
+    {
+        return preg_match('/^\d*\.?\d+(?:rem|em|px|%)?$/', trim($value)) === 1;
+    }
+
+    /**
+     * The rule that makes this theme selectable. Every theme, built-in ones
+     * included, is written from here; $default also makes it the theme of a
+     * page that has no data-theme.
+     */
+    public function css(bool $default = false): string
     {
         $declarations = 'color-scheme:'.$this->scheme.';';
 
-        foreach ($this->colors as $key => $value) {
+        foreach ($this->colors + self::STATUS_DEFAULTS as $key => $value) {
             $declarations .= '--color-'.$key.':'.$value.';';
         }
 
-        return '[data-theme="'.$this->name.'"]{'.$declarations.'}';
+        foreach ($this->shape + self::SHAPE as $key => $value) {
+            $declarations .= '--'.$key.':'.$value.';';
+        }
+
+        $selector = '[data-theme="'.$this->name.'"]';
+
+        return ($default ? ':where(:root),' : '').$selector.'{'.$declarations.'}';
     }
 
     /**
@@ -127,6 +196,8 @@ final class Theme
             'colors' => $this->colors,
             'preview' => $this->previewColors(),
             'builtin' => $this->builtin,
+            'source' => $this->source,
+            'shape' => $this->shape + self::SHAPE,
         ];
     }
 }
