@@ -86,7 +86,7 @@
                     <div class="flex flex-wrap items-center gap-2 border-b border-base-300 px-4 py-2">
                         <span class="text-sm">{{ __('tardis::bread.selected_count', ['count' => count($selected)]) }}</span>
                         @foreach ($bulkActions as $action)
-                            <button type="button" wire:click="runBulk('{{ $action->name() }}')" {!! $action->getConfirmMessage() ? 'wire:confirm="'.e($action->getConfirmMessage()).'"' : '' !!} class="btn btn-xs {{ $action->tone === 'error' ? 'btn-error btn-outline' : 'btn-ghost' }}">{{ $action->getTitle() }}</button>
+                            <button type="button" wire:click="runBulk(@js($action->name()))" {!! $action->getConfirmMessage() ? 'wire:confirm="'.e($action->getConfirmMessage()).'"' : '' !!} class="btn btn-xs {{ $action->tone === 'error' ? 'btn-error btn-outline' : 'btn-ghost' }}">{{ $action->getTitle() }}</button>
                         @endforeach
                     </div>
                 @endif
@@ -177,7 +177,7 @@
                                         @endunless
                                         @foreach ($this->actions() as $action)
                                             @if ($action->appliesTo($row))
-                                                <button type="button" wire:click="runAction('{{ $action->name() }}', {{ $row->getKey() }})" {!! $action->getConfirmMessage() ? 'wire:confirm="'.e($action->getConfirmMessage()).'"' : '' !!} class="btn btn-ghost btn-xs {{ $action->tone === 'error' ? 'text-error' : '' }}">{{ $action->getTitle() }}</button>
+                                                <button type="button" wire:click="runAction(@js($action->name()), @js($row->getKey()))" {!! $action->getConfirmMessage() ? 'wire:confirm="'.e($action->getConfirmMessage()).'"' : '' !!} class="btn btn-ghost btn-xs {{ $action->tone === 'error' ? 'text-error' : '' }}">{{ $action->getTitle() }}</button>
                                             @endif
                                         @endforeach
                                     </div>

@@ -13,7 +13,7 @@ new #[Title('tardis::users.users')] #[Layout('tardis::layouts.admin')] class ext
 {
     public string $search = '';
 
-    public ?int $editUserId = null;
+    public int|string|null $editUserId = null;
 
     /** @var array<int, int|string> */
     public array $editRoleIds = [];
@@ -65,7 +65,7 @@ new #[Title('tardis::users.users')] #[Layout('tardis::layouts.admin')] class ext
         return ModelResolver::role()::query()->orderBy('name')->get(['id', 'name', 'slug'])->all();
     }
 
-    public function openEdit(int $userId): void
+    public function openEdit(int|string $userId): void
     {
         $user = $this->userModel()::query()->findOrFail($userId);
 

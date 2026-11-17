@@ -37,8 +37,9 @@ class LogBreadActivity
 
         $key = $event->model->getKey();
 
-        // activity_logs.model_id is an unsigned integer column.
-        if (! is_int($key) && ! (is_string($key) && ctype_digit($key))) {
+        // Integer, UUID and ULID keys are all logged; activity_logs.model_id is
+        // a string column (2026_11_17_000001_allow_string_keys_in_activity_logs).
+        if (! is_int($key) && ! (is_string($key) && $key !== '')) {
             return;
         }
 
@@ -51,7 +52,7 @@ class LogBreadActivity
 
             $this->logger->log(
                 $event->model::class,
-                (int) $key,
+                (string) $key,
                 $action,
                 $event instanceof BreadRecordUpdated ? $this->without($event->old, $redacted) : null,
                 match (true) {
