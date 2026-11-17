@@ -9,6 +9,7 @@ use Livewire\WithPagination;
 use Tardis\Auth\Abilities;
 use Tardis\Auth\BreadAuthorization;
 use Tardis\Auth\PrivilegeGuard;
+use Tardis\Bread\ActivityLogger;
 use Tardis\Support\ModelResolver;
 
 new #[Title('tardis::users.users')] #[Layout('tardis::layouts.admin')] class extends Component
@@ -140,6 +141,13 @@ new #[Title('tardis::users.users')] #[Layout('tardis::layouts.admin')] class ext
                 DB::table('tardis_role_user')->insert(['role_id' => $roleId, 'user_id' => $user->getKey()]);
             }
         });
+
+        $slugs = fn (array $ids) => ModelResolver::role()::query()->whereIn('id', $ids)->orderBy('slug')->pluck('slug')->all();
+        app(ActivityLogger::class)->audit('tardis.user_roles', 'roles_changed', [
+            'user_id' => $user->getKey(),
+            'added' => $slugs(array_diff(array_map('intval', $roleIds), array_map('intval', $current))),
+            'removed' => $slugs(array_diff(array_map('intval', $current), array_map('intval', $roleIds))),
+        ], $user->getKey());
 
         $this->closeEdit();
         session()->flash('message', __('tardis::users.roles_updated'));

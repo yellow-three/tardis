@@ -83,6 +83,7 @@ new #[Title('tardis::plugins.plugin_manager')] #[Layout('tardis::layouts.admin')
     public function enable(string $name): void
     {
         Tardis::plugins()->enable($name);
+        app(\Tardis\Bread\ActivityLogger::class)->audit('tardis.plugin', 'enabled', ['plugin' => $name]);
         $this->refreshPlugins();
     }
 
@@ -90,6 +91,7 @@ new #[Title('tardis::plugins.plugin_manager')] #[Layout('tardis::layouts.admin')
     {
         try {
             Tardis::plugins()->disable($name);
+            app(\Tardis\Bread\ActivityLogger::class)->audit('tardis.plugin', 'disabled', ['plugin' => $name]);
             $this->message = null;
         } catch (\LogicException) {
             $this->message = __('tardis::plugins.cannot_disable');

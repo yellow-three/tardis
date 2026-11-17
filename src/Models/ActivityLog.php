@@ -19,6 +19,8 @@ class ActivityLog extends Model
         'action',
         'old_values',
         'new_values',
+        'ip_address',
+        'user_agent',
     ];
 
     protected function casts(): array
