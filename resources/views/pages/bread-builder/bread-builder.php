@@ -202,8 +202,8 @@ new #[Title('BREAD Builder')] #[Layout('tardis::layouts.admin')] class extends C
             'model' => 'required|string',
         ]);
 
-        if (! class_exists($this->model)) {
-            session()->flash('error', __('tardis::builder.model_not_found'));
+        if (! BreadDefinition::isModelClass($this->model)) {
+            session()->flash('error', __(class_exists($this->model) ? 'tardis::builder.model_not_eloquent' : 'tardis::builder.model_not_found'));
 
             return;
         }
@@ -809,7 +809,7 @@ new #[Title('BREAD Builder')] #[Layout('tardis::layouts.admin')] class extends C
 
     protected function captureModelAnalysis(): void
     {
-        if ($this->model === '' || ! class_exists($this->model)) {
+        if (! BreadDefinition::isModelClass($this->model)) {
             return;
         }
 

@@ -53,7 +53,7 @@ new #[Title('View')] #[Layout('tardis::layouts.admin')] class extends Component
 
         $modelClass = $this->bread['model'] ?? null;
 
-        if (! $modelClass || ! class_exists($modelClass)) {
+        if (! BreadDefinition::isModelClass($modelClass)) {
             abort(404);
         }
 

@@ -156,5 +156,6 @@ return [
         'tab_without_fields' => 'Edit tab ":tab" has no fields assigned.',
         'soft_delete_disabled' => 'The model uses SoftDeletes but soft delete is disabled for this BREAD.',
     ],
+    'model_not_eloquent' => 'That class is not an Eloquent model.',
     'model_not_found' => 'Model class not found.',
 ];

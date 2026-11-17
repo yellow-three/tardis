@@ -1,0 +1,37 @@
+{
+    "slug": "bread-page-translatable-plain",
+    "model": "BreadTranslatablePlainTestModel",
+    "name": "Plain Translatable Post",
+    "name_plural": "Plain Translatable Posts",
+    "fields": [
+        {
+            "name": "title",
+            "type": "text",
+            "label": "Title",
+            "browse": true,
+            "read": true,
+            "edit": true,
+            "add": true,
+            "validation": [
+                "required"
+            ]
+        },
+        {
+            "name": "body",
+            "type": "text",
+            "label": "Body",
+            "browse": true,
+            "read": true,
+            "edit": true,
+            "add": true,
+            "translatable": true,
+            "locales": [
+                "en",
+                "tr"
+            ],
+            "validation": [
+                "nullable"
+            ]
+        }
+    ]
+}

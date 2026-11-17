@@ -1,0 +1,47 @@
+{
+    "slug": "bread-page-validation",
+    "model": "BreadValidationTestModel",
+    "name": "Validation Post",
+    "name_plural": "Validation Posts",
+    "fields": [
+        {
+            "name": "title",
+            "type": "text",
+            "label": "Title",
+            "browse": true,
+            "read": true,
+            "edit": true,
+            "add": true,
+            "validation": [
+                "required",
+                "max:5"
+            ]
+        },
+        {
+            "name": "email",
+            "type": "text",
+            "label": "Email",
+            "browse": true,
+            "read": true,
+            "edit": true,
+            "add": true,
+            "validation": [
+                "required",
+                "email"
+            ]
+        },
+        {
+            "name": "notes",
+            "type": "textarea",
+            "label": "Notes",
+            "browse": false,
+            "read": true,
+            "edit": true,
+            "add": true,
+            "validation": [
+                "nullable",
+                "max:8"
+            ]
+        }
+    ]
+}

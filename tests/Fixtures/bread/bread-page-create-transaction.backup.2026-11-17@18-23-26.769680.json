@@ -1,0 +1,50 @@
+{
+    "slug": "bread-page-create-transaction",
+    "model": "BreadCreateTransactionPostModel",
+    "name": "Atomic Post",
+    "name_plural": "Atomic Posts",
+    "fields": [
+        {
+            "name": "title",
+            "type": "text",
+            "label": "Title",
+            "browse": true,
+            "read": true,
+            "edit": true,
+            "add": true,
+            "validation": [
+                "required"
+            ]
+        },
+        {
+            "name": "tags",
+            "type": "belongs_to_many",
+            "label": "Tags",
+            "browse": false,
+            "read": true,
+            "edit": true,
+            "add": true,
+            "relation": "tags",
+            "model": "BreadCreateTransactionTagModel",
+            "label_column": "name",
+            "validation": [
+                "nullable"
+            ]
+        },
+        {
+            "name": "labels",
+            "type": "belongs_to_many",
+            "label": "Labels",
+            "browse": false,
+            "read": true,
+            "edit": true,
+            "add": true,
+            "relation": "labels",
+            "model": "BreadCreateTransactionTagModel",
+            "label_column": "name",
+            "validation": [
+                "nullable"
+            ]
+        }
+    ]
+}

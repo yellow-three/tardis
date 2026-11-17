@@ -1,0 +1,50 @@
+{
+    "slug": "bread-page-posts-relations",
+    "model": "BreadPageRelationPostModel",
+    "name": "Post",
+    "name_plural": "Posts",
+    "fields": [
+        {
+            "name": "title",
+            "type": "text",
+            "label": "Title",
+            "browse": true,
+            "read": true,
+            "edit": true,
+            "add": true,
+            "validation": [
+                "required"
+            ]
+        },
+        {
+            "name": "tags",
+            "type": "belongs_to_many",
+            "label": "Tags",
+            "browse": false,
+            "read": true,
+            "edit": true,
+            "add": true,
+            "relation": "tags",
+            "model": "BreadPageRelationTagModel",
+            "label_column": "name",
+            "validation": [
+                "nullable"
+            ]
+        },
+        {
+            "name": "comments",
+            "type": "has_many",
+            "label": "Comments",
+            "browse": false,
+            "read": true,
+            "edit": true,
+            "add": true,
+            "relation": "comments",
+            "model": "BreadPageRelationCommentModel",
+            "label_column": "body",
+            "validation": [
+                "nullable"
+            ]
+        }
+    ]
+}

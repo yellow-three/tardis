@@ -6,6 +6,7 @@ use Livewire\Attributes\Title;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 use Tardis\Auth\BreadAuthorization;
+use Tardis\Bread\BreadDefinition;
 use Tardis\Bread\BreadManager;
 use Tardis\Bread\BreadSaver;
 use Tardis\Bread\FieldValidationRules;
@@ -61,6 +62,10 @@ new #[Title('Create')] #[Layout('tardis::layouts.admin')] class extends Componen
         }
 
         $this->bread = $definition->toDisplayArray();
+
+        if (! BreadDefinition::isModelClass($this->bread['model'] ?? null)) {
+            abort(404);
+        }
 
         app(BreadAuthorization::class)->authorize('add', $this->slug);
 
@@ -212,7 +217,7 @@ new #[Title('Create')] #[Layout('tardis::layouts.admin')] class extends Componen
 
         $modelClass = $this->bread['model'] ?? null;
 
-        if (! $modelClass || ! class_exists($modelClass)) {
+        if (! BreadDefinition::isModelClass($modelClass)) {
             session()->flash('error', __('tardis::bread.model_class_unknown'));
 
             return;

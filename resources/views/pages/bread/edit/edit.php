@@ -71,7 +71,7 @@ new #[Title('Edit')] #[Layout('tardis::layouts.admin')] class extends Component
         $this->bread = $definition->toDisplayArray();
         $modelClass = $this->bread['model'] ?? null;
 
-        if (! $modelClass || ! class_exists($modelClass)) {
+        if (! BreadDefinition::isModelClass($modelClass)) {
             abort(404);
         }
 
@@ -250,7 +250,7 @@ new #[Title('Edit')] #[Layout('tardis::layouts.admin')] class extends Component
 
         $modelClass = $this->bread['model'] ?? null;
 
-        if ($modelClass && class_exists($modelClass)) {
+        if (BreadDefinition::isModelClass($modelClass)) {
             $record = BreadDefinition::fromArray($this->bread)->query()->findOrFail($this->id);
 
             try {

@@ -3,6 +3,7 @@
 namespace Tardis\Bread;
 
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 use Tardis\Classes\Translation;
 
 class BreadDefinition
@@ -173,8 +174,29 @@ class BreadDefinition
      * and every record lookup go through it, so a record the scope hides can
      * neither be opened, edited nor deleted by guessing its id.
      */
+    /**
+     * Whether a class may back a BREAD: a concrete Eloquent model. A
+     * definition names its model as a string, so anything else (a service, a
+     * class with a side-effecting constructor) must never be instantiated or
+     * have static methods called on it.
+     */
+    public static function isModelClass(mixed $class): bool
+    {
+        if (! is_string($class) || $class === '' || ! class_exists($class) || ! is_subclass_of($class, Model::class)) {
+            return false;
+        }
+
+        return ! (new \ReflectionClass($class))->isAbstract();
+    }
+
     public function query(): Builder
     {
+        if (! static::isModelClass($this->model)) {
+            throw new \InvalidArgumentException(sprintf(
+                'BREAD [%s] model [%s] is not an Eloquent model.', $this->slug, $this->model
+            ));
+        }
+
         $query = ($this->model)::query();
 
         if ($this->scope !== null && $this->scope !== '') {

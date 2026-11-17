@@ -4,6 +4,7 @@ use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
 use Tardis\Auth\BreadAuthorization;
+use Tardis\Bread\BreadDefinition;
 use Tardis\Bread\BreadManager;
 
 new #[Title('tardis::search.search')] #[Layout('tardis::layouts.admin')] class extends Component
@@ -57,7 +58,7 @@ new #[Title('tardis::search.search')] #[Layout('tardis::layouts.admin')] class e
             }
 
             $model = $bread->model;
-            if (! class_exists($model)) {
+            if (! BreadDefinition::isModelClass($model)) {
                 continue;
             }
 
