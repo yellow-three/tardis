@@ -8,6 +8,7 @@ use Tardis\Auth\Abilities;
 use Tardis\Auth\BreadAuthorization;
 use Tardis\Bread\BreadDefinition;
 use Tardis\Bread\BreadManager;
+use Tardis\Bread\Builder\BuilderReview;
 use Tardis\Bread\ModelReflector;
 use Tardis\Bread\ReservedSlugs;
 use Tardis\Classes\Translation;
@@ -698,79 +699,13 @@ new #[Title('tardis::shell.titles.bread_builder')] #[Layout('tardis::layouts.adm
     // ---------------------------------------------------------------------
 
     /**
-     * Non-blocking advisories shown on the review step. Everything here is
-     * derivable from the current state, so the user can judge the BREAD
-     * before writing it.
+     * Non-blocking advisories shown on the review step.
      *
      * @return list<array{level: string, message: string}>
      */
     public function reviewWarnings(): array
     {
-        $warnings = [];
-
-        if ($this->slug === '') {
-            $warnings[] = ['level' => 'error', 'message' => __('tardis::builder.warnings.slug_empty')];
-        } elseif ($this->slugStatus() === 'taken') {
-            $warnings[] = ['level' => 'error', 'message' => __('tardis::builder.warnings.slug_taken', ['slug' => $this->slug])];
-        }
-
-        if ($this->fieldConfig === []) {
-            $warnings[] = [
-                'level' => 'error',
-                'message' => __('tardis::builder.warnings.no_fields'),
-            ];
-        }
-
-        if ($this->fieldConfig !== []) {
-            $visibleBrowse = array_filter(
-                $this->orderedFieldKeys(),
-                fn ($key) => $this->browseColumns[$key]['visible'] ?? ($this->fieldConfig[$key]['browse'] ?? true)
-            );
-
-            if ($visibleBrowse === []) {
-                $warnings[] = ['level' => 'warning', 'message' => __('tardis::builder.warnings.no_browse_columns')];
-            }
-
-            $addable = array_filter($this->fieldConfig, fn ($field) => (bool) ($field['add'] ?? false));
-            $editable = array_filter($this->fieldConfig, fn ($field) => (bool) ($field['edit'] ?? false));
-
-            if ($addable === []) {
-                $warnings[] = ['level' => 'warning', 'message' => __('tardis::builder.warnings.no_add_field')];
-            }
-
-            if ($editable === []) {
-                $warnings[] = ['level' => 'warning', 'message' => __('tardis::builder.warnings.no_edit_field')];
-            }
-
-            if ($this->readLayout === []) {
-                $warnings[] = ['level' => 'warning', 'message' => __('tardis::builder.warnings.empty_read_layout')];
-            }
-
-            if ($this->searchKey !== '' && ! ($this->browseColumns[$this->searchKey]['searchable'] ?? false)) {
-                $warnings[] = [
-                    'level' => 'warning',
-                    'message' => __('tardis::builder.warnings.search_key_not_searchable', ['key' => $this->searchKey]),
-                ];
-            }
-        }
-
-        foreach ($this->editTabs as $index => $tab) {
-            if (($tab['fields'] ?? []) === []) {
-                $warnings[] = [
-                    'level' => 'info',
-                    'message' => __('tardis::builder.warnings.tab_without_fields', ['tab' => $tab['name'] ?? __('tardis::builder.tab_n', ['number' => $index + 1])]),
-                ];
-            }
-        }
-
-        if ($this->modelHasSoftDeletes && ! $this->softDelete) {
-            $warnings[] = [
-                'level' => 'info',
-                'message' => __('tardis::builder.warnings.soft_delete_disabled'),
-            ];
-        }
-
-        return $warnings;
+        return $this->review()->warnings();
     }
 
     /**
@@ -778,10 +713,7 @@ new #[Title('tardis::shell.titles.bread_builder')] #[Layout('tardis::layouts.adm
      */
     public function reviewSummary(): array
     {
-        $browse = array_filter(
-            $this->orderedFieldKeys(),
-            fn ($key) => $this->browseColumns[$key]['visible'] ?? ($this->fieldConfig[$key]['browse'] ?? true)
-        );
+        $review = $this->review();
 
         return [
             'slug' => $this->slug,
@@ -791,16 +723,32 @@ new #[Title('tardis::shell.titles.bread_builder')] #[Layout('tardis::layouts.adm
             'name_plural' => $this->namePlural,
             'icon' => $this->icon,
             'total_fields' => count($this->fieldConfig),
-            'browse_fields' => array_values($browse),
+            'browse_fields' => $review->browseKeys(),
             'read_fields' => array_values($this->readLayout),
-            'add_fields' => count(array_filter($this->fieldConfig, fn ($f) => (bool) ($f['add'] ?? false))),
-            'edit_fields' => count(array_filter($this->fieldConfig, fn ($f) => (bool) ($f['edit'] ?? false))),
+            'add_fields' => $review->countWhere('add'),
+            'edit_fields' => $review->countWhere('edit'),
             'relationships' => count($this->relationshipConfig),
             'search_key' => $this->searchKey,
             'order_column' => $this->orderColumn,
             'order_direction' => $this->orderDirection,
             'soft_delete' => $this->softDelete,
         ];
+    }
+
+    protected function review(): BuilderReview
+    {
+        return new BuilderReview(
+            slug: $this->slug,
+            slugStatus: $this->slugStatus(),
+            fieldConfig: $this->fieldConfig,
+            orderedKeys: $this->orderedFieldKeys(),
+            browseColumns: $this->browseColumns,
+            readLayout: $this->readLayout,
+            searchKey: $this->searchKey,
+            editTabs: $this->editTabs,
+            modelHasSoftDeletes: $this->modelHasSoftDeletes,
+            softDelete: $this->softDelete,
+        );
     }
 
     // ---------------------------------------------------------------------

@@ -120,3 +120,13 @@ test('redirects between panel screens keep wire:navigate', function () {
 
     expect($full)->toBe([]);
 });
+
+test('no component file grows past 800 lines', function () {
+    $long = collect(File::allFiles(livewireRoot()))
+        ->filter(fn ($file) => substr_count($file->getContents(), "\n") > 800)
+        ->map(fn ($file) => $file->getRelativePathname())
+        ->values()
+        ->all();
+
+    expect($long)->toBe([]);
+});
