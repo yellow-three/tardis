@@ -334,6 +334,10 @@ See [UPGRADE.md](UPGRADE.md) when coming from a development build.
 | [docs/constraints.md](docs/constraints.md) | Permanent constraints and gotchas |
 | [docs/notes.md](docs/notes.md), [docs/backlog.md](docs/backlog.md) | Open findings and the roadmap |
 
+## Security
+
+Report security problems privately, as described in [SECURITY.md](SECURITY.md).
+
 ## License
 
-MIT
+MIT, see [LICENSE](LICENSE). Contributions: [CONTRIBUTING.md](CONTRIBUTING.md); changes per version: [CHANGELOG.md](CHANGELOG.md).
