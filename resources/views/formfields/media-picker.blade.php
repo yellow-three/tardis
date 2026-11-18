@@ -43,7 +43,7 @@
         </span>
     @endif
 
-    <livewire:tardis::pages.media-picker
+    <livewire:tardis::components.media-picker
         wire:key="media-picker-{{ $id }}"
         :model="$model"
         :mimes="$mimes"
