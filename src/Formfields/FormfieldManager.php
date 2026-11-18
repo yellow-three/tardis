@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tardis\Formfields;
 
+use Tardis\Formfields\Types\BelongsToField;
 use Tardis\Formfields\Types\BelongsToManyField;
 use Tardis\Formfields\Types\CheckboxField;
 use Tardis\Formfields\Types\CodeEditorField;
@@ -13,6 +14,7 @@ use Tardis\Formfields\Types\DateField;
 use Tardis\Formfields\Types\DateTimeField;
 use Tardis\Formfields\Types\FileField;
 use Tardis\Formfields\Types\HasManyField;
+use Tardis\Formfields\Types\HasOneField;
 use Tardis\Formfields\Types\HiddenField;
 use Tardis\Formfields\Types\MarkdownField;
 use Tardis\Formfields\Types\MediaPickerField;
@@ -60,6 +62,8 @@ class FormfieldManager
             'code_editor' => CodeEditorField::class,
             'color' => ColorField::class,
             'hidden' => HiddenField::class,
+            'belongs_to' => BelongsToField::class,
+            'has_one' => HasOneField::class,
             'belongs_to_many' => BelongsToManyField::class,
             'has_many' => HasManyField::class,
             'media_picker' => MediaPickerField::class,

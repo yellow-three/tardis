@@ -6,7 +6,7 @@
         __('tardis::builder.groups.date_time') => ['date', 'datetime', 'time'],
         __('tardis::builder.groups.file') => ['file', 'media_picker'],
         __('tardis::builder.groups.structured') => ['repeater', 'simple_array'],
-        __('tardis::builder.groups.relations') => ['belongs_to_many', 'has_many'],
+        __('tardis::builder.groups.relations') => ['belongs_to', 'has_one', 'belongs_to_many', 'has_many'],
     ];
 
     $slugBadges = [
@@ -233,7 +233,7 @@
                     </div>
                 @else
                     <h2 class="card-title">{{ __('tardis::builder.detected_relationships') }}</h2>
-                    <p class="text-base-content/60">{{ __('tardis::builder.configure_how_relationships_are_displaye_2234') }}</p>
+                    <p class="text-base-content/60">{{ __('tardis::builder.relationships_help') }}</p>
 
                     @if (empty($relationshipConfig))
                         <div class="text-center py-8 text-base-content/50">
@@ -247,7 +247,7 @@
                                         <th scope="col">{{ __('tardis::builder.relation') }}</th>
                                         <th scope="col">{{ __('tardis::builder.type') }}</th>
                                         <th scope="col">{{ __('tardis::builder.related_model') }}</th>
-                                        <th scope="col">{{ __('tardis::builder.display_type') }}</th>
+                                        <th scope="col"><span class="sr-only">{{ __('tardis::builder.on_form') }}</span></th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -256,13 +256,16 @@
                                             <td class="font-medium">{{ $name }}</td>
                                             <td><span class="badge badge-ghost badge-sm">{{ $rel['type'] }}</span></td>
                                             <td>{{ class_basename($rel['model']) }}</td>
-                                            <td>
-                                                <select wire:model.live="relationshipConfig.{{ $name }}.display_type" class="select select-xs">
-                                                    <option value="select">{{ __('tardis::builder.select') }}</option>
-                                                    <option value="checkbox">{{ __('tardis::builder.checkbox') }}</option>
-                                                    <option value="table">{{ __('tardis::builder.table') }}</option>
-                                                    <option value="hidden">{{ __('tardis::builder.hidden') }}</option>
-                                                </select>
+                                            <td class="text-right">
+                                                @if (! \Tardis\Bread\Builder\RelationFieldFactory::supports($rel['type'] ?? ''))
+                                                    <span class="text-xs text-base-content/50">{{ __('tardis::builder.relation_not_supported') }}</span>
+                                                @elseif ($this->hasRelationField($name))
+                                                    <span class="badge badge-success badge-sm">{{ __('tardis::builder.on_form') }}</span>
+                                                @else
+                                                    <button type="button" wire:click="addRelationField(@js($name))" class="btn btn-xs btn-outline">
+                                                        {{ __('tardis::builder.add_to_form') }}
+                                                    </button>
+                                                @endif
                                             </td>
                                         </tr>
                                     @endforeach

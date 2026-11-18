@@ -24,6 +24,7 @@ return [
     'add_row' => 'Add row',
     'remove_row' => 'Remove row',
     'add_a_new_record_to_this_78a2' => 'Add a new record to this BREAD resource.',
+    'relation_none' => 'None',
     'no_matches_found' => 'No matches found.',
     'related_items_will_be_managed_here' => 'Related items will be managed here.',
     'cancel' => 'Cancel',

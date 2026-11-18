@@ -225,3 +225,8 @@ A BREAD override route is named after the new action name (`tardis.bread.create.
 - `config('tardis-media.*')` → `config('tardis.media.*')` and `config('tardis-icons.*')` → `config('tardis.icons.*')`. Both are sections of `config/tardis.php`, published with `--tag=tardis-config`; the `tardis-media-config` and `tardis-icons-config` tags are gone. A published `config/tardis-media.php` or `config/tardis-icons.php` is still applied over the new keys until 0.3 (with a deprecation notice): move its keys into `config/tardis.php` and delete it. If you published an older `config/tardis.php`, add the `media` and `icons` sections from the package file.
 - `php artisan migrate` renames the `activity_logs` table to `tardis_activity_logs` (rows are kept). Update raw queries against the old name; `Tardis\Models\ActivityLog::TABLE` holds the new one.
 - Text uses the spelling "Tardis" (was "TARDIS" in places). If you published the translation files, update `shell.name`, `shell.admin` and `shell.footer`. The stored `admin.title` setting keeps whatever value you saved.
+
+## Faz 11 — relation fields
+
+- BREAD definitions no longer have a `relationships` key; it is ignored when read and dropped on the next save. It never affected the forms. Add the relation as a field instead (`belongs_to`, `has_one`, `belongs_to_many`, `has_many`), or use the builder's Relationships tab.
+- A foreign key shown as a `number` or `select` field can become `belongs_to` with `model` and `label_column`.

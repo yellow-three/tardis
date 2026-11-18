@@ -206,3 +206,10 @@ Fixes from the 2026-11-17 review (`docs/notes.md`). Each one is covered by a tes
 - **Route names** separate the builder (`tardis.builder.*`) from records (`tardis.bread.{index,create,show,edit}`); every list screen ends in `.index`.
 - Old class and command names work until 0.3 with a deprecation notice; stored menu entries and plugin switches are carried over. Full tables in UPGRADE.md.
 - **One config root:** media and icon settings are the `media` and `icons` sections of `config/tardis.php` (one `tardis-config` publish tag); the activity log table is `tardis_activity_logs`, prefixed like every other package table; the name is spelled "Tardis" throughout.
+
+## Faz 11 — relation fields (R36)
+
+- **`belongs_to`**: a foreign key picked from a searchable list of the related records (label column configurable); the listing and detail page show the related label.
+- **`has_one`**: pick the one related record that points at this record; the previous one is unlinked.
+- Both pickers, like `belongs_to_many`, list only what the related BREAD shows (scope, `browse` permission) and refuse a key outside that list.
+- **Builder:** the Relationships tab adds a detected relationship to the form (a belongsTo turns its foreign key into the picker). The unused `relationships` list and its "display type" are gone from definitions.
