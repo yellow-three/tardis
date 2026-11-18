@@ -102,8 +102,8 @@
                 <div class="mt-4 space-y-3">
                     @foreach (['name' => 'text', 'email' => 'email'] as $fieldName => $inputType)
                         @if (app(\Tardis\Auth\UserAccounts::class)->column($fieldName) !== null)
-                            <label class="form-control w-full">
-                                <span class="label-text">{{ __('tardis::users.'.$fieldName) }}</span>
+                            <label class="flex w-full flex-col gap-1">
+                                <span class="text-sm font-medium">{{ __('tardis::users.'.$fieldName) }}</span>
                                 <input type="{{ $inputType }}" wire:model="userForm.{{ $fieldName }}" class="input w-full" autocomplete="off" />
                                 @error('userForm.'.$fieldName) <span class="text-error text-xs">{{ $message }}</span> @enderror
                             </label>
@@ -111,23 +111,23 @@
                     @endforeach
 
                     @if (app(\Tardis\Auth\UserAccounts::class)->column('password') !== null)
-                        <label class="form-control w-full">
-                            <span class="label-text">{{ __('tardis::users.password') }}</span>
+                        <label class="flex w-full flex-col gap-1">
+                            <span class="text-sm font-medium">{{ __('tardis::users.password') }}</span>
                             <input type="password" wire:model="userForm.password" class="input w-full" autocomplete="new-password" />
                             @if ($formUserId !== null)
                                 <span class="text-xs text-base-content/60">{{ __('tardis::users.password_keep') }}</span>
                             @endif
                             @error('userForm.password') <span class="text-error text-xs">{{ $message }}</span> @enderror
                         </label>
-                        <label class="form-control w-full">
-                            <span class="label-text">{{ __('tardis::users.password_confirmation') }}</span>
+                        <label class="flex w-full flex-col gap-1">
+                            <span class="text-sm font-medium">{{ __('tardis::users.password_confirmation') }}</span>
                             <input type="password" wire:model="userForm.password_confirmation" class="input w-full" autocomplete="new-password" />
                         </label>
                     @endif
 
                     @if ($formUserId === null && $this->roles !== [])
                         <fieldset class="space-y-2">
-                            <legend class="label-text mb-1">{{ __('tardis::users.roles') }}</legend>
+                            <legend class="text-sm font-medium mb-1">{{ __('tardis::users.roles') }}</legend>
                             @foreach ($this->roles as $role)
                                 <label wire:key="create-role-{{ $role->id }}" class="flex cursor-pointer items-center gap-3">
                                     <input type="checkbox" class="checkbox checkbox-sm" wire:model="createRoleIds" value="{{ $role->id }}" />
