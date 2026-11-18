@@ -230,3 +230,8 @@ Fixes from the 2026-11-17 review (`docs/notes.md`). Each one is covered by a tes
 - **Users screen:** create accounts (with roles), edit name, email and password, delete accounts. Taking over an account is guarded like handing out roles: a user manager cannot touch a super administrator or anyone holding more permissions than they do, and nobody deletes themselves or the last super administrator. Every change is in the activity log.
 - **Profile page** (`/admin/profile`, linked from the user menu): name, email and password; changing the email or the password needs the current password.
 - **`tardis.users.columns`** names the user table's name, email and password columns; the screens leave out a column the table does not have (the Users page no longer assumes `name` and `email`).
+
+## Faz 11 — order page and field options (R40)
+
+- **Order page:** a BREAD with an `order_column` gets an *Order* button on its list. Records are dragged (or moved with arrows) into order and saved as positions 1, 2, 3… Only records inside the BREAD's scope are written, and the page needs `edit` on the BREAD. `order_display_column` picks the label shown per record.
+- **Field options:** the builder's field drawer sets help text, placeholder and default value; definitions accept Voyager's `description` as help text and `timestamp` as a type name (→ `datetime`).

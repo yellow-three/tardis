@@ -362,6 +362,12 @@
                         </div>
 
                         <div class="flex flex-col gap-2">
+                            <label class="label" for="builder-order-display"><span class="text-base-content">{{ __('tardis::builder.order_display_column') }}</span></label>
+                            <input id="builder-order-display" type="text" wire:model="orderDisplayColumn" class="input" placeholder="title" />
+                            <p class="text-xs text-base-content/50">{{ __('tardis::builder.order_display_column_hint') }}</p>
+                        </div>
+
+                        <div class="flex flex-col gap-2">
                             <label class="label cursor-pointer justify-start gap-3">
                                 <input type="checkbox" wire:model.live="softDelete" class="toggle toggle-primary" />
                                 <span class="text-base-content">{{ __('tardis::builder.enable_soft_delete') }}</span>
@@ -496,6 +502,19 @@
                                 <label class="label" for="drawer-field-legend">{{ __('tardis::builder.section_heading') }}</label>
                                 <input id="drawer-field-legend" type="text" class="input input-bordered w-full" wire:model="layoutLegends.{{ $drawerField }}" placeholder="{{ __('tardis::builder.section_heading_placeholder') }}" />
                                 <p class="text-xs text-base-content/50 mt-1">{{ __('tardis::builder.section_heading_hint') }}</p>
+                            </div>
+                            <div>
+                                <label class="label" for="drawer-field-help">{{ __('tardis::builder.field_help') }}</label>
+                                <input id="drawer-field-help" type="text" class="input input-bordered w-full" wire:model="fieldConfig.{{ $drawerField }}.help" />
+                            </div>
+                            <div>
+                                <label class="label" for="drawer-field-placeholder">{{ __('tardis::builder.field_placeholder') }}</label>
+                                <input id="drawer-field-placeholder" type="text" class="input input-bordered w-full" wire:model="fieldConfig.{{ $drawerField }}.placeholder" />
+                            </div>
+                            <div>
+                                <label class="label" for="drawer-field-default">{{ __('tardis::builder.field_default') }}</label>
+                                <input id="drawer-field-default" type="text" class="input input-bordered w-full" wire:model="fieldConfig.{{ $drawerField }}.default" />
+                                <p class="text-xs text-base-content/50 mt-1">{{ __('tardis::builder.field_default_hint') }}</p>
                             </div>
                         </div>
                     @endif

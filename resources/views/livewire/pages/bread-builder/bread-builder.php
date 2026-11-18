@@ -45,6 +45,9 @@ new #[Title('tardis::shell.titles.bread_builder')] #[Layout('tardis::layouts.adm
 
     public string $orderDirection = 'asc';
 
+    /** The column the order page shows for each record. */
+    public ?string $orderDisplayColumn = null;
+
     public ?string $activeTab = 'fields';
 
     public array $browseColumns = [];
@@ -179,6 +182,7 @@ new #[Title('tardis::shell.titles.bread_builder')] #[Layout('tardis::layouts.adm
                 $this->searchKey = $bread->searchKey ?? '';
                 $this->orderColumn = $bread->orderColumn ?? null;
                 $this->orderDirection = $bread->orderDirection ?? 'asc';
+                $this->orderDisplayColumn = $bread->orderDisplayColumn;
                 $this->softDelete = $bread->softDelete;
                 $this->browseColumns = $bread->layout['browse'] ?? $bread->layout['list'] ?? [];
                 $this->editTabs = $bread->layout['edit'] ?? [];
@@ -284,6 +288,7 @@ new #[Title('tardis::shell.titles.bread_builder')] #[Layout('tardis::layouts.adm
             'search_key' => $this->searchKey ?: null,
             'order_column' => $this->orderColumn,
             'order_direction' => $this->orderDirection,
+            'order_display_column' => $this->orderDisplayColumn ?: null,
             'soft_delete' => $this->softDelete,
             'components' => $this->components,
             'policy' => $this->policy,

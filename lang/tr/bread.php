@@ -74,4 +74,9 @@ return [
     'fallback_locale' => ':locale çevirisi henüz yok, bu yüzden onun yerine bu gösteriliyor.',
     'list_layout' => 'Liste Düzeni',
     'view_layout' => 'Görünüm Düzeni',
+    'order' => 'Sırala',
+    'order_title' => ':name sıralaması',
+    'order_description' => 'Listenin kayıtları hangi sırayla göstereceğini belirlemek için kayıtları sürükleyin ya da okları kullanın.',
+    'order_saved' => 'Sıra kaydedildi.',
+    'order_limited' => 'Burada yalnızca ilk :count kayıt gösteriliyor.',
 ];

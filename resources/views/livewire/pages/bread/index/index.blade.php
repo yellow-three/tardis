@@ -4,6 +4,12 @@
         :description="$bread['description'] ?? 'Browse records for this resource.'"
     >
         <x-slot:action>
+            @if (! empty($bread['order_column']) && app(\Tardis\Auth\BreadAuthorization::class)->allows('edit', $slug))
+                <a href="{{ route('tardis.bread.order', ['slug' => $slug]) }}" wire:navigate class="btn btn-ghost">
+                    <x-tardis::icon name="bars-3" class="w-4 h-4" />
+                    {{ __('tardis::bread.order') }}
+                </a>
+            @endif
             <a href="{{ $this->createUrl }}" class="btn btn-primary">
                 <x-tardis::icon name="plus" class="w-4 h-4" />
                 {{ __('tardis::bread.new_record', ['name' => $bread['name'] ?? ucfirst($slug)]) }}

@@ -157,4 +157,10 @@ return [
     ],
     'model_not_eloquent' => 'That class is not an Eloquent model.',
     'model_not_found' => 'Model class not found.',
+    'order_display_column' => 'Order page label column',
+    'order_display_column_hint' => 'Shown for each record on the order page; leave empty for the search column. The order page appears when an order column is set.',
+    'field_help' => 'Help text',
+    'field_placeholder' => 'Placeholder',
+    'field_default' => 'Default value',
+    'field_default_hint' => 'Filled in on the create form.',
 ];

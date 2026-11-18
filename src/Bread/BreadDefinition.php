@@ -24,6 +24,7 @@ class BreadDefinition
         public bool $softDelete = false,
         public ?string $orderColumn = null,
         public string $orderDirection = 'asc',
+        public ?string $orderDisplayColumn = null,
         public ?string $searchKey = null,
         /** @var array<string, string> action (browse|add|edit|read) => Livewire component replacing the stock page */
         public array $components = [],
@@ -138,6 +139,7 @@ class BreadDefinition
             softDelete: $data['soft_delete'] ?? false,
             orderColumn: $data['order_column'] ?? null,
             orderDirection: $data['order_direction'] ?? 'asc',
+            orderDisplayColumn: $data['order_display_column'] ?? null,
             searchKey: $data['search_key'] ?? null,
             components: array_filter((array) ($data['components'] ?? []), fn ($component) => is_string($component) && $component !== ''),
             policy: $data['policy'] ?? null,
@@ -161,6 +163,7 @@ class BreadDefinition
             'soft_delete' => $this->softDelete,
             'order_column' => $this->orderColumn,
             'order_direction' => $this->orderDirection,
+            'order_display_column' => $this->orderDisplayColumn,
             'search_key' => $this->searchKey,
             'components' => $this->components,
             'policy' => $this->policy,
