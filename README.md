@@ -133,6 +133,17 @@ setting('admin.title', 'My site'); // a panel setting by "group.key"
 
 `tardis_menu()` and `tardis_setting()` always exist. The short `menu()` and `setting()` names are added only when your application has no function of that name already.
 
+## Moving from Voyager
+
+`php artisan tardis:import:voyager` reads a Voyager 1.x database and writes what Tardis can use:
+
+- **BREAD** from `data_types` / `data_rows`: field types, browse/read/edit/add flags, validation, options and defaults, image resize and thumbnails, `belongsTo` / `hasOne` / `hasMany` / `belongsToMany` relationships, order column and search key. Voyager's own `users`, `menus`, `roles` and `settings` types are skipped: built-in Tardis screens handle them.
+- **Menus** other than `admin` (the panel builds its own sidebar) become site menus. Items with a route are kept when that route exists in your application.
+- **Settings**, keyed `group.key` as in Voyager.
+- **Roles** with their permissions mapped onto Tardis abilities (`browse_posts` → `browse posts`, `browse_admin` → `access admin`, `edit_settings` → `manage settings`), and users' roles from `user_roles` and `users.role_id`.
+
+Point `--connection` at the Voyager database if it is not the default one, and start with `--dry-run`. The report lists everything that was imported or skipped, and every field, permission or menu item that has no Tardis equivalent (for example `multiple_images`). Existing BREADs, menus and settings are left alone unless you pass `--force`. Voyager does not record the method name of a `hasOne`, `hasMany` or `belongsToMany` relation; the import guesses it (`categories`) and the report asks you to check it.
+
 ## Theme system
 
 Themes are data. The built-in `tardis-light` and `tardis-dark` ship in the compiled stylesheet; any other theme is a validated entry in `storage/tardis/themes.json` that Tardis turns into a `[data-theme]` rule at request time, so a host can add one **without rebuilding any assets**.
@@ -212,6 +223,7 @@ Larger screens (BREAD pages, BREAD builder, media browser, database explorer, se
 | `tardis:make:model {table}` | Generate an Eloquent model for an existing table |
 | `tardis:make:plugin {name}` | Scaffold a plugin package (`--with-menu`, `--with-widgets`, `--with-settings`, `--with-migration`, `--with-model`) |
 | `tardis:bread:import-legacy` | Convert legacy `config/bread/*.php` definitions to JSON |
+| `tardis:import:voyager` | Import BREADs, menus, settings and roles from a Voyager 1.x database (`--connection`, `--only=bread`, `--dry-run`, `--force`) |
 | `tardis:bread:export` | Export all JSON definitions as one document |
 | `tardis:doctor` | Report install health; exits non-zero on failure so it can gate a deploy (`--json` for scripts) |
 | `tardis:install` | Idempotent installer: migrate, seed permissions, publish assets, optionally create the first admin (`--email`, `--force`) |

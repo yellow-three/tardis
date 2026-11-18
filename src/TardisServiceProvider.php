@@ -18,6 +18,7 @@ use Tardis\Commands\AdminCommand;
 use Tardis\Commands\BreadExportCommand;
 use Tardis\Commands\BreadImportLegacyCommand;
 use Tardis\Commands\DoctorCommand;
+use Tardis\Commands\ImportVoyagerCommand;
 use Tardis\Commands\InstallCommand;
 use Tardis\Commands\MakeBreadCommand;
 use Tardis\Commands\MakeModelCommand;
@@ -279,6 +280,7 @@ class TardisServiceProvider extends ServiceProvider
             AdminCommand::class,
             BreadExportCommand::class,
             BreadImportLegacyCommand::class,
+            ImportVoyagerCommand::class,
             DoctorCommand::class,
             InstallCommand::class,
             MakeBreadCommand::class,

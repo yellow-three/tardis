@@ -235,3 +235,8 @@ Fixes from the 2026-11-17 review (`docs/notes.md`). Each one is covered by a tes
 
 - **Order page:** a BREAD with an `order_column` gets an *Order* button on its list. Records are dragged (or moved with arrows) into order and saved as positions 1, 2, 3… Only records inside the BREAD's scope are written, and the page needs `edit` on the BREAD. `order_display_column` picks the label shown per record.
 - **Field options:** the builder's field drawer sets help text, placeholder and default value; definitions accept Voyager's `description` as help text and `timestamp` as a type name (→ `datetime`).
+
+## Faz 12 — Voyager import (R41)
+
+- **`tardis:import:voyager`** reads a Voyager 1.x database and imports BREADs (data types and rows, including relationships, image options and validation), menus (except `admin`) as site menus, settings, and roles with their permissions and user assignments.
+- `--dry-run` writes nothing, `--only` picks parts, `--connection` reads another database, and `--force` overwrites. Every item that could not be mapped is listed in the report.
