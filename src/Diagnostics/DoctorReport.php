@@ -7,6 +7,7 @@ namespace Tardis\Diagnostics;
 use Illuminate\Support\Facades\Schema;
 use Tardis\Assets\Asset;
 use Tardis\Bread\BreadManager;
+use Tardis\Bread\DefinitionHealth;
 use Tardis\Contracts\Plugins\Features\Provider\CSS;
 use Tardis\Contracts\Plugins\Features\Provider\JS;
 use Tardis\Plugins\PluginManager;
@@ -331,6 +332,7 @@ final class DoctorReport
         }
 
         $problems = [];
+        $warnings = [];
 
         foreach ($definitions as $definition) {
             if (! class_exists($definition->model)) {
@@ -349,11 +351,25 @@ final class DoctorReport
 
             if (! Schema::hasTable($table)) {
                 $problems[] = "{$definition->slug}: table [{$table}] not found";
+
+                continue;
+            }
+
+            if (($missing = DefinitionHealth::missingColumns($definition)) !== []) {
+                $warnings[] = "{$definition->slug}: no column for ".implode(', ', $missing);
             }
         }
 
         if ($problems !== []) {
             return CheckResult::fail('BREAD definitions', implode('; ', $problems).'.');
+        }
+
+        if ($warnings !== []) {
+            return CheckResult::warn(
+                'BREAD definitions',
+                implode('; ', $warnings).'.',
+                'Remove or rename those fields in the BREAD builder, or give them an accessor.',
+            );
         }
 
         return CheckResult::ok('BREAD definitions', $definitions->count().' definition(s) healthy.');

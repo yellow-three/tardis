@@ -11,6 +11,7 @@ use Tardis\Bread\BreadManager;
 use Tardis\Bread\Builder\BuilderLabels;
 use Tardis\Bread\Builder\BuilderReview;
 use Tardis\Bread\Builder\RelationFieldFactory;
+use Tardis\Bread\DefinitionHealth;
 use Tardis\Bread\ModelReflector;
 use Tardis\Bread\ReservedSlugs;
 use Tardis\Formfields\FormfieldManager;
@@ -736,6 +737,13 @@ new #[Title('tardis::shell.titles.bread_builder')] #[Layout('tardis::layouts.adm
             editTabs: $this->editTabs,
             modelHasSoftDeletes: $this->modelHasSoftDeletes,
             softDelete: $this->softDelete,
+            missingColumns: DefinitionHealth::missingColumns([
+                'model' => $this->model,
+                'fields' => $this->fieldConfig,
+                'order_column' => $this->orderColumn,
+                'search_key' => $this->searchKey,
+                'order_display_column' => $this->orderDisplayColumn,
+            ]),
         );
     }
 

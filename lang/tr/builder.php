@@ -144,6 +144,7 @@ return [
     'section_heading_placeholder' => 'Bu alanın üzerinde gösterilecek isteğe bağlı başlık',
     'section_heading_hint' => 'Boş bırakılırsa başlık gösterilmez.',
     'warnings' => [
+        'missing_columns' => 'Şu alanlar ya da anahtarlar tabloda olmayan bir sütunu gösteriyor: :columns. Liste bozulur ya da hiçbir şey kaydedilmez; kaldırın ya da yeniden adlandırın.',
         'slug_empty' => 'Kısa ad boş — Yapılandır adımında belirleyin.',
         'slug_taken' => '":slug" kısa adı başka bir BREAD tanımına ait.',
         'no_fields' => 'Alan algılanmadı. Modelin $fillable özelliğine girdi ekleyip baştan başlayın.',

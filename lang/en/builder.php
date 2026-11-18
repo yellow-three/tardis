@@ -144,6 +144,7 @@ return [
     'section_heading_placeholder' => 'Optional heading shown above this field',
     'section_heading_hint' => 'Leave empty to show no heading.',
     'warnings' => [
+        'missing_columns' => 'These fields or keys name a column the table does not have: :columns. The list breaks or nothing is saved; remove or rename them.',
         'slug_empty' => 'Slug is empty — set it on the Configure step.',
         'slug_taken' => 'Slug ":slug" already belongs to another BREAD definition.',
         'no_fields' => 'No fields were detected. Add entries to the model\'s $fillable property and start over.',
