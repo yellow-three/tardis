@@ -32,6 +32,15 @@ class MenuManager
         $this->userMenuItems = collect();
     }
 
+    /**
+     * The UI components reference page follows the admin.ui-components
+     * setting ("show" or "hide").
+     */
+    public static function uiComponentsEnabled(): bool
+    {
+        return app(SettingsManager::class)->get('admin.ui-components', 'show') !== 'hide';
+    }
+
     public function addItems(MenuItem ...$items): void
     {
         foreach ($items as $item) {
@@ -69,6 +78,7 @@ class MenuManager
                 ->order(10),
             (new MenuItem(__('tardis::menu.ui_components'), 'heroicon-o-squares-2x2'))
                 ->route('tardis.ui-components')
+                ->visibleWhen(fn (): bool => self::uiComponentsEnabled())
                 ->section(__('tardis::menu.sections.overview'))
                 ->order(20),
             (new MenuItem(__('tardis::menu.settings'), 'heroicon-o-cog-6-tooth'))

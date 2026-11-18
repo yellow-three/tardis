@@ -79,7 +79,7 @@ it('filters the file list by mime type and keeps folders when enabled', function
     Storage::disk('public')->put('media/notes.txt', 'plain text');
     Storage::disk('public')->makeDirectory('media/gallery');
 
-    Livewire::test('tardis::pages.media-picker', [
+    Livewire::test('tardis::components.media-picker', [
         'model' => 'form.image',
         'mimes' => ['image/*'],
         'showFolders' => true,
@@ -94,7 +94,7 @@ it('filters the file list by mime type and keeps folders when enabled', function
 it('picks a single file and dispatches media-picked with the storage path', function () {
     Storage::disk('public')->put('media/photo.jpg', "\xFF\xD8\xFF\xE0".str_repeat("\x00", 16));
 
-    Livewire::test('tardis::pages.media-picker', ['model' => 'form.image'])
+    Livewire::test('tardis::components.media-picker', ['model' => 'form.image'])
         ->dispatch('media-picker-open', model: 'form.image')
         ->call('toggleSelect', 'media/photo.jpg')
         ->call('confirm')
@@ -103,7 +103,7 @@ it('picks a single file and dispatches media-picked with the storage path', func
 });
 
 it('enforces the max selection limit in multiple mode', function () {
-    Livewire::test('tardis::pages.media-picker', ['model' => 'form.image', 'max' => 2])
+    Livewire::test('tardis::components.media-picker', ['model' => 'form.image', 'max' => 2])
         ->dispatch('media-picker-open', model: 'form.image')
         ->call('toggleSelect', 'media/a.jpg')
         ->call('toggleSelect', 'media/b.jpg')
@@ -113,7 +113,7 @@ it('enforces the max selection limit in multiple mode', function () {
 });
 
 it('enforces the min selection limit before confirming', function () {
-    $component = Livewire::test('tardis::pages.media-picker', ['model' => 'form.image', 'min' => 2])
+    $component = Livewire::test('tardis::components.media-picker', ['model' => 'form.image', 'min' => 2])
         ->dispatch('media-picker-open', model: 'form.image')
         ->call('toggleSelect', 'media/a.jpg')
         ->call('confirm')
@@ -131,7 +131,7 @@ it('enforces the min selection limit before confirming', function () {
 it('forbids opening the picker without the browse media ability', function () {
     pickerGateAllows([]);
 
-    Livewire::test('tardis::pages.media-picker', ['model' => 'form.image'])
+    Livewire::test('tardis::components.media-picker', ['model' => 'form.image'])
         ->call('openPicker', 'form.image', null)
         ->assertForbidden();
 });
@@ -139,7 +139,7 @@ it('forbids opening the picker without the browse media ability', function () {
 it('opens the picker when the browse media ability is granted', function () {
     pickerGateAllows([Abilities::MEDIA_BROWSE]);
 
-    Livewire::test('tardis::pages.media-picker', ['model' => 'form.image'])
+    Livewire::test('tardis::components.media-picker', ['model' => 'form.image'])
         ->call('openPicker', 'form.image', null)
         ->assertSet('open', true);
 });

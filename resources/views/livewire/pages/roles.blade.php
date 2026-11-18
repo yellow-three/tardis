@@ -1,0 +1,294 @@
+<?php
+
+use Livewire\Attributes\Layout;
+use Livewire\Attributes\Title;
+use Livewire\Component;
+use Tardis\Auth\Abilities;
+use Tardis\Auth\BreadAuthorization;
+use Tardis\Auth\PrivilegeGuard;
+use Tardis\Support\ModelResolver;
+
+new #[Title('tardis::roles.roles')] #[Layout('tardis::layouts.admin')] class extends Component
+{
+    public array $roles = [];
+
+    public string $newName = '';
+
+    public string $newSlug = '';
+
+    public bool $showAddModal = false;
+
+    public ?int $editRoleId = null;
+
+    public array $editRolePermissions = [];
+
+    public bool $showEditModal = false;
+
+    public ?int $deleteId = null;
+
+    public bool $showDeleteModal = false;
+
+    public array $allPermissions = [];
+
+    public ?string $error = null;
+
+    /**
+     * Runs on every request, not only on mount: Livewire keeps component state
+     * between updates, so a permission revoked after the page opened must
+     * still stop the next action.
+     */
+    public function boot(): void
+    {
+        app(BreadAuthorization::class)->authorizeAbility(Abilities::ROLES);
+    }
+
+    public function mount(): void
+    {
+        $this->loadRoles();
+        $this->allPermissions = ModelResolver::permission()::all()->toArray();
+    }
+
+    public function loadRoles(): void
+    {
+        $this->roles = ModelResolver::role()::with('permissions')->get()->toArray();
+    }
+
+    public function createRole(): void
+    {
+        $this->validate([
+            'newName' => 'required|string|max:255',
+            'newSlug' => 'required|string|max:255|unique:tardis_roles,slug',
+        ]);
+
+        ModelResolver::role()::create([
+            'name' => $this->newName,
+            'slug' => $this->newSlug,
+        ]);
+
+        $this->reset(['newName', 'newSlug']);
+        $this->showAddModal = false;
+        $this->loadRoles();
+    }
+
+    public function editRole(int $roleId): void
+    {
+        $role = ModelResolver::role()::findOrFail($roleId);
+        $this->editRoleId = $roleId;
+        $this->error = null;
+        $this->editRolePermissions = $role->permissions->pluck('id')->toArray();
+        $this->showEditModal = true;
+    }
+
+    /**
+     * Permissions as a tree: group, then (for BREAD) resource, in the order the
+     * database lists them.
+     *
+     * @return array<string, array<string, array<int, array<string, mixed>>>>
+     */
+    public function permissionTree(): array
+    {
+        $tree = [];
+
+        foreach ($this->allPermissions as $permission) {
+            $group = $permission['group'] ?: 'other';
+            // "browse posts" -> resource "posts"; fixed abilities have no resource.
+            $resource = $group === 'BREAD' ? (string) str($permission['slug'])->after(' ') : '';
+
+            $tree[$group][$resource][] = $permission;
+        }
+
+        return $tree;
+    }
+
+    /** Tick every permission of a group (or a resource within it), or clear them when all are ticked. */
+    public function toggleGroup(string $group, string $resource = ''): void
+    {
+        $ids = collect($this->permissionTree()[$group] ?? [])
+            ->when($resource !== '' || $group === 'BREAD', fn ($branches) => $branches->only($resource === '' ? $branches->keys()->all() : [$resource]))
+            ->flatten(1)
+            ->pluck('id')
+            ->map(fn ($id) => (int) $id);
+
+        $current = collect($this->editRolePermissions)->map(fn ($id) => (int) $id);
+
+        $this->editRolePermissions = $ids->every(fn ($id) => $current->contains($id))
+            ? $current->reject(fn ($id) => $ids->contains($id))->values()->all()
+            : $current->merge($ids)->unique()->values()->all();
+    }
+
+    public function saveRolePermissions(): void
+    {
+        if ($this->editRoleId) {
+            $role = ModelResolver::role()::findOrFail($this->editRoleId);
+
+            $current = $role->permissions()->pluck($role->permissions()->getRelated()->getQualifiedKeyName())->all();
+
+            if (! app(PrivilegeGuard::class)->mayGrantPermissions(auth()->user(), $current, $this->editRolePermissions)) {
+                $this->error = __('tardis::roles.cannot_grant_beyond_own');
+
+                return;
+            }
+
+            $role->permissions()->sync($this->editRolePermissions);
+
+            $slugs = fn (array $ids) => ModelResolver::permission()::query()->whereIn('id', $ids)->orderBy('slug')->pluck('slug')->all();
+            app(\Tardis\Bread\ActivityLogger::class)->audit('tardis.role', 'permissions_changed', [
+                'role' => $role->slug,
+                'added' => $slugs(array_diff(array_map('intval', $this->editRolePermissions), array_map('intval', $current))),
+                'removed' => $slugs(array_diff(array_map('intval', $current), array_map('intval', $this->editRolePermissions))),
+            ], $role->getKey());
+            $this->showEditModal = false;
+            $this->loadRoles();
+        }
+    }
+
+    public function confirmDelete(int $id): void
+    {
+        $this->deleteId = $id;
+        $this->error = null;
+        $this->showDeleteModal = true;
+    }
+
+    public function deleteRole(): void
+    {
+        if ($this->deleteId) {
+            $role = ModelResolver::role()::findOrFail($this->deleteId);
+
+            // Deleting it would lock every administrator out at once.
+            if (in_array((int) $role->getKey(), app(PrivilegeGuard::class)->superAdminRoleIds(), true)) {
+                $this->error = __('tardis::roles.cannot_delete_super_admin');
+
+                return;
+            }
+
+            $role->permissions()->detach();
+            $role->users()->detach();
+            $role->delete();
+            $this->deleteId = null;
+            $this->showDeleteModal = false;
+            $this->loadRoles();
+        }
+    }
+}; ?>
+
+<div>
+    <x-tardis::page-header :title="__('tardis::roles.roles')" :description="__('tardis::roles.manage_user_roles_and_their_permissions')">
+        <x-slot:action>
+            <button wire:click="$set('showAddModal', true)" class="btn btn-primary gap-2">
+                <x-tardis::icon name="plus" class="w-4 h-4" />
+                {{ __('tardis::roles.add_role') }}
+            </button>
+        </x-slot:action>
+    </x-tardis::page-header>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        @forelse ($roles as $role)
+            <div wire:key="role-{{ $role['id'] }}" class="card bg-base-100 border border-base-300">
+                <div class="card-body">
+                    <h3 class="card-title">{{ $role['name'] }}</h3>
+                    <p class="text-sm text-base-content/60">{{ $role['slug'] }}</p>
+                    <div class="flex flex-wrap gap-1 mt-2">
+                        @foreach ($role['permissions'] as $perm)
+                            <span class="badge badge-ghost badge-xs">{{ $perm['slug'] }}</span>
+                        @endforeach
+                        @if (empty($role['permissions']))
+                            <span class="text-xs text-base-content/40">{{ __('tardis::roles.no_permissions') }}</span>
+                        @endif
+                    </div>
+                    <div class="card-actions justify-end mt-4">
+                        <button wire:click="editRole({{ $role['id'] }}" class="btn btn-ghost btn-sm">
+                            <x-tardis::icon name="pencil-square" class="w-4 h-4" />
+                        </button>
+                        <button wire:click="confirmDelete({{ $role['id'] }})" class="btn btn-ghost btn-sm text-error">
+                            <x-tardis::icon name="x-mark" class="w-4 h-4" />
+                        </button>
+                    </div>
+                </div>
+            </div>
+        @empty
+            <div class="col-span-full card bg-base-100">
+                <div class="card-body text-center py-12">
+                    <h3 class="text-lg font-semibold">{{ __('tardis::roles.no_roles_found') }}</h3>
+                    <p class="text-base-content/60">{{ __('tardis::roles.create_a_role_to_get_started') }}</p>
+                </div>
+            </div>
+        @endforelse
+    </div>
+
+    @if ($showAddModal)
+        <dialog class="modal modal-open">
+            <div class="modal-box">
+                <h3 class="font-bold text-lg">{{ __('tardis::roles.add_role') }}</h3>
+                <form wire:submit="createRole" class="space-y-4 py-4">
+                    <input type="text" wire:model="newName" class="input w-full" placeholder="{{ __('tardis::roles.role_name') }}" />
+                    <input type="text" wire:model="newSlug" class="input w-full" placeholder="{{ __('tardis::roles.slug_e_g_editor') }}" />
+                </form>
+                <div class="modal-action">
+                    <button wire:click="$set('showAddModal', false)" class="btn btn-ghost">{{ __('tardis::roles.cancel') }}</button>
+                    <button wire:click="createRole" class="btn btn-primary">{{ __('tardis::roles.create') }}</button>
+                </div>
+            </div>
+            <form method="dialog" class="modal-backdrop"><button wire:click="$set('showAddModal', false)">{{ __('tardis::roles.close') }}</button></form>
+        </dialog>
+    @endif
+
+    @if ($showEditModal)
+        <dialog class="modal modal-open">
+            <div class="modal-box w-full max-w-lg">
+                <h3 class="font-bold text-lg">{{ __('tardis::roles.edit_role_permissions') }}</h3>
+                <div class="py-4 max-h-96 overflow-y-auto space-y-4">
+                    @foreach ($this->permissionTree() as $group => $resources)
+                        <section wire:key="perm-group-{{ $group }}">
+                            <div class="mb-1 flex items-center justify-between">
+                                <h4 class="text-sm font-semibold uppercase tracking-wide text-base-content/60">{{ $group }}</h4>
+                                <button type="button" wire:click="toggleGroup(@js($group))" class="btn btn-ghost btn-xs">{{ __('tardis::roles.toggle_all') }}</button>
+                            </div>
+                            @foreach ($resources as $resource => $permissions)
+                                @if ($resource !== '')
+                                    <div class="mt-2 flex items-center justify-between pl-2">
+                                        <span class="text-xs font-medium text-base-content/70">{{ $resource }}</span>
+                                        <button type="button" wire:click="toggleGroup(@js($group), @js($resource))" class="btn btn-ghost btn-xs">{{ __('tardis::roles.toggle_all') }}</button>
+                                    </div>
+                                @endif
+                                @foreach ($permissions as $perm)
+                                    <label wire:key="perm-{{ $perm['id'] }}" class="flex items-center gap-3 py-1.5 border-b border-base-200 {{ $resource !== '' ? 'pl-4' : '' }}">
+                                        <input type="checkbox" wire:model="editRolePermissions" value="{{ $perm['id'] }}" class="checkbox checkbox-sm checkbox-primary" />
+                                        <div>
+                                            <span class="font-medium">{{ $perm['name'] }}</span>
+                                            <span class="text-xs text-base-content/50 ml-2">{{ $perm['slug'] }}</span>
+                                        </div>
+                                    </label>
+                                @endforeach
+                            @endforeach
+                        </section>
+                    @endforeach
+                </div>
+                @if ($error)
+                    <div class="alert alert-error mt-2" role="alert"><span>{{ $error }}</span></div>
+                @endif
+                <div class="modal-action">
+                    <button wire:click="$set('showEditModal', false)" class="btn btn-ghost">{{ __('tardis::roles.cancel') }}</button>
+                    <button wire:click="saveRolePermissions" class="btn btn-primary">{{ __('tardis::roles.save') }}</button>
+                </div>
+            </div>
+            <form method="dialog" class="modal-backdrop"><button wire:click="$set('showEditModal', false)">{{ __('tardis::roles.close') }}</button></form>
+        </dialog>
+    @endif
+
+    @if ($showDeleteModal)
+        <dialog class="modal modal-open">
+            <div class="modal-box">
+                <h3 class="font-bold text-lg">{{ __('tardis::roles.delete_role') }}</h3>
+                <p class="py-4">{{ __('tardis::roles.are_you_sure_you_want_to_4956') }}</p>
+                @if ($error)
+                    <div class="alert alert-error mt-2" role="alert"><span>{{ $error }}</span></div>
+                @endif
+                <div class="modal-action">
+                    <button wire:click="$set('showDeleteModal', false)" class="btn btn-ghost">{{ __('tardis::roles.cancel') }}</button>
+                    <button wire:click="deleteRole" class="btn btn-error">{{ __('tardis::roles.delete') }}</button>
+                </div>
+            </div>
+            <form method="dialog" class="modal-backdrop"><button wire:click="$set('showDeleteModal', false)">{{ __('tardis::roles.close') }}</button></form>
+        </dialog>
+    @endif
+</div>

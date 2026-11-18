@@ -154,3 +154,14 @@ To keep the old, looser behaviour set `tardis.translation.validation` to `'activ
 - The facade gains `themes()`, `assets()`, `actions()` and `media()`. `Tardis::version()` reports Composer's version for a tagged install.
 - Settings: without `storage/tardis/settings/settings.json` the shipped preset is used as the starting point and the file is written on the first save; it is no longer created on the first web request. The CLI now sees the same defaults as the web.
 - After updating the package run `php artisan tardis:install --force` (or at least `php artisan view:clear`): Livewire's compiled copies of the panel components are renewed by file time and can outlive an update. The asset directives now compile to `app('tardis.assets')`; clear compiled views once after upgrading.
+
+## Faz 10c — Livewire structure and panel routes
+
+- Livewire components moved to `resources/views/livewire/`; their names are unchanged (`tardis::pages.*`) except the media picker, which is a child component and is now `tardis::components.media-picker` (was `tardis::pages.media-picker`). The database and system home screens moved to `index/` directories; their names (`tardis::pages.database`, `tardis::pages.system`) did not change.
+- `vendor:publish --tag=tardis-views` publishes `layouts`, `components`, `formfields`, `widgets` and `partials` only. Published Livewire pages were never used (Livewire reads them from the package); delete `resources/views/vendor/tardis/pages` if you have it, and replace a BREAD screen through the definition's `components`.
+- The unused `stats-media` component is removed.
+- The UI components page follows the `admin.ui-components` setting: with `hide` the menu item disappears and `/admin/ui-components` answers 404.
+- `/admin/media/browse` redirects to `/admin/media`; the `tardis.media.browse` name still exists.
+- Plugin routes register before the BREAD routes. A BREAD whose slug equals a plugin route's first segment gets no routes, and such a slug can no longer be saved.
+- If you open your own panel route group, use `Tardis\Http\PanelRoutes::panel(fn () => …)` instead of repeating the prefix, name and middleware.
+- For files over 12 MB, raise Livewire's `temporary_file_upload.rules` as well as `tardis-media.max_file_size` (README → Media uploads).

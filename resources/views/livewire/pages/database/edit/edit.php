@@ -1,0 +1,344 @@
+<?php
+
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
+use Livewire\Attributes\Layout;
+use Livewire\Attributes\Locked;
+use Livewire\Attributes\Title;
+use Livewire\Component;
+use Tardis\Auth\Abilities;
+use Tardis\Auth\BreadAuthorization;
+use Tardis\Database\Concerns\ManagesColumnDefinitions;
+use Tardis\Database\ModelGenerator;
+
+new #[Title('tardis::shell.titles.edit_table')] #[Layout('tardis::layouts.admin')] class extends Component
+{
+    use ManagesColumnDefinitions;
+
+    #[Locked]
+    public string $selectedTable = '';
+
+    /** @var array<int, array<string, mixed>> */
+    public array $columns = [];
+
+    /**
+     * Editable column rows bound to the create-style table.
+     *
+     * @var array<int, array{name: string, original: string, type: string, length: string, nullable: bool, default: string, key: string}>
+     */
+    public array $editColumns = [];
+
+    public int $totalRows = 0;
+
+    public ?string $error = null;
+
+    public ?string $message = null;
+
+    public bool $selectedTableHasModel = false;
+
+    public bool $showAddColumnForm = false;
+
+    /** @var array{name: string, type: string, length: string, nullable: bool, default: string, primary: bool} */
+    public array $newColumn = [];
+
+    public bool $showEditColumnForm = false;
+
+    public string $editColumnOriginal = '';
+
+    /** @var array{name: string, type: string, length: string, nullable: bool, default: string, primary: bool} */
+    public array $editColumn = [];
+
+    public bool $confirmDropTable = false;
+
+    /** True where schema changes are switched off (production by default). */
+    public bool $readOnly = false;
+
+    public ?string $confirmDropColumn = null;
+
+    /**
+     * Runs on every request, not only on mount: Livewire keeps component state
+     * between updates, so a permission revoked after the page opened must
+     * still stop the next action.
+     */
+    public function boot(): void
+    {
+        app(BreadAuthorization::class)->authorizeAbility(Abilities::DATABASE);
+    }
+
+    public function mount(string $table): void
+    {
+        $connection = config('database.default');
+
+        if ($this->isHiddenTable($table) || ! Schema::connection($connection)->hasTable($table)) {
+            abort(404);
+        }
+
+        $this->selectedTable = $table;
+        $this->readOnly = ! $this->schemaChangesAllowed();
+        $this->selectedTableHasModel = app(ModelGenerator::class)->modelExists($table);
+        $this->loadTableData();
+    }
+
+    public function loadTableData(): void
+    {
+        try {
+            $connection = config('database.default');
+
+            $this->columns = $this->withColumnKeys(
+                Schema::connection($connection)->getColumns($this->selectedTable),
+                Schema::connection($connection)->getIndexes($this->selectedTable)
+            );
+
+            $this->editColumns = array_map(
+                fn (array $column) => [
+                    'name' => $column['name'],
+                    'original' => $column['name'],
+                    'type' => $this->guessColumnType($column['name']),
+                    'length' => $this->parseColumnLength((string) $column['type']),
+                    'nullable' => (bool) ($column['nullable'] ?? false),
+                    'default' => $column['default'] === null ? '' : (string) $column['default'],
+                    'key' => $column['key'] ?? '',
+                ],
+                $this->columns
+            );
+
+            $this->totalRows = DB::connection($connection)->table($this->selectedTable)->count();
+        } catch (Throwable $e) {
+            $this->error = __('tardis::database.could_not_load_table_data', ['error' => $e->getMessage()]);
+            $this->columns = [];
+            $this->editColumns = [];
+        }
+    }
+
+    protected function parseColumnLength(string $rawType): string
+    {
+        if (preg_match('/\((\d+(?:,\s*\d+)?)\)/', $rawType, $matches)) {
+            return str_replace(' ', '', $matches[1]);
+        }
+
+        return '';
+    }
+
+    public function addEditColumnRow(): void
+    {
+        $this->editColumns[] = [
+            'name' => '',
+            'original' => '',
+            'type' => 'string',
+            'length' => '',
+            'nullable' => false,
+            'default' => '',
+            'key' => '',
+        ];
+        $this->error = null;
+    }
+
+    public function saveColumn(int $index): void
+    {
+        $column = $this->editColumns[$index] ?? null;
+
+        if ($column === null || ! $this->guardSchemaChange()) {
+            return;
+        }
+
+        if (! $this->validateColumn($column, $index)) {
+            return;
+        }
+
+        $this->error = null;
+
+        try {
+            if ($column['original'] === '') {
+                Schema::connection(config('database.default'))
+                    ->table($this->selectedTable, function (Blueprint $table) use ($column) {
+                        $this->applyColumnDefinition($table, $column);
+                    });
+
+                $this->auditSchema('column_added', ['table' => $this->selectedTable, 'column' => $column['name'], 'type' => $column['type']]);
+                $this->message = __('tardis::database.column_added');
+            } else {
+                $result = $this->modifyColumn($this->selectedTable, $column['original'], $column);
+
+                $this->message = $result === null
+                    ? __('tardis::database.column_unchanged')
+                    : __('tardis::database.column_updated');
+            }
+
+            $this->loadTableData();
+        } catch (DomainException $e) {
+            $this->error = $e->getMessage();
+        } catch (Throwable $e) {
+            $this->error = __('tardis::database.could_not_save_column', ['error' => $e->getMessage()]);
+        }
+    }
+
+    public function requestRemoveColumnRow(int $index): void
+    {
+        $column = $this->editColumns[$index] ?? null;
+
+        if ($column === null) {
+            return;
+        }
+
+        // Unsaved rows are removed from the editor without touching the database.
+        if ($column['original'] === '') {
+            unset($this->editColumns[$index]);
+            $this->editColumns = array_values($this->editColumns);
+
+            return;
+        }
+
+        $this->requestDropColumn($column['original']);
+    }
+
+    public function openAddColumn(): void
+    {
+        $this->showAddColumnForm = true;
+        $this->newColumn = $this->emptyColumn();
+        $this->showEditColumnForm = false;
+        $this->error = null;
+    }
+
+    public function closeAddColumn(): void
+    {
+        $this->showAddColumnForm = false;
+        $this->error = null;
+    }
+
+    public function addColumn(): void
+    {
+        if (! $this->guardSchemaChange() || ! $this->validateColumn($this->newColumn, 0)) {
+            return;
+        }
+
+        try {
+            Schema::connection(config('database.default'))
+                ->table($this->selectedTable, function (Blueprint $table) {
+                    $this->applyColumnDefinition($table, $this->newColumn);
+                });
+
+            $this->auditSchema('column_added', ['table' => $this->selectedTable, 'column' => $this->newColumn['name'], 'type' => $this->newColumn['type']]);
+
+            $this->showAddColumnForm = false;
+            $this->loadTableData();
+        } catch (Throwable $e) {
+            $this->error = __('tardis::database.could_not_add_column', ['error' => $e->getMessage()]);
+        }
+    }
+
+    public function openEditColumn(string $name): void
+    {
+        $this->editColumnOriginal = $name;
+        $this->editColumn = [
+            'name' => $name,
+            'type' => $this->guessColumnType($name),
+            'length' => '',
+            'nullable' => $this->isColumnNullable($name),
+            'default' => $this->getColumnDefault($name),
+            'primary' => false,
+        ];
+        $this->showEditColumnForm = true;
+        $this->showAddColumnForm = false;
+        $this->error = null;
+    }
+
+    public function closeEditColumn(): void
+    {
+        $this->showEditColumnForm = false;
+        $this->error = null;
+    }
+
+    public function saveEditColumn(): void
+    {
+        if (! $this->guardSchemaChange() || ! $this->validateColumn($this->editColumn, 0)) {
+            return;
+        }
+
+        try {
+            $this->modifyColumn($this->selectedTable, $this->editColumnOriginal, $this->editColumn);
+            $this->editColumnOriginal = $this->editColumn['name'];
+            $this->showEditColumnForm = false;
+            $this->loadTableData();
+        } catch (DomainException $e) {
+            $this->error = $e->getMessage();
+        } catch (Throwable $e) {
+            $this->error = __('tardis::database.could_not_update_column', ['error' => $e->getMessage()]);
+        }
+    }
+
+    public function requestDropColumn(string $name): void
+    {
+        $this->confirmDropColumn = $name;
+    }
+
+    public function cancelDropColumn(): void
+    {
+        $this->confirmDropColumn = null;
+    }
+
+    public function dropColumn(): void
+    {
+        if (! $this->selectedTable || ! $this->confirmDropColumn || ! $this->guardSchemaChange()) {
+            return;
+        }
+
+        try {
+            Schema::connection(config('database.default'))
+                ->table($this->selectedTable, function (Blueprint $table) {
+                    $table->dropColumn($this->confirmDropColumn);
+                });
+
+            $this->auditSchema('column_dropped', ['table' => $this->selectedTable, 'column' => $this->confirmDropColumn]);
+
+            $this->confirmDropColumn = null;
+            $this->loadTableData();
+        } catch (Throwable $e) {
+            $this->error = __('tardis::database.could_not_drop_column', ['error' => $e->getMessage()]);
+            $this->confirmDropColumn = null;
+        }
+    }
+
+    public function generateModel(): void
+    {
+        try {
+            app(ModelGenerator::class)->generate($this->selectedTable, $this->columns);
+
+            $this->selectedTableHasModel = true;
+            $this->message = __('tardis::database.model_created');
+        } catch (Throwable $e) {
+            $this->message = __('tardis::database.model_failed', ['error' => $e->getMessage()]);
+        }
+    }
+
+    public function requestDropTable(): void
+    {
+        $this->confirmDropTable = true;
+    }
+
+    public function cancelDropTable(): void
+    {
+        $this->confirmDropTable = false;
+    }
+
+    public function dropTable(): void
+    {
+        if (! $this->guardSchemaChange()) {
+            $this->confirmDropTable = false;
+
+            return;
+        }
+
+        try {
+            Schema::connection(config('database.default'))->dropIfExists($this->selectedTable);
+            $this->auditSchema('table_dropped', ['table' => $this->selectedTable]);
+
+            session()->flash('message', __('tardis::database.table_dropped'));
+
+            $this->redirect(route('tardis.database.index'), navigate: true);
+        } catch (Throwable $e) {
+            $this->error = __('tardis::database.could_not_drop_table', ['error' => $e->getMessage()]);
+            $this->confirmDropTable = false;
+        }
+    }
+};

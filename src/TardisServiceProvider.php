@@ -118,11 +118,6 @@ class TardisServiceProvider extends ServiceProvider
         $this->registerViews();
         $this->registerTranslations();
 
-        Blade::anonymousComponentPath(
-            __DIR__.'/../resources/views/components',
-            'tardis'
-        );
-
         $this->registerRoutes();
         $this->registerMigrations();
         $this->registerPublishing();
@@ -156,11 +151,17 @@ class TardisServiceProvider extends ServiceProvider
         $manager->enableByDefault('tardis-authorization');
     }
 
+    /**
+     * Livewire components live in their own root, so layouts, Blade components,
+     * form field and widget views are never mistaken for components (and a
+     * component file is never rendered as a plain view). Names stay
+     * tardis::pages.* and tardis::components.*.
+     */
     protected function registerLivewireNamespaces(): void
     {
         Livewire::addNamespace(
             namespace: 'tardis',
-            viewPath: __DIR__.'/../resources/views',
+            viewPath: __DIR__.'/../resources/views/livewire',
         );
     }
 
@@ -194,9 +195,14 @@ class TardisServiceProvider extends ServiceProvider
             __DIR__.'/../config/tardis.php' => config_path('tardis.php'),
         ], 'tardis-config');
 
-        $this->publishes([
-            __DIR__.'/../resources/views' => resource_path('views/vendor/tardis'),
-        ], 'tardis-views');
+        // Only the Blade views a host can override: Livewire resolves its
+        // components from the package alone, so a published page would be
+        // silently ignored. Pages are replaced through BREAD components.
+        $views = __DIR__.'/../resources/views';
+
+        $this->publishes(collect(['layouts', 'components', 'formfields', 'widgets', 'partials'])
+            ->mapWithKeys(fn (string $dir) => ["{$views}/{$dir}" => resource_path("views/vendor/tardis/{$dir}")])
+            ->all(), 'tardis-views');
 
         $this->publishes([
             __DIR__.'/../database/migrations' => database_path('migrations'),

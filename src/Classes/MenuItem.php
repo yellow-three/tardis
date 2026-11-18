@@ -30,6 +30,9 @@ class MenuItem
     /** @var array<int, mixed> Permission arguments passed to authorize() */
     public array $permissionArguments = [];
 
+    /** @var (\Closure(): bool)|null */
+    protected ?\Closure $visibleWhen = null;
+
     public ?string $badgeColor = null;
 
     public ?string $badgeValue = null;
@@ -165,6 +168,19 @@ class MenuItem
         return $this;
     }
 
+    /**
+     * Show the item only while the callback answers true. Asked on every
+     * render, so a setting changed at runtime takes effect at once.
+     *
+     * @param  \Closure(): bool  $callback
+     */
+    public function visibleWhen(\Closure $callback): self
+    {
+        $this->visibleWhen = $callback;
+
+        return $this;
+    }
+
     public function badge(string $color, ?string $value = null): self
     {
         $this->badgeColor = $color;
@@ -290,6 +306,10 @@ class MenuItem
 
     public function isVisible(): bool
     {
+        if ($this->visibleWhen !== null && ! ($this->visibleWhen)()) {
+            return false;
+        }
+
         if ($this->permission !== null) {
             $auth = $this->resolveAuthorization();
 
