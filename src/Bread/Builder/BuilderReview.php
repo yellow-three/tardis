@@ -29,6 +29,8 @@ final class BuilderReview
         private readonly array $editTabs,
         private readonly bool $modelHasSoftDeletes,
         private readonly bool $softDelete,
+        /** @var list<string> fields and keys naming a column the table lacks */
+        private readonly array $missingColumns = [],
     ) {}
 
     /**
@@ -58,6 +60,9 @@ final class BuilderReview
             ...$this->slugWarnings(),
             ...$this->fieldWarnings(),
             ...$this->tabWarnings(),
+            ...($this->missingColumns !== []
+                ? [self::warning('warning', 'missing_columns', ['columns' => implode(', ', $this->missingColumns)])]
+                : []),
             ...($this->modelHasSoftDeletes && ! $this->softDelete
                 ? [self::warning('info', 'soft_delete_disabled')]
                 : []),

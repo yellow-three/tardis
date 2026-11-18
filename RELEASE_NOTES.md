@@ -250,3 +250,8 @@ Fixes from the 2026-11-17 review (`docs/notes.md`). Each one is covered by a tes
 - **docs/CUSTOMIZATION.md**: actions, custom field types, accessors, replacing a BREAD screen, overriding views, panel routes, signing in with another guard, soft deletes and access control. Its examples run as `tests/Feature/CustomizationGuideTest.php`.
 - **docs/MIGRATING_FROM_VOYAGER.md**: importing a Voyager site, checking the report, replacing Voyager calls in code, what works differently, removing Voyager.
 - The README now says what Tardis is and where it stands next to Voyager.
+
+## Faz 12 — definition health (R44)
+
+- **`tardis:doctor`** warns when a BREAD field, its order column or its search key names a column the table no longer has. Relation fields, fields with an `accessor` and fields the forms never write (model accessors) are left out.
+- **BREAD builder:** the review step shows the same warning before the definition is saved. Backups and rollback stay on the BREAD management page (the *Backups* menu of each definition).
