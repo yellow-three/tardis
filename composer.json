@@ -1,6 +1,6 @@
 {
     "name": "yellow-three/tardis",
-    "description": "TARDIS Admin Panel Framework",
+    "description": "Tardis Admin Panel Framework",
     "type": "library",
     "license": "MIT",
     "keywords": ["laravel", "admin", "livewire", "tardis", "bread"],

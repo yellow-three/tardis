@@ -28,7 +28,7 @@ class MakePluginCommand extends Command
         {--with-migration : Create a migration file}
         {--with-model : Create an Eloquent model}';
 
-    protected $description = 'Create a new TARDIS plugin package';
+    protected $description = 'Create a new Tardis plugin package';
 
     public function handle(): int
     {
@@ -73,7 +73,7 @@ class MakePluginCommand extends Command
             );
         }
 
-        $this->components->info("TARDIS plugin [Tardis{$studlyName}] created successfully.");
+        $this->components->info("Tardis plugin [Tardis{$studlyName}] created successfully.");
         $this->components->twoColumnDetail('Package Directory', $pluginDir);
         $this->newLine();
         $this->components->bulletList([

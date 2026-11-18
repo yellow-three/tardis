@@ -2,8 +2,8 @@
 
 return [
     'brand' => [
-        'name' => 'TARDIS',
-        'admin' => 'TARDIS Admin',
+        'name' => 'Tardis',
+        'admin' => 'Tardis Admin',
         'panel' => 'Admin Panel',
     ],
     'skip_to_content' => 'Skip to content',
@@ -17,7 +17,7 @@ return [
     'notifications' => 'Notifications',
     'toggle_theme' => 'Toggle theme',
     'language' => 'Language',
-    'footer' => '© :year TARDIS',
+    'footer' => '© :year Tardis',
     'admin_fallback' => 'Admin',
     'unauthorized' => 'Unauthorized.',
     'titles' => [

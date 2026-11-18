@@ -49,7 +49,7 @@ class ActivityLogger
         }
 
         try {
-            if (Schema::hasTable('activity_logs')) {
+            if (Schema::hasTable(ActivityLog::TABLE)) {
                 $this->log($type, $id, $action, newValues: $values);
             }
         } catch (\Throwable $e) {
@@ -60,7 +60,7 @@ class ActivityLogger
     /** The ip/user agent columns arrive with a later migration. */
     protected function hasRequestColumns(): bool
     {
-        return self::$requestColumns ??= Schema::hasColumn('activity_logs', 'ip_address');
+        return self::$requestColumns ??= Schema::hasColumn(ActivityLog::TABLE, 'ip_address');
     }
 
     public function created(string $modelType, int|string $modelId, array $values = []): ActivityLog

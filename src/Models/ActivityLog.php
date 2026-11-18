@@ -12,6 +12,11 @@ class ActivityLog extends Model
 {
     use HasFactory;
 
+    /** Prefixed like the other package tables; it was activity_logs before 0.2. */
+    public const TABLE = 'tardis_activity_logs';
+
+    protected $table = self::TABLE;
+
     protected $fillable = [
         'user_id',
         'model_type',

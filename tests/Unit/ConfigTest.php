@@ -1,6 +1,7 @@
 <?php
 
 declare(strict_types=1);
+use Tardis\TardisServiceProvider;
 
 test('config has the admin prefix', function () {
     expect(config('tardis.admin.prefix'))->toBe('admin');
@@ -50,7 +51,7 @@ test('the command runner is disabled outside local so a published config cannot 
 test('keys nothing reads were removed so changing them is never a silent no-op', function () {
     // These existed in 1.x but no code consulted them: route middleware is fixed
     // to web + tardis.admin, plugin state lives in storage/tardis/plugins.json,
-    // media settings are in tardis-media, and BREAD soft deletes / timestamps
+    // media settings are under tardis.media, and BREAD soft deletes / timestamps
     // are per definition.
     expect(config('tardis.admin.middleware'))->toBeNull()
         ->and(config('tardis.plugins'))->toBeNull()
@@ -66,7 +67,24 @@ test('the published config file keeps every documented section', function () {
 
     expect(array_keys($file))->toEqualCanonicalizing([
         'admin', 'bread', 'database', 'assets', 'locales', 'translation',
-        'authorization', 'activity_log', 'models', 'system', 'csp',
+        'authorization', 'activity_log', 'models', 'system', 'csp', 'media', 'icons',
     ])->and($file['models'])->toHaveKeys(['role', 'permission', 'media', 'activity_log'])
         ->and($file['system'])->toHaveKeys(['logs', 'commands', 'demo']);
+});
+
+test('media and icon settings live under the tardis root', function () {
+    expect(config('tardis.media.disk'))->toBe('public')
+        ->and(config('tardis.media.allowed_mimes'))->toContain('pdf')
+        ->and(config('tardis.icons.aliases')['nav.dashboard'])->toBe('heroicon-o-home')
+        ->and(config('tardis-media'))->toBeNull();
+});
+
+test('a published pre-0.2 tardis-media config still applies', function () {
+    config()->set('tardis-media', ['max_file_size' => 2048]);
+
+    $provider = new TardisServiceProvider(app());
+    (new ReflectionMethod($provider, 'mergeLegacyConfig'))->invoke($provider);
+
+    expect(config('tardis.media.max_file_size'))->toBe(2048)
+        ->and(config('tardis.media.disk'))->toBe('public');
 });

@@ -8,7 +8,7 @@ use Illuminate\Console\Command;
 use Tardis\Database\Seeders\PermissionSeeder;
 
 /**
- * One-shot installer: migrate, seed the TARDIS permissions and publish the
+ * One-shot installer: migrate, seed the Tardis permissions and publish the
  * admin assets, then optionally create the first administrator.
  *
  * Every step is idempotent so re-running the command after a failed deploy is
@@ -21,7 +21,7 @@ class InstallCommand extends Command
         {--email= : Email of the first administrator to create}
         {--force : Overwrite published files and skip the confirmation}';
 
-    protected $description = 'Install TARDIS: migrate, seed permissions, publish assets and create an administrator';
+    protected $description = 'Install Tardis: migrate, seed permissions, publish assets and create an administrator';
 
     public function handle(): int
     {

@@ -4,7 +4,7 @@
         "group": "admin",
         "key": "title",
         "name": "Title",
-        "value": "TARDIS Admin",
+        "value": "Tardis Admin",
         "info": "The browser tab title for the admin panel",
         "translatable": false,
         "canBeTranslated": true,
@@ -23,7 +23,7 @@
         "group": "admin",
         "key": "sidebar-title",
         "name": "Sidebar Title",
-        "value": "TARDIS",
+        "value": "Tardis",
         "info": "The title displayed in the admin sidebar",
         "translatable": false,
         "canBeTranslated": true,
@@ -282,7 +282,7 @@
         "translatable": false,
         "canBeTranslated": false,
         "options": {
-            "tardis-light": "TARDIS Light"
+            "tardis-light": "Tardis Light"
         }
     },
     {
@@ -295,7 +295,7 @@
         "translatable": false,
         "canBeTranslated": false,
         "options": {
-            "tardis-dark": "TARDIS Dark"
+            "tardis-dark": "Tardis Dark"
         }
     },
     {

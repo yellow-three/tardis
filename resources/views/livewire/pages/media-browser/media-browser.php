@@ -221,13 +221,13 @@ new #[Title('tardis::shell.titles.media')] #[Layout('tardis::layouts.admin')] cl
 
         $files = is_array($this->newUploads) ? $this->newUploads : [$this->newUploads];
 
-        $allowed = implode(',', (array) config('tardis-media.allowed_mimes', []));
+        $allowed = implode(',', (array) config('tardis.media.allowed_mimes', []));
 
         $this->validate([
             'newUploads.*' => array_values(array_filter([
                 'required',
                 'file',
-                'max:'.config('tardis-media.max_file_size', 10240),
+                'max:'.config('tardis.media.max_file_size', 10240),
                 // The disk is usually public: without an allow-list a .php or
                 // .html upload is served (or executed) from the web root.
                 $allowed !== '' ? 'extensions:'.$allowed : null,

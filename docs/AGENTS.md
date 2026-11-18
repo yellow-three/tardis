@@ -1,4 +1,4 @@
-# AGENTS.md — TARDIS çalışma rehberi
+# AGENTS.md — Tardis çalışma rehberi
 
 Bu dosya **bu depodaki dokümantasyon yapısının nasıl kullanılacağını** anlatır. İçerik değil, yönlendirme içerir: bir şey yazacaksan nereye yazacağını buradan bulursun.
 
@@ -129,7 +129,7 @@ Kod eklediğinde/taşıdığında **etkilenen referansları güncelle**. Bir bul
 
 ```
 src/
-  Auth/          RoleAuthorizationPlugin — TARDIS'in kendi Permission/Role yetkileri
+  Auth/          RoleAuthorizationPlugin — Tardis'in kendi Permission/Role yetkileri
                  BreadAuthorization — plugin yokken fail-open yol (kasıtlı, B5)
   Bread/         BREAD tanım modeli ve kaynaklar (JSON + PHP config)
   Commands/      artisan komutları
@@ -147,4 +147,4 @@ docs/            Bu rehber + yukarıdaki dört yaşam döngüsü dosyası
 .omo/plans/      İş planları
 ```
 
-Host entegrasyonu **paketin içine değil, host'a** aittir: TARDIS kendi tablolarını `tardis_*` ön ekiyle açar, host kendi tablosunu kendi yönetir. Ayrıntı: `docs/constraints.md` → Permissions.
+Host entegrasyonu **paketin içine değil, host'a** aittir: Tardis kendi tablolarını `tardis_*` ön ekiyle açar, host kendi tablosunu kendi yönetir. Ayrıntı: `docs/constraints.md` → Permissions.

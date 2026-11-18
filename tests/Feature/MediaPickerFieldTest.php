@@ -47,8 +47,8 @@ function pickerGateAllows(array $abilities): void
 }
 
 beforeEach(function () {
-    config()->set('tardis-media.disk', 'public');
-    config()->set('tardis-media.path', 'media');
+    config()->set('tardis.media.disk', 'public');
+    config()->set('tardis.media.path', 'media');
 
     Storage::fake('public');
     Storage::disk('public')->makeDirectory('media');

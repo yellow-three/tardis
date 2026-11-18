@@ -17,7 +17,7 @@ class Tardis{{STUDLY_NAME}}Plugin implements GenericPlugin{{MENU_INTERFACE}}{{WI
 
     public function description(): string
     {
-        return '{{STUDLY_NAME}} plugin for TARDIS';
+        return '{{STUDLY_NAME}} plugin for Tardis';
     }
 {{MENU_METHOD}}
 {{WIDGET_METHOD}}

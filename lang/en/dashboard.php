@@ -2,7 +2,7 @@
 
 return [
     'dashboard' => 'Dashboard',
-    'welcome_to_tardis_admin' => 'Welcome to TARDIS Admin',
+    'welcome_to_tardis_admin' => 'Welcome to Tardis Admin',
     'users' => 'Users',
     'breads' => 'BREADs',
     'media_files' => 'Media Files',

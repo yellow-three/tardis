@@ -2,7 +2,7 @@
 
 return [
     'dashboard' => 'Kontrol paneli',
-    'welcome_to_tardis_admin' => 'TARDIS Yönetim\'e hoş geldiniz',
+    'welcome_to_tardis_admin' => 'Tardis Yönetim\'e hoş geldiniz',
     'users' => 'Kullanıcılar',
     'breads' => 'BREAD\'ler',
     'media_files' => 'Medya dosyaları',

@@ -10,7 +10,7 @@ use Tardis\Auth\Abilities;
 use Tardis\Support\ModelResolver;
 
 /**
- * Provisions the permissions and roles that TARDIS' own authorization plugin
+ * Provisions the permissions and roles that Tardis' own authorization plugin
  * reads.
  *
  * The plugin resolves abilities against the `tardis_*` tables, so seeding

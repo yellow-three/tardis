@@ -76,7 +76,7 @@ class AssetManager
             return '';
         }
 
-        $html = '<!-- TARDIS Styles -->'.PHP_EOL;
+        $html = '<!-- Tardis Styles -->'.PHP_EOL;
 
         // 1. Main CSS asset
         if ($this->isViteDevMode()) {
@@ -135,7 +135,7 @@ class AssetManager
             return '';
         }
 
-        $html = '<!-- TARDIS Scripts -->'.PHP_EOL;
+        $html = '<!-- Tardis Scripts -->'.PHP_EOL;
 
         // 0. The core script. It must run before Livewire starts Alpine, so it is a
         // plain (non-deferred) script placed ahead of @livewireScripts; it also copes

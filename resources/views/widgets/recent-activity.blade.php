@@ -1,6 +1,6 @@
 @php
     try {
-        $recent = \Illuminate\Support\Facades\DB::table('activity_logs')->orderByDesc('created_at')->limit(5)->get();
+        $recent = \Illuminate\Support\Facades\DB::table(\Tardis\Models\ActivityLog::TABLE)->orderByDesc('created_at')->limit(5)->get();
     } catch (\Throwable) {
         $recent = collect();
     }

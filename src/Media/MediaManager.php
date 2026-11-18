@@ -21,8 +21,8 @@ class MediaManager
 
     public function __construct()
     {
-        $this->disk = config('tardis-media.disk', 'public');
-        $this->basePath = config('tardis-media.path', 'media');
+        $this->disk = config('tardis.media.disk', 'public');
+        $this->basePath = config('tardis.media.path', 'media');
     }
 
     public function upload(
@@ -258,7 +258,7 @@ class MediaManager
     }
 
     /**
-     * Extensions a stored file may end in (tardis-media.allowed_mimes), lower
+     * Extensions a stored file may end in (tardis.media.allowed_mimes), lower
      * case. An empty list means the host turned the restriction off.
      *
      * @return list<string>
@@ -267,7 +267,7 @@ class MediaManager
     {
         return array_values(array_unique(array_filter(array_map(
             fn ($extension) => strtolower(ltrim(trim((string) $extension), '.')),
-            (array) config('tardis-media.allowed_mimes', []),
+            (array) config('tardis.media.allowed_mimes', []),
         ))));
     }
 
@@ -292,7 +292,7 @@ class MediaManager
     {
         if (! $this->isAllowedFileName($name)) {
             throw new InvalidArgumentException(
-                $operation.'() name ['.$name.'] has an extension outside tardis-media.allowed_mimes.'
+                $operation.'() name ['.$name.'] has an extension outside tardis.media.allowed_mimes.'
             );
         }
     }
