@@ -244,3 +244,9 @@ Fixes from the 2026-11-17 review (`docs/notes.md`). Each one is covered by a tes
 ## Faz 12 — demo content (R42)
 
 - **`tardis:install --demo`** / **`tardis:demo`** add Categories, Posts and Pages BREADs (belongs_to category picker, image field with a thumbnail, order page), sample records and a `main` site menu, in separate `tardis_demo_*` tables with models inside the package. Existing BREADs and menus with the same names are kept, and `tardis:demo --remove` removes everything the demo added. Outside local/testing it needs `--force`.
+
+## Faz 12 — guides (R43)
+
+- **docs/CUSTOMIZATION.md**: actions, custom field types, accessors, replacing a BREAD screen, overriding views, panel routes, signing in with another guard, soft deletes and access control. Its examples run as `tests/Feature/CustomizationGuideTest.php`.
+- **docs/MIGRATING_FROM_VOYAGER.md**: importing a Voyager site, checking the report, replacing Voyager calls in code, what works differently, removing Voyager.
+- The README now says what Tardis is and where it stands next to Voyager.
