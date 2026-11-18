@@ -8,6 +8,7 @@ use BladeUI\Heroicons\BladeHeroiconsServiceProvider;
 use BladeUI\Icons\BladeIconsServiceProvider;
 use Illuminate\Cache\CacheServiceProvider;
 use Illuminate\Filesystem\Filesystem;
+use Illuminate\Support\Facades\Schema;
 use Livewire\LivewireServiceProvider;
 use Orchestra\Testbench\TestCase as OrchestraTestCase;
 use Tardis\TardisServiceProvider;
@@ -15,6 +16,17 @@ use Tardis\TardisServiceProvider;
 abstract class TestCase extends OrchestraTestCase
 {
     protected string $tardisStorage = '';
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        // An in-memory SQLite database is new for every test; MySQL and
+        // PostgreSQL keep their tables, so start each test from an empty one.
+        if ((getenv('TARDIS_TEST_DB') ?: 'sqlite') !== 'sqlite') {
+            Schema::connection('testing')->dropAllTables();
+        }
+    }
 
     protected function tearDown(): void
     {
@@ -43,11 +55,7 @@ abstract class TestCase extends OrchestraTestCase
         $app->useStoragePath($this->tardisStorage);
 
         $app['config']->set('database.default', 'testing');
-        $app['config']->set('database.connections.testing', [
-            'driver' => 'sqlite',
-            'database' => ':memory:',
-            'prefix' => '',
-        ]);
+        $app['config']->set('database.connections.testing', self::testing_connection());
 
         // Most tests exercise pages as an anonymous caller; authorization has its
         // own tests (AdminAccessTest, BreadAuthorizationTest) that switch it on.
@@ -57,5 +65,33 @@ abstract class TestCase extends OrchestraTestCase
         $app['config']->set('cache.stores.array', [
             'driver' => 'array',
         ]);
+    }
+
+    /**
+     * SQLite in memory by default. CI also runs the suite on MySQL and
+     * PostgreSQL: TARDIS_TEST_DB=mysql|pgsql with the usual DB_* variables.
+     *
+     * @return array<string, mixed>
+     */
+    private static function testing_connection(): array
+    {
+        $driver = (string) (getenv('TARDIS_TEST_DB') ?: 'sqlite');
+
+        if ($driver === 'sqlite') {
+            return ['driver' => 'sqlite', 'database' => ':memory:', 'prefix' => ''];
+        }
+
+        return [
+            'driver' => $driver,
+            'host' => getenv('DB_HOST') ?: '127.0.0.1',
+            'port' => getenv('DB_PORT') ?: ($driver === 'pgsql' ? '5432' : '3306'),
+            'database' => getenv('DB_DATABASE') ?: 'tardis_test',
+            'username' => getenv('DB_USERNAME') ?: 'root',
+            'password' => getenv('DB_PASSWORD') ?: '',
+            'charset' => $driver === 'pgsql' ? 'utf8' : 'utf8mb4',
+            'collation' => $driver === 'pgsql' ? null : 'utf8mb4_unicode_ci',
+            'prefix' => '',
+            'search_path' => 'public',
+        ];
     }
 }

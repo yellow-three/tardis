@@ -255,3 +255,10 @@ Fixes from the 2026-11-17 review (`docs/notes.md`). Each one is covered by a tes
 
 - **`tardis:doctor`** warns when a BREAD field, its order column or its search key names a column the table no longer has. Relation fields, fields with an `accessor` and fields the forms never write (model accessors) are left out.
 - **BREAD builder:** the review step shows the same warning before the definition is saved. Backups and rollback stay on the BREAD management page (the *Backups* menu of each definition).
+
+## Faz 13 — 1.0 gate, first part (R45)
+
+- **Repository files:** `LICENSE` (MIT), `SECURITY.md` (private reports through GitHub), `CHANGELOG.md`, `CONTRIBUTING.md`; `.gitattributes` keeps docs, tests and build files out of the Composer archive.
+- **Static analysis:** PHPStan with Larastan at level 5, clean without a baseline, as `composer analyse` and a CI job. It found a wrong import that only worked by luck: `MediaManager` named `Illuminate\Filesystem\DirectoryAttributes`, a class that does not exist, so folders were recognised only through a fallback. It also found dead code in `Media`.
+- **Databases:** the test suite can run on MySQL and PostgreSQL (`TARDIS_TEST_DB`); CI runs both on every pull request, reporting without blocking until they are green.
+- CI's Composer cache key now changes with `composer.json` (it hashed a lock file that is not committed, so the cache never refreshed).

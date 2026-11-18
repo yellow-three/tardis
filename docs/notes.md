@@ -39,10 +39,7 @@ Kapsam: `src/`, `routes/`, `resources/views/pages`, migration'lar, CI ve doküma
 
 | # | Bulgu |
 |---|-------|
-| B44 | `LICENSE` dosyası yok (`composer.json` ve README "MIT" diyor). `CHANGELOG`, `SECURITY.md`, `CONTRIBUTING` da yok. |
-| B45 | `.gitattributes` yok: `research/`, `docs/`, `tests/`, `.github/`, `stubs` dışı geliştirme dosyaları Composer dist arşivine giriyor (`export-ignore` gerekir). |
-| B46 | `composer.lock` `.gitignore`'da ama CI cache anahtarı `hashFiles('**/composer.lock')`; anahtar hep aynı, cache hiç yenilenmiyor. |
-| B47 | Statik analiz yok (PHPStan/Larastan); CI yalnızca SQLite'ta koşuyor (MySQL/PostgreSQL matrisi yok); tarayıcı/E2E testi yok. |
+| B47 | **Tarayıcı/E2E testi yok.** (PHPStan/Larastan seviye 5 ve MySQL/PostgreSQL CI işleri Faz 13'te eklendi; veritabanı işleri ilk çalıştırmada sonuçlarına göre zorunlu kontrole alınacak.) |
 
 ## Tema, CSS/JS ve Vite (2026-11-17 incelemesi)
 
