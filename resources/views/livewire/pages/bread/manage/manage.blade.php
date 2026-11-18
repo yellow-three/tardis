@@ -31,7 +31,7 @@
                 <p class="text-sm text-base-content/70">
                     {!! __('tardis::bread.legacy_hint', [
                         'dir' => '<code class="badge badge-ghost badge-sm">config/bread</code>',
-                        'command' => '<code class="badge badge-ghost badge-sm">php artisan tardis:bread:migrate</code>',
+                        'command' => '<code class="badge badge-ghost badge-sm">php artisan tardis:bread:import-legacy</code>',
                     ]) !!}
                 </p>
             </div>

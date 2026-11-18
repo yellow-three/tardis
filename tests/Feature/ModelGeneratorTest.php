@@ -197,19 +197,19 @@ test('edit page hides the create model button when the table already has a model
         ->assertDontSee('Create Model');
 });
 
-test('artisan tardis:make-model creates a model for an existing table', function () {
+test('artisan tardis:make:model creates a model for an existing table', function () {
     Schema::create('widgets', function ($table) {
         $table->id();
         $table->string('title');
     });
 
-    $this->artisan('tardis:make-model', ['table' => 'widgets'])
+    $this->artisan('tardis:make:model', ['table' => 'widgets'])
         ->assertExitCode(0);
 
     expect(File::exists(app_path('Models/Widget.php')))->toBeTrue();
 });
 
-test('artisan tardis:make-model fails for a missing table', function () {
-    $this->artisan('tardis:make-model', ['table' => 'nope'])
+test('artisan tardis:make:model fails for a missing table', function () {
+    $this->artisan('tardis:make:model', ['table' => 'nope'])
         ->assertExitCode(1);
 });

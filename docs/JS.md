@@ -14,7 +14,7 @@ The core script (`resources/compiled/assets/app.js`) is loaded **before** Livewi
 
 ## Shipping assets from a plugin
 
-Return `Asset` objects from `provideCSS()` / `provideJS()` (or scaffold everything with `tardis:make-plugin blog --with-assets`):
+Return `Asset` objects from `provideCSS()` / `provideJS()` (or scaffold everything with `tardis:make:plugin blog --with-assets`):
 
 ```php
 use Tardis\Assets\Asset;

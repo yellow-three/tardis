@@ -14,7 +14,14 @@ use Tardis\Bread\Sources\JsonBreadSource;
 
 class MakeBreadCommand extends Command
 {
-    protected $signature = 'tardis:make-bread
+    /**
+     * The pre-0.2 name keeps working until 0.3.
+     *
+     * @var list<string>
+     */
+    protected $aliases = ['tardis:make-bread'];
+
+    protected $signature = 'tardis:make:bread
         {model : The fully qualified model class (e.g., App\\Models\\Post)}
         {slug? : BREAD slug (default: plural snake case of the model basename)}';
 

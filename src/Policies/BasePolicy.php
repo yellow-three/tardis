@@ -69,7 +69,7 @@ class BasePolicy
 
     /**
      * PostPolicy -> posts, BlogPostPolicy -> blog_posts: the plural snake name
-     * `tardis:make-bread` gives a model's BREAD.
+     * `tardis:make:bread` gives a model's BREAD.
      */
     protected function slugFromPolicyClass(string $class): string
     {

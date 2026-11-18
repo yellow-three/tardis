@@ -5,10 +5,10 @@ A BREAD definition is a JSON file, `storage/tardis/bread/{slug}.json` (directory
 ## Generate from a model
 
 ```bash
-php artisan tardis:make-bread "App\Models\Post"
+php artisan tardis:make:bread "App\Models\Post"
 ```
 
-This writes `storage/tardis/bread/posts.json` with the fields detected from the model's `$fillable` list; a column that is `NOT NULL` in the schema becomes `required`. Pass a second argument to choose the slug: `tardis:make-bread "App\Models\Post" articles`.
+This writes `storage/tardis/bread/posts.json` with the fields detected from the model's `$fillable` list; a column that is `NOT NULL` in the schema becomes `required`. Pass a second argument to choose the slug: `tardis:make:bread "App\Models\Post" articles`.
 
 You can also build and edit definitions in the browser at `/admin/bread` (BREAD builder). Every save keeps a timestamped backup and the manage screen can restore one.
 
@@ -78,7 +78,7 @@ app(BreadManager::class)->all();         // Collection of BreadDefinition
 
 ## Legacy PHP definitions
 
-`config/bread/{slug}.php` files from earlier versions are no longer read at runtime. Convert them with `php artisan tardis:bread:migrate` (see the README).
+`config/bread/{slug}.php` files from earlier versions are no longer read at runtime. Convert them with `php artisan tardis:bread:import-legacy` (see the README).
 
 ## Permissions
 

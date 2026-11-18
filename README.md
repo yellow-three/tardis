@@ -127,7 +127,7 @@ A BREAD definition is a JSON file under `storage/tardis/bread/{slug}.json` (conf
 The fastest way to create one is from an existing model:
 
 ```bash
-php artisan tardis:make-bread "App\Models\Post"
+php artisan tardis:make:bread "App\Models\Post"
 ```
 
 This writes `storage/tardis/bread/posts.json` with the fields detected from the model (fillable + schema nullability):
@@ -156,10 +156,10 @@ Every save keeps a timestamped backup (`posts.backup.{Y-m-d@H-i-s.u}.json`) and 
 Legacy PHP definitions in `config/bread/{slug}.php` are still readable. Migrate them to JSON storage with:
 
 ```bash
-php artisan tardis:bread:migrate          # write JSON copies
-php artisan tardis:bread:migrate --dry-run  # preview what would be migrated
-php artisan tardis:bread:migrate --force    # overwrite existing JSON with the same slug
-php artisan tardis:bread:migrate --delete   # move migrated .php files to config/bread-migrated
+php artisan tardis:bread:import-legacy          # write JSON copies
+php artisan tardis:bread:import-legacy --dry-run  # preview what would be migrated
+php artisan tardis:bread:import-legacy --force    # overwrite existing JSON with the same slug
+php artisan tardis:bread:import-legacy --delete   # move migrated .php files to config/bread-migrated
 ```
 
 Export all JSON definitions as a single document with:
@@ -186,10 +186,10 @@ Larger screens (BREAD pages, BREAD builder, media browser, database explorer, se
 | Command | Purpose |
 |---|---|
 | `tardis:admin {email}` | Make a user a super administrator (`--create` creates the user) |
-| `tardis:make-bread {model} {slug?}` | Create a BREAD definition (JSON) from an Eloquent model |
-| `tardis:make-model {table}` | Generate an Eloquent model for an existing table |
-| `tardis:make-plugin {name}` | Scaffold a plugin package (`--with-menu`, `--with-widgets`, `--with-settings`, `--with-migration`, `--with-model`) |
-| `tardis:bread:migrate` | Convert legacy `config/bread/*.php` definitions to JSON |
+| `tardis:make:bread {model} {slug?}` | Create a BREAD definition (JSON) from an Eloquent model |
+| `tardis:make:model {table}` | Generate an Eloquent model for an existing table |
+| `tardis:make:plugin {name}` | Scaffold a plugin package (`--with-menu`, `--with-widgets`, `--with-settings`, `--with-migration`, `--with-model`) |
+| `tardis:bread:import-legacy` | Convert legacy `config/bread/*.php` definitions to JSON |
 | `tardis:bread:export` | Export all JSON definitions as one document |
 | `tardis:doctor` | Report install health; exits non-zero on failure so it can gate a deploy (`--json` for scripts) |
 | `tardis:install` | Idempotent installer: migrate, seed permissions, publish assets, optionally create the first admin (`--email`, `--force`) |

@@ -34,3 +34,11 @@ test('no concrete class shares its short name with a contract', function () {
 
     expect(array_values(array_intersect($contracts, $concrete)))->toBe([]);
 });
+
+test('the pre-0.2 command names still run the renamed commands', function () {
+    $commands = Illuminate\Support\Facades\Artisan::all();
+
+    foreach (['tardis:make-bread' => 'tardis:make:bread', 'tardis:make-model' => 'tardis:make:model', 'tardis:make-plugin' => 'tardis:make:plugin', 'tardis:bread:migrate' => 'tardis:bread:import-legacy'] as $old => $new) {
+        expect($commands[$old] ?? null)->toBe($commands[$new]);
+    }
+});

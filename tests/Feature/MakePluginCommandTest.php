@@ -29,7 +29,7 @@ afterEach(function () {
 
 function generatePlugin(string $root): string
 {
-    test()->artisan('tardis:make-plugin', [
+    test()->artisan('tardis:make:plugin', [
         'name' => 'blog',
         '--namespace' => 'Acme\\Blog',
         '--package-dir' => $root,
@@ -124,7 +124,7 @@ test('the generated composer.json requires the real Tardis package and is valid'
 });
 
 test('--with-assets scaffolds sources, a build and the Asset wiring', function () {
-    test()->artisan('tardis:make-plugin', [
+    test()->artisan('tardis:make:plugin', [
         'name' => 'blog',
         '--namespace' => 'Acme\\Blog',
         '--package-dir' => $this->pluginRoot,
