@@ -198,3 +198,10 @@ Fixes from the 2026-11-17 review (`docs/notes.md`). Each one is covered by a tes
 - **Navigation:** redirects between panel screens keep `wire:navigate`.
 - **One route group definition** (`Tardis\Http\PanelRoutes`) for fixed screens, BREAD and plugin routes; plugin routes now come before BREAD routes, and `/media/browse` redirects to the media screen.
 - The UI components page honours its `admin.ui-components` setting; the builder's review step moved to `Tardis\Bread\Builder\BuilderReview`.
+
+## Faz 10c — renaming (R57)
+
+- **Classes live in their domain:** `Classes/` and `Manager/` are gone (`Menu\MenuManager`, `Theme\ThemeManager`, `Plugins\PluginManager`, …); the root class is `Tardis\TardisManager`, so it no longer shares a name with the facade; the default plugins are `Auth\SessionAuthenticationPlugin` and `Auth\RoleAuthorizationPlugin`.
+- **Commands** follow Laravel's `make:` pattern (`tardis:make:bread`, `tardis:make:model`, `tardis:make:plugin`) and `tardis:bread:migrate` is `tardis:bread:import-legacy`.
+- **Route names** separate the builder (`tardis.builder.*`) from records (`tardis.bread.{index,create,show,edit}`); every list screen ends in `.index`.
+- Old class and command names work until 0.3 with a deprecation notice; stored menu entries and plugin switches are carried over. Full tables in UPGRADE.md.

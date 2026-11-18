@@ -19,7 +19,7 @@ Only SFC and MFC are allowed (see `.claude/AGENTS.md`). Large pages are MFC: `br
 
 ### Security model
 - `tardis.admin` middleware → `AuthenticationPlugin` (default: `Auth::check()`) then the `access admin` ability; login is rate limited.
-- `TardisAuthorizationPlugin` is enabled by default (`tardis.authorization.enabled`); `tardis:admin` creates the first super administrator. With no authorization plugin at all the guard fails open.
+- `RoleAuthorizationPlugin` is enabled by default (`tardis.authorization.enabled`); `tardis:admin` creates the first super administrator. With no authorization plugin at all the guard fails open.
 - BREAD pages authorise `"{action} {slug}"`; every other fixed screen authorises a fixed ability in `boot()` (so each Livewire request is checked); the sidebar hides what the user may not open.
 - BREAD page properties that authorisation depends on are `#[Locked]`.
 - Plugin switches live in `storage/tardis/plugins.json`; authentication/authorization plugins are locked.
