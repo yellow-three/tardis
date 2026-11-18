@@ -138,9 +138,6 @@ jobs:
   test-databases:
     name: test (${{ matrix.db }})
     runs-on: ubuntu-latest
-    # The suite was written against SQLite; until it is green on MySQL and
-    # PostgreSQL these runs report problems without blocking a merge.
-    continue-on-error: true
     strategy:
       fail-fast: false
       matrix:

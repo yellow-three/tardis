@@ -260,5 +260,5 @@ Fixes from the 2026-11-17 review (`docs/notes.md`). Each one is covered by a tes
 
 - **Repository files:** `LICENSE` (MIT), `SECURITY.md` (private reports through GitHub), `CHANGELOG.md`, `CONTRIBUTING.md`; `.gitattributes` keeps docs, tests and build files out of the Composer archive.
 - **Static analysis:** PHPStan with Larastan at level 5, clean without a baseline, as `composer analyse` and a CI job. It found a wrong import that only worked by luck: `MediaManager` named `Illuminate\Filesystem\DirectoryAttributes`, a class that does not exist, so folders were recognised only through a fallback. It also found dead code in `Media`.
-- **Databases:** the test suite can run on MySQL and PostgreSQL (`TARDIS_TEST_DB`); CI runs both on every pull request, reporting without blocking until they are green.
+- **Databases:** the test suite runs on MySQL and PostgreSQL too (`TARDIS_TEST_DB`), and CI runs both on every pull request. The first runs found that search boxes (BREAD lists, relation pickers, global search, users, activity log) were case-sensitive on PostgreSQL; they now use `ilike` there. The package migrations also tied `user_id` columns to `users.id` with foreign keys, which are now gone.
 - CI's Composer cache key now changes with `composer.json` (it hashed a lock file that is not committed, so the cache never refreshed).

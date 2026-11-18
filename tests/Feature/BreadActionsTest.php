@@ -116,7 +116,7 @@ test('a bulk action touches only the ticked rows', function () {
         ->call('runBulk', 'publish')
         ->assertSet('selected', []);
 
-    expect(ActionItem::pluck('status', 'title')->all())->toBe(['A' => 'published', 'B' => 'draft', 'C' => 'published']);
+    expect(ActionItem::orderBy('title')->pluck('status', 'title')->all())->toBe(['A' => 'published', 'B' => 'draft', 'C' => 'published']);
 });
 
 test('a row action that is not bulk cannot be run in bulk', function () {

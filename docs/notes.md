@@ -33,13 +33,12 @@ Kapsam: `src/`, `routes/`, `resources/views/pages`, migration'lar, CI ve doküma
 | B35 | **Durum dosyaları: kalan kısım.** `plugins.json` ve `preferences.json` artık kilit altında ve değişiklik bazında yazılıyor (`Tardis\Support\JsonFile`, Faz 10). Açık: `menus.json`, `dashboard.json`, `themes.json` ve ayarlar hâlâ tam kopya yazıyor (`JsonFile::update()`'e taşınmalı); `storage/` çok sunuculu/efemeral dağıtımlarda paylaşılmıyor, BREAD tanımları deploy ile taşınmıyor (R51). | `src/Menu/MenuOverlay.php`, `src/Dashboard/DashboardLayout.php`, `src/Manager/ThemeManager.php`, `src/Manager/SettingsManager.php` |
 | B37 | ~~`BreadRemoved` olayını dinleyen yok.~~ **Kasıtlı, bulgu değil:** `src/Events/BreadRemoved.php` izinlerin ve geçmişin bilerek bırakıldığını söylüyor (aynı slug yeniden oluşturulunca roller korunur). Yetim menü bindirmesi zararsız. Satır bir sonraki temizlikte silinebilir. | `src/Events/BreadRemoved.php` |
 | B38 | **Activity log: kalan kısım.** Giriş/çıkış, rol ve kullanıcı-rol değişikliği, plugin aç/kapa, IP/user-agent ve indeksler Faz 10'da eklendi. (Tablo adı Faz 10c'de `tardis_activity_logs` oldu.) Açık: geri yükleme (`RestoreAction`) loglanmıyor, kalıcı silme `deleted` olarak görünüyor; ayar değişiklikleri dışında kalan yönetici işlemleri (menü, tema, dashboard) yazılmıyor. | `src/Listeners/LogBreadActivity.php`, `src/Bread/Actions/*` |
-| B42 | Arama `LIKE`'ı PostgreSQL'de sayısal sütunda hata verir (CI yalnızca SQLite). (Kararlı sıralama ve toplu aksiyon transaction'ı Faz 10'da eklendi.) | `src/Bread/BreadQuery.php` |
 
 ## Depo / paketleme / CI
 
 | # | Bulgu |
 |---|-------|
-| B47 | **Tarayıcı/E2E testi yok.** (PHPStan/Larastan seviye 5 ve MySQL/PostgreSQL CI işleri Faz 13'te eklendi; veritabanı işleri ilk çalıştırmada sonuçlarına göre zorunlu kontrole alınacak.) |
+| B47 | **Tarayıcı/E2E testi yok.** (PHPStan/Larastan seviye 5 ve MySQL/PostgreSQL CI işleri Faz 13'te eklendi; MySQL ve PostgreSQL işleri yeşil.) |
 
 ## Tema, CSS/JS ve Vite (2026-11-17 incelemesi)
 
