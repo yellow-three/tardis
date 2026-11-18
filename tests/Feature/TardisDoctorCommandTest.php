@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\File;
 use Tardis\Diagnostics\DoctorReport;
 
@@ -28,7 +29,11 @@ test('doctor succeeds on a healthy install', function () {
     $this->artisan('migrate', ['--force' => true])->assertSuccessful();
     $this->artisan('vendor:publish', ['--tag' => 'tardis-assets', '--force' => true])->assertSuccessful();
 
-    $this->artisan('tardis:doctor')->assertSuccessful();
+    // The report goes into the failure message: on a new Laravel or Livewire
+    // release this test is the first to say which check broke.
+    $exitCode = Artisan::call('tardis:doctor');
+
+    expect($exitCode)->toBe(0, Artisan::output());
 });
 
 test('doctor outputs json with the --json option', function () {

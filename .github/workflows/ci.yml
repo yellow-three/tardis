@@ -272,7 +272,7 @@ jobs:
           composer update --no-interaction --no-progress --prefer-dist
 
       - name: Show the versions under test
-        run: composer show laravel/framework livewire/livewire orchestra/testbench | grep -E '^(name|versions)'
+        run: composer show | grep -E '^(laravel/framework|livewire/livewire|orchestra/testbench) '
 
       - name: Run tests
         run: vendor/bin/pest
