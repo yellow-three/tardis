@@ -87,16 +87,16 @@
 
                 <x-tardis::card :title="__('tardis::site_menus.add_item')">
                     <form wire:submit="addItem" class="grid gap-3 md:grid-cols-2">
-                        <label class="form-control">
-                            <span class="label-text">{{ __('tardis::site_menus.item_title') }}</span>
+                        <label class="flex flex-col gap-1">
+                            <span class="text-sm font-medium">{{ __('tardis::site_menus.item_title') }}</span>
                             <input type="text" wire:model="itemTitle" class="input input-sm w-full" />
                         </label>
-                        <label class="form-control">
-                            <span class="label-text">{{ __('tardis::site_menus.item_url') }}</span>
+                        <label class="flex flex-col gap-1">
+                            <span class="text-sm font-medium">{{ __('tardis::site_menus.item_url') }}</span>
                             <input type="text" wire:model="itemUrl" placeholder="/blog" class="input input-sm w-full" />
                         </label>
-                        <label class="form-control">
-                            <span class="label-text">{{ __('tardis::site_menus.parent') }}</span>
+                        <label class="flex flex-col gap-1">
+                            <span class="text-sm font-medium">{{ __('tardis::site_menus.parent') }}</span>
                             <select wire:model="itemParent" class="select select-sm w-full">
                                 <option value="">{{ __('tardis::site_menus.top_level') }}</option>
                                 @foreach ($rows as $row)

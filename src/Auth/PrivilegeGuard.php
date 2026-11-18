@@ -109,6 +109,24 @@ class PrivilegeGuard
     }
 
     /**
+     * May the user edit, reset the password of, or delete $target? Taking over
+     * an account is a way up too, so nobody manages a user who holds the
+     * super-administrator role or any permission they do not hold themselves.
+     */
+    public function mayManageUser(mixed $user, mixed $target): bool
+    {
+        if (! $this->enforced($user) || $this->isSuperAdmin($user)) {
+            return true;
+        }
+
+        if ($this->isSuperAdmin($target)) {
+            return false;
+        }
+
+        return array_diff($this->heldPermissionIds($target), $this->heldPermissionIds($user)) === [];
+    }
+
+    /**
      * @return list<int>
      */
     protected function heldPermissionIds(mixed $user): array

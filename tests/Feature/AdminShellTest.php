@@ -5,7 +5,6 @@ declare(strict_types=1);
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Schema;
-use Tardis\Menu\MenuManager;
 
 class ShellTestUser extends Authenticatable
 {
@@ -44,6 +43,7 @@ test('every fixed admin page renders a full document without any host applicatio
     '/admin/media',
     '/admin/bread',
     '/admin/menus/site',
+    '/admin/profile',
     '/admin/database',
     '/admin/roles',
     '/admin/users',
@@ -59,14 +59,6 @@ test('the user menu offers logout through the package route', function () {
         ->assertDontSee('Route [');
 });
 
-test('the profile link only appears when the host application has a profile route', function () {
-    $this->get('/admin/dashboard')->assertDontSee('/profile', false);
-
-    Route::get('/profile', fn () => 'profile')->name('profile.edit');
-    app('router')->getRoutes()->refreshNameLookups();
-
-    // MenuManager is a singleton and collects once per request; start clean.
-    app()->forgetInstance(MenuManager::class);
-
-    $this->get('/admin/dashboard')->assertSee('href="'.route('profile.edit').'"', false);
+test('the user menu links to the panel profile page', function () {
+    $this->get('/admin/dashboard')->assertSee('href="'.route('tardis.profile').'"', false);
 });

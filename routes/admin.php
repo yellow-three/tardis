@@ -34,6 +34,7 @@ PanelRoutes::guest(function () {
 
 PanelRoutes::panel(function () {
     Route::livewire('/dashboard', 'tardis::pages.dashboard')->name('dashboard');
+    Route::livewire('/profile', 'tardis::pages.profile')->name('profile');
 
     Route::livewire('/themes', 'tardis::pages.theme-editor')->name('themes.index');
     Route::livewire('/menus', 'tardis::pages.menu-builder')->name('menus.index');

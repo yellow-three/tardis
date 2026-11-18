@@ -12,32 +12,32 @@
         <div class="lg:col-span-2">
             <div class="card bg-base-100 shadow">
                 <div class="card-body space-y-4">
-                    <div class="form-control">
-                        <label class="label"><span class="label-text">{{ __('tardis::media.name') }}</span></label>
+                    <div class="flex flex-col gap-1">
+                        <label class="label"><span class="text-sm font-medium">{{ __('tardis::media.name') }}</span></label>
                         <input type="text" wire:model="name" class="input input-bordered" />
                         @error('name') <p class="text-sm text-error mt-1">{{ $message }}</p> @enderror
                     </div>
 
-                    <div class="form-control">
-                        <label class="label"><span class="label-text">{{ __('tardis::media.original_name') }}</span></label>
+                    <div class="flex flex-col gap-1">
+                        <label class="label"><span class="text-sm font-medium">{{ __('tardis::media.original_name') }}</span></label>
                         <input type="text" wire:model="original_name" class="input input-bordered" />
                         @error('original_name') <p class="text-sm text-error mt-1">{{ $message }}</p> @enderror
                     </div>
 
-                    <div class="form-control">
-                        <label class="label"><span class="label-text">{{ __('tardis::media.alt_text') }}</span></label>
+                    <div class="flex flex-col gap-1">
+                        <label class="label"><span class="text-sm font-medium">{{ __('tardis::media.alt_text') }}</span></label>
                         <input type="text" wire:model="alt_text" class="input input-bordered" />
                         @error('alt_text') <p class="text-sm text-error mt-1">{{ $message }}</p> @enderror
                     </div>
 
-                    <div class="form-control">
-                        <label class="label"><span class="label-text">{{ __('tardis::media.caption') }}</span></label>
+                    <div class="flex flex-col gap-1">
+                        <label class="label"><span class="text-sm font-medium">{{ __('tardis::media.caption') }}</span></label>
                         <input type="text" wire:model="caption" class="input input-bordered" />
                         @error('caption') <p class="text-sm text-error mt-1">{{ $message }}</p> @enderror
                     </div>
 
-                    <div class="form-control">
-                        <label class="label"><span class="label-text">{{ __('tardis::media.description') }}</span></label>
+                    <div class="flex flex-col gap-1">
+                        <label class="label"><span class="text-sm font-medium">{{ __('tardis::media.description') }}</span></label>
                         <textarea wire:model="description" class="textarea textarea-bordered" rows="4"></textarea>
                         @error('description') <p class="text-sm text-error mt-1">{{ $message }}</p> @enderror
                     </div>

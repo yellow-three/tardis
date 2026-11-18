@@ -2,7 +2,6 @@
 
 return [
     'users' => 'Kullanıcılar',
-    'assign_roles_to_the_users_of_3707' => 'Bu uygulamanın kullanıcılarına rol atayın',
     'search_by_name_or_email' => 'Ad veya e-postaya göre ara',
     'search_users' => 'Kullanıcı ara',
     'user' => 'Kullanıcı',
@@ -17,4 +16,19 @@ return [
     'roles_updated' => 'Roller güncellendi.',
     'cannot_change_super_admin' => 'Süper yönetici rolünü yalnızca bir süper yönetici verebilir ya da geri alabilir.',
     'cannot_assign_beyond_own' => 'Kendinizde olmayan izinleri veren bir rolü atayamazsınız.',
+    'description' => 'Hesap oluşturun, bilgilerini düzenleyin ve rol atayın.',
+    'new_user' => 'Yeni kullanıcı',
+    'edit_user' => 'Kullanıcıyı düzenle',
+    'edit' => 'Düzenle',
+    'delete' => 'Sil',
+    'confirm_delete' => 'Bu kullanıcı silinsin mi? Bu işlem geri alınamaz.',
+    'name' => 'Ad',
+    'email' => 'E-posta',
+    'password' => 'Parola',
+    'password_confirmation' => 'Parolayı doğrula',
+    'password_keep' => 'Mevcut parolayı korumak için boş bırakın.',
+    'user_created' => 'Kullanıcı oluşturuldu.',
+    'user_updated' => 'Kullanıcı güncellendi.',
+    'user_deleted' => 'Kullanıcı silindi.',
+    'cannot_delete_self' => 'Kendi hesabınızı silemezsiniz.',
 ];

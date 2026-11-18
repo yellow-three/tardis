@@ -10,6 +10,7 @@ use Livewire\WithPagination;
 use Tardis\Auth\Abilities;
 use Tardis\Auth\BreadAuthorization;
 use Tardis\Auth\PrivilegeGuard;
+use Tardis\Auth\UserAccounts;
 use Tardis\Bread\ActivityLogger;
 use Tardis\Support\ModelResolver;
 
@@ -29,6 +30,17 @@ new #[Title('tardis::users.users')] #[Layout('tardis::layouts.admin')] class ext
     public bool $showEditModal = false;
 
     public ?string $error = null;
+
+    /** The account form: create when $formUserId is null, else edit. */
+    public bool $showUserModal = false;
+
+    public int|string|null $formUserId = null;
+
+    /** @var array{name: string, email: string, password: string, password_confirmation: string} */
+    public array $userForm = ['name' => '', 'email' => '', 'password' => '', 'password_confirmation' => ''];
+
+    /** @var array<int, int|string> roles given to a user being created */
+    public array $createRoleIds = [];
 
     /**
      * Runs on every request so a revoked permission stops the next action.
@@ -53,11 +65,15 @@ new #[Title('tardis::users.users')] #[Layout('tardis::layouts.admin')] class ext
         $model = $this->userModel();
         $query = $model::query()->orderBy((new $model)->getKeyName());
 
-        if ($this->search !== '') {
+        $columns = array_values(array_filter([$this->accounts()->column('email'), $this->accounts()->column('name')]));
+
+        if ($this->search !== '' && $columns !== []) {
             $term = '%'.str_replace(['!', '%', '_'], ['!!', '!%', '!_'], $this->search).'%';
 
-            $query->where(function ($q) use ($term) {
-                $q->whereRaw("email like ? escape '!'", [$term])->orWhereRaw("name like ? escape '!'", [$term]);
+            $query->where(function ($q) use ($term, $columns) {
+                foreach ($columns as $column) {
+                    $q->orWhere(fn ($inner) => $inner->whereRaw($q->getGrammar()->wrap($column)." like ? escape '!'", [$term]));
+                }
             });
         }
 
@@ -72,9 +88,10 @@ new #[Title('tardis::users.users')] #[Layout('tardis::layouts.admin')] class ext
 
         return $page->through(fn ($user) => [
             'id' => $user->getKey(),
-            'name' => $user->name ?? '',
-            'email' => $user->email ?? '',
+            ...$this->accounts()->describe($user),
             'roles' => $roles->get($user->getKey(), []),
+            'manageable' => app(PrivilegeGuard::class)->mayManageUser(auth()->user(), $user),
+            'self' => auth()->id() !== null && (string) auth()->id() === (string) $user->getKey(),
         ]);
     }
 
@@ -156,6 +173,113 @@ new #[Title('tardis::users.users')] #[Layout('tardis::layouts.admin')] class ext
         session()->flash('message', __('tardis::users.roles_updated'));
     }
 
+    public function openCreate(): void
+    {
+        $this->resetErrorBag();
+        $this->reset('userForm', 'createRoleIds', 'formUserId', 'error');
+        $this->showUserModal = true;
+    }
+
+    public function openDetails(int|string $userId): void
+    {
+        $user = $this->userModel()::query()->findOrFail($userId);
+
+        if (! app(PrivilegeGuard::class)->mayManageUser(auth()->user(), $user)) {
+            abort(403);
+        }
+
+        $this->resetErrorBag();
+        $this->reset('userForm', 'error');
+        $this->formUserId = $user->getKey();
+        $this->userForm = [...$this->userForm, ...$this->accounts()->describe($user)];
+        $this->showUserModal = true;
+    }
+
+    public function closeUserModal(): void
+    {
+        $this->showUserModal = false;
+        $this->reset('userForm', 'createRoleIds', 'formUserId', 'error');
+    }
+
+    public function saveUser(): void
+    {
+        $this->error = null;
+        $creating = $this->formUserId === null;
+        $user = $creating ? null : $this->userModel()::query()->findOrFail($this->formUserId);
+
+        if ($user !== null && ! app(PrivilegeGuard::class)->mayManageUser(auth()->user(), $user)) {
+            abort(403);
+        }
+
+        $this->validate($this->accounts()->rules($user?->getKey(), passwordRequired: $creating));
+
+        $roleIds = $creating
+            ? ModelResolver::role()::query()->whereIn('id', array_map('intval', $this->createRoleIds))->pluck('id')->all()
+            : [];
+
+        if ($creating && ($denial = app(PrivilegeGuard::class)->roleChangeDenial(auth()->user(), [], $roleIds)) !== null) {
+            $this->error = __($denial === 'super_admin' ? 'tardis::users.cannot_change_super_admin' : 'tardis::users.cannot_assign_beyond_own');
+
+            return;
+        }
+
+        $data = ['name' => $this->userForm['name'], 'email' => $this->userForm['email'], 'password' => $this->userForm['password']];
+
+        if ($creating) {
+            $user = DB::transaction(function () use ($data, $roleIds) {
+                $user = $this->accounts()->create($data);
+
+                foreach ($roleIds as $roleId) {
+                    DB::table('tardis_role_user')->insert(['role_id' => $roleId, 'user_id' => $user->getKey()]);
+                }
+
+                return $user;
+            });
+        } else {
+            $this->accounts()->update($user, $data);
+        }
+
+        app(ActivityLogger::class)->audit('tardis.users', $creating ? 'user_created' : 'user_updated', [
+            'user_id' => $user->getKey(),
+            'password_changed' => $data['password'] !== '',
+        ], $user->getKey());
+
+        $this->closeUserModal();
+        session()->flash('message', __($creating ? 'tardis::users.user_created' : 'tardis::users.user_updated'));
+    }
+
+    public function deleteUser(int|string $userId): void
+    {
+        $user = $this->userModel()::query()->findOrFail($userId);
+
+        if ((string) auth()->id() === (string) $user->getKey()) {
+            $this->error = __('tardis::users.cannot_delete_self');
+
+            return;
+        }
+
+        if (! app(PrivilegeGuard::class)->mayManageUser(auth()->user(), $user)) {
+            abort(403);
+        }
+
+        $superIds = ModelResolver::role()::query()->whereIn('slug', $this->superAdminSlugs())->pluck('id')->all();
+
+        if ($this->wouldRemoveLastSuperAdmin($user->getKey(), [], $superIds)) {
+            $this->error = __('tardis::users.super_admin_must_remain');
+
+            return;
+        }
+
+        $this->accounts()->delete($user);
+        app(ActivityLogger::class)->audit('tardis.users', 'user_deleted', ['user_id' => $userId], $userId);
+        session()->flash('message', __('tardis::users.user_deleted'));
+    }
+
+    protected function accounts(): UserAccounts
+    {
+        return app(UserAccounts::class);
+    }
+
     /**
      * @param  array<int, int>  $newRoleIds
      * @param  array<int, int>  $superIds
@@ -195,6 +319,6 @@ new #[Title('tardis::users.users')] #[Layout('tardis::layouts.admin')] class ext
 
     protected function userModel(): string
     {
-        return (string) config('auth.providers.users.model');
+        return $this->accounts()->model();
     }
 };

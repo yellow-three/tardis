@@ -134,6 +134,23 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Users
+    |--------------------------------------------------------------------------
+    |
+    | The Users screen and the profile page work on the model of the default
+    | auth provider (auth.providers.users.model). These are the columns they
+    | read and write; a column the table does not have is left out.
+    */
+    'users' => [
+        'columns' => [
+            'name' => 'name',
+            'email' => 'email',
+            'password' => 'password',
+        ],
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Activity Log Settings
     |--------------------------------------------------------------------------
     */
