@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Tardis\Bread;
 
 use Illuminate\Http\UploadedFile;
-use Tardis\Classes\Translation;
+use Tardis\Support\Translation;
 
 /**
  * Builds Livewire validation rules from a BREAD field's "validation" list.

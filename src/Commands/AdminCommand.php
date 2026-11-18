@@ -11,7 +11,7 @@ use Illuminate\Support\Str;
 use Tardis\Database\Seeders\PermissionSeeder;
 use Tardis\Support\ModelResolver;
 
-class TardisAdminCommand extends Command
+class AdminCommand extends Command
 {
     protected $signature = 'tardis:admin
         {email : Email of the user to make an administrator}

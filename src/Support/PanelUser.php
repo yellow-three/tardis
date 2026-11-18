@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Tardis\Support;
 
-use Tardis\Manager\PluginManager;
+use Tardis\Plugins\PluginManager;
 
 /**
  * Who is signed in to the panel, as the authentication plugin describes them:

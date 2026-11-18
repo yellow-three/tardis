@@ -124,7 +124,7 @@ Livewire'de her `public` property tarayıcıdan değiştirilebilir. BREAD sayfal
 
 ## Yetkilendirme — varsayılan olarak açık plugin, `access admin` kapısı
 
-`TardisAuthorizationPlugin` `TardisServiceProvider::boot()` içinde kaydedilir ve etkinleştirilir (`tardis.authorization.enabled`, varsayılan `true`; boot'ta okunur çünkü host config'i `register()` sırasında henüz final değildir). `AdminMiddleware` kimlik doğrulamadan sonra `access admin` ability'sini ister; rolü olmayan kullanıcı 403 alır. İlk yönetici `tardis:admin` ile oluşturulur.
+`RoleAuthorizationPlugin` `TardisServiceProvider::boot()` içinde kaydedilir ve etkinleştirilir (`tardis.authorization.enabled`, varsayılan `true`; boot'ta okunur çünkü host config'i `register()` sırasında henüz final değildir). `AdminMiddleware` kimlik doğrulamadan sonra `access admin` ability'sini ister; rolü olmayan kullanıcı 403 alır. İlk yönetici `tardis:admin` ile oluşturulur.
 
 Plugin **yoksa** (`enabled=false` ve host da kendi plugin'ini kaydetmediyse) `BreadAuthorization` hâlâ fail-open'dır: giriş yapmış herkes girer. Bu yüzden `enabled=false` yalnızca başka bir koruma varken kullanılmalı.
 

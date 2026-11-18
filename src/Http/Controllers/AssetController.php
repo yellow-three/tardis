@@ -6,7 +6,7 @@ namespace Tardis\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Tardis\Manager\AssetManager;
+use Tardis\Assets\AssetManager;
 
 /**
  * Serves a file asset that a plugin or the host registered. The URL carries

@@ -7,17 +7,17 @@ namespace Tardis;
 use Composer\InstalledVersions;
 use Illuminate\Support\Collection;
 use Tardis\Assets\Asset;
+use Tardis\Assets\AssetManager;
 use Tardis\Bread\Action;
+use Tardis\Bread\ActionManager;
 use Tardis\Bread\BreadManager;
-use Tardis\Manager\ActionManager;
-use Tardis\Manager\AssetManager;
-use Tardis\Manager\FormfieldManager;
-use Tardis\Manager\MediaManager;
-use Tardis\Manager\MenuManager;
-use Tardis\Manager\PluginManager;
-use Tardis\Manager\SettingsManager;
-use Tardis\Manager\ThemeManager;
-use Tardis\Manager\WidgetManager;
+use Tardis\Dashboard\WidgetManager;
+use Tardis\Formfields\FormfieldManager;
+use Tardis\Media\MediaManager;
+use Tardis\Menu\MenuManager;
+use Tardis\Plugins\PluginManager;
+use Tardis\Settings\SettingsManager;
+use Tardis\Theme\ThemeManager;
 
 /**
  * The object behind the Tardis facade: one way in to every manager.
@@ -26,7 +26,7 @@ use Tardis\Manager\WidgetManager;
  * copy, so a binding that changes (a scoped service, a test double) is what
  * the facade returns.
  */
-class Tardis
+class TardisManager
 {
     /** Used when Composer cannot tell (a path repository, a dev checkout). */
     public const VERSION = '0.1.0';

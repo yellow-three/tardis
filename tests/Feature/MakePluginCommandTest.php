@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 use Illuminate\Support\Facades\File;
 use Tardis\Contracts\Plugins\GenericPlugin;
-use Tardis\Manager\PluginManager;
+use Tardis\Plugins\PluginManager;
 
 class MakePluginFixture implements GenericPlugin
 {
@@ -84,7 +84,7 @@ test('the generated page uses a layout that exists', function () {
 test('the generated service provider enables the plugin it registers', function () {
     $provider = File::get(generatePlugin($this->pluginRoot).'/src/TardisBlogServiceProvider.php');
 
-    expect($provider)->toContain('use Tardis\\Manager\\PluginManager;')
+    expect($provider)->toContain('use Tardis\\Plugins\\PluginManager;')
         ->toContain('enableByDefault');
 });
 

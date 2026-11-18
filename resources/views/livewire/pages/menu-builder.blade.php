@@ -5,8 +5,8 @@ use Livewire\Attributes\Title;
 use Livewire\Component;
 use Tardis\Auth\Abilities;
 use Tardis\Auth\BreadAuthorization;
-use Tardis\Manager\MenuManager;
-use Tardis\Manager\PluginManager;
+use Tardis\Menu\MenuManager;
+use Tardis\Plugins\PluginManager;
 use Tardis\Menu\MenuOverlay;
 
 new #[Title('tardis::menu_builder.title')] #[Layout('tardis::layouts.admin')] class extends Component

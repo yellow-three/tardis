@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\Schema;
 use Livewire\Livewire;
 use Tardis\Bread\Sources\JsonBreadSource;
 use Tardis\Contracts\Plugins\AuthorizationPlugin;
-use Tardis\Manager\PluginManager;
+use Tardis\Plugins\PluginManager;
 
 class SearchScopeArticle extends Model
 {

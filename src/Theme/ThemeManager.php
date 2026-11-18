@@ -2,13 +2,12 @@
 
 declare(strict_types=1);
 
-namespace Tardis\Manager;
+namespace Tardis\Theme;
 
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
 use Tardis\Contracts\Plugins\ThemePlugin;
-use Tardis\Theme\BuiltinThemes;
-use Tardis\Theme\Theme;
+use Tardis\Plugins\PluginManager;
 
 /**
  * The panel's themes: the ones compiled into the stylesheet plus the ones a

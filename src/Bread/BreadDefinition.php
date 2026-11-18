@@ -6,7 +6,7 @@ namespace Tardis\Bread;
 
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
-use Tardis\Classes\Translation;
+use Tardis\Support\Translation;
 
 class BreadDefinition
 {

@@ -4,7 +4,7 @@ namespace {{NAMESPACE}};
 
 use Illuminate\Support\ServiceProvider;
 use Livewire\Livewire;
-use Tardis\Manager\PluginManager;
+use Tardis\Plugins\PluginManager;
 
 class Tardis{{STUDLY_NAME}}ServiceProvider extends ServiceProvider
 {

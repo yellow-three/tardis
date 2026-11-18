@@ -9,8 +9,8 @@ use Tardis\Assets\Asset;
 use Tardis\Bread\BreadManager;
 use Tardis\Contracts\Plugins\Features\Provider\CSS;
 use Tardis\Contracts\Plugins\Features\Provider\JS;
-use Tardis\Manager\PluginManager;
-use Tardis\Manager\ThemeManager;
+use Tardis\Plugins\PluginManager;
+use Tardis\Theme\ThemeManager;
 
 /**
  * Runs the `tardis:doctor` checks and collects their results.

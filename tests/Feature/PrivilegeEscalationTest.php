@@ -7,11 +7,11 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Livewire\Livewire;
 use Tardis\Auth\Abilities;
-use Tardis\Auth\TardisAuthorizationPlugin;
+use Tardis\Auth\RoleAuthorizationPlugin;
 use Tardis\Database\Seeders\PermissionSeeder;
-use Tardis\Manager\PluginManager;
 use Tardis\Models\Permission;
 use Tardis\Models\Role;
+use Tardis\Plugins\PluginManager;
 
 class EscalationTestUser extends Authenticatable
 {
@@ -36,7 +36,7 @@ beforeEach(function () {
     $this->seed(PermissionSeeder::class);
 
     $manager = app(PluginManager::class);
-    $manager->register('tardis-authorization', TardisAuthorizationPlugin::class);
+    $manager->register('tardis-authorization', RoleAuthorizationPlugin::class);
     $manager->enableByDefault('tardis-authorization');
 
     // A manager may run the Users and Roles screens, and nothing else.

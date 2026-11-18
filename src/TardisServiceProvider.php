@@ -8,39 +8,40 @@ use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\ServiceProvider;
 use Livewire\Livewire;
-use Tardis\Auth\TardisAuthorizationPlugin;
+use Tardis\Assets\AssetManager;
+use Tardis\Auth\RoleAuthorizationPlugin;
+use Tardis\Auth\SessionAuthenticationPlugin;
+use Tardis\Bread\ActionManager;
 use Tardis\Bread\Legacy\LegacyConfigReader;
 use Tardis\Bread\Sources\JsonBreadSource;
-use Tardis\Commands\TardisAdminCommand;
-use Tardis\Commands\TardisBreadExportCommand;
-use Tardis\Commands\TardisBreadMigrateCommand;
-use Tardis\Commands\TardisDoctorCommand;
-use Tardis\Commands\TardisInstallCommand;
-use Tardis\Commands\TardisMakeBreadCommand;
-use Tardis\Commands\TardisMakeModelCommand;
-use Tardis\Commands\TardisMakePluginCommand;
-use Tardis\Commands\TardisPluginsCommand;
+use Tardis\Commands\AdminCommand;
+use Tardis\Commands\BreadExportCommand;
+use Tardis\Commands\BreadImportLegacyCommand;
+use Tardis\Commands\DoctorCommand;
+use Tardis\Commands\InstallCommand;
+use Tardis\Commands\MakeBreadCommand;
+use Tardis\Commands\MakeModelCommand;
+use Tardis\Commands\MakePluginCommand;
+use Tardis\Commands\PluginsCommand;
 use Tardis\Dashboard\DashboardLayout;
+use Tardis\Dashboard\WidgetManager;
 use Tardis\Events\BreadRecordCreated;
 use Tardis\Events\BreadRecordDeleted;
 use Tardis\Events\BreadRecordUpdated;
 use Tardis\Events\BreadSaved;
+use Tardis\Formfields\FormfieldManager;
 use Tardis\Http\Middleware\AdminMiddleware;
 use Tardis\Http\Middleware\SetPanelLocale;
 use Tardis\Listeners\LogBreadActivity;
 use Tardis\Listeners\ProvisionBreadPermissions;
-use Tardis\Manager\ActionManager;
-use Tardis\Manager\AssetManager;
-use Tardis\Manager\FormfieldManager;
-use Tardis\Manager\MediaManager;
-use Tardis\Manager\MenuManager;
-use Tardis\Manager\PluginManager;
-use Tardis\Manager\SettingsManager;
-use Tardis\Manager\ThemeManager;
-use Tardis\Manager\WidgetManager;
+use Tardis\Media\MediaManager;
+use Tardis\Menu\MenuManager;
 use Tardis\Menu\MenuOverlay;
-use Tardis\Plugins\AuthenticationPlugin;
+use Tardis\Plugins\PluginManager;
+use Tardis\Settings\SettingsManager;
+use Tardis\Support\LegacyNames;
 use Tardis\Support\UserPreferences;
+use Tardis\Theme\ThemeManager;
 use Tardis\Theme\ThemePreference;
 
 class TardisServiceProvider extends ServiceProvider
@@ -95,7 +96,7 @@ class TardisServiceProvider extends ServiceProvider
         // with a fresh read.
         $this->app->scoped(JsonBreadSource::class);
 
-        $this->registerAliases();
+        $this->registerBindings();
     }
 
     public function boot(): void
@@ -112,8 +113,8 @@ class TardisServiceProvider extends ServiceProvider
 
         // Plugins are registered in boot(): register() only binds, so nothing
         // is resolved (or read from storage) before every provider has run.
-        $this->registerDefaultAuth();
-        $this->registerDefaultAuthorization();
+        $this->registerDefaultAuthenticationPlugin();
+        $this->registerDefaultAuthorizationPlugin();
         $this->registerLivewireNamespaces();
         $this->registerViews();
         $this->registerTranslations();
@@ -126,13 +127,13 @@ class TardisServiceProvider extends ServiceProvider
         $this->registerListeners();
     }
 
-    protected function registerDefaultAuth(): void
+    protected function registerDefaultAuthenticationPlugin(): void
     {
         // Register the default AuthenticationPlugin so auth works out of the box
         // without Fortify or any other auth package.
         $manager = $this->app->make(PluginManager::class);
-        $manager->register('tardis-auth', AuthenticationPlugin::class);
-        $manager->enableByDefault('tardis-auth');
+        $manager->register(SessionAuthenticationPlugin::KEY, SessionAuthenticationPlugin::class);
+        $manager->enableByDefault(SessionAuthenticationPlugin::KEY);
 
     }
 
@@ -140,15 +141,15 @@ class TardisServiceProvider extends ServiceProvider
      * Registered in boot(), not register(): it reads host configuration, which
      * is only final once every provider has registered.
      */
-    protected function registerDefaultAuthorization(): void
+    protected function registerDefaultAuthorizationPlugin(): void
     {
         if (! config('tardis.authorization.enabled', true)) {
             return;
         }
 
         $manager = $this->app->make(PluginManager::class);
-        $manager->register('tardis-authorization', TardisAuthorizationPlugin::class);
-        $manager->enableByDefault('tardis-authorization');
+        $manager->register(RoleAuthorizationPlugin::KEY, RoleAuthorizationPlugin::class);
+        $manager->enableByDefault(RoleAuthorizationPlugin::KEY);
     }
 
     /**
@@ -222,11 +223,15 @@ class TardisServiceProvider extends ServiceProvider
 
     }
 
-    protected function registerAliases(): void
+    protected function registerBindings(): void
     {
-        $this->app->singleton('tardis', function () {
-            return new Tardis;
-        });
+        $this->app->singleton(TardisManager::class);
+        $this->app->alias(TardisManager::class, 'tardis');
+
+        // Pre-0.2 class names resolve to the same instances (LegacyNames).
+        foreach (LegacyNames::MAP as $old => $new) {
+            $this->app->alias($new, $old);
+        }
 
         $this->app->singleton(LegacyConfigReader::class, function () {
             return new LegacyConfigReader(config_path('bread'));
@@ -262,15 +267,15 @@ class TardisServiceProvider extends ServiceProvider
         // Not limited to the console: the panel's command runner calls
         // Artisan from a web request and may be allowed to run these.
         $this->commands([
-            TardisAdminCommand::class,
-            TardisBreadExportCommand::class,
-            TardisBreadMigrateCommand::class,
-            TardisDoctorCommand::class,
-            TardisInstallCommand::class,
-            TardisMakeBreadCommand::class,
-            TardisMakeModelCommand::class,
-            TardisMakePluginCommand::class,
-            TardisPluginsCommand::class,
+            AdminCommand::class,
+            BreadExportCommand::class,
+            BreadImportLegacyCommand::class,
+            DoctorCommand::class,
+            InstallCommand::class,
+            MakeBreadCommand::class,
+            MakeModelCommand::class,
+            MakePluginCommand::class,
+            PluginsCommand::class,
         ]);
     }
 }

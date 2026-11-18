@@ -5,10 +5,10 @@ declare(strict_types=1);
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\File;
 use Tardis\Bread\Sources\JsonBreadSource;
-use Tardis\Classes\MenuItem;
-use Tardis\Classes\UserMenuItem;
-use Tardis\Manager\MenuManager;
-use Tardis\Manager\PluginManager;
+use Tardis\Menu\MenuItem;
+use Tardis\Menu\MenuManager;
+use Tardis\Menu\UserMenuItem;
+use Tardis\Plugins\PluginManager;
 
 test('menu manager can be instantiated', function () {
     $manager = new MenuManager;

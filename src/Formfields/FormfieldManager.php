@@ -2,9 +2,8 @@
 
 declare(strict_types=1);
 
-namespace Tardis\Manager;
+namespace Tardis\Formfields;
 
-use Tardis\Formfields\Formfield;
 use Tardis\Formfields\Types\BelongsToManyField;
 use Tardis\Formfields\Types\CheckboxField;
 use Tardis\Formfields\Types\CodeEditorField;

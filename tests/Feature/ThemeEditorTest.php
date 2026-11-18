@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 use Livewire\Livewire;
-use Tardis\Manager\ThemeManager;
+use Tardis\Theme\ThemeManager;
 
 function themeManager(): ThemeManager
 {

@@ -6,8 +6,8 @@ use Livewire\Component;
 use Tardis\Auth\Abilities;
 use Tardis\Auth\BreadAuthorization;
 use Tardis\Dashboard\DashboardLayout;
-use Tardis\Manager\PluginManager;
-use Tardis\Manager\WidgetManager;
+use Tardis\Plugins\PluginManager;
+use Tardis\Dashboard\WidgetManager;
 
 new #[Title('tardis::dashboard.dashboard')] #[Layout('tardis::layouts.admin')] class extends Component
 {
@@ -25,7 +25,7 @@ new #[Title('tardis::dashboard.dashboard')] #[Layout('tardis::layouts.admin')] c
     }
 
     /**
-     * @return \Illuminate\Support\Collection<int, \Tardis\Classes\Widget>
+     * @return \Illuminate\Support\Collection<int, \Tardis\Dashboard\Widget>
      */
     public function widgets(bool $withHidden = false)
     {

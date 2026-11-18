@@ -6,7 +6,7 @@ use Illuminate\Support\Facades\File;
 use Livewire\Livewire;
 use Tardis\Contracts\Plugins\Features\Provider\SettingsComponent;
 use Tardis\Contracts\Plugins\GenericPlugin;
-use Tardis\Manager\PluginManager;
+use Tardis\Plugins\PluginManager;
 
 class SettingsPlugin implements GenericPlugin, SettingsComponent
 {

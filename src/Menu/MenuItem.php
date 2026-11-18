@@ -2,12 +2,13 @@
 
 declare(strict_types=1);
 
-namespace Tardis\Classes;
+namespace Tardis\Menu;
 
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 use Tardis\Contracts\Plugins\AuthorizationPlugin;
-use Tardis\Manager\PluginManager;
+use Tardis\Plugins\PluginManager;
+use Tardis\Support\Translation;
 
 class MenuItem
 {

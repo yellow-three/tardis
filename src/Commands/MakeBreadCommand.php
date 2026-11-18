@@ -12,7 +12,7 @@ use Tardis\Bread\BreadManager;
 use Tardis\Bread\ModelReflector;
 use Tardis\Bread\Sources\JsonBreadSource;
 
-class TardisMakeBreadCommand extends Command
+class MakeBreadCommand extends Command
 {
     protected $signature = 'tardis:make-bread
         {model : The fully qualified model class (e.g., App\\Models\\Post)}

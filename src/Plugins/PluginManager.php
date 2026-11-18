@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Tardis\Manager;
+namespace Tardis\Plugins;
 
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
@@ -43,9 +43,15 @@ class PluginManager
 
         $data = json_decode((string) file_get_contents($this->statePath), true);
 
-        return is_array($data) && is_array($data['disabled'] ?? null)
-            ? array_values(array_filter($data['disabled'], 'is_string'))
-            : [];
+        if (! is_array($data) || ! is_array($data['disabled'] ?? null)) {
+            return [];
+        }
+
+        // Before 0.2 the built-in authentication plugin was "tardis-auth".
+        return array_values(array_unique(array_map(
+            fn (string $name) => $name === 'tardis-auth' ? 'tardis-authentication' : $name,
+            array_filter($data['disabled'], 'is_string'),
+        )));
     }
 
     /**

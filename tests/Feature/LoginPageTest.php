@@ -8,8 +8,8 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Schema;
 use Livewire\Livewire;
-use Tardis\Manager\PluginManager;
-use Tardis\Plugins\AuthenticationPlugin;
+use Tardis\Auth\SessionAuthenticationPlugin;
+use Tardis\Plugins\PluginManager;
 
 class LoginTestUser extends Authenticatable
 {
@@ -92,7 +92,7 @@ test('a successful login clears the failed attempt counter', function () {
     expect(app(RateLimiter::class)->attempts('ada@example.test|127.0.0.1'))->toBe(0);
 });
 
-class LoginTestAuthPlugin extends AuthenticationPlugin
+class LoginTestAuthPlugin extends SessionAuthenticationPlugin
 {
     /** @var array<int, array{credentials: array, remember: bool}> */
     public static array $attempts = [];
@@ -152,7 +152,7 @@ test('a refusal from the authentication plugin counts as a failed attempt', func
 });
 
 test('the built-in plugin signs the user in on the guard it declares', function () {
-    expect(app(PluginManager::class)->authenticationPlugin())->toBeInstanceOf(AuthenticationPlugin::class);
+    expect(app(PluginManager::class)->authenticationPlugin())->toBeInstanceOf(SessionAuthenticationPlugin::class);
 
     Livewire::test('tardis::pages.login')
         ->set('email', 'ada@example.test')

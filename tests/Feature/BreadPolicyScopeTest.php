@@ -12,9 +12,9 @@ use Livewire\Livewire;
 use Tardis\Bread\BreadManager;
 use Tardis\Bread\Sources\JsonBreadSource;
 use Tardis\Contracts\Plugins\AuthorizationPlugin;
-use Tardis\Manager\MenuManager;
-use Tardis\Manager\PluginManager;
+use Tardis\Menu\MenuManager;
 use Tardis\Models\Permission;
+use Tardis\Plugins\PluginManager;
 
 class PolicyKeyPlugin implements AuthorizationPlugin
 {

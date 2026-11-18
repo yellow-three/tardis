@@ -13,7 +13,10 @@
     "autoload": {
         "psr-4": {
             "Tardis\\": "src/"
-        }
+        },
+        "files": [
+            "src/legacy-aliases.php"
+        ]
     },
     "autoload-dev": {
         "psr-4": {

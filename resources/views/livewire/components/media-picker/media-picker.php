@@ -4,7 +4,7 @@ use Livewire\Attributes\On;
 use Livewire\Component;
 use Tardis\Auth\Abilities;
 use Tardis\Auth\BreadAuthorization;
-use Tardis\Manager\MediaManager;
+use Tardis\Media\MediaManager;
 
 new class extends Component
 {

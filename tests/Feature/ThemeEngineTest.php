@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 use Illuminate\Support\Facades\File;
 use Tardis\Facades\Tardis;
-use Tardis\Manager\ThemeManager;
 use Tardis\Support\UserPreferences;
+use Tardis\Theme\ThemeManager;
 use Tardis\Theme\ThemePreference;
 
 function customTheme(string $name, string $scheme = 'dark', array $colors = []): array

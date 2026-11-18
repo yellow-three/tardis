@@ -11,8 +11,8 @@ use Tardis\Bread\BreadManager;
 use Tardis\Bread\Builder\BuilderReview;
 use Tardis\Bread\ModelReflector;
 use Tardis\Bread\ReservedSlugs;
-use Tardis\Classes\Translation;
-use Tardis\Manager\FormfieldManager;
+use Tardis\Formfields\FormfieldManager;
+use Tardis\Support\Translation;
 
 new #[Title('tardis::shell.titles.bread_builder')] #[Layout('tardis::layouts.admin')] class extends Component
 {

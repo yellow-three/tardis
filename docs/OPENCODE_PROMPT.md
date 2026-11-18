@@ -42,7 +42,7 @@ Durum: aşağıdakilerden ilk beş ✅ tamamlandı (`feat/phase-8-install`); dem
 - ✅ Plugin iskeleti güncel: `stubs/plugin/routes.stub` içindeki hatalı "wildcard / kayıt sırası" notu düzeltildi (BREAD rotaları yalnızca tanımlı slug'lara kısıtlı, catch-all yok; tek gerçek risk, bir BREAD'in plugin'in ilk segmentiyle aynı slug'ı kullanması). `docs/PLUGIN_GUIDE.md` de gerçek davranışla hizalandı. (`UPGRADE.md` 2.x kurulum bölümü dahil)
 
 **2. Faz 7 — Çok dilli içerik (R28)**
-- Formda alan başına dil sekmeleri (şu an locale başına alt alta giriş var), aktif dil bilgisi, "tüm diller zorunlu / yalnızca aktif dil" doğrulama modu (BREAD tanımında ayar), listede aktif dilin değeri, BREAD etiketleri (`name`, `name_plural`, alan etiketleri) ve menü başlıkları çevrilebilir. JSON kolon biçimi korunur (`Tardis\Classes\Translation`).
+- Formda alan başına dil sekmeleri (şu an locale başına alt alta giriş var), aktif dil bilgisi, "tüm diller zorunlu / yalnızca aktif dil" doğrulama modu (BREAD tanımında ayar), listede aktif dilin değeri, BREAD etiketleri (`name`, `name_plural`, alan etiketleri) ve menü başlıkları çevrilebilir. JSON kolon biçimi korunur (`Tardis\Support\Translation`).
 
 **3. Faz 5 — Medya entegrasyonu (R26)**
 - `media_picker` alan tipi (registry'ye ekle, builder grubu, view, lang), medya kütüphanesinden seçim, thumbnail + kırpma, dosya adı şablonu `{uid}/{date:Y/m}/{random:8}` (yalnızca beyaz listedeki token'lar), tek yükleme doğrulaması (BREAD `FileField` da aynı yolu kullanır), isteğe bağlı `Filter\Media` sözleşmesi.

@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\ServiceProvider;
 use Tardis\Facades\Tardis;
-use Tardis\Manager\MenuManager;
+use Tardis\Menu\MenuManager;
 use Tardis\TardisServiceProvider;
 
 class StructureTestUser extends Authenticatable

@@ -2,12 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Tardis\Manager;
+namespace Tardis\Settings;
 
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
-use Tardis\Classes\Setting;
 
 class SettingsManager
 {

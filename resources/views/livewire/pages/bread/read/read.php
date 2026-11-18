@@ -9,7 +9,7 @@ use Tardis\Auth\BreadAuthorization;
 use Tardis\Bread\BreadDefinition;
 use Tardis\Bread\BreadManager;
 use Tardis\Formfields\Formfield;
-use Tardis\Manager\FormfieldManager;
+use Tardis\Formfields\FormfieldManager;
 
 new #[Title('tardis::shell.titles.view')] #[Layout('tardis::layouts.admin')] class extends Component
 {

@@ -10,7 +10,7 @@ use Tardis\Bread\BreadManager;
 use Tardis\Bread\Legacy\LegacyConfigReader;
 use Tardis\Bread\Sources\JsonBreadSource;
 
-class TardisBreadMigrateCommand extends Command
+class BreadImportLegacyCommand extends Command
 {
     protected $signature = 'tardis:bread:migrate
         {--dry-run : Report what would be migrated without writing anything}

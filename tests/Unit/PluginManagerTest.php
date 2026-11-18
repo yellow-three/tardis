@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 use Tardis\Contracts\Plugins\AuthorizationPlugin;
 use Tardis\Contracts\Plugins\GenericPlugin;
-use Tardis\Manager\PluginManager;
+use Tardis\Plugins\PluginManager;
 
 test('plugin manager can be instantiated', function () {
     $manager = new PluginManager;

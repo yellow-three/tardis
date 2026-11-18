@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\DB;
 use Tardis\Events\BreadRecordCreated;
 use Tardis\Events\BreadRecordUpdated;
 use Tardis\Formfields\Formfield;
-use Tardis\Manager\FormfieldManager;
+use Tardis\Formfields\FormfieldManager;
 use Throwable;
 
 /**

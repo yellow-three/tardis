@@ -7,7 +7,7 @@ namespace Tardis\Bread\Legacy;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\File;
 use Tardis\Bread\BreadDefinition;
-use Tardis\Manager\FormfieldManager;
+use Tardis\Formfields\FormfieldManager;
 
 /**
  * Read-only reader for the legacy config/bread/{slug}.php definitions.

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use Tardis\Classes\Setting;
+use Tardis\Settings\Setting;
 
 test('setting can be created from array', function () {
     $setting = new Setting([

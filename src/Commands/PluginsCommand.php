@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace Tardis\Commands;
 
 use Illuminate\Console\Command;
-use Tardis\Manager\PluginManager;
+use Tardis\Plugins\PluginManager;
 
-class TardisPluginsCommand extends Command
+class PluginsCommand extends Command
 {
     protected $signature = 'tardis:plugins
         {action=list : list, enable or disable}

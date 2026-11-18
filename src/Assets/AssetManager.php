@@ -2,13 +2,15 @@
 
 declare(strict_types=1);
 
-namespace Tardis\Manager;
+namespace Tardis\Assets;
 
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Support\Facades\Vite;
-use Tardis\Assets\Asset;
 use Tardis\Contracts\Plugins\Features\Provider\CSS;
 use Tardis\Contracts\Plugins\Features\Provider\JS;
+use Tardis\Plugins\PluginManager;
+use Tardis\Settings\SettingsManager;
+use Tardis\Theme\ThemeManager;
 
 class AssetManager
 {

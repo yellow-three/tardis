@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
+use Tardis\Formfields\FormfieldManager;
 use Tardis\Formfields\Types\BelongsToManyField;
 use Tardis\Formfields\Types\FileField;
 use Tardis\Formfields\Types\HasManyField;
 use Tardis\Formfields\Types\NumberField;
 use Tardis\Formfields\Types\TextField;
-use Tardis\Manager\FormfieldManager;
 
 test('formfield manager can be instantiated', function () {
     $manager = new FormfieldManager;

@@ -5,11 +5,11 @@ declare(strict_types=1);
 namespace Tests\Unit;
 
 use Illuminate\Http\Request;
+use Tardis\Assets\AssetManager;
 use Tardis\Contracts\Plugins\Features\Provider\CSS;
 use Tardis\Contracts\Plugins\Features\Provider\JS;
-use Tardis\Manager\AssetManager;
-use Tardis\Manager\PluginManager;
-use Tardis\Manager\SettingsManager;
+use Tardis\Plugins\PluginManager;
+use Tardis\Settings\SettingsManager;
 
 test('styles returns HTML with link tag', function () {
     $hotPath = AssetManager::packageHotPath();

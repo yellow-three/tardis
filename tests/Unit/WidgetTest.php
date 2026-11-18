@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use Tardis\Classes\Widget;
+use Tardis\Dashboard\Widget;
 
 test('widget can be created with component and title', function () {
     $widget = new Widget('stats', 'Dashboard Stats');

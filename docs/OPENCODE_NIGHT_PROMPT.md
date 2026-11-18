@@ -49,7 +49,7 @@ Testler yeşil olması işin çalıştığını KANITLAMAZ. Her yeni davranış�
 Gece boyunca sırayla ilerle. Bir faz için makul çaba (aynı hatada 3 deneme) sonrası tıkandıysan: son yeşil commit'e dön (kendi commit'inden `git revert`, hard reset değil), sorunu nota yaz, SIRADAKİ faza geç.
 
 **A. Faz 7 — Çok dilli içerik (R28)** — `feat/phase-7-translated-content`
-Formda alan başına dil sekmeleri (şu an alt alta giriş), aktif dil bilgisi, doğrulama modu ("tüm diller zorunlu / yalnızca aktif dil", BREAD tanımında ayar), listede aktif dilin değeri, BREAD etiketleri (`name`, `name_plural`, alan etiketleri) ve menü başlıkları çevrilebilir. JSON kolon biçimi korunur (`Tardis\Classes\Translation`).
+Formda alan başına dil sekmeleri (şu an alt alta giriş), aktif dil bilgisi, doğrulama modu ("tüm diller zorunlu / yalnızca aktif dil", BREAD tanımında ayar), listede aktif dilin değeri, BREAD etiketleri (`name`, `name_plural`, alan etiketleri) ve menü başlıkları çevrilebilir. JSON kolon biçimi korunur (`Tardis\Support\Translation`).
 
 **B. Faz 5 — Medya (R26)** — `feat/phase-5-media`
 `media_picker` alanı (registry, builder grubu, view, lang), kütüphaneden seçim, thumbnail + kırpma, dosya adı şablonu `{uid}/{date:Y/m}/{random:8}` (yalnızca beyaz liste token'lar), tek yükleme doğrulaması (`FileField` da aynı yol), `Filter\Media` sözleşmesi.

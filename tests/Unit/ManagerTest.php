@@ -6,11 +6,11 @@ use Illuminate\Support\Facades\File;
 use Tardis\Bread\BreadDefinition;
 use Tardis\Bread\BreadManager;
 use Tardis\Bread\Sources\JsonBreadSource;
-use Tardis\Manager\FormfieldManager;
-use Tardis\Manager\MenuManager;
-use Tardis\Manager\PluginManager;
-use Tardis\Manager\SettingsManager;
-use Tardis\Manager\WidgetManager;
+use Tardis\Dashboard\WidgetManager;
+use Tardis\Formfields\FormfieldManager;
+use Tardis\Menu\MenuManager;
+use Tardis\Plugins\PluginManager;
+use Tardis\Settings\SettingsManager;
 
 test('PluginManager can be instantiated', function () {
     $manager = new PluginManager;

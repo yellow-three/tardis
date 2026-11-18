@@ -7,10 +7,10 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Schema;
 use Livewire\Livewire;
 use Tardis\Contracts\Plugins\GenericPlugin;
-use Tardis\Manager\PluginManager;
 use Tardis\Models\ActivityLog;
 use Tardis\Models\Permission;
 use Tardis\Models\Role;
+use Tardis\Plugins\PluginManager;
 
 class AuditTestUser extends Authenticatable
 {

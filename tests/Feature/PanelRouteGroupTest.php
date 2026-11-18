@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\File;
 use Tardis\Bread\Sources\JsonBreadSource;
 use Tardis\Contracts\Plugins\Features\Provider\Routes;
 use Tardis\Http\PanelRoutes;
-use Tardis\Manager\PluginManager;
+use Tardis\Plugins\PluginManager;
 
 class ShelfRoutePlugin implements Routes
 {

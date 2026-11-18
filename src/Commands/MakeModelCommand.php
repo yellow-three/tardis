@@ -8,7 +8,7 @@ use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Schema;
 use Tardis\Database\ModelGenerator;
 
-class TardisMakeModelCommand extends Command
+class MakeModelCommand extends Command
 {
     protected $signature = 'tardis:make-model
         {table : The existing table name}

@@ -1,4 +1,4 @@
-@use('Tardis\Classes\Translation')
+@use('Tardis\Support\Translation')
 
 <div>
     <x-tardis::page-header

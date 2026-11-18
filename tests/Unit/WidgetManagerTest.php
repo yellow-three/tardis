@@ -2,8 +2,8 @@
 
 declare(strict_types=1);
 
-use Tardis\Classes\Widget;
-use Tardis\Manager\WidgetManager;
+use Tardis\Dashboard\Widget;
+use Tardis\Dashboard\WidgetManager;
 
 test('widget manager can be instantiated', function () {
     $manager = new WidgetManager;

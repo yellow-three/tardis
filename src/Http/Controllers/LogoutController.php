@@ -7,7 +7,7 @@ namespace Tardis\Http\Controllers;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Tardis\Bread\ActivityLogger;
-use Tardis\Manager\PluginManager;
+use Tardis\Plugins\PluginManager;
 
 /**
  * Signs the user out through the authentication plugin.

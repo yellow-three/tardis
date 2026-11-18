@@ -6,7 +6,7 @@ namespace Tardis\Auth;
 
 use Tardis\Bread\BreadManager;
 use Tardis\Contracts\Plugins\AuthorizationPlugin;
-use Tardis\Manager\PluginManager;
+use Tardis\Plugins\PluginManager;
 
 /**
  * Gates every BREAD page on the enabled AuthorizationPlugin.

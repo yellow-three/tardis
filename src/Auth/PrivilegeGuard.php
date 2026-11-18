@@ -6,7 +6,7 @@ namespace Tardis\Auth;
 
 use Illuminate\Support\Facades\DB;
 use Tardis\Contracts\Plugins\AuthorizationPlugin;
-use Tardis\Manager\PluginManager;
+use Tardis\Plugins\PluginManager;
 use Tardis\Support\ModelResolver;
 
 /**

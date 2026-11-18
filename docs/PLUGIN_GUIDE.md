@@ -19,7 +19,7 @@ This creates a package under `packages/Tardis/Blog` (change it with `--package-d
 
 namespace App\Plugins;
 
-use Tardis\Classes\MenuItem;
+use Tardis\Menu\MenuItem;
 use Tardis\Contracts\Plugins\Features\Provider\MenuItems;
 use Tardis\Contracts\Plugins\GenericPlugin;
 
@@ -55,7 +55,7 @@ A plugin only contributes anything while it is **enabled**. Register it in a ser
 <?php
 
 use App\Plugins\BlogPlugin;
-use Tardis\Manager\PluginManager;
+use Tardis\Plugins\PluginManager;
 
 public function boot(PluginManager $plugins): void
 {

@@ -2,14 +2,13 @@
 
 declare(strict_types=1);
 
-namespace Tardis\Manager;
+namespace Tardis\Dashboard;
 
 use Illuminate\Support\Collection;
 use Tardis\Auth\Abilities;
-use Tardis\Classes\Widget;
 use Tardis\Contracts\Plugins\Features\Filter\FilterWidgets;
 use Tardis\Contracts\Plugins\Features\Provider\Widgets;
-use Tardis\Dashboard\DashboardLayout;
+use Tardis\Plugins\PluginManager;
 
 class WidgetManager
 {

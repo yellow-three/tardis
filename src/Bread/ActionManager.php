@@ -2,12 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Tardis\Manager;
+namespace Tardis\Bread;
 
 use Closure;
 use Illuminate\Support\Collection;
 use InvalidArgumentException;
-use Tardis\Bread\Action;
 use Tardis\Bread\Actions\DeleteAction;
 use Tardis\Bread\Actions\ForceDeleteAction;
 use Tardis\Bread\Actions\RestoreAction;

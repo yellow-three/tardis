@@ -3,9 +3,9 @@
 declare(strict_types=1);
 
 use Livewire\Livewire;
-use Tardis\Manager\MenuManager;
-use Tardis\Manager\PluginManager;
+use Tardis\Menu\MenuManager;
 use Tardis\Menu\MenuOverlay;
+use Tardis\Plugins\PluginManager;
 
 function freshMenu(): MenuManager
 {

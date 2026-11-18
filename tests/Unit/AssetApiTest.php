@@ -3,8 +3,8 @@
 declare(strict_types=1);
 
 use Tardis\Assets\Asset;
+use Tardis\Assets\AssetManager;
 use Tardis\Facades\Tardis;
-use Tardis\Manager\AssetManager;
 
 test('an Asset describes a stylesheet or script by url or inline text', function () {
     $css = Asset::css('/vendor/host/extra.css');

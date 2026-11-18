@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Livewire;
 use Tardis\Bread\Sources\JsonBreadSource;
-use Tardis\Classes\MenuItem;
+use Tardis\Menu\MenuItem;
 
 class BreadPageTestModel extends Model
 {

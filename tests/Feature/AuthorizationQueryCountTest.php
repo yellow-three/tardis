@@ -5,11 +5,11 @@ declare(strict_types=1);
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
-use Tardis\Auth\TardisAuthorizationPlugin;
+use Tardis\Auth\RoleAuthorizationPlugin;
 use Tardis\Database\Seeders\PermissionSeeder;
-use Tardis\Manager\PluginManager;
 use Tardis\Models\Permission;
 use Tardis\Models\Role;
+use Tardis\Plugins\PluginManager;
 
 class QueryCountTestUser extends Authenticatable
 {
@@ -34,7 +34,7 @@ beforeEach(function () {
     $this->seed(PermissionSeeder::class);
 
     $manager = app(PluginManager::class);
-    $manager->register('tardis-authorization', TardisAuthorizationPlugin::class);
+    $manager->register('tardis-authorization', RoleAuthorizationPlugin::class);
     $manager->enableByDefault('tardis-authorization');
 });
 

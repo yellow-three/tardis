@@ -7,8 +7,8 @@ use Livewire\Attributes\Title;
 use Livewire\Component;
 use Tardis\Auth\Abilities;
 use Tardis\Auth\BreadAuthorization;
-use Tardis\Classes\Setting;
 use Tardis\Facades\Tardis;
+use Tardis\Settings\Setting;
 
 new #[Title('tardis::shell.titles.settings')] #[Layout('tardis::layouts.admin')] class extends Component
 {

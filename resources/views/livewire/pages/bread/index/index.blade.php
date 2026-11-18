@@ -161,7 +161,7 @@
                                         @else
                                             @php($value = data_get($row, $field['accessor'] ?? $fieldName))
                                             @if (! empty($field['translatable']))
-                                                {{ \Tardis\Classes\Translation::value($value, $field['locales'] ?? null) }}
+                                                {{ \Tardis\Support\Translation::value($value, $field['locales'] ?? null) }}
                                             @elseif ($browseField = ($this->formfields[$fieldName] ?? null))
                                                 {{ $browseField->browse($value) ?? '-' }}
                                             @else

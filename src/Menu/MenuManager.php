@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Tardis\Manager;
+namespace Tardis\Menu;
 
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Route;
@@ -10,11 +10,10 @@ use Tardis\Auth\Abilities;
 use Tardis\Auth\BreadAuthorization;
 use Tardis\Bread\BreadDefinition;
 use Tardis\Bread\BreadManager;
-use Tardis\Classes\MenuItem;
-use Tardis\Classes\UserMenuItem;
 use Tardis\Contracts\Plugins\Features\Filter\FilterMenuItems;
 use Tardis\Contracts\Plugins\Features\Provider\MenuItems;
-use Tardis\Menu\MenuOverlay;
+use Tardis\Plugins\PluginManager;
+use Tardis\Settings\SettingsManager;
 
 class MenuManager
 {

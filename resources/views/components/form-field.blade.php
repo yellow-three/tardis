@@ -15,7 +15,7 @@
 --}}
 @php
     foreach ($field->assets() as $fieldAsset) {
-        app(\Tardis\Manager\AssetManager::class)->require($fieldAsset);
+        app(\Tardis\Assets\AssetManager::class)->require($fieldAsset);
     }
 
     $locales = $field->translatable ? $field->resolvedLocales() : [];

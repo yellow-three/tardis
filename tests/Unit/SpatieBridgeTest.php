@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 use Illuminate\Foundation\Auth\User as Authenticatable;
-use Tardis\Auth\TardisAuthorizationPlugin;
+use Tardis\Auth\RoleAuthorizationPlugin;
 
 class SpatieBridgePermissionMissing extends RuntimeException {}
 
@@ -39,11 +39,11 @@ class SpatieBridgeUser extends Authenticatable
     }
 }
 
-function spatieBridgeAs(SpatieBridgeUser $user): TardisAuthorizationPlugin
+function spatieBridgeAs(SpatieBridgeUser $user): RoleAuthorizationPlugin
 {
     auth()->setUser($user);
 
-    return new TardisAuthorizationPlugin;
+    return new RoleAuthorizationPlugin;
 }
 
 test('a permission the host never created is a denial, not a server error', function () {

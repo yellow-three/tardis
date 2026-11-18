@@ -6,7 +6,7 @@ namespace Tardis\Http;
 
 use Illuminate\Routing\Router;
 use Tardis\Contracts\Plugins\Features\Provider\Routes;
-use Tardis\Manager\PluginManager;
+use Tardis\Plugins\PluginManager;
 
 /**
  * Lets enabled plugins add routes to the admin panel.

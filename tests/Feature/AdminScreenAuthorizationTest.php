@@ -10,9 +10,9 @@ use Livewire\Livewire;
 use Tardis\Auth\Abilities;
 use Tardis\Bread\BreadManager;
 use Tardis\Contracts\Plugins\AuthorizationPlugin;
-use Tardis\Manager\MenuManager;
-use Tardis\Manager\PluginManager;
+use Tardis\Menu\MenuManager;
 use Tardis\Models\Media;
+use Tardis\Plugins\PluginManager;
 
 class ScreenGateUser extends Authenticatable
 {
