@@ -73,7 +73,7 @@ new #[Title('tardis::users.users')] #[Layout('tardis::layouts.admin')] class ext
 
             $query->where(function ($q) use ($term, $columns) {
                 foreach ($columns as $column) {
-                    $q->orWhere(fn ($inner) => $inner->whereRaw($q->getGrammar()->wrap($column).' '.Like::operator($q->getQuery())." ? escape '!'", [$term]));
+                    $q->orWhere(fn ($inner) => $inner->whereRaw(Like::clause($q->getQuery(), $q->getGrammar()->wrap($column))." ? escape '!'", [$term]));
                 }
             });
         }

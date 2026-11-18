@@ -14,6 +14,18 @@ use Illuminate\Database\Query\Builder;
  */
 final class Like
 {
+    /**
+     * "<column> like" for a raw where clause, given the wrapped column. On
+     * PostgreSQL the column is cast to text, so a numeric or date column can
+     * be searched too instead of failing with "operator does not exist".
+     */
+    public static function clause(Builder $query, string $wrappedColumn): string
+    {
+        return self::operator($query) === 'ilike'
+            ? 'CAST('.$wrappedColumn.' AS TEXT) ilike'
+            : $wrappedColumn.' like';
+    }
+
     public static function operator(Builder $query): string
     {
         $connection = $query->getConnection();

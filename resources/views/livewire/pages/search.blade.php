@@ -69,7 +69,7 @@ new #[Title('tardis::search.search')] #[Layout('tardis::layouts.admin')] class e
                 $query = $bread->query();
                 $column = $query->getQuery()->getGrammar()->wrap($bread->searchKey);
 
-                $items = $query->whereRaw($column.' '.\Tardis\Support\Like::operator($query->getQuery())." ? escape '!'", [$term])
+                $items = $query->whereRaw(\Tardis\Support\Like::clause($query->getQuery(), $column)." ? escape '!'", [$term])
                     ->limit(5)
                     ->get();
 
