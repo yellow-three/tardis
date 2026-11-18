@@ -144,7 +144,7 @@ test('record events are written to the activity log with the acting user', funct
     Livewire::test('tardis::pages.bread.edit', ['slug' => 'things', 'id' => $thing->id])->set('form.title', 'Second')->call('save');
     Livewire::test('tardis::pages.bread.index', ['slug' => 'things'])->call('delete', $thing->id);
 
-    $rows = DB::table('activity_logs')->orderBy('id')->get();
+    $rows = DB::table('tardis_activity_logs')->orderBy('id')->get();
 
     expect($rows->pluck('action')->all())->toBe(['created', 'updated', 'deleted'])
         ->and($rows->pluck('user_id')->unique()->all())->toBe([$this->user->id])
@@ -162,7 +162,7 @@ test('passwords and hidden attributes never reach the activity log', function ()
         ->set('form.api_token', 'token-abc-123')
         ->call('save');
 
-    $created = DB::table('activity_logs')->where('action', 'created')->first();
+    $created = DB::table('tardis_activity_logs')->where('action', 'created')->first();
 
     expect($created->new_values)->toContain('Safe')
         ->not->toContain('hunter2')
@@ -175,19 +175,19 @@ test('activity logging can be switched off or limited to some events', function 
     config()->set('tardis.activity_log.enabled', false);
     Livewire::test('tardis::pages.bread.create', ['slug' => 'things'])->set('form.title', 'Quiet')->call('save');
 
-    expect(DB::table('activity_logs')->count())->toBe(0);
+    expect(DB::table('tardis_activity_logs')->count())->toBe(0);
 
     config()->set('tardis.activity_log.enabled', true);
     config()->set('tardis.activity_log.log_events', ['deleted']);
 
     Livewire::test('tardis::pages.bread.create', ['slug' => 'things'])->set('form.title', 'Loud')->call('save');
 
-    expect(DB::table('activity_logs')->count())->toBe(0);
+    expect(DB::table('tardis_activity_logs')->count())->toBe(0);
 
     $thing = EventThing::where('title', 'Loud')->first();
     Livewire::test('tardis::pages.bread.index', ['slug' => 'things'])->call('delete', $thing->id);
 
-    expect(DB::table('activity_logs')->pluck('action')->all())->toBe(['deleted']);
+    expect(DB::table('tardis_activity_logs')->pluck('action')->all())->toBe(['deleted']);
 });
 
 test('an admin page request announces itself with the tardis.page event', function () {

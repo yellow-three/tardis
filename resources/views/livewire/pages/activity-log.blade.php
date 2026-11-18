@@ -40,7 +40,7 @@ new #[Title('tardis::activity.activity_log')] #[Layout('tardis::layouts.admin')]
 
     public function loadActivities(): void
     {
-        $query = DB::table('activity_logs');
+        $query = DB::table(\Tardis\Models\ActivityLog::TABLE);
 
         if ($this->filterAction) {
             $query->where('action', $this->filterAction);

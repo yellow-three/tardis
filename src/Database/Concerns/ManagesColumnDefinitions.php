@@ -8,6 +8,7 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schema;
 use Tardis\Bread\ActivityLogger;
+use Tardis\Models\ActivityLog;
 
 trait ManagesColumnDefinitions
 {
@@ -92,7 +93,7 @@ trait ManagesColumnDefinitions
         }
 
         try {
-            if (Schema::hasTable('activity_logs')) {
+            if (Schema::hasTable(ActivityLog::TABLE)) {
                 app(ActivityLogger::class)->log('tardis.schema', 0, $action, newValues: $values);
             }
         } catch (\Throwable $e) {

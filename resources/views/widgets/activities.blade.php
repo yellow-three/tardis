@@ -1,6 +1,6 @@
 @php
     try {
-        $count = \Illuminate\Support\Facades\DB::table('activity_logs')->count();
+        $count = \Illuminate\Support\Facades\DB::table(\Tardis\Models\ActivityLog::TABLE)->count();
     } catch (\Throwable) {
         $count = 0;
     }

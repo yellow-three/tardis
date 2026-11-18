@@ -11,6 +11,7 @@ use Tardis\Bread\BreadManager;
 use Tardis\Events\BreadRecordCreated;
 use Tardis\Events\BreadRecordDeleted;
 use Tardis\Events\BreadRecordUpdated;
+use Tardis\Models\ActivityLog;
 
 /**
  * Writes record events to the activity log (tardis.activity_log.*).
@@ -44,7 +45,7 @@ class LogBreadActivity
         }
 
         try {
-            if (! Schema::hasTable('activity_logs')) {
+            if (! Schema::hasTable(ActivityLog::TABLE)) {
                 return;
             }
 
