@@ -205,3 +205,4 @@ Fixes from the 2026-11-17 review (`docs/notes.md`). Each one is covered by a tes
 - **Commands** follow Laravel's `make:` pattern (`tardis:make:bread`, `tardis:make:model`, `tardis:make:plugin`) and `tardis:bread:migrate` is `tardis:bread:import-legacy`.
 - **Route names** separate the builder (`tardis.builder.*`) from records (`tardis.bread.{index,create,show,edit}`); every list screen ends in `.index`.
 - Old class and command names work until 0.3 with a deprecation notice; stored menu entries and plugin switches are carried over. Full tables in UPGRADE.md.
+- **One config root:** media and icon settings are the `media` and `icons` sections of `config/tardis.php` (one `tardis-config` publish tag); the activity log table is `tardis_activity_logs`, prefixed like every other package table; the name is spelled "Tardis" throughout.

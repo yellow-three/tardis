@@ -219,3 +219,9 @@ Plugin keys: the built-in authentication plugin is `tardis-authentication` (was 
 | `tardis.roles` | `tardis.roles.index` |
 
 A BREAD override route is named after the new action name (`tardis.bread.create.posts`, not `tardis.bread.add.posts`). `tardis.bread.create` and `tardis.bread.edit` changed meaning, so check every use of them by hand. Menu items and menu builder settings stored under the other old names are read under the new ones.
+
+## Faz 10c — config root, table name, spelling (0.2)
+
+- `config('tardis-media.*')` → `config('tardis.media.*')` and `config('tardis-icons.*')` → `config('tardis.icons.*')`. Both are sections of `config/tardis.php`, published with `--tag=tardis-config`; the `tardis-media-config` and `tardis-icons-config` tags are gone. A published `config/tardis-media.php` or `config/tardis-icons.php` is still applied over the new keys until 0.3 (with a deprecation notice): move its keys into `config/tardis.php` and delete it. If you published an older `config/tardis.php`, add the `media` and `icons` sections from the package file.
+- `php artisan migrate` renames the `activity_logs` table to `tardis_activity_logs` (rows are kept). Update raw queries against the old name; `Tardis\Models\ActivityLog::TABLE` holds the new one.
+- Text uses the spelling "Tardis" (was "TARDIS" in places). If you published the translation files, update `shell.name`, `shell.admin` and `shell.footer`. The stored `admin.title` setting keeps whatever value you saved.
