@@ -64,7 +64,7 @@ test('detectFields normalizes detected types and pluralizes the model basename',
         ->assertHasNoErrors()
         ->assertSet('namePlural', 'Bread Builder Test Models')
         ->assertSet('fieldConfig.email.type', 'text')
-        ->assertSet('fieldConfig.avatar.type', 'file')
+        ->assertSet('fieldConfig.avatar.type', 'image')
         ->assertSet('fieldConfig.tags.type', 'simple_array')
         ->assertSet('step', 2);
 });
@@ -96,7 +96,7 @@ test('builder saves a BREAD definition to the json source', function () {
     expect($bread)->not->toBeNull()
         ->and($bread->model)->toBe(BreadBuilderTestModel::class)
         ->and($bread->namePlural)->toBe('Bread Builder Test Models')
-        ->and($bread->fields['avatar']['type'])->toBe('file');
+        ->and($bread->fields['avatar']['type'])->toBe('image');
 });
 
 test('builder edit mode hydrates the full definition', function () {
@@ -275,7 +275,7 @@ test('fieldSearch filters the field table by key, label and type', function () {
     $component->set('fieldSearch', 'email');
     expect($component->instance()->visibleFieldKeys())->toBe(['email']);
 
-    $component->set('fieldSearch', 'file');
+    $component->set('fieldSearch', 'image');
     expect($component->instance()->visibleFieldKeys())->toBe(['avatar']);
 
     $component->set('fieldSearch', 'no-such-field');
@@ -433,9 +433,9 @@ test('save coerces a field type that is not registered', function () {
 
     $bread = app(BreadManager::class)->find('bread-builder-test');
 
-    // Falls back to the type the reflector detected for that column (file) --
+    // Falls back to the type the reflector detected for that column (image) --
     // not to a blanket text -- and every persisted type stays on the enum.
-    expect($bread->fields['avatar']['type'])->toBe('file');
+    expect($bread->fields['avatar']['type'])->toBe('image');
 
     foreach ($bread->fields as $field) {
         expect(array_keys(app(FormfieldManager::class)->types()))->toContain($field['type']);
@@ -450,16 +450,16 @@ test('save maps a legacy field type name onto the enum', function () {
         ->set('model', BreadBuilderTestModel::class)
         ->call('detectFields')
         ->set('slug', 'bread-builder-test')
-        // 'image' is not a registered type, but normalize() reads it as
-        // file, so the staged intent survives instead of losing to the type the
+        // 'email' is not a registered type, but normalize() reads it as
+        // text, so the staged intent survives instead of losing to the type the
         // reflector detected for body.
-        ->set('fieldConfig.body.type', 'image')
+        ->set('fieldConfig.body.type', 'email')
         ->call('save')
         ->assertHasNoErrors();
 
     $bread = app(BreadManager::class)->find('bread-builder-test');
 
-    expect($bread->fields['body']['type'])->toBe('file');
+    expect($bread->fields['body']['type'])->toBe('text');
 });
 
 test('save refuses to silently overwrite another BREAD definition', function () {

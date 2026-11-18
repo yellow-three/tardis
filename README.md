@@ -228,6 +228,8 @@ Files reach the media screen through Livewire's temporary upload, which applies 
 
 PHP's `upload_max_filesize` and `post_max_size` must allow the size too.
 
+Image uploads get a thumbnail for the media grid, fitted inside `tardis.media.thumbnail_size` (300×300 by default) at `tardis.media.thumbnail_quality`. Thumbnails are stored under `.tardis-thumbnails/` on the media disk, outside the browsable folder, and are removed with their file. This needs PHP's GD extension; without it the grid shows the original images.
+
 ## Testing
 
 The package includes feature tests for the core admin flows and BREAD behavior.

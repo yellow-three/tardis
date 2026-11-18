@@ -230,3 +230,9 @@ A BREAD override route is named after the new action name (`tardis.bread.create.
 
 - BREAD definitions no longer have a `relationships` key; it is ignored when read and dropped on the next save. It never affected the forms. Add the relation as a field instead (`belongs_to`, `has_one`, `belongs_to_many`, `has_many`), or use the builder's Relationships tab.
 - A foreign key shown as a `number` or `select` field can become `belongs_to` with `model` and `label_column`.
+
+## Faz 11 — image field
+
+- `image` is now its own field type instead of an alias of `file`. Stored definitions are unaffected: saving used to write `file`, so change a field to `image` yourself to get resizing and thumbnails. The builder now detects image columns (`avatar`, `photo`, …) as `image`.
+- Run `php artisan migrate` to add `tardis_media.thumbnail_path`. Until then uploads work without thumbnails. Images uploaded before the upgrade keep showing the original in the media grid.
+- Install PHP's GD extension to enable processing.

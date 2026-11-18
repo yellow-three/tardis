@@ -20,7 +20,7 @@ class RegistryProbeField extends TextField
 test('the registry exposes every built-in field type', function () {
     expect(array_keys((new FormfieldManager)->types()))->toBe([
         'text', 'number', 'select', 'toggle', 'date', 'datetime', 'time',
-        'textarea', 'password', 'file', 'checkbox', 'radio', 'slider',
+        'textarea', 'password', 'file', 'image', 'checkbox', 'radio', 'slider',
         'slug', 'tags', 'markdown', 'code_editor', 'color', 'hidden', 'belongs_to', 'has_one', 'belongs_to_many', 'has_many', 'media_picker',
         'select_multiple', 'rich_text', 'simple_array', 'repeater', 'coordinates',
     ]);
@@ -45,7 +45,7 @@ test('assertRegistered throws for an unknown type and names it', function () {
 test('normalize maps legacy detector names onto registered types', function () {
     $manager = new FormfieldManager;
 
-    expect($manager->normalize('image'))->toBe('file')
+    expect($manager->normalize('image'))->toBe('image')
         ->and($manager->normalize('email'))->toBe('text')
         ->and($manager->normalize('simple_array'))->toBe('simple_array');
 });

@@ -213,3 +213,9 @@ Fixes from the 2026-11-17 review (`docs/notes.md`). Each one is covered by a tes
 - **`has_one`**: pick the one related record that points at this record; the previous one is unlinked.
 - Both pickers, like `belongs_to_many`, list only what the related BREAD shows (scope, `browse` permission) and refuse a key outside that list.
 - **Builder:** the Relationships tab adds a detected relationship to the form (a belongsTo turns its foreign key into the picker). The unused `relationships` list and its "display type" are gone from definitions.
+
+## Faz 11 — image field and thumbnails (R37)
+
+- **`image` field type** (was an alias of `file`): `resize` fits an upload inside a box (never enlarging), `quality` re-encodes it, `thumbnails` stores named sizes next to it (fit or centre-crop). The form shows a preview of the current image; uploads are validated with Laravel's `image` rule.
+- **Media screen thumbnails:** image uploads get a thumbnail sized by `tardis.media.thumbnail_size` (the setting was never read before), stored outside the browsable folder and deleted with the file.
+- Processing uses PHP's GD extension and adds no Composer dependency; without GD, originals are stored as before.

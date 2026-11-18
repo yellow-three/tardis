@@ -239,10 +239,13 @@ return [
         'path' => env('TARDIS_MEDIA_PATH', 'media'),
         'allowed_mimes' => ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg', 'pdf', 'doc', 'docx', 'xls', 'xlsx', 'zip'],
         'max_file_size' => env('TARDIS_MEDIA_MAX_SIZE', 10240), // KB
+        // Image uploads get a thumbnail fitted inside this box (needs the GD
+        // extension; without it the media screen shows the original).
         'thumbnail_size' => [
             'width' => 300,
             'height' => 300,
         ],
+        'thumbnail_quality' => 85,
     ],
 
     /*
