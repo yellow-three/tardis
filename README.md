@@ -26,6 +26,14 @@ php artisan tardis:install --email=you@example.com
 
 `tardis:install` is safe to run again. The panel is then at `/admin` (the prefix is `tardis.admin.prefix`). Check the result with `php artisan tardis:doctor`.
 
+To look around a filled panel first, add sample content:
+
+```bash
+php artisan tardis:install --email=you@example.com --demo   # or later: php artisan tardis:demo
+```
+
+It adds Categories, Posts and Pages BREADs (with a category picker, an image field and an order page), a few records and a `main` site menu. The data lives in its own `tardis_demo_*` tables, so your tables are never touched, and a BREAD or menu you already have keeps its name. `php artisan tardis:demo --remove` takes it all away again. Outside `local` and `testing` it needs `--force`.
+
 Publish the package configuration if you want to change it:
 
 ```bash
@@ -223,6 +231,7 @@ Larger screens (BREAD pages, BREAD builder, media browser, database explorer, se
 | `tardis:make:model {table}` | Generate an Eloquent model for an existing table |
 | `tardis:make:plugin {name}` | Scaffold a plugin package (`--with-menu`, `--with-widgets`, `--with-settings`, `--with-migration`, `--with-model`) |
 | `tardis:bread:import-legacy` | Convert legacy `config/bread/*.php` definitions to JSON |
+| `tardis:demo` | Add sample categories, posts, pages and a site menu (`--remove` takes them away) |
 | `tardis:import:voyager` | Import BREADs, menus, settings and roles from a Voyager 1.x database (`--connection`, `--only=bread`, `--dry-run`, `--force`) |
 | `tardis:bread:export` | Export all JSON definitions as one document |
 | `tardis:doctor` | Report install health; exits non-zero on failure so it can gate a deploy (`--json` for scripts) |

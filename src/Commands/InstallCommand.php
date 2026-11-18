@@ -19,6 +19,7 @@ class InstallCommand extends Command
 {
     protected $signature = 'tardis:install
         {--email= : Email of the first administrator to create}
+        {--demo : Also add sample categories, posts, pages and a site menu}
         {--force : Overwrite published files and skip the confirmation}';
 
     protected $description = 'Install Tardis: migrate, seed permissions, publish assets and create an administrator';
@@ -48,6 +49,10 @@ class InstallCommand extends Command
         // renews them by file time; a release unpacked by Composer can carry
         // older times than the cached copy, so clear it after every install.
         $this->components->task('Clearing compiled views', fn (): bool => $this->call('view:clear') === 0);
+
+        if ($this->option('demo') && $this->call('tardis:demo', ['--force' => (bool) $this->option('force')]) !== 0) {
+            return self::FAILURE;
+        }
 
         $email = trim((string) $this->option('email'));
 

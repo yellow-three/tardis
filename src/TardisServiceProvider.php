@@ -17,6 +17,7 @@ use Tardis\Bread\Sources\JsonBreadSource;
 use Tardis\Commands\AdminCommand;
 use Tardis\Commands\BreadExportCommand;
 use Tardis\Commands\BreadImportLegacyCommand;
+use Tardis\Commands\DemoCommand;
 use Tardis\Commands\DoctorCommand;
 use Tardis\Commands\ImportVoyagerCommand;
 use Tardis\Commands\InstallCommand;
@@ -281,6 +282,7 @@ class TardisServiceProvider extends ServiceProvider
             BreadExportCommand::class,
             BreadImportLegacyCommand::class,
             ImportVoyagerCommand::class,
+            DemoCommand::class,
             DoctorCommand::class,
             InstallCommand::class,
             MakeBreadCommand::class,
