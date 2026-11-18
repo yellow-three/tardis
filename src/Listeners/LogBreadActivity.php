@@ -75,7 +75,7 @@ class LogBreadActivity
         $keys = $event->model->getHidden();
         $definition = app(BreadManager::class)->find($event->slug);
 
-        foreach ($definition?->fields ?? [] as $field) {
+        foreach ($definition->fields ?? [] as $field) {
             if (($field['type'] ?? null) === 'password' && isset($field['name'])) {
                 $keys[] = $field['name'];
             }

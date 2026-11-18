@@ -12,6 +12,7 @@ use Tardis\Auth\BreadAuthorization;
 use Tardis\Auth\PrivilegeGuard;
 use Tardis\Auth\UserAccounts;
 use Tardis\Bread\ActivityLogger;
+use Tardis\Support\Like;
 use Tardis\Support\ModelResolver;
 
 new #[Title('tardis::users.users')] #[Layout('tardis::layouts.admin')] class extends Component
@@ -72,7 +73,7 @@ new #[Title('tardis::users.users')] #[Layout('tardis::layouts.admin')] class ext
 
             $query->where(function ($q) use ($term, $columns) {
                 foreach ($columns as $column) {
-                    $q->orWhere(fn ($inner) => $inner->whereRaw($q->getGrammar()->wrap($column)." like ? escape '!'", [$term]));
+                    $q->orWhere(fn ($inner) => $inner->whereRaw(Like::clause($q->getQuery(), $q->getGrammar()->wrap($column))." ? escape '!'", [$term]));
                 }
             });
         }

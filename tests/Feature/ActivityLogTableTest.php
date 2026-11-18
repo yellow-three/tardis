@@ -16,3 +16,11 @@ test('the activity log table carries the tardis_ prefix, rows kept', function ()
         ->and(Schema::hasTable(ActivityLog::TABLE))->toBeTrue()
         ->and(ActivityLog::query()->value('action'))->toBe('created');
 });
+
+test('the role and activity tables carry no foreign key to users', function () {
+    $this->artisan('migrate');
+
+    foreach (['tardis_role_user', 'tardis_activity_logs'] as $table) {
+        expect(collect(Schema::getForeignKeys($table))->pluck('columns')->all())->not->toContain(['user_id']);
+    }
+});

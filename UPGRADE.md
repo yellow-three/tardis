@@ -245,3 +245,7 @@ A BREAD override route is named after the new action name (`tardis.bread.create.
 
 - The user menu's Profile link now opens the panel's own `/admin/profile` page; a host `profile.edit` route is no longer linked. Add a custom user-menu item if you want your own profile screen there.
 - If your user table names its columns differently, set `tardis.users.columns` (`name`, `email`, `password`).
+
+## Faz 13 — no foreign keys to users
+
+- `php artisan migrate` drops the foreign keys from `tardis_role_user.user_id` and `tardis_activity_logs.user_id` to `users.id`. The panel's user model may live in another table, and the keys broke installs and test runs where `users` was not there yet. The columns keep an index. Deleting a user outside the Users screen no longer removes their role links automatically; delete them from `tardis_role_user` in your own code if you need to.

@@ -92,9 +92,9 @@ class DemoSeeder extends Seeder
         );
 
         // Output demo credentials clearly
-        $this->command?->info('Demo data seeded successfully.');
-        $this->command?->info('Demo Admin: demo-admin@example.test / demo-admin-password');
-        $this->command?->info('Demo Editor: demo-editor@example.test / demo-editor-password');
+        $this->command->info('Demo data seeded successfully.');
+        $this->command->info('Demo Admin: demo-admin@example.test / demo-admin-password');
+        $this->command->info('Demo Editor: demo-editor@example.test / demo-editor-password');
     }
 
     /**

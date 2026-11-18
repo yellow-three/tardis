@@ -51,9 +51,10 @@ new #[Title('tardis::activity.activity_log')] #[Layout('tardis::layouts.admin')]
         }
 
         if ($this->search) {
-            $query->where(function ($q) {
-                $q->where('model_type', 'like', '%'.$this->search.'%')
-                    ->orWhere('action', 'like', '%'.$this->search.'%');
+            $like = \Tardis\Support\Like::operator($query);
+            $query->where(function ($q) use ($like) {
+                $q->where('model_type', $like, '%'.$this->search.'%')
+                    ->orWhere('action', $like, '%'.$this->search.'%');
             });
         }
 

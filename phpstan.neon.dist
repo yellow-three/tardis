@@ -1,0 +1,17 @@
+includes:
+    - vendor/larastan/larastan/extension.neon
+
+parameters:
+    level: 5
+    paths:
+        - src
+    tmpDir: .phpstan-cache
+    # Input arrives from JSON files, requests and plugins; the defensive
+    # checks against what the PHPDoc promises stay, so they are not "always
+    # true" here.
+    treatPhpDocTypesAsCertain: false
+    ignoreErrors:
+        # Used by the Livewire database pages under resources/views, which
+        # are templates and not analysed.
+        - identifier: trait.unused
+          path: src/Database/Concerns/ManagesColumnDefinitions.php

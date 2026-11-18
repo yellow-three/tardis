@@ -12,6 +12,12 @@ beforeEach(function () {
         $table->id();
         $table->string('title');
         $table->boolean('active')->default(false);
+        // A type the editor has no exact name for: a boolean is a tinyint on
+        // SQLite and MySQL, but a real boolean on PostgreSQL, where a smallint
+        // (int2) plays that part instead.
+        Schema::getConnection()->getDriverName() === 'pgsql'
+            ? $table->smallInteger('level')->default(0)
+            : $table->boolean('level')->default(false);
     });
 });
 
@@ -56,14 +62,14 @@ test('renaming a column the editor cannot describe exactly only renames it', fun
 });
 
 test('changing a column the editor cannot describe exactly is refused', function () {
-    $before = gizmoColumn('active');
+    $before = gizmoColumn('level');
 
     Livewire::test('tardis::pages.database.edit', ['table' => 'gizmos'])
-        ->set('editColumns.'.gizmoRow('active').'.nullable', true)
-        ->call('saveColumn', gizmoRow('active'))
-        ->assertSet('error', __('tardis::database.column_not_editable', ['column' => 'active']));
+        ->set('editColumns.'.gizmoRow('level').'.nullable', true)
+        ->call('saveColumn', gizmoRow('level'))
+        ->assertSet('error', __('tardis::database.column_not_editable', ['column' => 'level']));
 
-    expect(gizmoColumn('active'))->toBe($before);
+    expect(gizmoColumn('level'))->toBe($before);
 });
 
 test('the primary key cannot be modified from the editor', function () {

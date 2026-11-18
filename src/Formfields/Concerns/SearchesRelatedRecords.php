@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Tardis\Auth\BreadAuthorization;
 use Tardis\Bread\BreadDefinition;
 use Tardis\Bread\BreadManager;
+use Tardis\Support\Like;
 
 /**
  * The searchable picker behind the relation fields: options come from the
@@ -42,7 +43,7 @@ trait SearchesRelatedRecords
         $key = $query->getModel()->getKeyName();
 
         if ($search !== '') {
-            $query->where($this->labelColumn, 'like', '%'.$search.'%');
+            $query->where($this->labelColumn, Like::operator($query->getQuery()), '%'.$search.'%');
         }
 
         $options = $query->limit($limit)->pluck($this->labelColumn, $key)->all();

@@ -312,3 +312,13 @@ test('sorting adds the key as a tie-breaker so pages do not overlap', function (
     expect(array_column($orders, 'column'))->toBe(['views', 'listing_articles.id'])
         ->and(array_column($orders, 'direction'))->toBe(['desc', 'desc']);
 });
+
+test('a numeric column can be searched on every database', function () {
+    $bread = listingBread();
+    $bread['fields'] = array_map(fn (array $field) => $field['name'] === 'views' ? $field + ['searchable' => true] : $field, $bread['fields']);
+    $query = new BreadQuery(BreadDefinition::fromArray($bread));
+
+    // PostgreSQL has no LIKE for integers; the column is compared as text.
+    expect(listingTitles($query, ['20']))->toBe(['Beta'])
+        ->and(listingTitles($query, ['', null, 'asc', 'without', ['views' => '5']]))->toBe(['Alpha']);
+});

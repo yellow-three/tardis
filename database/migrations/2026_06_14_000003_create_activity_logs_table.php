@@ -10,7 +10,9 @@ return new class extends Migration
     {
         Schema::create('activity_logs', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->nullable()->constrained()->nullOnDelete();
+            // No foreign key to users: the panel's user model may live in
+            // another table (auth.providers.users.model).
+            $table->foreignId('user_id')->nullable();
             $table->string('model_type');
             $table->unsignedBigInteger('model_id');
             $table->string('action');

@@ -7,6 +7,7 @@ namespace Tardis\Bread;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\DB;
+use Tardis\Support\Like;
 
 /**
  * Builds the browse listing of a BREAD: search, sorting, page size and
@@ -274,10 +275,12 @@ class BreadQuery
     {
         $query = $this->bread->query();
 
+        // supportsTrashed() checks the model uses SoftDeletes, whose scope
+        // adds these builder macros.
         if ($this->supportsTrashed()) {
             match ($trashed) {
-                'with' => $query->withTrashed(),
-                'only' => $query->onlyTrashed(),
+                'with' => $query->withTrashed(), // @phpstan-ignore method.notFound
+                'only' => $query->onlyTrashed(), // @phpstan-ignore method.notFound
                 default => null,
             };
         }
@@ -293,10 +296,11 @@ class BreadQuery
             // `!` is the escape character: unlike a backslash it means the same in every database.
             $term = '%'.str_replace(['!', '%', '_'], ['!!', '!%', '!_'], $search).'%';
             $grammar = $query->getQuery()->getGrammar();
+            $base = $query->getQuery();
 
-            $query->where(function (Builder $inner) use ($columns, $term, $grammar) {
+            $query->where(function (Builder $inner) use ($columns, $term, $grammar, $base) {
                 foreach ($columns as $column) {
-                    $inner->orWhereRaw($grammar->wrap($column)." like ? escape '!'", [$term]);
+                    $inner->orWhereRaw(Like::clause($base, $grammar->wrap($column))." ? escape '!'", [$term]);
                 }
             });
         }
@@ -355,7 +359,7 @@ class BreadQuery
 
             $escaped = '%'.str_replace(['!', '%', '_'], ['!!', '!%', '!_'], $term).'%';
 
-            $query->whereRaw($grammar->wrap($column)." like ? escape '!'", [$escaped]);
+            $query->whereRaw(Like::clause($query->getQuery(), $grammar->wrap($column))." ? escape '!'", [$escaped]);
         }
     }
 

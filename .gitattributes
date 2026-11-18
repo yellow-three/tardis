@@ -1,0 +1,28 @@
+# Normalise line endings in the repository.
+* text=auto eol=lf
+
+# Binary assets.
+*.png binary
+*.jpg binary
+*.ico binary
+*.woff2 binary
+
+# Left out of the archive Composer downloads (--prefer-dist): development
+# files a host application never needs. resources/compiled stays, it is
+# what the panel serves.
+/.github export-ignore
+/.gitattributes export-ignore
+/.gitignore export-ignore
+/docs export-ignore
+/research export-ignore
+/tests export-ignore
+/vite-plugins export-ignore
+/phpunit.xml.dist export-ignore
+/phpstan.neon.dist export-ignore
+/phpstan-baseline.neon export-ignore
+/pint.json export-ignore
+/package.json export-ignore
+/package-lock.json export-ignore
+/vite.config.js export-ignore
+/vite.js.config.js export-ignore
+/PROJECT_STATUS.md export-ignore

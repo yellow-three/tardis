@@ -23,7 +23,7 @@ Kapsam: `src/`, `routes/`, `resources/views/pages`, migration'lar, CI ve doküma
 
 | # | Bulgu | Kod ref | Doğrulama |
 |---|-------|---------|-----------|
-| B29 | **UUID/ULID: kalan kısım.** BREAD listesi, denetim kaydı ve Users sayfası string anahtarı destekliyor (Faz 10). Açık: paket migration'ları `foreignId('user_id')->constrained()` ile `users.id`'nin bigint olduğunu varsayıyor; UUID kullanıcı tablosunda `tardis_role_user`, `activity_logs.user_id`, `tardis_media.created_by` uyumsuz. | `database/migrations/*` | kod |
+| B29 | **UUID/ULID: kalan kısım.** BREAD listesi, denetim kaydı ve Users sayfası string anahtarı destekliyor (Faz 10). (`users` tablosuna sabit yabancı anahtarlar Faz 13'te kaldırıldı.) Açık: `user_id` sütunları hâlâ bigint; UUID kullanıcı tablosunda `tardis_role_user`, `activity_logs.user_id`, `tardis_media.created_by` uyumsuz. | `database/migrations/*` | kod |
 
 ## Düşük (LOW)
 
@@ -33,16 +33,12 @@ Kapsam: `src/`, `routes/`, `resources/views/pages`, migration'lar, CI ve doküma
 | B35 | **Durum dosyaları: kalan kısım.** `plugins.json` ve `preferences.json` artık kilit altında ve değişiklik bazında yazılıyor (`Tardis\Support\JsonFile`, Faz 10). Açık: `menus.json`, `dashboard.json`, `themes.json` ve ayarlar hâlâ tam kopya yazıyor (`JsonFile::update()`'e taşınmalı); `storage/` çok sunuculu/efemeral dağıtımlarda paylaşılmıyor, BREAD tanımları deploy ile taşınmıyor (R51). | `src/Menu/MenuOverlay.php`, `src/Dashboard/DashboardLayout.php`, `src/Manager/ThemeManager.php`, `src/Manager/SettingsManager.php` |
 | B37 | ~~`BreadRemoved` olayını dinleyen yok.~~ **Kasıtlı, bulgu değil:** `src/Events/BreadRemoved.php` izinlerin ve geçmişin bilerek bırakıldığını söylüyor (aynı slug yeniden oluşturulunca roller korunur). Yetim menü bindirmesi zararsız. Satır bir sonraki temizlikte silinebilir. | `src/Events/BreadRemoved.php` |
 | B38 | **Activity log: kalan kısım.** Giriş/çıkış, rol ve kullanıcı-rol değişikliği, plugin aç/kapa, IP/user-agent ve indeksler Faz 10'da eklendi. (Tablo adı Faz 10c'de `tardis_activity_logs` oldu.) Açık: geri yükleme (`RestoreAction`) loglanmıyor, kalıcı silme `deleted` olarak görünüyor; ayar değişiklikleri dışında kalan yönetici işlemleri (menü, tema, dashboard) yazılmıyor. | `src/Listeners/LogBreadActivity.php`, `src/Bread/Actions/*` |
-| B42 | Arama `LIKE`'ı PostgreSQL'de sayısal sütunda hata verir (CI yalnızca SQLite). (Kararlı sıralama ve toplu aksiyon transaction'ı Faz 10'da eklendi.) | `src/Bread/BreadQuery.php` |
 
 ## Depo / paketleme / CI
 
 | # | Bulgu |
 |---|-------|
-| B44 | `LICENSE` dosyası yok (`composer.json` ve README "MIT" diyor). `CHANGELOG`, `SECURITY.md`, `CONTRIBUTING` da yok. |
-| B45 | `.gitattributes` yok: `research/`, `docs/`, `tests/`, `.github/`, `stubs` dışı geliştirme dosyaları Composer dist arşivine giriyor (`export-ignore` gerekir). |
-| B46 | `composer.lock` `.gitignore`'da ama CI cache anahtarı `hashFiles('**/composer.lock')`; anahtar hep aynı, cache hiç yenilenmiyor. |
-| B47 | Statik analiz yok (PHPStan/Larastan); CI yalnızca SQLite'ta koşuyor (MySQL/PostgreSQL matrisi yok); tarayıcı/E2E testi yok. |
+| B47 | **Tarayıcı/E2E testi yok.** (PHPStan/Larastan seviye 5 ve MySQL/PostgreSQL CI işleri Faz 13'te eklendi; MySQL ve PostgreSQL işleri yeşil.) |
 
 ## Tema, CSS/JS ve Vite (2026-11-17 incelemesi)
 

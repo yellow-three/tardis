@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace Tardis\Media;
 
-use Illuminate\Filesystem\DirectoryAttributes;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use InvalidArgumentException;
+use League\Flysystem\DirectoryAttributes;
 use Tardis\Models\Media;
 use Tardis\Support\ModelResolver;
 

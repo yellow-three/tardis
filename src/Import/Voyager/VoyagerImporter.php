@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Tardis\Import\Voyager;
 
-use Illuminate\Database\ConnectionInterface;
+use Illuminate\Database\Connection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Str;
@@ -347,7 +347,7 @@ final class VoyagerImporter
         })->all();
     }
 
-    private function source(): ConnectionInterface
+    private function source(): Connection
     {
         return DB::connection($this->connection);
     }
