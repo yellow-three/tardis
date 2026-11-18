@@ -111,6 +111,26 @@ Entries the current user is not allowed to open are hidden. The user dropdown of
 
 Menu items can be grouped by section and can participate in active-route detection across nested admin pages.
 
+### Menus and settings on your own site
+
+*Menus → Site menus* (`/admin/menus/site`) holds named menus for your own pages, such as `main` or `footer`. Each item has a title, a URL (http(s), root-relative such as `/blog`, or `#fragment`) and may open in a new tab. Items nest up to three levels. Show a menu with the Blade component:
+
+```blade
+<x-tardis::site-menu name="main" class="menu menu-horizontal" />
+```
+
+or read it as a tree and render it yourself:
+
+```php
+foreach (menu('main') as $item) {
+    // $item['title'], $item['url'], $item['new_tab'], $item['children']
+}
+
+setting('admin.title', 'My site'); // a panel setting by "group.key"
+```
+
+`tardis_menu()` and `tardis_setting()` always exist. The short `menu()` and `setting()` names are added only when your application has no function of that name already.
+
 ## Theme system
 
 Themes are data. The built-in `tardis-light` and `tardis-dark` ship in the compiled stylesheet; any other theme is a validated entry in `storage/tardis/themes.json` that Tardis turns into a `[data-theme]` rule at request time, so a host can add one **without rebuilding any assets**.

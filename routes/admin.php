@@ -37,6 +37,7 @@ PanelRoutes::panel(function () {
 
     Route::livewire('/themes', 'tardis::pages.theme-editor')->name('themes.index');
     Route::livewire('/menus', 'tardis::pages.menu-builder')->name('menus.index');
+    Route::livewire('/menus/site', 'tardis::pages.site-menus')->name('site-menus.index');
     Route::livewire('/plugins', 'tardis::pages.plugins')->name('plugins.index');
     Route::livewire('/media', 'tardis::pages.media-browser')->name('media.index');
     // The media screen used to answer here too; old links land on it.

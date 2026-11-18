@@ -157,6 +157,8 @@ new #[Title('tardis::menu_builder.title')] #[Layout('tardis::layouts.admin')] cl
 <div>
     <x-tardis::page-header :title="__('tardis::menu_builder.title')" :description="__('tardis::menu_builder.description')" />
 
+    @include('tardis::partials.menu-tabs', ['active' => 'admin'])
+
     <x-tardis::card :title="__('tardis::menu_builder.items')" class="mb-6">
         <x-slot name="actions">
             <button type="button" wire:click="resetMenu" wire:confirm="{{ __('tardis::menu_builder.confirm_reset') }}" class="btn btn-ghost btn-sm">{{ __('tardis::menu_builder.reset') }}</button>

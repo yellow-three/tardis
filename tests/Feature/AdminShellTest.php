@@ -43,6 +43,7 @@ test('every fixed admin page renders a full document without any host applicatio
     '/admin/plugins',
     '/admin/media',
     '/admin/bread',
+    '/admin/menus/site',
     '/admin/database',
     '/admin/roles',
     '/admin/users',

@@ -219,3 +219,8 @@ Fixes from the 2026-11-17 review (`docs/notes.md`). Each one is covered by a tes
 - **`image` field type** (was an alias of `file`): `resize` fits an upload inside a box (never enlarging), `quality` re-encodes it, `thumbnails` stores named sizes next to it (fit or centre-crop). The form shows a preview of the current image; uploads are validated with Laravel's `image` rule.
 - **Media screen thumbnails:** image uploads get a thumbnail sized by `tardis.media.thumbnail_size` (the setting was never read before), stored outside the browsable folder and deleted with the file.
 - Processing uses PHP's GD extension and adds no Composer dependency; without GD, originals are stored as before.
+
+## Faz 11 — site menus and front-end helpers (R38)
+
+- **Site menus:** named menus for the host's own pages (`main`, `footer`, …), edited in *Menus → Site menus* with nesting (three levels), ordering, indent/outdent and new-tab links. They are stored in `storage/tardis/site-menus.json` with locked writes. Only http(s), root-relative and `#fragment` URLs are accepted.
+- **Helpers:** `menu('main')` returns a menu as a tree, `setting('group.key', $default)` reads a panel setting, and `<x-tardis::site-menu name="main" />` renders nested lists with `aria-current` on the current page. `tardis_menu()` / `tardis_setting()` always exist; the short names step aside for a host function of the same name.

@@ -51,6 +51,7 @@ function tardisGuardPages(): array
         'tardis::pages.search' => [],
         'tardis::pages.settings' => [],
         'tardis::pages.users' => [],
+        'tardis::pages.site-menus' => [],
         'tardis::pages.ui-components' => [],
         'tardis::pages.bread.manage' => [],
         'tardis::pages.bread-builder' => [],
@@ -114,7 +115,7 @@ beforeEach(function (): void {
 test('every modernised admin page is covered by the render guard', function (): void {
     $pages = tardisGuardPages();
 
-    expect(array_keys($pages))->toHaveCount(22);
+    expect(array_keys($pages))->toHaveCount(23);
 });
 
 test('no modernised admin page leaks a DaisyUI 4 class', function (): void {
