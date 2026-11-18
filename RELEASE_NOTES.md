@@ -240,3 +240,7 @@ Fixes from the 2026-11-17 review (`docs/notes.md`). Each one is covered by a tes
 
 - **`tardis:import:voyager`** reads a Voyager 1.x database and imports BREADs (data types and rows, including relationships, image options and validation), menus (except `admin`) as site menus, settings, and roles with their permissions and user assignments.
 - `--dry-run` writes nothing, `--only` picks parts, `--connection` reads another database, and `--force` overwrites. Every item that could not be mapped is listed in the report.
+
+## Faz 12 — demo content (R42)
+
+- **`tardis:install --demo`** / **`tardis:demo`** add Categories, Posts and Pages BREADs (belongs_to category picker, image field with a thumbnail, order page), sample records and a `main` site menu, in separate `tardis_demo_*` tables with models inside the package. Existing BREADs and menus with the same names are kept, and `tardis:demo --remove` removes everything the demo added. Outside local/testing it needs `--force`.
