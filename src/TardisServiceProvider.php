@@ -32,6 +32,7 @@ use Tardis\Listeners\ProvisionBreadPermissions;
 use Tardis\Manager\ActionManager;
 use Tardis\Manager\AssetManager;
 use Tardis\Manager\FormfieldManager;
+use Tardis\Manager\MediaManager;
 use Tardis\Manager\MenuManager;
 use Tardis\Manager\PluginManager;
 use Tardis\Manager\SettingsManager;
@@ -56,7 +57,13 @@ class TardisServiceProvider extends ServiceProvider
             'tardis-icons'
         );
 
+        $this->mergeConfigFrom(
+            __DIR__.'/../config/tardis-media.php',
+            'tardis-media'
+        );
+
         $this->app->singleton(AssetManager::class);
+        $this->app->alias(AssetManager::class, 'tardis.assets');
         $this->app->singleton(UserPreferences::class);
 
         // One instance per manager: pages resolve them with app(Class::class)
@@ -70,6 +77,7 @@ class TardisServiceProvider extends ServiceProvider
         $this->app->singleton(SettingsManager::class);
         $this->app->singleton(FormfieldManager::class);
         $this->app->singleton(ActionManager::class);
+        $this->app->singleton(MediaManager::class);
 
         // Plugin registrations must outlive the registration call: the manager
         // is resolved again by every consumer (AdminMiddleware, MenuItem,
@@ -88,20 +96,23 @@ class TardisServiceProvider extends ServiceProvider
         $this->app->scoped(JsonBreadSource::class);
 
         $this->registerAliases();
-        $this->registerPluginServiceProviders();
-        $this->registerDefaultAuth();
     }
 
     public function boot(): void
     {
+        // Compiled views keep this code until view:clear, so it names a stable
+        // container key rather than the class, which may move.
         Blade::directive('tardisStyles', function ($expression) {
-            return '<?php echo app(\\Tardis\\Manager\\AssetManager::class)->styles('.($expression ?: "'admin'").'); ?>';
+            return "<?php echo app('tardis.assets')->styles(".($expression ?: "'admin'").'); ?>';
         });
 
         Blade::directive('tardisScripts', function ($expression) {
-            return '<?php echo app(\\Tardis\\Manager\\AssetManager::class)->scripts('.($expression ?: "'admin'").'); ?>';
+            return "<?php echo app('tardis.assets')->scripts(".($expression ?: "'admin'").'); ?>';
         });
 
+        // Plugins are registered in boot(): register() only binds, so nothing
+        // is resolved (or read from storage) before every provider has run.
+        $this->registerDefaultAuth();
         $this->registerDefaultAuthorization();
         $this->registerLivewireNamespaces();
         $this->registerViews();
@@ -118,28 +129,6 @@ class TardisServiceProvider extends ServiceProvider
         $this->registerMiddleware();
         $this->registerCommands();
         $this->registerListeners();
-        $this->loadDefaultSettings();
-    }
-
-    /**
-     * Load default settings from the preset file on first install.
-     */
-    protected function loadDefaultSettings(): void
-    {
-        if ($this->app->runningInConsole()) {
-            return;
-        }
-
-        $presetPath = __DIR__.'/../resources/presets/settings.json';
-
-        if (! file_exists(storage_path('tardis/settings/settings.json'))) {
-            try {
-                $manager = $this->app->make(SettingsManager::class);
-                $manager->loadPreset($presetPath);
-            } catch (\Throwable) {
-                // Storage not available yet (e.g. during package discovery)
-            }
-        }
     }
 
     protected function registerDefaultAuth(): void
@@ -221,6 +210,10 @@ class TardisServiceProvider extends ServiceProvider
             __DIR__.'/../config/tardis-icons.php' => config_path('tardis-icons.php'),
         ], 'tardis-icons-config');
 
+        $this->publishes([
+            __DIR__.'/../config/tardis-media.php' => config_path('tardis-media.php'),
+        ], 'tardis-media-config');
+
     }
 
     protected function registerAliases(): void
@@ -260,24 +253,18 @@ class TardisServiceProvider extends ServiceProvider
 
     protected function registerCommands(): void
     {
-        if ($this->app->runningInConsole()) {
-            $this->commands([
-                TardisAdminCommand::class,
-                TardisBreadExportCommand::class,
-                TardisBreadMigrateCommand::class,
-                TardisDoctorCommand::class,
-                TardisInstallCommand::class,
-                TardisMakeBreadCommand::class,
-                TardisMakeModelCommand::class,
-                TardisMakePluginCommand::class,
-                TardisPluginsCommand::class,
-            ]);
-        }
-    }
-
-    protected function registerPluginServiceProviders(): void
-    {
-        $this->app->register(TardisPluginManagerServiceProvider::class);
-        $this->app->register(TardisMediaServiceProvider::class);
+        // Not limited to the console: the panel's command runner calls
+        // Artisan from a web request and may be allowed to run these.
+        $this->commands([
+            TardisAdminCommand::class,
+            TardisBreadExportCommand::class,
+            TardisBreadMigrateCommand::class,
+            TardisDoctorCommand::class,
+            TardisInstallCommand::class,
+            TardisMakeBreadCommand::class,
+            TardisMakeModelCommand::class,
+            TardisMakePluginCommand::class,
+            TardisPluginsCommand::class,
+        ]);
     }
 }

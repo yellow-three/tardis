@@ -181,3 +181,11 @@ Fixes from the 2026-11-17 review (`docs/notes.md`). Each one is covered by a tes
 - **`ThemePlugin::themes()`** adds selectable themes; the old `getTheme()` `:root` override, which beat every theme including dark mode, is gone (see UPGRADE.md).
 - **DaisyUI shape variables** (`--radius-*`, `--size-*`, `--border`, `--depth`, `--noise`) are set by every theme, with DaisyUI's defaults; they were never set, so component corners and borders were invalid. A theme can change them with `shape`.
 - **Tailwind only scans the package's own templates**, so the committed bundle no longer depends on docs or tests (36 unused selectors dropped).
+
+## Faz 10c — core API fixes (R57, first part)
+
+- **Every request gets the stylesheet and core script.** The "already written" guard moved from the singleton `AssetManager` to the request; a second request in the same process (Octane, a worker, a test) used to come out unstyled.
+- **No work in the service provider on each request**: the settings preset is the manager's starting point instead of a file written from a GET; the default auth plugin is registered in `boot()`; the package commands are available to the panel's command runner.
+- **Facade**: correct docblock (pinned by a test), accessors always ask the container, new `themes()`, `assets()`, `actions()`, `media()`; `version()` follows Composer for tagged installs.
+- **One service provider**: the two sub-providers are folded in.
+- **`tardis:install` clears compiled views**, so Livewire recompiles the panel components after an update; `@tardisStyles`/`@tardisScripts` compile to `app('tardis.assets')`.

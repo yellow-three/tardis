@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\File;
 use Tardis\Assets\Asset;
 use Tardis\Contracts\Plugins\Features\Provider\CSS;
@@ -80,6 +81,8 @@ test('an asset scoped to the login pages is not written on admin pages', functio
 
     expect($this->assets->styles('admin'))->not->toContain('_assets');
 
+    // The login page is another request.
+    app()->instance('request', Request::create('/admin/login'));
     app()->instance(AssetManager::class, $auth = new AssetManager(app()));
     $auth->addCss(Asset::file($this->dir.'/plugin.css')->scope('auth'));
 

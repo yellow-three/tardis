@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tardis;
 
+use Composer\InstalledVersions;
 use Illuminate\Support\Collection;
 use Tardis\Assets\Asset;
 use Tardis\Bread\Action;
@@ -11,53 +12,73 @@ use Tardis\Bread\BreadManager;
 use Tardis\Manager\ActionManager;
 use Tardis\Manager\AssetManager;
 use Tardis\Manager\FormfieldManager;
+use Tardis\Manager\MediaManager;
 use Tardis\Manager\MenuManager;
 use Tardis\Manager\PluginManager;
 use Tardis\Manager\SettingsManager;
+use Tardis\Manager\ThemeManager;
 use Tardis\Manager\WidgetManager;
 
+/**
+ * The object behind the Tardis facade: one way in to every manager.
+ *
+ * Each accessor asks the container every time instead of keeping its own
+ * copy, so a binding that changes (a scoped service, a test double) is what
+ * the facade returns.
+ */
 class Tardis
 {
-    protected ?PluginManager $pluginManager = null;
-
-    protected ?MenuManager $menuManager = null;
-
-    protected ?WidgetManager $widgetManager = null;
-
-    protected ?SettingsManager $settingsManager = null;
-
-    protected ?FormfieldManager $formfieldManager = null;
-
-    protected ?BreadManager $breadManager = null;
+    /** Used when Composer cannot tell (a path repository, a dev checkout). */
+    public const VERSION = '0.1.0';
 
     public function plugins(): PluginManager
     {
-        return $this->pluginManager ??= app(PluginManager::class);
+        return app(PluginManager::class);
     }
 
     public function menu(): MenuManager
     {
-        return $this->menuManager ??= app(MenuManager::class);
+        return app(MenuManager::class);
     }
 
     public function widgets(): WidgetManager
     {
-        return $this->widgetManager ??= app(WidgetManager::class);
+        return app(WidgetManager::class);
     }
 
     public function settings(): SettingsManager
     {
-        return $this->settingsManager ??= app(SettingsManager::class);
+        return app(SettingsManager::class);
     }
 
     public function formfields(): FormfieldManager
     {
-        return $this->formfieldManager ??= app(FormfieldManager::class);
+        return app(FormfieldManager::class);
     }
 
     public function bread(): BreadManager
     {
-        return $this->breadManager ??= app(BreadManager::class);
+        return app(BreadManager::class);
+    }
+
+    public function themes(): ThemeManager
+    {
+        return app(ThemeManager::class);
+    }
+
+    public function assets(): AssetManager
+    {
+        return app(AssetManager::class);
+    }
+
+    public function actions(): ActionManager
+    {
+        return app(ActionManager::class);
+    }
+
+    public function media(): MediaManager
+    {
+        return app(MediaManager::class);
     }
 
     /**
@@ -65,7 +86,7 @@ class Tardis
      */
     public function addCss(Asset|string $asset): void
     {
-        app(AssetManager::class)->addCss($asset);
+        $this->assets()->addCss($asset);
     }
 
     /**
@@ -73,7 +94,7 @@ class Tardis
      */
     public function addJs(Asset|string $asset): void
     {
-        app(AssetManager::class)->addJs($asset);
+        $this->assets()->addJs($asset);
     }
 
     /**
@@ -81,12 +102,12 @@ class Tardis
      */
     public function addAction(string $slug, Action|string $action): void
     {
-        app(ActionManager::class)->add($slug, $action);
+        $this->actions()->add($slug, $action);
     }
 
     public function replaceAction(string $slug, string $name, Action|string $action): void
     {
-        app(ActionManager::class)->replace($slug, $name, $action);
+        $this->actions()->replace($slug, $name, $action);
     }
 
     /**
@@ -94,11 +115,23 @@ class Tardis
      */
     public function manipulateActions(string $slug, \Closure $callback): void
     {
-        app(ActionManager::class)->manipulate($slug, $callback);
+        $this->actions()->manipulate($slug, $callback);
     }
 
+    /**
+     * The installed package version: Composer's, when it is a tagged release,
+     * otherwise VERSION.
+     */
     public static function version(): string
     {
-        return '0.1.0';
+        try {
+            $installed = InstalledVersions::isInstalled('yellow-three/tardis')
+                ? (string) InstalledVersions::getPrettyVersion('yellow-three/tardis')
+                : '';
+        } catch (\Throwable) {
+            $installed = '';
+        }
+
+        return preg_match('/^v?(\d+\.\d+\.\d+(?:-[0-9A-Za-z.]+)?)$/', $installed, $m) === 1 ? $m[1] : self::VERSION;
     }
 }

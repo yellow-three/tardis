@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use Illuminate\Foundation\Auth\User;
+use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Schema;
 use Tardis\Models\Permission;
@@ -67,4 +68,28 @@ test('install is idempotent', function () {
 
 test('install runs without interaction', function () {
     $this->artisan('tardis:install', ['--no-interaction' => true])->assertSuccessful();
+});
+
+/**
+ * Livewire compiles the package's SFC/MFC components into the view cache and
+ * renews them by file time. Composer gives a new release the archive's file
+ * times, which can be older than the cached copy, so after an update the old
+ * component could keep being served. Install clears the compiled views.
+ */
+test('install clears compiled views so updated components are recompiled', function () {
+    $stale = rtrim((string) config('view.compiled'), '/').'/livewire/classes/stale-component.php';
+    File::ensureDirectoryExists(dirname($stale));
+    File::put($stale, '<?php // compiled by an older release');
+
+    $this->artisan('tardis:install', ['--force' => true])->assertSuccessful();
+
+    expect(is_file($stale))->toBeFalse();
+});
+
+test('the asset directives reference a stable container key, not a class name', function () {
+    $compiled = Blade::compileString("@tardisStyles\n@tardisScripts('auth')");
+
+    expect($compiled)->toContain("app('tardis.assets')->styles('admin')")
+        ->toContain("app('tardis.assets')->scripts('auth')")
+        ->not->toContain('Manager\\\\AssetManager');
 });

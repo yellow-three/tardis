@@ -12,10 +12,6 @@ use Tardis\Contracts\Plugins\Features\Provider\JS;
 
 class AssetManager
 {
-    protected bool $stylesRendered = false;
-
-    protected bool $scriptsRendered = false;
-
     /** @var list<Asset> */
     protected array $added = [];
 
@@ -74,10 +70,9 @@ class AssetManager
 
     public function styles(string $scope = 'admin'): string
     {
-        if ($this->stylesRendered) {
+        if (! $this->firstTime('styles')) {
             return '';
         }
-        $this->stylesRendered = true;
 
         $html = '<!-- TARDIS Styles -->'.PHP_EOL;
 
@@ -134,10 +129,9 @@ class AssetManager
 
     public function scripts(string $scope = 'admin'): string
     {
-        if ($this->scriptsRendered) {
+        if (! $this->firstTime('scripts')) {
             return '';
         }
-        $this->scriptsRendered = true;
 
         $html = '<!-- TARDIS Scripts -->'.PHP_EOL;
 
@@ -191,6 +185,33 @@ class AssetManager
         $version = $this->publishedVersion('app.js');
 
         return '<script src="'.e($url.($version !== null ? '?v='.$version : '')).'"></script>'.PHP_EOL;
+    }
+
+    /**
+     * True the first time a block is asked for during the current request.
+     *
+     * The manager is a singleton because plugins register assets on it once,
+     * at boot; whether a page already got its styles is a fact about one
+     * request, so it is kept on the request, not here. A process that serves
+     * another request (Octane, a worker rendering mail, a test) starts over.
+     */
+    private function firstTime(string $block): bool
+    {
+        $request = $this->app->bound('request') ? $this->app['request'] : null;
+
+        if ($request === null) {
+            return true;
+        }
+
+        $key = 'tardis.assets.rendered.'.$block;
+
+        if ($request->attributes->get($key) === true) {
+            return false;
+        }
+
+        $request->attributes->set($key, true);
+
+        return true;
     }
 
     /**
