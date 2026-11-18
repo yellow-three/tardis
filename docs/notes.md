@@ -23,7 +23,7 @@ Kapsam: `src/`, `routes/`, `resources/views/pages`, migration'lar, CI ve doküma
 
 | # | Bulgu | Kod ref | Doğrulama |
 |---|-------|---------|-----------|
-| B29 | **UUID/ULID: kalan kısım.** BREAD listesi, denetim kaydı ve Users sayfası string anahtarı destekliyor (Faz 10). Açık: paket migration'ları `foreignId('user_id')->constrained()` ile `users.id`'nin bigint olduğunu varsayıyor; UUID kullanıcı tablosunda `tardis_role_user`, `activity_logs.user_id`, `tardis_media.created_by` uyumsuz. | `database/migrations/*` | kod |
+| B29 | **UUID/ULID: kalan kısım.** BREAD listesi, denetim kaydı ve Users sayfası string anahtarı destekliyor (Faz 10). (`users` tablosuna sabit yabancı anahtarlar Faz 13'te kaldırıldı.) Açık: `user_id` sütunları hâlâ bigint; UUID kullanıcı tablosunda `tardis_role_user`, `activity_logs.user_id`, `tardis_media.created_by` uyumsuz. | `database/migrations/*` | kod |
 
 ## Düşük (LOW)
 

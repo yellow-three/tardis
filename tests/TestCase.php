@@ -30,6 +30,12 @@ abstract class TestCase extends OrchestraTestCase
 
     protected function tearDown(): void
     {
+        // Every test boots a new application with a new connection; on MySQL
+        // and PostgreSQL they would pile up to the server's connection limit.
+        if ((getenv('TARDIS_TEST_DB') ?: 'sqlite') !== 'sqlite' && isset($this->app)) {
+            $this->app['db']->disconnect('testing');
+        }
+
         parent::tearDown();
 
         if ($this->tardisStorage !== '') {

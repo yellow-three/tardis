@@ -31,7 +31,10 @@ return new class extends Migration
 
         Schema::create('tardis_role_user', function (Blueprint $table) {
             $table->foreignId('role_id')->constrained('tardis_roles')->cascadeOnDelete();
-            $table->foreignId('user_id')->constrained()->cascadeOnDelete();
+            // No foreign key to users: the panel's user model may live in
+            // another table (auth.providers.users.model). Deleting a user on
+            // the Users screen removes their role links.
+            $table->foreignId('user_id')->index();
             $table->primary(['role_id', 'user_id']);
         });
     }
