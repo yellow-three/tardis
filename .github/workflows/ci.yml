@@ -243,3 +243,36 @@ jobs:
 
       - name: Run tests
         run: vendor/bin/pest
+
+  test-next-major:
+    name: test (Laravel master, next major)
+    runs-on: ubuntu-latest
+    # Laravel's master branch is where the next major (14) is built, and
+    # Testbench 12 follows it. Today master is still aliased 13.0.x-dev on
+    # Packagist; the alias below lets it stand in for a 13.x release, so this
+    # job starts testing Laravel 14 the day work on it lands, long before
+    # composer.json can allow ^14.0. Unreleased code: it warns, never blocks.
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: 8.5
+          extensions: json, mbstring, openssl, sqlite, pdo, pdo_sqlite, gd
+          tools: composer
+
+      - name: Install Laravel master
+        run: |
+          composer config minimum-stability dev
+          composer config prefer-stable true
+          composer require laravel/framework:"dev-master as 13.99" livewire/livewire:"dev-main as 4.99" --no-update --no-interaction
+          composer require --dev orchestra/testbench:"12.x-dev" --no-update --no-interaction
+          composer update --no-interaction --no-progress --prefer-dist
+
+      - name: Show the versions under test
+        run: composer show laravel/framework livewire/livewire orchestra/testbench | grep -E '^(name|versions)'
+
+      - name: Run tests
+        run: vendor/bin/pest
