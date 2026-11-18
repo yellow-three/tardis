@@ -1,6 +1,14 @@
 # Tardis
 
-Tardis is a Laravel admin framework package built around Livewire 4, DaisyUI and a modular plugin/menu system.
+Tardis is an admin panel for Laravel 13, built on Livewire 4 and DaisyUI 5. Point it at your Eloquent models and it generates the screens to browse, read, edit, add and delete their records (BREAD), with relation pickers, image fields, an order page and per-record actions. It adds a media library, settings, a sidebar and site menu builder, roles and permissions, user accounts, an activity log, themes and a plugin system.
+
+If you know [Voyager](https://github.com/thedevdojo/voyager), Tardis covers the same ground on a current stack: BREAD definitions are versioned JSON files instead of database rows, every screen checks its permission on each request, and `php artisan tardis:import:voyager` brings an existing Voyager site across ([migration guide](docs/MIGRATING_FROM_VOYAGER.md)).
+
+```bash
+php artisan tardis:install --email=you@example.com --demo
+```
+
+gives you a panel with sample content to look around in.
 
 ## Requirements
 
@@ -315,11 +323,13 @@ See [UPGRADE.md](UPGRADE.md) when coming from a development build.
 
 | File | What it covers |
 |---|---|
-| [UPGRADE.md](UPGRADE.md) | Moving from a development build to 0.1 |
-| [PROJECT_STATUS.md](PROJECT_STATUS.md) | Current state, verification and open follow-ups |
+| [UPGRADE.md](UPGRADE.md) | Every change to make when upgrading |
+| [PROJECT_STATUS.md](PROJECT_STATUS.md) | Architecture summary |
 | [RELEASE_NOTES.md](RELEASE_NOTES.md) | What the package includes and what changed |
 | [docs/PLUGIN_GUIDE.md](docs/PLUGIN_GUIDE.md) | Writing and enabling plugins |
-| [docs/EXAMPLE_BREAD.md](docs/EXAMPLE_BREAD.md) | A complete BREAD definition |
+| [docs/EXAMPLE_BREAD.md](docs/EXAMPLE_BREAD.md) | A complete BREAD definition and every field option |
+| [docs/CUSTOMIZATION.md](docs/CUSTOMIZATION.md) | Actions, custom field types, accessors, replacing screens and views, panel routes, another guard, soft deletes |
+| [docs/MIGRATING_FROM_VOYAGER.md](docs/MIGRATING_FROM_VOYAGER.md) | Importing a Voyager site and replacing Voyager calls |
 | [docs/DEMO_FLOW.md](docs/DEMO_FLOW.md) | A walkthrough for demonstrating the panel |
 | [docs/constraints.md](docs/constraints.md) | Permanent constraints and gotchas |
 | [docs/notes.md](docs/notes.md), [docs/backlog.md](docs/backlog.md) | Open findings and the roadmap |
