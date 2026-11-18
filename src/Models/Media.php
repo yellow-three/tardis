@@ -10,6 +10,24 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Storage;
 use Tardis\Database\Factories\MediaFactory;
 
+/**
+ * @property int $id
+ * @property string $name
+ * @property string|null $original_name
+ * @property string $path
+ * @property string|null $thumbnail_path
+ * @property string $disk
+ * @property string|null $mime_type
+ * @property int $size
+ * @property string|null $alt_text
+ * @property string|null $collection
+ * @property int|null $created_by
+ * @property string|null $caption
+ * @property string|null $description
+ * @property-read string $url
+ * @property-read string|null $thumbnail_url
+ * @property-read string $formatted_size
+ */
 class Media extends Model
 {
     use HasFactory;
@@ -37,6 +55,9 @@ class Media extends Model
         'mime_type', 'size', 'alt_text', 'collection', 'created_by', 'caption', 'description',
     ];
 
+    // "url" comes from getUrlAttribute(); Larastan reads the url() method
+    // next to it as the attribute and does not find one.
+    // @phpstan-ignore rules.modelAppends
     protected $appends = ['url', 'thumbnail_url', 'formatted_size'];
 
     public function url(): string
@@ -60,8 +81,6 @@ class Media extends Model
         }
 
         return Storage::disk($this->disk)->url($this->path);
-
-        return null;
     }
 
     public function getFormattedSizeAttribute(): string

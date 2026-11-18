@@ -41,6 +41,7 @@
         "livewire/livewire": "^4.0"
     },
     "require-dev": {
+        "larastan/larastan": "^3.15",
         "laravel/pint": "^1.27",
         "orchestra/testbench": "^11.1",
         "pestphp/pest": "^4.7",
@@ -61,6 +62,7 @@
         "test": "vendor/bin/pest",
         "test-coverage": "vendor/bin/pest --coverage",
         "lint": "./vendor/bin/pint --test",
-        "lint-fix": "./vendor/bin/pint"
+        "lint-fix": "./vendor/bin/pint",
+        "analyse": "./vendor/bin/phpstan analyse --memory-limit=1G"
     }
 }

@@ -143,7 +143,7 @@ class MenuItem
         return $item;
     }
 
-    public function route(string $route, array $params = []): self
+    public function route(string $route, array $params = []): static
     {
         $this->routeName = LegacyNames::route($route);
         $this->routeParams = $params;
@@ -151,7 +151,7 @@ class MenuItem
         return $this;
     }
 
-    public function url(string $url): self
+    public function url(string $url): static
     {
         $this->url = $url;
 
@@ -162,7 +162,7 @@ class MenuItem
      * Set permission required to see this menu item.
      * Arguments are passed to the AuthorizationPlugin's authorize().
      */
-    public function permission(string $ability, mixed ...$arguments): self
+    public function permission(string $ability, mixed ...$arguments): static
     {
         $this->permission = $ability;
         $this->permissionArguments = $arguments;
@@ -176,14 +176,14 @@ class MenuItem
      *
      * @param  \Closure(): bool  $callback
      */
-    public function visibleWhen(\Closure $callback): self
+    public function visibleWhen(\Closure $callback): static
     {
         $this->visibleWhen = $callback;
 
         return $this;
     }
 
-    public function badge(string $color, ?string $value = null): self
+    public function badge(string $color, ?string $value = null): static
     {
         $this->badgeColor = $color;
         $this->badgeValue = $value;
@@ -191,7 +191,7 @@ class MenuItem
         return $this;
     }
 
-    public function order(int $order): self
+    public function order(int $order): static
     {
         $this->order = $order;
 
@@ -201,7 +201,7 @@ class MenuItem
     /**
      * Set the active matching mode.
      */
-    public function activeMode(string $mode): self
+    public function activeMode(string $mode): static
     {
         $this->activeMode = $mode;
 
@@ -216,7 +216,7 @@ class MenuItem
      *
      * @param  array<int, string>  $routeNames
      */
-    public function activeOnRoutes(array $routeNames): self
+    public function activeOnRoutes(array $routeNames): static
     {
         $this->activeRouteNames = $routeNames;
 
@@ -227,7 +227,7 @@ class MenuItem
      * Set the menu section/group label.
      * Sections are rendered as menu-title headers in grouped views.
      */
-    public function section(?string $section): self
+    public function section(?string $section): static
     {
         $this->section = $section;
 
@@ -237,7 +237,7 @@ class MenuItem
     /**
      * Add child menu items.
      */
-    public function addChildren(MenuItem ...$children): self
+    public function addChildren(MenuItem ...$children): static
     {
         foreach ($children as $child) {
             $this->children->push($child);
@@ -250,7 +250,7 @@ class MenuItem
      * Recursively validate permissions for this item and its children.
      * Removes children the user cannot see.
      */
-    public function validatePermissions(?PluginManager $plugins = null): self
+    public function validatePermissions(?PluginManager $plugins = null): static
     {
         $auth = $this->resolveAuthorization($plugins);
 

@@ -32,6 +32,7 @@ class RestoreAction extends Action
 
     public function handle(Model $record, string $slug): mixed
     {
-        return $record->restore();
+        // appliesTo() only offers this on a trashed record of a SoftDeletes model.
+        return method_exists($record, 'restore') ? $record->restore() : false;
     }
 }

@@ -39,7 +39,7 @@ class SettingsManager
     {
         $this->load();
 
-        return $this->findByKey($key)?->value ?? $default;
+        return $this->findByKey($key)->value ?? $default;
     }
 
     public function set(string $key, mixed $value, bool $save = true): void

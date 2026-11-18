@@ -46,3 +46,4 @@ resources/hot
 
 # JsonBreadSource backups written by a test that saves into the fixtures
 /tests/Fixtures/bread/*.backup.*.json
+/.phpstan-cache

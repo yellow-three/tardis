@@ -274,10 +274,12 @@ class BreadQuery
     {
         $query = $this->bread->query();
 
+        // supportsTrashed() checks the model uses SoftDeletes, whose scope
+        // adds these builder macros.
         if ($this->supportsTrashed()) {
             match ($trashed) {
-                'with' => $query->withTrashed(),
-                'only' => $query->onlyTrashed(),
+                'with' => $query->withTrashed(), // @phpstan-ignore method.notFound
+                'only' => $query->onlyTrashed(), // @phpstan-ignore method.notFound
                 default => null,
             };
         }
