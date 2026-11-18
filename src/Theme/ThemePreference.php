@@ -4,8 +4,7 @@ declare(strict_types=1);
 
 namespace Tardis\Theme;
 
-use Tardis\Manager\SettingsManager;
-use Tardis\Manager\ThemeManager;
+use Tardis\Settings\SettingsManager;
 use Tardis\Support\UserPreferences;
 
 /**

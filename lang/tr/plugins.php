@@ -24,4 +24,12 @@ return [
         'unknown' => 'Bilinmeyen',
     ],
     'settings' => 'Ayarlar',
+    'labels' => [
+        'authentication' => 'Oturumla giriş',
+        'authorization' => 'Rol tabanlı erişim',
+    ],
+    'descriptions' => [
+        'authentication' => "Host uygulamanın oturum guard'ı ve kullanıcı modeliyle giriş yapar.",
+        'authorization' => 'Tardis tablolarında tutulan roller ve izinler.',
+    ],
 ];

@@ -6,8 +6,8 @@ use Illuminate\Support\Facades\File;
 use Tardis\Bread\Sources\JsonBreadSource;
 use Tardis\Facades\Tardis;
 use Tardis\Formfields\Formfield;
+use Tardis\Formfields\FormfieldManager;
 use Tardis\Formfields\Types\TextField;
-use Tardis\Manager\FormfieldManager;
 
 class RegistryProbeField extends TextField
 {

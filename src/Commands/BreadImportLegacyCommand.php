@@ -10,9 +10,16 @@ use Tardis\Bread\BreadManager;
 use Tardis\Bread\Legacy\LegacyConfigReader;
 use Tardis\Bread\Sources\JsonBreadSource;
 
-class TardisBreadMigrateCommand extends Command
+class BreadImportLegacyCommand extends Command
 {
-    protected $signature = 'tardis:bread:migrate
+    /**
+     * The pre-0.2 name keeps working until 0.3.
+     *
+     * @var list<string>
+     */
+    protected $aliases = ['tardis:bread:migrate'];
+
+    protected $signature = 'tardis:bread:import-legacy
         {--dry-run : Report what would be migrated without writing anything}
         {--delete : Move migrated config files out of config/bread}
         {--force : Overwrite an existing JSON definition with the same slug}';

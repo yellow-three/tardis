@@ -1,6 +1,6 @@
 @php
-    $menuManager = app(\Tardis\Manager\MenuManager::class);
-    $pluginManager = app(\Tardis\Manager\PluginManager::class);
+    $menuManager = app(\Tardis\Menu\MenuManager::class);
+    $pluginManager = app(\Tardis\Plugins\PluginManager::class);
     $menuManager->collectFromPlugins($pluginManager);
     $items = $menuManager->tree();
 @endphp

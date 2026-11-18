@@ -5,7 +5,7 @@ use Livewire\Attributes\Title;
 use Illuminate\Cache\RateLimiter;
 use Illuminate\Support\Str;
 use Livewire\Component;
-use Tardis\Manager\PluginManager;
+use Tardis\Plugins\PluginManager;
 
 new #[Title('tardis::auth.login')] #[Layout('tardis::layouts.auth')] class extends Component
 {

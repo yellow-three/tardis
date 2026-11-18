@@ -15,7 +15,7 @@ use Tardis\Diagnostics\DoctorReport;
  * can gate a deploy, while warnings (route cache, stale assets) stay zero.
  * --json emits the same report for scripts.
  */
-class TardisDoctorCommand extends Command
+class DoctorCommand extends Command
 {
     protected $signature = 'tardis:doctor
         {--json : Output the report as JSON}';

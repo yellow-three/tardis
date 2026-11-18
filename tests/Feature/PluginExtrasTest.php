@@ -8,10 +8,10 @@ use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\ViewErrorBag;
 use Tardis\Assets\Asset;
+use Tardis\Assets\AssetManager;
 use Tardis\Contracts\Plugins\Features\Provider\Routes;
 use Tardis\Formfields\Formfield;
-use Tardis\Manager\AssetManager;
-use Tardis\Manager\PluginManager;
+use Tardis\Plugins\PluginManager;
 
 class RoutePlugin implements Routes
 {

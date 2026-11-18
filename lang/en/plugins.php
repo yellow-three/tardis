@@ -24,4 +24,12 @@ return [
         'unknown' => 'Unknown',
     ],
     'settings' => 'Settings',
+    'labels' => [
+        'authentication' => 'Session sign-in',
+        'authorization' => 'Role-based access',
+    ],
+    'descriptions' => [
+        'authentication' => "Signs in with the host's session guard and its user model.",
+        'authorization' => 'Roles and permissions stored in the Tardis tables.',
+    ],
 ];

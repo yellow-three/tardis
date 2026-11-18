@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Str;
-use Tardis\Manager\FormfieldManager;
+use Tardis\Formfields\FormfieldManager;
 
 class ModelReflector
 {

@@ -114,7 +114,7 @@ return [
     |--------------------------------------------------------------------------
     |
     | BREAD pages ("{action} {slug}" abilities, e.g. "browse posts") are
-    | checked against the enabled AuthorizationPlugin. TardisAuthorizationPlugin
+    | checked against the enabled AuthorizationPlugin. RoleAuthorizationPlugin
     | reads the tardis_roles / tardis_permission_role / tardis_permissions
     | tables, so roles you assign on the Roles page are what grant access.
     |
@@ -122,7 +122,7 @@ return [
     |
     */
     'authorization' => [
-        // When true (default) TardisAuthorizationPlugin is registered and enabled:
+        // When true (default) RoleAuthorizationPlugin is registered and enabled:
         // a logged-in user needs the "access admin" ability — through a role — to
         // open the panel. Create the first administrator with
         // `php artisan tardis:admin you@example.com`. Set to false only if you

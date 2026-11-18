@@ -5,9 +5,9 @@ declare(strict_types=1);
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Support\Facades\Schema;
 use Livewire\Livewire;
-use Tardis\Auth\TardisAuthorizationPlugin;
+use Tardis\Auth\RoleAuthorizationPlugin;
 use Tardis\Bread\ReservedSlugs;
-use Tardis\Manager\PluginManager;
+use Tardis\Plugins\PluginManager;
 
 class PanelRoutesTestUser extends Authenticatable
 {
@@ -38,7 +38,7 @@ function panelUser(): PanelRoutesTestUser
 
 test('a signed-in user without panel access can still sign out', function () {
     $manager = app(PluginManager::class);
-    $manager->register('tardis-authorization', TardisAuthorizationPlugin::class);
+    $manager->register('tardis-authorization', RoleAuthorizationPlugin::class);
     $manager->enableByDefault('tardis-authorization');
 
     $this->actingAs(panelUser())->get(route('tardis.dashboard'))->assertForbidden();

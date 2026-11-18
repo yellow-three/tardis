@@ -8,7 +8,7 @@ use Illuminate\Console\Command;
 use Illuminate\Support\Facades\File;
 use Tardis\Bread\Sources\JsonBreadSource;
 
-class TardisBreadExportCommand extends Command
+class BreadExportCommand extends Command
 {
     protected $signature = 'tardis:bread:export
         {--file= : Write the export to this file instead of stdout}';

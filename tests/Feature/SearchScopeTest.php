@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\Schema;
 use Livewire\Livewire;
 use Tardis\Bread\Sources\JsonBreadSource;
 use Tardis\Contracts\Plugins\AuthorizationPlugin;
-use Tardis\Manager\PluginManager;
+use Tardis\Plugins\PluginManager;
 
 class SearchScopeArticle extends Model
 {
@@ -112,8 +112,8 @@ test('search links to the page the user may open', function (array $allowed, str
 
     expect($url)->toBe(route($route, ['slug' => 'articles', 'id' => $article->id]));
 })->with([
-    'edit when allowed' => [['browse articles', 'read articles', 'edit articles'], 'tardis.bread.edit.item'],
-    'read otherwise' => [['browse articles', 'read articles'], 'tardis.bread.read'],
+    'edit when allowed' => [['browse articles', 'read articles', 'edit articles'], 'tardis.bread.edit'],
+    'read otherwise' => [['browse articles', 'read articles'], 'tardis.bread.show'],
 ]);
 
 test('with browse alone search links to the filtered listing', function () {

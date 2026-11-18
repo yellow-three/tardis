@@ -165,3 +165,57 @@ To keep the old, looser behaviour set `tardis.translation.validation` to `'activ
 - Plugin routes register before the BREAD routes. A BREAD whose slug equals a plugin route's first segment gets no routes, and such a slug can no longer be saved.
 - If you open your own panel route group, use `Tardis\Http\PanelRoutes::panel(fn () => …)` instead of repeating the prefix, name and middleware.
 - For files over 12 MB, raise Livewire's `temporary_file_upload.rules` as well as `tardis-media.max_file_size` (README → Media uploads).
+
+## Faz 10c — renamed classes, commands and routes (0.2)
+
+The old class and command names keep working until 0.3 and log a deprecation when used; update your code while they do. Route names have no aliases: update `route()` calls and `routeIs()` checks.
+
+### Classes
+
+| Was | Now |
+|---|---|
+| `Tardis\Tardis` | `Tardis\TardisManager` (container key is the class; `'tardis'` is its alias) |
+| `Tardis\Plugins\AuthenticationPlugin` | `Tardis\Auth\SessionAuthenticationPlugin` |
+| `Tardis\Auth\TardisAuthorizationPlugin` | `Tardis\Auth\RoleAuthorizationPlugin` |
+| `Tardis\Classes\MenuItem`, `UserMenuItem` | `Tardis\Menu\MenuItem`, `Tardis\Menu\UserMenuItem` |
+| `Tardis\Classes\Setting` | `Tardis\Settings\Setting` |
+| `Tardis\Classes\Widget` | `Tardis\Dashboard\Widget` |
+| `Tardis\Classes\DynamicInput` | `Tardis\Formfields\DynamicInput` |
+| `Tardis\Classes\Translation` | `Tardis\Support\Translation` |
+| `Tardis\Manager\ActionManager` | `Tardis\Bread\ActionManager` |
+| `Tardis\Manager\AssetManager` | `Tardis\Assets\AssetManager` |
+| `Tardis\Manager\FormfieldManager` | `Tardis\Formfields\FormfieldManager` |
+| `Tardis\Manager\MediaManager` | `Tardis\Media\MediaManager` |
+| `Tardis\Manager\MenuManager` | `Tardis\Menu\MenuManager` |
+| `Tardis\Manager\PluginManager` | `Tardis\Plugins\PluginManager` |
+| `Tardis\Manager\SettingsManager` | `Tardis\Settings\SettingsManager` |
+| `Tardis\Manager\ThemeManager` | `Tardis\Theme\ThemeManager` |
+| `Tardis\Manager\WidgetManager` | `Tardis\Dashboard\WidgetManager` |
+| `Tardis\Commands\Tardis*Command` | `Tardis\Commands\*Command` (`TardisBreadMigrateCommand` → `BreadImportLegacyCommand`) |
+
+Plugin keys: the built-in authentication plugin is `tardis-authentication` (was `tardis-auth`); a stored switch under the old key is read under the new one. Both built-in plugins show a translated `label()` on the Plugins page.
+
+### Commands
+
+| Was | Now |
+|---|---|
+| `tardis:make-bread` | `tardis:make:bread` |
+| `tardis:make-model` | `tardis:make:model` |
+| `tardis:make-plugin` | `tardis:make:plugin` |
+| `tardis:bread:migrate` | `tardis:bread:import-legacy` |
+
+### Route names (URLs are unchanged)
+
+| Was | Now |
+|---|---|
+| `tardis.bread.manage` | `tardis.builder.index` |
+| `tardis.bread.create` (builder) | `tardis.builder.create` |
+| `tardis.bread.edit` (builder) | `tardis.builder.edit` |
+| `tardis.bread.add` | `tardis.bread.create` |
+| `tardis.bread.read` | `tardis.bread.show` |
+| `tardis.bread.edit.item` | `tardis.bread.edit` |
+| `tardis.media` | `tardis.media.index` |
+| `tardis.permissions` | `tardis.permissions.index` |
+| `tardis.roles` | `tardis.roles.index` |
+
+A BREAD override route is named after the new action name (`tardis.bread.create.posts`, not `tardis.bread.add.posts`). `tardis.bread.create` and `tardis.bread.edit` changed meaning, so check every use of them by hand. Menu items and menu builder settings stored under the other old names are read under the new ones.

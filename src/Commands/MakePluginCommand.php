@@ -8,9 +8,16 @@ use Illuminate\Console\Command;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
 
-class TardisMakePluginCommand extends Command
+class MakePluginCommand extends Command
 {
-    protected $signature = 'tardis:make-plugin
+    /**
+     * The pre-0.2 name keeps working until 0.3.
+     *
+     * @var list<string>
+     */
+    protected $aliases = ['tardis:make-plugin'];
+
+    protected $signature = 'tardis:make:plugin
         {name : The plugin name (e.g., "blog" for TardisBlog)}
         {--namespace= : Optional PHP namespace (default: Tardis\\{StudlyName})}
         {--package-dir=packages/Tardis : Base directory for the package}

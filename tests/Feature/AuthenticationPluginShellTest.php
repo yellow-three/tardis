@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Support\Facades\Schema;
-use Tardis\Manager\PluginManager;
-use Tardis\Plugins\AuthenticationPlugin;
+use Tardis\Auth\SessionAuthenticationPlugin;
+use Tardis\Plugins\PluginManager;
 
 class PanelUserShellTestUser extends Authenticatable
 {
@@ -14,7 +14,7 @@ class PanelUserShellTestUser extends Authenticatable
     protected $guarded = [];
 }
 
-class ShellTestAuthentication extends AuthenticationPlugin
+class ShellTestAuthentication extends SessionAuthenticationPlugin
 {
     public static ?string $avatar = null;
 

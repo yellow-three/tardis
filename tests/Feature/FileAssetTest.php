@@ -5,10 +5,10 @@ declare(strict_types=1);
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\File;
 use Tardis\Assets\Asset;
+use Tardis\Assets\AssetManager;
 use Tardis\Contracts\Plugins\Features\Provider\CSS;
 use Tardis\Contracts\Plugins\Features\Provider\JS;
-use Tardis\Manager\AssetManager;
-use Tardis\Manager\PluginManager;
+use Tardis\Plugins\PluginManager;
 
 beforeEach(function () {
     $this->dir = sys_get_temp_dir().'/tardis-file-assets-'.uniqid();

@@ -31,7 +31,7 @@ afterEach(function () {
 });
 
 test('make-bread writes a definition with the slug derived from the model name', function () {
-    $this->artisan('tardis:make-bread', ['model' => MakeBreadGuardArticle::class])
+    $this->artisan('tardis:make:bread', ['model' => MakeBreadGuardArticle::class])
         ->assertSuccessful();
 
     $definition = app(JsonBreadSource::class)->find('make_bread_guard_articles');
@@ -41,14 +41,14 @@ test('make-bread writes a definition with the slug derived from the model name',
 });
 
 test('make-bread honours an explicit slug', function () {
-    $this->artisan('tardis:make-bread', ['model' => MakeBreadGuardArticle::class, 'slug' => 'articles'])
+    $this->artisan('tardis:make:bread', ['model' => MakeBreadGuardArticle::class, 'slug' => 'articles'])
         ->assertSuccessful();
 
     expect(app(JsonBreadSource::class)->has('articles'))->toBeTrue();
 });
 
 test('make-bread derives the required flag from column nullability', function () {
-    $this->artisan('tardis:make-bread', ['model' => MakeBreadGuardArticle::class, 'slug' => 'articles'])
+    $this->artisan('tardis:make:bread', ['model' => MakeBreadGuardArticle::class, 'slug' => 'articles'])
         ->assertSuccessful();
 
     $fields = app(JsonBreadSource::class)->find('articles')->toArray()['fields'];
@@ -59,14 +59,14 @@ test('make-bread derives the required flag from column nullability', function ()
 });
 
 test('make-bread fails for a model class that does not exist', function () {
-    $this->artisan('tardis:make-bread', ['model' => 'App\\Models\\DoesNotExist'])
+    $this->artisan('tardis:make:bread', ['model' => 'App\\Models\\DoesNotExist'])
         ->assertFailed();
 });
 
 test('make-bread provisions the five BREAD permissions for the new resource', function () {
     $this->artisan('migrate');
 
-    $this->artisan('tardis:make-bread', ['model' => MakeBreadGuardArticle::class, 'slug' => 'articles'])
+    $this->artisan('tardis:make:bread', ['model' => MakeBreadGuardArticle::class, 'slug' => 'articles'])
         ->assertSuccessful();
 
     expect(Permission::where('group', 'BREAD')->pluck('slug')->sort()->values()->all())

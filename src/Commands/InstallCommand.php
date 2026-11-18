@@ -15,7 +15,7 @@ use Tardis\Database\Seeders\PermissionSeeder;
  * safe. The confirmation prompt is skipped under --no-interaction (and with
  * --force) so the command can run unattended in a pipeline.
  */
-class TardisInstallCommand extends Command
+class InstallCommand extends Command
 {
     protected $signature = 'tardis:install
         {--email= : Email of the first administrator to create}

@@ -5,11 +5,11 @@ declare(strict_types=1);
 use Illuminate\Foundation\Auth\User;
 use Illuminate\Support\Facades\File;
 use Livewire\Livewire;
-use Tardis\Auth\TardisAuthorizationPlugin;
+use Tardis\Auth\RoleAuthorizationPlugin;
+use Tardis\Auth\SessionAuthenticationPlugin;
 use Tardis\Contracts\Plugins\AuthorizationPlugin;
 use Tardis\Contracts\Plugins\GenericPlugin;
-use Tardis\Manager\PluginManager;
-use Tardis\Plugins\AuthenticationPlugin;
+use Tardis\Plugins\PluginManager;
 
 class StatePluginFixture implements GenericPlugin
 {
@@ -51,8 +51,8 @@ function pluginManager(string $file): PluginManager
 {
     $manager = new PluginManager($file);
     $manager->register('fixture', StatePluginFixture::class);
-    $manager->register('tardis-authorization', TardisAuthorizationPlugin::class);
-    $manager->register('tardis-auth', AuthenticationPlugin::class);
+    $manager->register('tardis-authorization', RoleAuthorizationPlugin::class);
+    $manager->register('tardis-authentication', SessionAuthenticationPlugin::class);
 
     return $manager;
 }
@@ -99,7 +99,7 @@ test('authentication and authorization plugins cannot be disabled', function (st
     expect($manager->isLocked($name))->toBeTrue()
         ->and(fn () => $manager->disable($name))->toThrow(LogicException::class)
         ->and($manager->isEnabled($name))->toBeTrue();
-})->with(['tardis-authorization', 'tardis-auth']);
+})->with(['tardis-authorization', 'tardis-authentication']);
 
 test('a locked plugin stays enabled even if the state file lists it as disabled', function () {
     File::ensureDirectoryExists(dirname($this->stateFile));
@@ -114,8 +114,8 @@ test('a locked plugin stays enabled even if the state file lists it as disabled'
 test('plugin types are resolved from every contract', function () {
     $manager = pluginManager($this->stateFile);
 
-    expect($manager->resolveType(new AuthenticationPlugin))->toBe('authentication')
-        ->and($manager->resolveType(new TardisAuthorizationPlugin))->toBe('authorization')
+    expect($manager->resolveType(new SessionAuthenticationPlugin))->toBe('authentication')
+        ->and($manager->resolveType(new RoleAuthorizationPlugin))->toBe('authorization')
         ->and($manager->resolveType(new StatePluginFixture))->toBe('generic');
 });
 
@@ -129,7 +129,7 @@ test('the plugins page offers no disable for a locked plugin and refuses the cal
     // is registered after it purely to be the locked plugin under test.
     $manager->register('allow-all', AllowAllPluginFixture::class);
     $manager->enableByDefault('allow-all');
-    $manager->register('tardis-authorization', TardisAuthorizationPlugin::class);
+    $manager->register('tardis-authorization', RoleAuthorizationPlugin::class);
     $manager->enableByDefault('tardis-authorization');
 
     Livewire::test('tardis::pages.plugins')
@@ -138,4 +138,13 @@ test('the plugins page offers no disable for a locked plugin and refuses the cal
         ->assertSet('message', 'This plugin protects the panel and cannot be disabled.');
 
     expect($manager->isEnabled('tardis-authorization'))->toBeTrue();
+});
+
+test('a switch stored under the pre-0.2 key tardis-auth is read as tardis-authentication', function () {
+    File::ensureDirectoryExists(dirname($this->stateFile));
+    File::put($this->stateFile, json_encode(['disabled' => ['tardis-auth', 'other']]));
+
+    $manager = new PluginManager($this->stateFile);
+
+    expect((fn () => $this->disabled)->call($manager))->toBe(['tardis-authentication', 'other']);
 });

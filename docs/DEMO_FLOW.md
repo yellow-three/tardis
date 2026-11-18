@@ -33,7 +33,7 @@ This is a key architectural advantage of Tardis.
 
 ## 4. Create a resource
 
-Use the BREAD builder (`/admin/bread/create`) or `php artisan tardis:make-bread "App\Models\Post"` to create a `posts` resource.
+Use the BREAD builder (`/admin/bread/create`) or `php artisan tardis:make:bread "App\Models\Post"` to create a `posts` resource.
 
 Explain:
 

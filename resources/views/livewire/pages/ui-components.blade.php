@@ -3,7 +3,7 @@
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
-use Tardis\Manager\MenuManager;
+use Tardis\Menu\MenuManager;
 
 new #[Title('tardis::shell.titles.ui_components')] #[Layout('tardis::layouts.admin')] class extends Component
 {

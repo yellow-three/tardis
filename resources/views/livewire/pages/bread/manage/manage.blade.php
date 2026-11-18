@@ -4,7 +4,7 @@
         :description="__('tardis::bread.manage_your_browse_read_edit_add_d5d2')"
     >
         <x-slot:action>
-            <a href="{{ route('tardis.bread.create') }}" class="btn btn-primary gap-2">
+            <a href="{{ route('tardis.builder.create') }}" class="btn btn-primary gap-2">
                 <x-tardis::icon name="plus" class="w-4 h-4" />
                 {{ __('tardis::bread.new_bread') }}
             </a>
@@ -31,7 +31,7 @@
                 <p class="text-sm text-base-content/70">
                     {!! __('tardis::bread.legacy_hint', [
                         'dir' => '<code class="badge badge-ghost badge-sm">config/bread</code>',
-                        'command' => '<code class="badge badge-ghost badge-sm">php artisan tardis:bread:migrate</code>',
+                        'command' => '<code class="badge badge-ghost badge-sm">php artisan tardis:bread:import-legacy</code>',
                     ]) !!}
                 </p>
             </div>
@@ -107,7 +107,7 @@
                                                 @endforelse
                                             </ul>
                                         </div>
-                                        <a href="{{ route('tardis.bread.edit', ['slug' => $slug]) }}" class="btn btn-ghost btn-sm">
+                                        <a href="{{ route('tardis.builder.edit', ['slug' => $slug]) }}" class="btn btn-ghost btn-sm">
                                             {{ __('tardis::bread.edit') }}
                                         </a>
                                         <a href="{{ route('tardis.bread.index', ['slug' => $slug]) }}" class="btn btn-ghost btn-sm">

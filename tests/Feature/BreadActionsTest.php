@@ -9,9 +9,9 @@ use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Schema;
 use Livewire\Livewire;
 use Tardis\Bread\Action;
+use Tardis\Bread\ActionManager;
 use Tardis\Bread\Actions\ForceDeleteAction;
 use Tardis\Bread\Sources\JsonBreadSource;
-use Tardis\Manager\ActionManager;
 
 class ActionItem extends Model
 {

@@ -6,7 +6,7 @@ use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Livewire;
-use Tardis\Manager\MediaManager;
+use Tardis\Media\MediaManager;
 use Tardis\Models\Media;
 
 beforeEach(function () {

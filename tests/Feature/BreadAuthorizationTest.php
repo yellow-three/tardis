@@ -9,10 +9,10 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Livewire\Features\SupportLockedProperties\CannotUpdateLockedPropertyException;
 use Livewire\Livewire;
-use Tardis\Auth\TardisAuthorizationPlugin;
+use Tardis\Auth\RoleAuthorizationPlugin;
 use Tardis\Bread\Sources\JsonBreadSource;
 use Tardis\Contracts\Plugins\AuthorizationPlugin;
-use Tardis\Manager\PluginManager;
+use Tardis\Plugins\PluginManager;
 
 class BreadAuthzTestModel extends Model
 {
@@ -343,7 +343,7 @@ test('the authorization plugin grants abilities held by a tardis role', function
 
     $this->actingAs($user);
 
-    expect(app(TardisAuthorizationPlugin::class)->can('browse bread-page-authz'))->toBeTrue();
+    expect(app(RoleAuthorizationPlugin::class)->can('browse bread-page-authz'))->toBeTrue();
 });
 
 test('a host HasRoles user answers for itself without touching the tardis tables', function () {
@@ -358,7 +358,7 @@ test('a host HasRoles user answers for itself without touching the tardis tables
 
     $this->actingAs($user);
 
-    expect(app(TardisAuthorizationPlugin::class)->can('anything at all'))->toBeTrue()
+    expect(app(RoleAuthorizationPlugin::class)->can('anything at all'))->toBeTrue()
         ->and($user->askedAbilities)->toBe(['anything at all']);
 });
 
@@ -390,8 +390,8 @@ test('the authorization plugin denies abilities the tardis role does not hold', 
 
     $this->actingAs($user);
 
-    expect(app(TardisAuthorizationPlugin::class)->can('browse bread-page-authz'))->toBeTrue()
-        ->and(app(TardisAuthorizationPlugin::class)->can('delete bread-page-authz'))->toBeFalse();
+    expect(app(RoleAuthorizationPlugin::class)->can('browse bread-page-authz'))->toBeTrue()
+        ->and(app(RoleAuthorizationPlugin::class)->can('delete bread-page-authz'))->toBeFalse();
 });
 
 test('a user without any tardis role is denied every bread ability', function () {
@@ -399,7 +399,7 @@ test('a user without any tardis role is denied every bread ability', function ()
 
     $this->actingAs(authzUser());
 
-    expect(app(TardisAuthorizationPlugin::class)->can('browse bread-page-authz'))->toBeFalse();
+    expect(app(RoleAuthorizationPlugin::class)->can('browse bread-page-authz'))->toBeFalse();
 });
 
 test('the authorization plugin grants every ability to a super admin role', function () {
@@ -419,8 +419,8 @@ test('the authorization plugin grants every ability to a super admin role', func
 
     $this->actingAs($user);
 
-    expect(app(TardisAuthorizationPlugin::class)->can('browse bread-page-authz'))->toBeTrue()
-        ->and(app(TardisAuthorizationPlugin::class)->can('delete bread-page-authz'))->toBeTrue();
+    expect(app(RoleAuthorizationPlugin::class)->can('browse bread-page-authz'))->toBeTrue()
+        ->and(app(RoleAuthorizationPlugin::class)->can('delete bread-page-authz'))->toBeTrue();
 });
 
 test('the client cannot rewrite the BREAD definition a page was authorised against', function (string $page, array $params) {

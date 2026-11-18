@@ -8,9 +8,16 @@ use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Schema;
 use Tardis\Database\ModelGenerator;
 
-class TardisMakeModelCommand extends Command
+class MakeModelCommand extends Command
 {
-    protected $signature = 'tardis:make-model
+    /**
+     * The pre-0.2 name keeps working until 0.3.
+     *
+     * @var list<string>
+     */
+    protected $aliases = ['tardis:make-model'];
+
+    protected $signature = 'tardis:make:model
         {table : The existing table name}
         {--namespace= : Optional PHP namespace (default: App\\Models)}
         {--path= : Optional output path (default: app_path(\'Models\'))}

@@ -12,13 +12,13 @@ use Livewire\Component;
 use Livewire\WithPagination;
 use Tardis\Auth\BreadAuthorization;
 use Tardis\Bread\Action;
+use Tardis\Bread\ActionManager;
 use Tardis\Bread\BreadDefinition;
 use Tardis\Bread\BreadListing;
 use Tardis\Bread\BreadManager;
 use Tardis\Bread\BreadQuery;
 use Tardis\Formfields\Formfield;
-use Tardis\Manager\ActionManager;
-use Tardis\Manager\FormfieldManager;
+use Tardis\Formfields\FormfieldManager;
 
 new #[Title('tardis::shell.titles.bread')] #[Layout('tardis::layouts.admin')] class extends Component
 {

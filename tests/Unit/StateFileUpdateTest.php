@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 use Illuminate\Support\Facades\File;
-use Tardis\Manager\PluginManager;
+use Tardis\Plugins\PluginManager;
 use Tardis\Support\UserPreferences;
 
 beforeEach(function () {

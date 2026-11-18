@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\Storage;
 use Livewire\Livewire;
 use Tardis\Bread\BreadManager;
 use Tardis\Bread\Sources\JsonBreadSource;
-use Tardis\Classes\Translation;
+use Tardis\Support\Translation;
 
 class BreadPageRelationPostModel extends Model
 {

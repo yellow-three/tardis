@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Support\Facades\Schema;
-use Tardis\Manager\AssetManager;
-use Tardis\Manager\ThemeManager;
+use Tardis\Assets\AssetManager;
 use Tardis\Support\UserPreferences;
+use Tardis\Theme\ThemeManager;
 use Tardis\Theme\ThemePreference;
 
 class ThemeLayoutUser extends Authenticatable

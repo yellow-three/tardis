@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
+use Tardis\Assets\AssetManager;
 use Tardis\Contracts\Plugins\ThemePlugin;
-use Tardis\Manager\AssetManager;
-use Tardis\Manager\PluginManager;
-use Tardis\Manager\ThemeManager;
+use Tardis\Plugins\PluginManager;
 use Tardis\Theme\BuiltinThemes;
 use Tardis\Theme\Theme;
+use Tardis\Theme\ThemeManager;
 
 class ThemeSourcePlugin implements ThemePlugin
 {

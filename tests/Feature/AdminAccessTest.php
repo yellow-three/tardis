@@ -9,12 +9,12 @@ use Illuminate\Support\Facades\Schema;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 use Tardis\Auth\Abilities;
 use Tardis\Auth\BreadAuthorization;
-use Tardis\Auth\TardisAuthorizationPlugin;
+use Tardis\Auth\RoleAuthorizationPlugin;
 use Tardis\Contracts\Plugins\AuthorizationPlugin;
 use Tardis\Database\Seeders\PermissionSeeder;
-use Tardis\Manager\PluginManager;
 use Tardis\Models\Permission;
 use Tardis\Models\Role;
+use Tardis\Plugins\PluginManager;
 use Tardis\TardisServiceProvider;
 
 class AccessTestUser extends Authenticatable
@@ -42,7 +42,7 @@ beforeEach(function () {
 function enableTardisAuthorization(): void
 {
     $manager = app(PluginManager::class);
-    $manager->register('tardis-authorization', TardisAuthorizationPlugin::class);
+    $manager->register('tardis-authorization', RoleAuthorizationPlugin::class);
     $manager->enableByDefault('tardis-authorization');
 }
 
@@ -57,7 +57,7 @@ test('the authorization plugin is registered and enabled by default', function (
     app()->singleton(PluginManager::class);
 
     $provider = new TardisServiceProvider(app());
-    (new ReflectionMethod($provider, 'registerDefaultAuthorization'))->invoke($provider);
+    (new ReflectionMethod($provider, 'registerDefaultAuthorizationPlugin'))->invoke($provider);
 
     expect(app(PluginManager::class)->isEnabled('tardis-authorization'))->toBeTrue()
         ->and(app(PluginManager::class)->get('tardis-authorization'))->toBeInstanceOf(AuthorizationPlugin::class);
@@ -69,7 +69,7 @@ test('authorization can be switched off explicitly in the config', function () {
     app()->singleton(PluginManager::class);
 
     $provider = new TardisServiceProvider(app());
-    (new ReflectionMethod($provider, 'registerDefaultAuthorization'))->invoke($provider);
+    (new ReflectionMethod($provider, 'registerDefaultAuthorizationPlugin'))->invoke($provider);
 
     expect(app(PluginManager::class)->isEnabled('tardis-authorization'))->toBeFalse();
 });

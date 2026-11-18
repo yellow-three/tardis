@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 use Illuminate\Support\Collection;
 use Livewire\Livewire;
-use Tardis\Classes\Widget;
 use Tardis\Contracts\Plugins\Features\Provider\Widgets;
 use Tardis\Contracts\Plugins\GenericPlugin;
 use Tardis\Dashboard\DashboardLayout;
-use Tardis\Manager\PluginManager;
-use Tardis\Manager\WidgetManager;
+use Tardis\Dashboard\Widget;
+use Tardis\Dashboard\WidgetManager;
+use Tardis\Plugins\PluginManager;
 
 function dashboardWidgets(bool $withHidden = false): Collection
 {

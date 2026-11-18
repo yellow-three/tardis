@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
+use Tardis\Dashboard\WidgetManager;
 use Tardis\Facades\Tardis;
+use Tardis\Formfields\FormfieldManager;
 use Tardis\Formfields\Types\TextField;
-use Tardis\Manager\FormfieldManager;
-use Tardis\Manager\MenuManager;
-use Tardis\Manager\PluginManager;
-use Tardis\Manager\SettingsManager;
-use Tardis\Manager\WidgetManager;
+use Tardis\Menu\MenuManager;
+use Tardis\Plugins\PluginManager;
+use Tardis\Settings\SettingsManager;
 
 test('Tardis facade is accessible', function () {
     $version = Tardis::version();

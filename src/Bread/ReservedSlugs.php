@@ -52,7 +52,7 @@ final class ReservedSlugs
         foreach (app('router')->getRoutes()->getRoutes() as $route) {
             $name = (string) $route->getName();
 
-            if (! str_starts_with($name, 'tardis.') || preg_match('/^tardis\.bread\.(index|add|edit\.item|read)(\.|$)/', $name) === 1) {
+            if (! str_starts_with($name, 'tardis.') || preg_match('/^tardis\.bread\.(index|create|edit|show)(\.|$)/', $name) === 1) {
                 continue;
             }
 

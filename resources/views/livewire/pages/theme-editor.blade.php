@@ -5,7 +5,7 @@ use Livewire\Attributes\Title;
 use Livewire\Component;
 use Tardis\Auth\Abilities;
 use Tardis\Auth\BreadAuthorization;
-use Tardis\Manager\ThemeManager;
+use Tardis\Theme\ThemeManager;
 use Tardis\Theme\Theme;
 
 new #[Title('tardis::theme_editor.title')] #[Layout('tardis::layouts.admin')] class extends Component

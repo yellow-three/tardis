@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 use Illuminate\Support\Collection;
-use Tardis\Classes\MenuItem;
+use Tardis\Menu\MenuItem;
 
 test('menu item can be created with title', function () {
     $item = new MenuItem('Dashboard');

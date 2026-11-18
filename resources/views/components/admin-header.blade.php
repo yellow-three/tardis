@@ -1,8 +1,8 @@
 @props(['title' => 'Dashboard'])
 
 @php
-    $menuManager = app(\Tardis\Manager\MenuManager::class);
-    $menuManager->collectFromPlugins(app(\Tardis\Manager\PluginManager::class));
+    $menuManager = app(\Tardis\Menu\MenuManager::class);
+    $menuManager->collectFromPlugins(app(\Tardis\Plugins\PluginManager::class));
     $userMenuItems = $menuManager->userMenu();
     $userName = \Tardis\Support\PanelUser::name();
     $userInitial = mb_strtoupper(mb_substr($userName, 0, 1));

@@ -9,7 +9,7 @@ use Livewire\Livewire;
 use Tardis\Auth\Abilities;
 use Tardis\Contracts\Plugins\AuthorizationPlugin;
 use Tardis\Formfields\Types\MediaPickerField;
-use Tardis\Manager\PluginManager;
+use Tardis\Plugins\PluginManager;
 
 /**
  * Answers from an allow-list, so a test states exactly which abilities the

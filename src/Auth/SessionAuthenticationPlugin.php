@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace Tardis\Plugins;
+namespace Tardis\Auth;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Tardis\Contracts\Plugins\AuthenticationPlugin as AuthenticationPluginContract;
 
-class AuthenticationPlugin implements AuthenticationPluginContract
+class SessionAuthenticationPlugin implements AuthenticationPluginContract
 {
     public function user(): mixed
     {
@@ -50,9 +50,21 @@ class AuthenticationPlugin implements AuthenticationPluginContract
         return $next($request);
     }
 
+    public const KEY = 'tardis-authentication';
+
     public function name(): string
     {
-        return 'TARDIS Default Auth';
+        return self::KEY;
+    }
+
+    public function label(): string
+    {
+        return __('tardis::plugins.labels.authentication');
+    }
+
+    public function description(): string
+    {
+        return __('tardis::plugins.descriptions.authentication');
     }
 
     public function nameField(): string

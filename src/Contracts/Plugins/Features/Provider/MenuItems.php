@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Tardis\Contracts\Plugins\Features\Provider;
 
-use Tardis\Classes\MenuItem;
+use Tardis\Menu\MenuItem;
 
 interface MenuItems
 {

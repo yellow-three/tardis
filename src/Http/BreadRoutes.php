@@ -28,9 +28,9 @@ final class BreadRoutes
     /** Action => [uri, route name, definition key]. */
     private const ACTIONS = [
         'browse' => ['/{slug}', 'bread.index'],
-        'add' => ['/{slug}/create', 'bread.add'],
-        'edit' => ['/{slug}/{id}/edit', 'bread.edit.item'],
-        'read' => ['/{slug}/{id}', 'bread.read'],
+        'add' => ['/{slug}/create', 'bread.create'],
+        'edit' => ['/{slug}/{id}/edit', 'bread.edit'],
+        'read' => ['/{slug}/{id}', 'bread.show'],
     ];
 
     private const STOCK = [

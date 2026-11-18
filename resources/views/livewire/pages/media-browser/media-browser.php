@@ -9,7 +9,7 @@ use Livewire\WithFileUploads;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 use Tardis\Auth\Abilities;
 use Tardis\Auth\BreadAuthorization;
-use Tardis\Manager\MediaManager;
+use Tardis\Media\MediaManager;
 
 new #[Title('tardis::shell.titles.media')] #[Layout('tardis::layouts.admin')] class extends Component
 {

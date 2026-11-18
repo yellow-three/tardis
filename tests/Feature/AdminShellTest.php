@@ -5,7 +5,7 @@ declare(strict_types=1);
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Schema;
-use Tardis\Manager\MenuManager;
+use Tardis\Menu\MenuManager;
 
 class ShellTestUser extends Authenticatable
 {

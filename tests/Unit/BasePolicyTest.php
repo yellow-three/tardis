@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Tardis\Contracts\Plugins\AuthorizationPlugin;
-use Tardis\Manager\PluginManager;
+use Tardis\Plugins\PluginManager;
 use Tardis\Policies\BasePolicy;
 
 /** A host policy: the BREAD slug is derived from the class name. */

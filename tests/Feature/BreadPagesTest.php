@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Livewire;
 use Tardis\Bread\Sources\JsonBreadSource;
-use Tardis\Classes\MenuItem;
+use Tardis\Menu\MenuItem;
 
 class BreadPageTestModel extends Model
 {
@@ -90,23 +90,23 @@ test('bread create page can save a record', function () {
 });
 
 test('sidebar menu stays active for nested admin routes', function () {
-    Route::middleware('web')->get('/admin/bread/manage', fn () => 'manage')->name('tardis.bread.manage');
-    Route::middleware('web')->get('/admin/bread/create', fn () => 'create')->name('tardis.bread.create');
+    Route::middleware('web')->get('/admin/bread/manage', fn () => 'manage')->name('tardis.builder.index');
+    Route::middleware('web')->get('/admin/bread/create', fn () => 'create')->name('tardis.builder.create');
 
     $request = Request::create('/admin/bread/create');
     $request->setRouteResolver(fn () => app('router')->getRoutes()->match($request));
     app()->instance('request', $request);
 
     $menuItem = (new MenuItem('BREAD', 'heroicon-o-table-cells'))
-        ->route('tardis.bread.manage')
+        ->route('tardis.builder.index')
         ->activeMode('prefix');
 
     expect($menuItem->isActive())->toBeTrue();
 });
 
 test('bread route names resolve to the dedicated management and builder paths', function () {
-    expect(route('tardis.bread.manage'))->toEndWith('/admin/bread');
-    expect(route('tardis.bread.create'))->toEndWith('/admin/bread/create');
+    expect(route('tardis.builder.index'))->toEndWith('/admin/bread');
+    expect(route('tardis.builder.create'))->toEndWith('/admin/bread/create');
     expect(route('tardis.bread.index', ['slug' => 'posts']))->toEndWith('/admin/posts');
 });
 
@@ -128,7 +128,7 @@ test('the BREAD management table links every definition to the builder edit page
 
     // Without this the builder's edit mode is unreachable: the route exists but
     // nothing on the management page ever pointed at it.
-    expect($html)->toContain(route('tardis.bread.edit', ['slug' => 'posts']));
+    expect($html)->toContain(route('tardis.builder.edit', ['slug' => 'posts']));
 
     File::deleteDirectory($path);
 });
@@ -144,11 +144,11 @@ test('dynamic bread URLs resolve to Livewire page routes', function () {
     expect($routes->match(Request::create('/admin/posts', 'GET'))->getName())
         ->toBe('tardis.bread.index');
     expect($routes->match(Request::create('/admin/posts/create', 'GET'))->getName())
-        ->toBe('tardis.bread.add');
+        ->toBe('tardis.bread.create');
     expect($routes->match(Request::create('/admin/posts/1', 'GET'))->getName())
-        ->toBe('tardis.bread.read');
+        ->toBe('tardis.bread.show');
     expect($routes->match(Request::create('/admin/posts/1/edit', 'GET'))->getName())
-        ->toBe('tardis.bread.edit.item');
+        ->toBe('tardis.bread.edit');
 
     File::deleteDirectory($path);
 });

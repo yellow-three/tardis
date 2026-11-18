@@ -137,7 +137,7 @@ Her tipi bir BREAD'de ekleyip **ekle → düzenle → oku → boş bırak → ge
 - [ ] Etkinleştir/devre dışı bırak çalışıyor ve **yenilemeden sonra da kalıcı**. Kimlik doğrulama ve yetkilendirme plugin'leri **kapatılamıyor** (kilit simgesi).
 - [ ] Ayar ekranı olan plugin'de "Ayarlar" düğmesi var, diyalog açılıyor; kapalı plugin'de yok.
 - [ ] `php artisan tardis:plugins`, `tardis:plugins disable <ad>`, `tardis:plugins enable <ad>` çalışıyor.
-- [ ] `php artisan tardis:make-plugin deneme --with-assets` bir plugin iskeleti üretiyor; üretilen `composer.json` geçerli.
+- [ ] `php artisan tardis:make:plugin deneme --with-assets` bir plugin iskeleti üretiyor; üretilen `composer.json` geçerli.
 
 ## 12. Sistem araçları
 

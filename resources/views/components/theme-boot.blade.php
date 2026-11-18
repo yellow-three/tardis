@@ -11,20 +11,20 @@
 @php
     $tardisChoice = app(\Tardis\Theme\ThemePreference::class)->resolve(auth()->id());
     $tardisBoot = [
-        'version' => \Tardis\Tardis::version(),
+        'version' => \Tardis\TardisManager::version(),
         'theme' => $tardisChoice + [
-            'themes' => app(\Tardis\Manager\ThemeManager::class)->all()->map->toArray()->values()->all(),
+            'themes' => app(\Tardis\Theme\ThemeManager::class)->all()->map->toArray()->values()->all(),
             'saveUrl' => route('tardis.preferences.theme'),
             'csrf' => csrf_token(),
             'persist' => auth()->check(),
         ],
     ];
 @endphp
-<script{!! app(\Tardis\Manager\AssetManager::class)->nonceAttribute() !!}>
+<script{!! app(\Tardis\Assets\AssetManager::class)->nonceAttribute() !!}>
     window.__TARDIS__ = @json($tardisBoot);
 </script>
 @if ($tardisChoice['mode'] === 'system')
-    <script{!! app(\Tardis\Manager\AssetManager::class)->nonceAttribute() !!}>
+    <script{!! app(\Tardis\Assets\AssetManager::class)->nonceAttribute() !!}>
         (function () {
             var t = window.__TARDIS__.theme;
             document.documentElement.setAttribute('data-theme', window.matchMedia('(prefers-color-scheme: dark)').matches ? t.dark : t.light);

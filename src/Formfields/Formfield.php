@@ -6,7 +6,7 @@ namespace Tardis\Formfields;
 
 use Illuminate\Database\Eloquent\Model;
 use Tardis\Assets\Asset;
-use Tardis\Classes\Translation;
+use Tardis\Support\Translation;
 
 abstract class Formfield
 {

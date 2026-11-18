@@ -9,7 +9,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Event;
 use Tardis\Auth\Abilities;
 use Tardis\Auth\BreadAuthorization;
-use Tardis\Manager\PluginManager;
+use Tardis\Plugins\PluginManager;
 
 class AdminMiddleware
 {

@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Log;
 use Tardis\Bread\BreadDefinition;
 use Tardis\Bread\ReservedSlugs;
-use Tardis\Manager\FormfieldManager;
+use Tardis\Formfields\FormfieldManager;
 
 /**
  * Stores BREAD definitions as JSON files, one file per slug, under

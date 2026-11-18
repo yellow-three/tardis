@@ -3,9 +3,9 @@
 declare(strict_types=1);
 
 use Livewire\Livewire;
-use Tardis\Manager\MenuManager;
-use Tardis\Manager\PluginManager;
+use Tardis\Menu\MenuManager;
 use Tardis\Menu\MenuOverlay;
+use Tardis\Plugins\PluginManager;
 
 function freshMenu(): MenuManager
 {
@@ -42,17 +42,17 @@ test('a hidden item leaves the sidebar but stays editable', function () {
     $media = __('tardis::menu.media');
     expect(menuTitles())->toContain($media);
 
-    app(MenuOverlay::class)->change('tardis.media', ['hidden' => true]);
+    app(MenuOverlay::class)->change('tardis.media.index', ['hidden' => true]);
 
     expect(menuTitles())->not->toContain($media)
         ->and(menuTitles(withHidden: true))->toContain($media);
 
-    app(MenuOverlay::class)->change('tardis.media', ['hidden' => false]);
+    app(MenuOverlay::class)->change('tardis.media.index', ['hidden' => false]);
     expect(menuTitles())->toContain($media)->and(app(MenuOverlay::class)->isEmpty())->toBeTrue();
 });
 
 test('an item can be renamed, moved to another section and re-ordered', function () {
-    app(MenuOverlay::class)->change('tardis.media', ['title' => 'Files', 'section' => 'Library', 'order' => -5]);
+    app(MenuOverlay::class)->change('tardis.media.index', ['title' => 'Files', 'section' => 'Library', 'order' => -5]);
 
     $first = freshMenu()->all()->first();
 
@@ -93,13 +93,13 @@ test('an icon name that is not a plain heroicon name falls back', function () {
 
 test('the builder page hides, renames, moves and restores', function () {
     $page = Livewire::test('tardis::pages.menu-builder')
-        ->call('toggle', 'tardis.media')
-        ->call('rename', 'tardis.media', 'Files');
+        ->call('toggle', 'tardis.media.index')
+        ->call('rename', 'tardis.media.index', 'Files');
 
     expect(menuTitles())->not->toContain('Files');
     expect(menuTitles(withHidden: true))->toContain('Files');
 
-    $page->call('toggle', 'tardis.media');
+    $page->call('toggle', 'tardis.media.index');
     $ids = fn () => freshMenu()->all()->map->id()->values()->all();
     $before = $ids();
     $page->call('move', $before[1], -1);
@@ -131,12 +131,12 @@ test('the sidebar entry for the builder is listed', function () {
 });
 
 test('renaming a translated menu item rewrites only the active locale', function () {
-    app(MenuOverlay::class)->change('tardis.media', ['title' => ['en' => 'Files', 'tr' => 'Dosyalar']]);
+    app(MenuOverlay::class)->change('tardis.media.index', ['title' => ['en' => 'Files', 'tr' => 'Dosyalar']]);
 
     app()->setLocale('tr');
 
     Livewire::test('tardis::pages.menu-builder')
-        ->call('rename', 'tardis.media', 'Belgeler');
+        ->call('rename', 'tardis.media.index', 'Belgeler');
 
     expect(resolvedMenuTitles('tr'))->toContain('Belgeler')
         ->and(resolvedMenuTitles('tr'))->not->toContain('Dosyalar')
@@ -144,12 +144,12 @@ test('renaming a translated menu item rewrites only the active locale', function
 });
 
 test('an overlay title map is trimmed and capped per locale', function () {
-    app(MenuOverlay::class)->change('tardis.media', ['title' => [
+    app(MenuOverlay::class)->change('tardis.media.index', ['title' => [
         'en' => '  Files  ',
         'tr' => str_repeat('x', 200),
     ]]);
 
-    $title = app(MenuOverlay::class)->items()['tardis.media']['title'];
+    $title = app(MenuOverlay::class)->items()['tardis.media.index']['title'];
 
     expect($title)->toBeArray()
         ->and($title['en'])->toBe('Files')

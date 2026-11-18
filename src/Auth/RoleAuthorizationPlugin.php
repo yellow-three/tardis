@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Schema;
 use Tardis\Contracts\Plugins\AuthorizationPlugin;
 use Tardis\Support\ModelResolver;
 
-class TardisAuthorizationPlugin implements AuthorizationPlugin
+class RoleAuthorizationPlugin implements AuthorizationPlugin
 {
     /**
      * Memoised schema probe. Instance-scoped on purpose: a static cache would
@@ -18,14 +18,21 @@ class TardisAuthorizationPlugin implements AuthorizationPlugin
      */
     protected ?bool $tablesExist = null;
 
+    public const KEY = 'tardis-authorization';
+
     public function name(): string
     {
-        return 'tardis-authorization';
+        return self::KEY;
+    }
+
+    public function label(): string
+    {
+        return __('tardis::plugins.labels.authorization');
     }
 
     public function description(): string
     {
-        return 'Role-based access control using TARDIS custom Permission/Role models';
+        return __('tardis::plugins.descriptions.authorization');
     }
 
     public function can(string $ability, mixed $model = null): bool

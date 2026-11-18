@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 use Illuminate\Support\Facades\File;
-use Tardis\Manager\SettingsManager;
+use Tardis\Settings\SettingsManager;
 use Tardis\TardisServiceProvider;
 
 beforeEach(function () {

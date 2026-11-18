@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use Tardis\Manager\PluginManager;
+use Tardis\Plugins\PluginManager;
 use Tardis\TardisServiceProvider;
 
 /**
@@ -24,6 +24,6 @@ test('the default authentication plugin is registered at boot, not while provide
 
     preg_match('/public function register\(\): void\s*\{(.*?)\n    \}/s', $source, $register);
 
-    expect($register[1] ?? '')->not->toContain('registerDefaultAuth')
+    expect($register[1] ?? '')->not->toContain('registerDefaultAuthenticationPlugin')
         ->and(app(PluginManager::class)->authenticationPlugin())->not->toBeNull();
 });

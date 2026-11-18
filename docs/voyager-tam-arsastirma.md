@@ -42,7 +42,7 @@ Events, Console) + 92 resmi markdown doküman sayfası (230 asset ile 328 dosya)
 grep -rn "forBread\|authorize\|can(" resources/views/pages/bread/   →  (boş)
 ```
 
-`forBread()` yalnız `src/Auth/TardisAuthorizationPlugin.php:44` içinden
+`forBread()` yalnız `src/Auth/RoleAuthorizationPlugin.php:44` içinden
 (kayıt tarafında) çağrılıyor. `resources/views/pages/bread/{create,edit,index,read,manage}/*.php`
 dosyalarının hiçbirinde `authorize` / `can` / `forBread` **yok**.
 
@@ -303,7 +303,7 @@ protected function checkPermission(User $user, $model, $action)
    (`VoyagerBreadController` 6 nokta; `VoyagerMediaController` upload/crop'ta `browse_media`)
 2. **Model:** `BasePolicy` → `hasPermission()`
 
-→ **tardis'te izin üretiliyor, tüketilmiyor.** `TardisAuthorizationPlugin` isimli
+→ **tardis'te izin üretiliyor, tüketilmiyor.** `RoleAuthorizationPlugin` isimli
 sınıf var ama gerçek karar vermiyor.
 
 ## 4.5 ⭐ Menu — izin bazlı menü gizleme (yeni keşif)

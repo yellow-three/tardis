@@ -41,7 +41,7 @@ new #[Title('tardis::plugins.plugin_manager')] #[Layout('tardis::layouts.admin')
             $info = Tardis::plugins()->getPluginInfo($name);
 
             return [
-                'name' => $instance->name(),
+                'name' => method_exists($instance, 'label') ? $instance->label() : $instance->name(),
                 'slug' => $name,
                 'type' => $plugin['type'],
                 'description' => method_exists($instance, 'description') ? $instance->description() : null,

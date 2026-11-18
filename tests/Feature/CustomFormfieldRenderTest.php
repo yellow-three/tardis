@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Schema;
 use Livewire\Livewire;
 use Tardis\Bread\Sources\JsonBreadSource;
 use Tardis\Formfields\Formfield;
-use Tardis\Manager\FormfieldManager;
+use Tardis\Formfields\FormfieldManager;
 
 class CustomFieldPost extends Model
 {

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Support\Facades\Schema;
-use Tardis\Manager\AssetManager;
+use Tardis\Assets\AssetManager;
 
 class AssetRenderTestUser extends Authenticatable
 {

@@ -7,7 +7,7 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 use Livewire\Livewire;
 use Tardis\Bread\Sources\JsonBreadSource;
-use Tardis\Classes\Translation;
+use Tardis\Support\Translation;
 
 class BreadTranslatablePlainTestModel extends Model
 {

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Tardis\Classes;
+namespace Tardis\Settings;
 
 class Setting
 {

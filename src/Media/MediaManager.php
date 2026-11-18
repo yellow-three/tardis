@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Tardis\Manager;
+namespace Tardis\Media;
 
 use Illuminate\Filesystem\DirectoryAttributes;
 use Illuminate\Http\UploadedFile;

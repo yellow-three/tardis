@@ -129,7 +129,7 @@ Kod eklediğinde/taşıdığında **etkilenen referansları güncelle**. Bir bul
 
 ```
 src/
-  Auth/          TardisAuthorizationPlugin — TARDIS'in kendi Permission/Role yetkileri
+  Auth/          RoleAuthorizationPlugin — TARDIS'in kendi Permission/Role yetkileri
                  BreadAuthorization — plugin yokken fail-open yol (kasıtlı, B5)
   Bread/         BREAD tanım modeli ve kaynaklar (JSON + PHP config)
   Commands/      artisan komutları

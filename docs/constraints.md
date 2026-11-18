@@ -16,9 +16,9 @@ BREAD tanımındaki her `type`, `FormfieldManager::assertRegistered()` ile kontr
 
 ## BREAD — Çalışma zamanı kaynağı JSON; `config/bread` yalnızca içe aktarma
 
-`BreadManager` tek kaynağa bağlı: `JsonBreadSource`. `config/bread/*.php` yalnızca `Bread\Legacy\LegacyConfigReader` ile **salt okunur** okunur; kullanan iki yer var: `tardis:bread:migrate` (config/bread → JSON) ve yönetim ekranındaki taşıma uyarısı. Hiçbir çalışma zamanı yolu config'ten BREAD okumaz ve hiçbir şey config'e yazmaz.
+`BreadManager` tek kaynağa bağlı: `JsonBreadSource`. `config/bread/*.php` yalnızca `Bread\Legacy\LegacyConfigReader` ile **salt okunur** okunur; kullanan iki yer var: `tardis:bread:import-legacy` (config/bread → JSON) ve yönetim ekranındaki taşıma uyarısı. Hiçbir çalışma zamanı yolu config'ten BREAD okumaz ve hiçbir şey config'e yazmaz.
 
-**Sonuç**: BREAD tanımı eklerken/değiştirirken yalnızca JSON'a yaz (builder, `tardis:make-bread` veya `BreadManager::save()`).
+**Sonuç**: BREAD tanımı eklerken/değiştirirken yalnızca JSON'a yaz (builder, `tardis:make:bread` veya `BreadManager::save()`).
 
 ---
 
@@ -124,7 +124,7 @@ Livewire'de her `public` property tarayıcıdan değiştirilebilir. BREAD sayfal
 
 ## Yetkilendirme — varsayılan olarak açık plugin, `access admin` kapısı
 
-`TardisAuthorizationPlugin` `TardisServiceProvider::boot()` içinde kaydedilir ve etkinleştirilir (`tardis.authorization.enabled`, varsayılan `true`; boot'ta okunur çünkü host config'i `register()` sırasında henüz final değildir). `AdminMiddleware` kimlik doğrulamadan sonra `access admin` ability'sini ister; rolü olmayan kullanıcı 403 alır. İlk yönetici `tardis:admin` ile oluşturulur.
+`RoleAuthorizationPlugin` `TardisServiceProvider::boot()` içinde kaydedilir ve etkinleştirilir (`tardis.authorization.enabled`, varsayılan `true`; boot'ta okunur çünkü host config'i `register()` sırasında henüz final değildir). `AdminMiddleware` kimlik doğrulamadan sonra `access admin` ability'sini ister; rolü olmayan kullanıcı 403 alır. İlk yönetici `tardis:admin` ile oluşturulur.
 
 Plugin **yoksa** (`enabled=false` ve host da kendi plugin'ini kaydetmediyse) `BreadAuthorization` hâlâ fail-open'dır: giriş yapmış herkes girer. Bu yüzden `enabled=false` yalnızca başka bir koruma varken kullanılmalı.
 
@@ -136,7 +136,7 @@ Plugin **yoksa** (`enabled=false` ve host da kendi plugin'ini kaydetmediyse) `Br
 
 `PluginManager::enable()` saklanan "disabled" kaydını siler ve cache'e yazar. Bir service provider'dan çağrılırsa her istekte Plugins sayfasındaki devre dışı bırakmayı geri alır. Boot-time varsayılanı `enableByDefault()` verir: kullanıcı kapattıysa dokunmaz, cache'e yazmaz.
 
-**Sonuç**: Provider'larda ve `tardis:make-plugin` stub'larında `register()` + `enableByDefault()` kullan; `enable()` yalnızca Plugins sayfasındaki düğmeye ait.
+**Sonuç**: Provider'larda ve `tardis:make:plugin` stub'larında `register()` + `enableByDefault()` kullan; `enable()` yalnızca Plugins sayfasındaki düğmeye ait.
 
 Açık/kapalı durumu `storage/tardis/plugins.json` içinde tutulur (cache değil — `cache:clear` bir deploy'da tüm kapatmaları geri alırdı). `AuthenticationPlugin` ve `AuthorizationPlugin` uygulayan plugin'ler **kilitlidir**: `disable()` `LogicException` fırlatır, sayfa "Required" gösterir, dosyada "disabled" yazsa bile yok sayılır.
 
