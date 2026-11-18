@@ -189,3 +189,12 @@ Fixes from the 2026-11-17 review (`docs/notes.md`). Each one is covered by a tes
 - **Facade**: correct docblock (pinned by a test), accessors always ask the container, new `themes()`, `assets()`, `actions()`, `media()`; `version()` follows Composer for tagged installs.
 - **One service provider**: the two sub-providers are folded in.
 - **`tardis:install` clears compiled views**, so Livewire recompiles the panel components after an update; `@tardisStyles`/`@tardisScripts` compile to `app('tardis.assets')`.
+
+## Faz 10c — Livewire structure (R57)
+
+- **Components have their own root** (`resources/views/livewire/`), so layouts, Blade components and form field views are never part of the Livewire namespace. Group screens live in `index/` directories (no multi-file component holds another), the media picker is `tardis::components.media-picker`, and `tardis-views` publishes only the views a host can actually override.
+- **Stable rows:** interactive loops (BREAD rows and filters, settings, media, roles, permissions, search) carry `wire:key`, so sorting, filtering and paging no longer risk moving state to the wrong row.
+- **`#[Computed]`** replaces the legacy `getXProperty()` getters. The BREAD builder's state-derived values stay plain methods: moving a field read the cached order and changed it, which would have shown the old order in the same response.
+- **Navigation:** redirects between panel screens keep `wire:navigate`.
+- **One route group definition** (`Tardis\Http\PanelRoutes`) for fixed screens, BREAD and plugin routes; plugin routes now come before BREAD routes, and `/media/browse` redirects to the media screen.
+- The UI components page honours its `admin.ui-components` setting; the builder's review step moved to `Tardis\Bread\Builder\BuilderReview`.
