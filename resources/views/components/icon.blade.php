@@ -4,7 +4,7 @@
     // 1) Check semantic alias (e.g. nav.roles → heroicon-o-user-group)
     //    NOTE: Use array access not dot-notation, because keys like "ui.menu"
     //    contain dots that would be interpreted as path separators.
-    $aliases = config('tardis-icons.aliases', []);
+    $aliases = config('tardis.icons.aliases', []);
     $resolved = $aliases[$name] ?? $name;
 
     // 2) If it already looks like a full prefixed name (heroicon-o-*, heroicon-s-*), leave it

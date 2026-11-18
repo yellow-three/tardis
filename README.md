@@ -216,9 +216,9 @@ Three read-mostly screens, each behind its own ability (`view system`, `view log
 
 ## Media uploads
 
-Uploads on the media screen are limited to the extensions in `tardis-media.allowed_mimes` (images, pdf, office documents, zip) and to `tardis-media.max_file_size` KB. Executable or markup files such as `.php` and `.html` are rejected. Publish the config with `--tag=tardis-media-config` to change the list; keep in mind that `svg` is in the default list and can carry script, so remove it if you serve the media disk from your own origin.
+Uploads on the media screen are limited to the extensions in `tardis.media.allowed_mimes` (images, pdf, office documents, zip) and to `tardis.media.max_file_size` KB. Executable or markup files such as `.php` and `.html` are rejected. Publish the config with `--tag=tardis-config` to change the list; keep in mind that `svg` is in the default list and can carry script, so remove it if you serve the media disk from your own origin.
 
-Files reach the media screen through Livewire's temporary upload, which applies its own limits first: 12 MB per file and 60 uploads a minute by default. To accept files larger than 12 MB, raise both `tardis-media.max_file_size` and Livewire's rule in `config/livewire.php`:
+Files reach the media screen through Livewire's temporary upload, which applies its own limits first: 12 MB per file and 60 uploads a minute by default. To accept files larger than 12 MB, raise both `tardis.media.max_file_size` and Livewire's rule in `config/livewire.php`:
 
 ```php
 'temporary_file_upload' => [

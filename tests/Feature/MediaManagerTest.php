@@ -24,8 +24,8 @@ beforeEach(function () {
         $table->timestamps();
     });
 
-    config()->set('tardis-media.disk', 'public');
-    config()->set('tardis-media.path', 'media');
+    config()->set('tardis.media.disk', 'public');
+    config()->set('tardis.media.path', 'media');
 
     Storage::fake('public');
 });
@@ -278,7 +278,7 @@ test('downloadZip rejects a selection that yields no archivable file', function 
 
 test('upload de-duplicates a colliding filename that has no extension', function () {
     // A file without an extension can only be stored with the restriction off.
-    config()->set('tardis-media.allowed_mimes', []);
+    config()->set('tardis.media.allowed_mimes', []);
     Storage::disk('public')->put('media/gallery/LICENSE', 'first');
 
     $media = manager()->upload(UploadedFile::fake()->create('LICENSE', 1), 'gallery');

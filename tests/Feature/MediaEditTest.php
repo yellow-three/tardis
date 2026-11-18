@@ -25,8 +25,8 @@ beforeEach(function () {
         $table->timestamps();
     });
 
-    config()->set('tardis-media.disk', 'public');
-    config()->set('tardis-media.path', 'media');
+    config()->set('tardis.media.disk', 'public');
+    config()->set('tardis.media.path', 'media');
 
     Storage::fake('public');
 });

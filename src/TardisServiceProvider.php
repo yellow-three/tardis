@@ -53,15 +53,7 @@ class TardisServiceProvider extends ServiceProvider
             'tardis'
         );
 
-        $this->mergeConfigFrom(
-            __DIR__.'/../config/tardis-icons.php',
-            'tardis-icons'
-        );
-
-        $this->mergeConfigFrom(
-            __DIR__.'/../config/tardis-media.php',
-            'tardis-media'
-        );
+        $this->mergeLegacyConfig();
 
         $this->app->singleton(AssetManager::class);
         $this->app->alias(AssetManager::class, 'tardis.assets');
@@ -213,14 +205,29 @@ class TardisServiceProvider extends ServiceProvider
             __DIR__.'/../resources/compiled' => public_path('vendor/tardis'),
         ], 'tardis-assets');
 
-        $this->publishes([
-            __DIR__.'/../config/tardis-icons.php' => config_path('tardis-icons.php'),
-        ], 'tardis-icons-config');
+    }
 
-        $this->publishes([
-            __DIR__.'/../config/tardis-media.php' => config_path('tardis-media.php'),
-        ], 'tardis-media-config');
+    /**
+     * Before 0.2 the media and icon settings had their own config roots
+     * (config/tardis.media.php, config/tardis.icons.php). A host that
+     * published them keeps its values until 0.3: they are laid over
+     * tardis.media / tardis.icons, with a deprecation notice.
+     */
+    protected function mergeLegacyConfig(): void
+    {
+        $config = $this->app->make('config');
 
+        foreach (['tardis-media' => 'tardis.media', 'tardis-icons' => 'tardis.icons'] as $old => $new) {
+            $legacy = $config->get($old);
+
+            if (! is_array($legacy) || $legacy === []) {
+                continue;
+            }
+
+            @trigger_error(sprintf('config/%s.php is deprecated, move its keys to "%s" in config/tardis.php (removed in Tardis 0.3).', $old, $new), E_USER_DEPRECATED);
+
+            $config->set($new, array_replace_recursive((array) $config->get($new, []), $legacy));
+        }
     }
 
     protected function registerBindings(): void
