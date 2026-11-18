@@ -55,6 +55,8 @@ class TardisServiceProvider extends ServiceProvider
 
         $this->mergeLegacyConfig();
 
+        require_once __DIR__.'/helpers-global.php';
+
         $this->app->singleton(AssetManager::class);
         $this->app->alias(AssetManager::class, 'tardis.assets');
         $this->app->singleton(UserPreferences::class);

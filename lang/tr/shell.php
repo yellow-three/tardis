@@ -21,6 +21,7 @@ return [
     'admin_fallback' => 'Yönetici',
     'unauthorized' => 'Yetkiniz yok.',
     'titles' => [
+        'site_menus' => 'Site menüleri',
         'bread' => 'BREAD',
         'bread_builder' => 'BREAD Oluşturucu',
         'bread_management' => 'BREAD Yönetimi',

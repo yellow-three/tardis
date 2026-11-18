@@ -236,3 +236,7 @@ A BREAD override route is named after the new action name (`tardis.bread.create.
 - `image` is now its own field type instead of an alias of `file`. Stored definitions are unaffected: saving used to write `file`, so change a field to `image` yourself to get resizing and thumbnails. The builder now detects image columns (`avatar`, `photo`, …) as `image`.
 - Run `php artisan migrate` to add `tardis_media.thumbnail_path`. Until then uploads work without thumbnails. Images uploaded before the upgrade keep showing the original in the media grid.
 - Install PHP's GD extension to enable processing.
+
+## Faz 11 — front-end helpers
+
+- Tardis now defines `tardis_setting()` and `tardis_menu()`, and, when your application has not defined them already, `setting()` and `menu()`. The short names are declared when the service provider registers, after Composer has loaded your own helper files, so a function of yours with the same name keeps working.

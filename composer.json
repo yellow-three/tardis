@@ -15,7 +15,8 @@
             "Tardis\\": "src/"
         },
         "files": [
-            "src/legacy-aliases.php"
+            "src/legacy-aliases.php",
+            "src/helpers.php"
         ]
     },
     "autoload-dev": {
