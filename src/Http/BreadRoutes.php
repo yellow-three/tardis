@@ -30,6 +30,7 @@ final class BreadRoutes
         'browse' => ['/{slug}', 'bread.index'],
         'add' => ['/{slug}/create', 'bread.create'],
         'edit' => ['/{slug}/{id}/edit', 'bread.edit'],
+        'order' => ['/{slug}/order', 'bread.order'],
         'read' => ['/{slug}/{id}', 'bread.show'],
     ];
 
@@ -38,6 +39,7 @@ final class BreadRoutes
         'add' => 'tardis::pages.bread.create',
         'edit' => 'tardis::pages.bread.edit',
         'read' => 'tardis::pages.bread.read',
+        'order' => 'tardis::pages.bread.order',
     ];
 
     public static function define(): void
@@ -47,7 +49,7 @@ final class BreadRoutes
         PanelRoutes::panel(function () use ($definitions) {
             // Overrides first, with the more specific URIs ahead of
             // /{slug}/{id}: that route would otherwise capture "create".
-            foreach (['browse', 'add', 'edit', 'read'] as $action) {
+            foreach (['browse', 'add', 'order', 'edit', 'read'] as $action) {
                 foreach ($definitions as $slug => $definition) {
                     $component = $definition->components[$action] ?? null;
 
@@ -61,7 +63,7 @@ final class BreadRoutes
                 ? '(?!)'
                 : implode('|', array_map(fn (string $slug) => preg_quote((string) $slug, '#'), array_keys($definitions)));
 
-            foreach (['browse', 'add', 'edit', 'read'] as $action) {
+            foreach (['browse', 'add', 'order', 'edit', 'read'] as $action) {
                 self::route($action, self::STOCK[$action], null, null, $pattern);
             }
         });
@@ -83,7 +85,7 @@ final class BreadRoutes
         }
 
         if ($action === 'read') {
-            $route->where('id', '(?!create$)[^/]+');
+            $route->where('id', '(?!create$|order$)[^/]+');
         }
     }
 

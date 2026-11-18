@@ -85,6 +85,7 @@ class FormfieldManager
      */
     protected array $aliases = [
         'email' => 'text',
+        'timestamp' => 'datetime',
     ];
 
     public function registerType(string $type, string $fieldClass): void
@@ -166,16 +167,19 @@ class FormfieldManager
                 $field->rules($definition['rules']);
             }
 
-            if (isset($definition['default'])) {
+            if (isset($definition['default']) && $definition['default'] !== '') {
                 $field->default($definition['default']);
             }
 
-            if (isset($definition['placeholder'])) {
+            if (isset($definition['placeholder']) && $definition['placeholder'] !== '') {
                 $field->placeholder($definition['placeholder']);
             }
 
-            if (isset($definition['help'])) {
-                $field->help($definition['help']);
+            // "description" is Voyager's name for the same thing.
+            $help = $definition['help'] ?? $definition['description'] ?? null;
+
+            if (is_string($help) && $help !== '') {
+                $field->help($help);
             }
 
             if (isset($definition['width'])) {

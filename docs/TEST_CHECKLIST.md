@@ -84,6 +84,7 @@ Her tipi bir BREAD'de ekleyip **ekle → düzenle → oku → boş bırak → ge
 | tags, simple_array | ekle/çıkar, boş öğeler kaydedilmiyor; `min`/`max` sınırı uyuyor |
 | color, hidden | renk seçici; hidden alan formda görünmüyor ama kaydediliyor |
 | belongs_to_many | arama kutusu, seçim kaydı; ilişkili BREAD'in kapsamı dışındaki kayıtlar **listelenmiyor**; ilişkili BREAD'e `browse` izni olmayanda seçenek **boş** |
+| Sıralama sayfası | `order_column` olan bir BREAD'in listesinde **Sırala** düğmesi; sürükle-bırak ve oklar sırayı değiştiriyor, liste yeni sırayla geliyor; kapsam dışındaki kayıtlar etkilenmiyor |
 | image | yükleme sonrası formda küçük önizleme; `resize` ile büyük görsel küçülüyor; `thumbnails` dosyaları yanına yazılıyor (`foto-small.jpg`) |
 | belongs_to | arama kutusu ve tek seçim ("Hiçbiri" dahil); kayıtta yabancı anahtar yazılıyor; listede anahtar değil ilişkili kaydın adı görünüyor; kapsam dışı kayıt seçilemiyor |
 | has_one | tek seçim; seçilen kaydın yabancı anahtarı bu kayda bağlanıyor, öncekinin bağı kalkıyor; "Hiçbiri" bağı kaldırıyor |

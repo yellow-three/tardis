@@ -21,6 +21,7 @@ return [
     'admin_fallback' => 'Admin',
     'unauthorized' => 'Unauthorized.',
     'titles' => [
+        'order' => 'Order',
         'profile' => 'Profile',
         'site_menus' => 'Site menus',
         'bread' => 'BREAD',

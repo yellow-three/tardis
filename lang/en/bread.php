@@ -76,4 +76,9 @@ return [
     // Layout
     'list_layout' => 'List Layout',
     'view_layout' => 'View Layout',
+    'order' => 'Order',
+    'order_title' => 'Order :name',
+    'order_description' => 'Drag the records, or use the arrows, to set the order the list shows them in.',
+    'order_saved' => 'Order saved.',
+    'order_limited' => 'Only the first :count records are shown here.',
 ];

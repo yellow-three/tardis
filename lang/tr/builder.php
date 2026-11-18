@@ -157,4 +157,10 @@ return [
     ],
     'model_not_eloquent' => 'Bu sınıf bir Eloquent modeli değil.',
     'model_not_found' => 'Model sınıfı bulunamadı.',
+    'order_display_column' => 'Sıralama sayfası etiket sütunu',
+    'order_display_column_hint' => 'Sıralama sayfasında her kayıt için gösterilir; boş bırakılırsa arama sütunu kullanılır. Sıralama sayfası bir sıralama sütunu verildiğinde görünür.',
+    'field_help' => 'Yardım metni',
+    'field_placeholder' => 'Yer tutucu',
+    'field_default' => 'Varsayılan değer',
+    'field_default_hint' => 'Oluşturma formunda önceden doldurulur.',
 ];

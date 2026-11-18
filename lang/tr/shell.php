@@ -21,6 +21,7 @@ return [
     'admin_fallback' => 'Yönetici',
     'unauthorized' => 'Yetkiniz yok.',
     'titles' => [
+        'order' => 'Sırala',
         'profile' => 'Profil',
         'site_menus' => 'Site menüleri',
         'bread' => 'BREAD',
