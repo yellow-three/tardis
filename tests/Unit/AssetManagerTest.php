@@ -24,7 +24,7 @@ test('styles returns HTML with link tag', function () {
 test('scripts returns HTML header', function () {
     $manager = app(AssetManager::class);
     $html = $manager->scripts();
-    expect($html)->toContain('<!-- TARDIS Scripts -->');
+    expect($html)->toContain('<!-- Tardis Scripts -->');
 });
 
 test('styles duplicate guard returns empty on second call', function () {

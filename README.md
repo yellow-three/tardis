@@ -1,6 +1,6 @@
 # Tardis
 
-TARDIS is a Laravel admin framework package built around Livewire 4, DaisyUI and a modular plugin/menu system.
+Tardis is a Laravel admin framework package built around Livewire 4, DaisyUI and a modular plugin/menu system.
 
 ## Requirements
 
@@ -87,7 +87,7 @@ What is checked where:
 | Media | `browse media`, plus `upload media`, `rename media`, `delete media` for writes |
 | System diagnostics, log viewer, command runner | `view system`, `view logs`, `run commands` — one ability per screen, so holding one never grants or hides another |
 
-Pages check their ability on every Livewire request, not only on mount, and the sidebar hides entries the user may not open. If the host user model already has a `hasPermissionTo()` method (for example Spatie's `HasRoles`), that answer is used instead of the TARDIS tables.
+Pages check their ability on every Livewire request, not only on mount, and the sidebar hides entries the user may not open. If the host user model already has a `hasPermissionTo()` method (for example Spatie's `HasRoles`), that answer is used instead of the Tardis tables.
 
 To use your own authorization, set `tardis.authorization.enabled` to `false` and register an `AuthorizationPlugin`. **With no authorization plugin at all, every authenticated user is allowed into the panel**, so only disable it if something else protects `/admin`.
 

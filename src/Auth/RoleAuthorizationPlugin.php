@@ -44,7 +44,7 @@ class RoleAuthorizationPlugin implements AuthorizationPlugin
         }
 
         // A host application running Spatie's HasRoles trait answers for itself;
-        // mixing its tables with TARDIS' own would only produce half-truths.
+        // mixing its tables with Tardis' own would only produce half-truths.
         if (method_exists($user, 'hasPermissionTo')) {
             return $this->hostAllows($user, $ability);
         }
@@ -92,10 +92,10 @@ class RoleAuthorizationPlugin implements AuthorizationPlugin
     }
 
     /**
-     * Does the user hold the ability through any of their TARDIS roles?
+     * Does the user hold the ability through any of their Tardis roles?
      *
      * The pivot tables are queried directly rather than through a relation on
-     * the host application's User model, which TARDIS cannot assume exists.
+     * the host application's User model, which Tardis cannot assume exists.
      */
     protected function holdsTardisPermission(mixed $user, string $ability): bool
     {

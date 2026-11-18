@@ -1,6 +1,6 @@
 # Livewire 4 page organization
 
-TARDIS pages are Livewire 4 full-page components registered with `Route::livewire`. Only two formats are used:
+Tardis pages are Livewire 4 full-page components registered with `Route::livewire`. Only two formats are used:
 
 - **SFC** — single-file component: PHP class and Blade template in one `.blade.php`
 - **MFC** — multi-file component: a directory with `name.php` and `name.blade.php`

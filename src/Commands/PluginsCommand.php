@@ -14,7 +14,7 @@ class PluginsCommand extends Command
         {name? : The plugin to enable or disable}
         {--json : Print the list as JSON}';
 
-    protected $description = 'List the TARDIS plugins, or enable/disable one';
+    protected $description = 'List the Tardis plugins, or enable/disable one';
 
     public function handle(PluginManager $plugins): int
     {

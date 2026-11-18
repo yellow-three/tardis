@@ -1,6 +1,6 @@
 {
     "name": "tardis/{{LOWERCASE_NAME}}",
-    "description": "TARDIS {{STUDLY_NAME}} Plugin",
+    "description": "Tardis {{STUDLY_NAME}} Plugin",
     "type": "library",
     "license": "MIT",
     "autoload": {

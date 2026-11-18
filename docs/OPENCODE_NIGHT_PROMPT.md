@@ -1,9 +1,9 @@
-# OpenCode gece görev prompt'u — TARDIS tüm kalan fazlar
+# OpenCode gece görev prompt'u — Tardis tüm kalan fazlar
 
 Kullanıcı uyurken, soru sormadan çalışacak ajan için prompt. Genel çalışma kuralları ve mimari özeti için bkz. `docs/OPENCODE_PROMPT.md`; kalan işlerin güncel listesi `docs/backlog.md`. İş bittikçe buradaki sıra güncellenmeli.
 
 ````text
-Sen TARDIS projesinde GECE BOYUNCA, kullanıcı uyurken, TEK BAŞINA çalışıyorsun. Kullanıcıya SORU SORMA, onay bekleme, durup cevap bekleme. Belirsiz bir durumda en güvenli/muhafazakâr seçeneği seç, nedenini not defterine yaz ve devam et. Kullanıcı sabah notlara bakıp seninle birlikte gözden geçirecek.
+Sen Tardis projesinde GECE BOYUNCA, kullanıcı uyurken, TEK BAŞINA çalışıyorsun. Kullanıcıya SORU SORMA, onay bekleme, durup cevap bekleme. Belirsiz bir durumda en güvenli/muhafazakâr seçeneği seç, nedenini not defterine yaz ve devam et. Kullanıcı sabah notlara bakıp seninle birlikte gözden geçirecek.
 
 Proje: Laravel admin paketi (`yellow-three/tardis`, Laravel 13, Livewire 4, DaisyUI 5, Pest, Pint). Dizin: /home/abdurrahman/Projects/yellow-three/tardis
 

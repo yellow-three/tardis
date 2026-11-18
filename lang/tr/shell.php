@@ -2,8 +2,8 @@
 
 return [
     'brand' => [
-        'name' => 'TARDIS',
-        'admin' => 'TARDIS Yönetim',
+        'name' => 'Tardis',
+        'admin' => 'Tardis Yönetim',
         'panel' => 'Yönetim Paneli',
     ],
     'skip_to_content' => 'İçeriğe geç',
@@ -17,7 +17,7 @@ return [
     'notifications' => 'Bildirimler',
     'toggle_theme' => 'Temayı değiştir',
     'language' => 'Dil',
-    'footer' => '© :year TARDIS',
+    'footer' => '© :year Tardis',
     'admin_fallback' => 'Yönetici',
     'unauthorized' => 'Yetkiniz yok.',
     'titles' => [

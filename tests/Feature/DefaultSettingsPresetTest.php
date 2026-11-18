@@ -24,7 +24,7 @@ afterEach(function () {
  * written until an administrator saves.
  */
 test('without a settings file the preset values are used', function () {
-    expect(app(SettingsManager::class)->get('admin.title'))->toBe('TARDIS Admin');
+    expect(app(SettingsManager::class)->get('admin.title'))->toBe('Tardis Admin');
 });
 
 test('reading the settings never writes the file', function () {

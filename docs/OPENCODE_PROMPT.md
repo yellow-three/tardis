@@ -1,9 +1,9 @@
-# OpenCode görev prompt'u — TARDIS kalan işler
+# OpenCode görev prompt'u — Tardis kalan işler
 
 Bu dosya, OpenCode'a (veya başka bir kod ajanına) yapıştırılacak görev prompt'udur. Kalan işlerin güncel listesi `docs/backlog.md`'dedir; iş bittikçe orayı ve bu dosyadaki "Yapılacaklar"ı güncelleyin.
 
 ````text
-Sen TARDIS projesinde çalışıyorsun: Laravel admin paketi (`yellow-three/tardis`, Composer paketi, Laravel 13, Livewire 4, DaisyUI 5, Pest, Pint). Proje dizini: /home/abdurrahman/Projects/yellow-three/tardis
+Sen Tardis projesinde çalışıyorsun: Laravel admin paketi (`yellow-three/tardis`, Composer paketi, Laravel 13, Livewire 4, DaisyUI 5, Pest, Pint). Proje dizini: /home/abdurrahman/Projects/yellow-three/tardis
 
 ## Önce oku (kod yazmadan)
 1. `.claude/AGENTS.md` — Livewire kuralları. Yalnızca SFC/MFC anonim sınıflı bileşenler; `class X extends Component` YASAK; sınıf `}; ?>` ile biter; `render()` yok; sayfalarda `#[Layout]`, alt bileşenlerde yok; `#[Title]` çeviri anahtarı taşır.

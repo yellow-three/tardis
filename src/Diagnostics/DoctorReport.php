@@ -180,7 +180,7 @@ final class DoctorReport
             );
         }
 
-        return CheckResult::ok('Database tables', 'All TARDIS tables are present.');
+        return CheckResult::ok('Database tables', 'All Tardis tables are present.');
     }
 
     private static function checkAssets(): CheckResult
@@ -257,7 +257,7 @@ final class DoctorReport
             return CheckResult::fail(
                 'Authorization plugin',
                 'No authorization plugin is enabled.',
-                'Enable the TARDIS authorization plugin or register your own.',
+                'Enable the Tardis authorization plugin or register your own.',
             );
         }
 

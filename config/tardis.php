@@ -151,7 +151,7 @@ return [
     | Model Mapping
     |--------------------------------------------------------------------------
     |
-    | The Eloquent models TARDIS uses for roles, permissions, media and the
+    | The Eloquent models Tardis uses for roles, permissions, media and the
     | activity log. A host application may swap any of them for its own class,
     | as long as it extends the package's base model (Voyager's useModel).
     | A class that does not exist or does not extend the base model is refused

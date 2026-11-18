@@ -1,4 +1,4 @@
-# TARDIS BREAD DENETİMİ + VOYAGER TAM ARAŞTIRMA
+# Tardis BREAD DENETİMİ + VOYAGER TAM ARAŞTIRMA
 
 > **Durum notu (2026-10-03).** Bu rapor 2026-09-29 tarihli bir anlık görüntüdür. "Düzeltilmedi, planlandı" denen P0 bulguları (validation, translatable, BelongsToMany kapsamı) sonradan düzeltildi, izin kontrolü sayfalarda uygulanıyor ve artık varsayılan olarak etkin (`RELEASE_NOTES.md`); test sayısı 365'ten 476'ya çıktı. Bulgu bazında güncel durum tablosu: `research/05-tardis-bulgulari-ve-fix-oncelikleri.md` (en üstte). Açık işler: `docs/notes.md`.
 
@@ -122,7 +122,7 @@ Push/merge **yapılmadı**. Bu turda kod değişikliği yok.
 
 ---
 
-# BÖLÜM 3 — TARDIS BREAD DENETİMİ
+# BÖLÜM 3 — Tardis BREAD DENETİMİ
 
 ## 3.1 Sayfa akışları
 

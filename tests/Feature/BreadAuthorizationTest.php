@@ -126,7 +126,7 @@ function authzUser(): BreadAuthzTestUser
 }
 
 /**
- * A host user carrying Spatie's HasRoles trait. TARDIS does not depend on
+ * A host user carrying Spatie's HasRoles trait. Tardis does not depend on
  * spatie/laravel-permission — it probes for the trait at runtime — so this
  * stands in for whatever the host installed, without needing the package here.
  */
@@ -350,7 +350,7 @@ test('a host HasRoles user answers for itself without touching the tardis tables
     // The spatie/laravel-permission dependency was dropped; this is the path
     // that makes that safe. A host's own role trait must keep winning, and must
     // short-circuit before any schema probe, so a host on Spatie never gets a
-    // half-truth from TARDIS' native permission tables.
+    // half-truth from Tardis' native permission tables.
     authzSchema();
 
     $user = new SpatieStyleAuthzTestUser(['name' => 'Grace', 'email' => 'grace@example.test']);

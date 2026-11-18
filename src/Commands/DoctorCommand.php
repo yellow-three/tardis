@@ -9,7 +9,7 @@ use Tardis\Diagnostics\CheckResult;
 use Tardis\Diagnostics\DoctorReport;
 
 /**
- * Reports the health of a TARDIS install.
+ * Reports the health of a Tardis install.
  *
  * The exit code is the contract: a failure makes the command non-zero so it
  * can gate a deploy, while warnings (route cache, stale assets) stay zero.
@@ -20,7 +20,7 @@ class DoctorCommand extends Command
     protected $signature = 'tardis:doctor
         {--json : Output the report as JSON}';
 
-    protected $description = 'Check that TARDIS is installed and configured correctly';
+    protected $description = 'Check that Tardis is installed and configured correctly';
 
     public function handle(): int
     {
@@ -56,11 +56,11 @@ class DoctorCommand extends Command
         }
 
         if ($report->hasFailures()) {
-            $this->components->error('TARDIS is not healthy.');
+            $this->components->error('Tardis is not healthy.');
 
             return;
         }
 
-        $this->components->info('TARDIS is healthy.');
+        $this->components->info('Tardis is healthy.');
     }
 }
