@@ -44,30 +44,27 @@ final class BreadRoutes
     {
         $definitions = self::definitions();
 
-        Route::middleware(['web', 'tardis.locale', 'tardis.admin'])
-            ->prefix(config('tardis.admin.prefix', 'admin'))
-            ->name('tardis.')
-            ->group(function () use ($definitions) {
-                // Overrides first, with the more specific URIs ahead of
-                // /{slug}/{id}: that route would otherwise capture "create".
-                foreach (['browse', 'add', 'edit', 'read'] as $action) {
-                    foreach ($definitions as $slug => $definition) {
-                        $component = $definition->components[$action] ?? null;
+        PanelRoutes::panel(function () use ($definitions) {
+            // Overrides first, with the more specific URIs ahead of
+            // /{slug}/{id}: that route would otherwise capture "create".
+            foreach (['browse', 'add', 'edit', 'read'] as $action) {
+                foreach ($definitions as $slug => $definition) {
+                    $component = $definition->components[$action] ?? null;
 
-                        if (is_string($component) && $component !== '') {
-                            self::route($action, $component, $slug, $slug);
-                        }
+                    if (is_string($component) && $component !== '') {
+                        self::route($action, $component, $slug, $slug);
                     }
                 }
+            }
 
-                $pattern = $definitions === []
-                    ? '(?!)'
-                    : implode('|', array_map(fn (string $slug) => preg_quote((string) $slug, '#'), array_keys($definitions)));
+            $pattern = $definitions === []
+                ? '(?!)'
+                : implode('|', array_map(fn (string $slug) => preg_quote((string) $slug, '#'), array_keys($definitions)));
 
-                foreach (['browse', 'add', 'edit', 'read'] as $action) {
-                    self::route($action, self::STOCK[$action], null, null, $pattern);
-                }
-            });
+            foreach (['browse', 'add', 'edit', 'read'] as $action) {
+                self::route($action, self::STOCK[$action], null, null, $pattern);
+            }
+        });
     }
 
     private static function route(string $action, string $component, ?string $literalSlug, ?string $nameSuffix, ?string $pattern = null): void
