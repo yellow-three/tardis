@@ -8,11 +8,12 @@ use Tardis\Auth\Abilities;
 use Tardis\Auth\BreadAuthorization;
 use Tardis\Bread\BreadDefinition;
 use Tardis\Bread\BreadManager;
+use Tardis\Bread\Builder\BuilderLabels;
 use Tardis\Bread\Builder\BuilderReview;
+use Tardis\Bread\Builder\RelationFieldFactory;
 use Tardis\Bread\ModelReflector;
 use Tardis\Bread\ReservedSlugs;
 use Tardis\Formfields\FormfieldManager;
-use Tardis\Support\Translation;
 
 new #[Title('tardis::shell.titles.bread_builder')] #[Layout('tardis::layouts.admin')] class extends Component
 {
@@ -164,15 +165,17 @@ new #[Title('tardis::shell.titles.bread_builder')] #[Layout('tardis::layouts.adm
                 $this->slug = $bread->slug;
                 $this->slugTouched = true;
                 $this->model = $bread->model;
-                $this->nameTranslations = $this->toTranslationMap($bread->name);
+                $this->nameTranslations = BuilderLabels::translations($bread->name);
                 $this->name = $bread->resolvedName();
-                $this->namePluralTranslations = $this->toTranslationMap($bread->namePlural);
+                $this->namePluralTranslations = BuilderLabels::translations($bread->namePlural);
                 $this->namePlural = $bread->resolvedNamePlural();
                 $this->icon = $bread->icon;
-                $this->descriptionTranslations = $this->toTranslationMap($bread->description);
+                $this->descriptionTranslations = BuilderLabels::translations($bread->description);
                 $this->description = $bread->resolvedDescription();
                 $this->fieldConfig = $bread->fields;
-                $this->relationshipConfig = $bread->relationships;
+                $this->relationshipConfig = BreadDefinition::isModelClass($bread->model)
+                    ? ModelReflector::getRelationships(new $bread->model)
+                    : [];
                 $this->searchKey = $bread->searchKey ?? '';
                 $this->orderColumn = $bread->orderColumn ?? null;
                 $this->orderDirection = $bread->orderDirection ?? 'asc';
@@ -215,10 +218,6 @@ new #[Title('tardis::shell.titles.bread_builder')] #[Layout('tardis::layouts.adm
         $this->fieldConfig = $this->detectedFields;
         $this->detectedRelationships = ModelReflector::getRelationships(new $this->model);
         $this->relationshipConfig = $this->detectedRelationships;
-
-        foreach ($this->relationshipConfig as $key => $relationship) {
-            $this->relationshipConfig[$key]['display_type'] ??= 'select';
-        }
 
         $this->name = class_basename($this->model);
         $this->namePlural = Str::headline(Str::plural(class_basename($this->model)));
@@ -277,12 +276,11 @@ new #[Title('tardis::shell.titles.bread_builder')] #[Layout('tardis::layouts.adm
         $bread = BreadDefinition::fromArray([
             'slug' => $this->slug,
             'model' => $this->model,
-            'name' => $this->labelPayload($this->name, $this->nameTranslations),
-            'name_plural' => $this->labelPayload($this->namePlural, $this->namePluralTranslations),
+            'name' => BuilderLabels::payload($this->name, $this->nameTranslations),
+            'name_plural' => BuilderLabels::payload($this->namePlural, $this->namePluralTranslations),
             'fields' => $this->fieldConfig,
-            'relationships' => $this->relationshipConfig,
             'icon' => $this->icon,
-            'description' => $this->labelPayload($this->description, $this->descriptionTranslations),
+            'description' => BuilderLabels::payload($this->description, $this->descriptionTranslations),
             'search_key' => $this->searchKey ?: null,
             'order_column' => $this->orderColumn,
             'order_direction' => $this->orderDirection,
@@ -306,42 +304,6 @@ new #[Title('tardis::shell.titles.bread_builder')] #[Layout('tardis::layouts.adm
 
         session()->flash('message', __('tardis::builder.saved'));
         $this->redirect(route('tardis.builder.index'), navigate: true);
-    }
-
-    /**
-     * The locale map behind a definition label, or an empty array when the
-     * label is a plain string and therefore not translatable.
-     *
-     * @return array<string, string>
-     */
-    protected function toTranslationMap(mixed $value): array
-    {
-        if (is_array($value)) {
-            return array_map(strval(...), $value);
-        }
-
-        if (! is_string($value) || $value === '') {
-            return [];
-        }
-
-        $decoded = json_decode($value, true);
-
-        return is_array($decoded) ? array_map(strval(...), $decoded) : [];
-    }
-
-    /**
-     * Keep a definition's locale map when its resolved label was not retyped.
-     *
-     * A deliberate edit replaces the map with the single string now shown in
-     * the input, so what gets stored is exactly what the form displayed.
-     */
-    protected function labelPayload(?string $edited, array $translations): string|array|null
-    {
-        if ($translations === []) {
-            return $edited;
-        }
-
-        return $edited === Translation::label($translations) ? $translations : $edited;
     }
 
     public function getModelOptions(): array
@@ -684,14 +646,35 @@ new #[Title('tardis::shell.titles.bread_builder')] #[Layout('tardis::layouts.adm
      */
     public function iconOptions(): array
     {
-        return [
-            'table-cells', 'document-text', 'database', 'folder', 'photo', 'puzzle-piece',
-            'squares-2x2', 'key', 'tag', 'hashtag', 'book-open', 'user-group', 'bell',
-            'calendar-days', 'clock', 'cog-6-tooth', 'bars-3', 'chevron-up-down',
-            'paper-clip', 'link', 'adjustments-horizontal', 'text', 'toggle',
-            'pencil-square', 'plus-circle', 'check-circle', 'x-circle', 'power',
-            'check', 'x-mark', 'plus', 'sun', 'moon', 'lock-closed',
-        ];
+        return BuilderLabels::icons();
+    }
+
+    /**
+     * Put a detected relationship on the form as a relation field: a
+     * belongsTo turns its foreign key column into a belongs_to picker, the
+     * other kinds add a field named after the relation.
+     */
+    public function addRelationField(string $relation): void
+    {
+        $field = RelationFieldFactory::fromDetected($relation, $this->relationshipConfig[$relation] ?? [], $this->fieldConfig);
+
+        if ($field === null) {
+            return;
+        }
+
+        $key = $field['name'];
+        $this->fieldConfig[$key] = array_merge($this->fieldConfig[$key] ?? [], $field);
+
+        if (! in_array($key, $this->fieldOrder, true)) {
+            $this->fieldOrder[] = $key;
+        }
+
+        $this->hydrateLayoutDefaults();
+    }
+
+    public function hasRelationField(string $relation): bool
+    {
+        return RelationFieldFactory::isOnForm($relation, $this->relationshipConfig[$relation] ?? [], $this->fieldConfig);
     }
 
     // ---------------------------------------------------------------------

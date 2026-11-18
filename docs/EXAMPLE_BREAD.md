@@ -60,12 +60,16 @@ You can also build and edit definitions in the browser at `/admin/bread` (BREAD 
 
 Notes:
 
-- `fields[].type` must be a type registered in `FormfieldManager`: the built-in `text`, `number`, `select`, `toggle`, `date`, `datetime`, `time`, `textarea`, `password`, `file`, `checkbox`, `radio`, `slider`, `slug`, `tags`, `markdown`, `code_editor`, `belongs_to_many`, `has_many`, plus anything a host registers with `registerType()`. Any other value is rejected when the definition is loaded or saved.
+- `fields[].type` must be a type registered in `FormfieldManager`: the built-in `text`, `number`, `select`, `toggle`, `date`, `datetime`, `time`, `textarea`, `password`, `file`, `checkbox`, `radio`, `slider`, `slug`, `tags`, `markdown`, `code_editor`, `belongs_to`, `has_one`, `belongs_to_many`, `has_many`, plus anything a host registers with `registerType()`. Any other value is rejected when the definition is loaded or saved.
 - Optional definition keys: `components` (`{"browse": "acme::pages.post-list"}` replaces a page's Livewire component), `policy` (ability word, default the slug) and `scope` (model scope applied to listings and every record lookup).
 - Slugs reserved for built-in screens (`settings`, `users`, `bread`, `media`, `database`, `plugins`, `login`, …) cannot be used.
 - `validation` is a list of Laravel rules. A field without `required` is treated as nullable, so its other rules only apply when it has a value. Rules containing `|` (for example `regex:/^(a|b)$/`) are safe in the list form.
 - `browse` / `read` / `edit` / `add` choose where a field appears; each defaults to `true`.
-- Relation fields use `relation` (the Eloquent relation name); `translatable: true` stores a locale map (see `tardis.locales`).
+- Relation fields use `relation` (the Eloquent relation name), `model` (the related model) and `label_column` (the column shown for a related record, default `name`); `translatable: true` stores a locale map (see `tardis.locales`).
+  - `belongs_to` is named after the foreign key column (`category_id`) and stores the picked record's key; with `relation` set, the listing shows the related label without an extra query per row.
+  - `has_one` is named after the relation (`profile`); picking a record sets its foreign key to this record and unlinks the one linked before, so that foreign key column must be nullable.
+  - Every picker lists only what the related BREAD would show (its `scope` and the user's `browse` permission), and a submitted key outside that list is not stored.
+  - The BREAD builder's *Relationships* tab adds a detected relationship to the form; the definition no longer keeps a separate `relationships` list.
 
 ## Reading definitions
 

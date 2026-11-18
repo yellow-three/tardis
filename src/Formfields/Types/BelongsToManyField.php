@@ -4,15 +4,14 @@ declare(strict_types=1);
 
 namespace Tardis\Formfields\Types;
 
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
-use Tardis\Auth\BreadAuthorization;
-use Tardis\Bread\BreadDefinition;
-use Tardis\Bread\BreadManager;
+use Tardis\Formfields\Concerns\SearchesRelatedRecords;
 use Tardis\Formfields\Formfield;
 
 class BelongsToManyField extends Formfield
 {
+    use SearchesRelatedRecords;
+
     protected array $configurable = ['relation', 'model', 'label_column' => 'labelColumn'];
 
     public ?string $relation = null;
@@ -24,73 +23,6 @@ class BelongsToManyField extends Formfield
     public function isRelation(): bool
     {
         return true;
-    }
-
-    /**
-     * Search candidate related records by their label column.
-     *
-     * Already selected ids are always included so that a filtered search
-     * never hides the current selection.
-     *
-     * @return array<int|string, string> map of id => label
-     */
-    public function searchOptions(string $search = '', array $selected = [], int $limit = 50): array
-    {
-        if (! BreadDefinition::isModelClass($this->model)) {
-            return [];
-        }
-
-        $query = $this->optionQuery();
-
-        if ($query === null) {
-            return [];
-        }
-
-        if ($search !== '') {
-            $query->where($this->labelColumn, 'like', '%'.$search.'%');
-        }
-
-        $options = $query->limit($limit)->pluck($this->labelColumn, 'id')->all();
-
-        $selectedIds = array_values(array_filter($selected, fn ($id) => $id !== null && $id !== ''));
-
-        if (! empty($selectedIds)) {
-            // The same restricted query: a selected id must not reveal a record
-            // the scope or the user's permissions keep out of the picker.
-            $selectedOptions = $this->optionQuery()
-                ->whereIn('id', $selectedIds)
-                ->pluck($this->labelColumn, 'id')
-                ->all();
-
-            $options = $selectedOptions + $options;
-        }
-
-        return $options;
-    }
-
-    /**
-     * The query the picker draws its options from.
-     *
-     * When a BREAD manages the related model, its scope applies and the user
-     * needs to be allowed to browse it, so the picker cannot list records the
-     * resource itself would hide. A model with no BREAD of its own is listed in
-     * full (there is no definition to defer to); null means "show nothing".
-     */
-    protected function optionQuery(): ?Builder
-    {
-        $bread = app(BreadManager::class)
-            ->all()
-            ->first(fn (BreadDefinition $definition) => ltrim($definition->model, '\\') === ltrim((string) $this->model, '\\'));
-
-        if ($bread === null) {
-            return $this->model::query();
-        }
-
-        if (! app(BreadAuthorization::class)->allows('browse', $bread->permissionKey())) {
-            return null;
-        }
-
-        return $bread->query();
     }
 
     public function stored(mixed $value, Model $model): void
@@ -145,20 +77,6 @@ class BelongsToManyField extends Formfield
     public function relation(string $relation): self
     {
         $this->relation = $relation;
-
-        return $this;
-    }
-
-    public function model(string $model): self
-    {
-        $this->model = $model;
-
-        return $this;
-    }
-
-    public function labelColumn(string $column): self
-    {
-        $this->labelColumn = $column;
 
         return $this;
     }

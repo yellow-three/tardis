@@ -286,8 +286,10 @@ new #[Title('tardis::shell.titles.bread')] #[Layout('tardis::layouts.admin')] cl
 
         $related = $row->{$relation};
 
+        // A to-one relation (belongs_to, has_one) is a single model or null;
+        // collect() on a model would list its attributes instead.
         if (! $related instanceof Collection) {
-            $related = collect($related);
+            $related = collect($related instanceof Model || $related === null ? array_filter([$related]) : $related);
         }
 
         $limit = max(1, (int) ($field['display_limit'] ?? $field['limit'] ?? 3));

@@ -24,6 +24,7 @@ return [
     'add_row' => 'Satır ekle',
     'remove_row' => 'Satırı kaldır',
     'add_a_new_record_to_this_78a2' => 'Bu BREAD kaynağına yeni bir kayıt ekleyin.',
+    'relation_none' => 'Hiçbiri',
     'no_matches_found' => 'Eşleşme bulunamadı.',
     'related_items_will_be_managed_here' => 'İlişkili öğeler burada yönetilecek.',
     'cancel' => 'Vazgeç',

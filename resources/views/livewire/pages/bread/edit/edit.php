@@ -14,12 +14,15 @@ use Tardis\Bread\FieldValidationRules;
 use Tardis\Bread\MissingColumnsException;
 use Tardis\Formfields\Formfield;
 use Tardis\Formfields\FormfieldManager;
-use Tardis\Formfields\Types\BelongsToManyField;
+use Tardis\Formfields\Types\HasOneField;
 use Tardis\Support\Translation;
 
 new #[Title('tardis::shell.titles.edit')] #[Layout('tardis::layouts.admin')] class extends Component
 {
     use WithFileUploads;
+
+    /** Field types whose control searches the related records. */
+    private const SEARCHABLE_RELATIONS = ['belongs_to', 'has_one', 'belongs_to_many'];
 
     #[Locked]
     public string $slug = '';
@@ -100,6 +103,8 @@ new #[Title('tardis::shell.titles.edit')] #[Layout('tardis::layouts.admin')] cla
                 $this->form[$name] = '';
             } elseif ($type === 'belongs_to_many' && ! empty($field['relation'])) {
                 $this->form[$name] = $record->{$field['relation']}()->get()->modelKeys();
+            } elseif ($type === 'has_one' && $fieldObjects->get($name) instanceof HasOneField) {
+                $this->form[$name] = $fieldObjects->get($name)->currentKey($record);
             } elseif ($type === 'has_many' && ! empty($field['relation'])) {
                 $this->form[$name] = $record->{$field['relation']}()->get()->toArray();
             } elseif (! empty($field['translatable'])) {
@@ -160,7 +165,7 @@ new #[Title('tardis::shell.titles.edit')] #[Layout('tardis::layouts.admin')] cla
         foreach ($this->fields as $field) {
             $name = $field['name'] ?? null;
 
-            if (! $name || ($field['type'] ?? null) !== 'belongs_to_many') {
+            if (! $name || ! in_array($field['type'] ?? null, self::SEARCHABLE_RELATIONS, true)) {
                 continue;
             }
 
@@ -180,19 +185,21 @@ new #[Title('tardis::shell.titles.edit')] #[Layout('tardis::layouts.admin')] cla
     {
         $field = collect($this->fields)->first(fn (array $field) => ($field['name'] ?? null) === $fieldName);
 
-        if (! $field || ($field['type'] ?? null) !== 'belongs_to_many') {
+        if (! $field || ! in_array($field['type'] ?? null, self::SEARCHABLE_RELATIONS, true)) {
             return;
         }
 
         $relationField = app(FormfieldManager::class)->fields([$field])[0] ?? null;
 
-        if (! $relationField instanceof BelongsToManyField) {
+        if (! $relationField instanceof Formfield || ! method_exists($relationField, 'searchOptions')) {
             return;
         }
 
+        $selected = $this->form[$fieldName] ?? [];
+
         $this->relationResults[$fieldName] = $relationField->searchOptions(
             (string) ($this->relationSearch[$fieldName] ?? ''),
-            (array) ($this->form[$fieldName] ?? []),
+            is_array($selected) ? $selected : [$selected],
         );
     }
 

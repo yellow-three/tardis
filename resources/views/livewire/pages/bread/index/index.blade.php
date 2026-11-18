@@ -137,7 +137,7 @@
                                 @endif
                                 @foreach (($this->layoutFields ?? $this->visibleFields) as $field)
                                     @php($fieldName = $field['name'] ?? '')
-                                    @php($isRelation = in_array($field['type'] ?? '', \Tardis\Bread\BreadQuery::RELATION_TYPES, true))
+                                    @php($isRelation = \Tardis\Bread\BreadQuery::showsRelation($field))
                                     <td>
                                         @if ($isRelation)
                                             @php($cell = $this->relationCell($row, $field))

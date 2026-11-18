@@ -23,10 +23,25 @@ class BreadQuery
     public const OPERATORS = ['=', '!=', '>', '>=', '<', '<=', 'like'];
 
     /** Field types backed by a relationship rather than a column. */
-    public const RELATION_TYPES = ['belongs_to_many', 'has_many'];
+    public const RELATION_TYPES = ['has_one', 'belongs_to_many', 'has_many'];
 
     /** Field types that have no column of their own. */
-    protected const NO_COLUMN = ['belongs_to_many', 'has_many'];
+    protected const NO_COLUMN = ['has_one', 'belongs_to_many', 'has_many'];
+
+    /**
+     * Does a listing cell show this field through its relation (eager loaded)
+     * rather than its column? A belongs_to is a column, shown through the
+     * relation when the definition names one.
+     *
+     * @param  array<string, mixed>  $field
+     */
+    public static function showsRelation(array $field): bool
+    {
+        $type = $field['type'] ?? '';
+
+        return in_array($type, self::RELATION_TYPES, true)
+            || ($type === 'belongs_to' && ! empty($field['relation']));
+    }
 
     public function __construct(protected BreadDefinition $bread) {}
 
@@ -215,7 +230,7 @@ class BreadQuery
         $relations = [];
 
         foreach ($this->browseColumns() as $field) {
-            if (! in_array($field['type'] ?? '', self::RELATION_TYPES, true)) {
+            if (! self::showsRelation($field)) {
                 continue;
             }
 
