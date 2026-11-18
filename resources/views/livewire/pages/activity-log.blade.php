@@ -153,7 +153,7 @@ new #[Title('tardis::activity.activity_log')] #[Layout('tardis::layouts.admin')]
                 </thead>
                 <tbody>
                     @forelse ($activities as $activity)
-                        <tr>
+                        <tr wire:key="activity-{{ $activity->id }}">
                             <td>
                                 <span class="badge badge-{{ $this->getActionColor($activity->action) }} badge-sm">
                                     {{ $activity->action }}

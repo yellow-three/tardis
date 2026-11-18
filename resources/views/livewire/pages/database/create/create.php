@@ -117,7 +117,7 @@ new #[Title('tardis::shell.titles.create_table')] #[Layout('tardis::layouts.admi
                 session()->flash('message', __('tardis::database.table_created'));
             }
 
-            $this->redirect(route('tardis.database.index'));
+            $this->redirect(route('tardis.database.index'), navigate: true);
         } catch (Throwable $e) {
             $this->error = __('tardis::database.could_not_create_table', ['error' => $e->getMessage()]);
         }

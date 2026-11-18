@@ -70,7 +70,7 @@
     @if (count($filteredGroups) > 0)
         <div class="tabs tabs-box mb-6 bg-base-100 overflow-x-auto">
             @foreach ($filteredGroups as $groupKey => $group)
-                <button wire:click="setActiveGroup('{{ $groupKey }}')"
+                <button wire:key="group-{{ $groupKey }}" wire:click="setActiveGroup('{{ $groupKey }}')"
                         role="tab"
                         class="tab tab-lg gap-2 {{ $activeGroup === $groupKey ? 'tab-active font-semibold' : '' }}">
                     @if ($group['icon'])
@@ -98,7 +98,7 @@
 
                     <div class="space-y-1">
                         @foreach ($filteredGroups[$activeGroup]['settings'] as $setting)
-                            <div class="setting-row py-4 {{ !$loop->last ? 'border-b border-base-200' : '' }}">
+                            <div wire:key="setting-{{ $activeGroup }}-{{ $setting['key'] }}" class="setting-row py-4 {{ !$loop->last ? 'border-b border-base-200' : '' }}">
                                 <!-- Label & Info -->
                                 <div class="mb-2">
                                     <div class="flex items-center gap-2">
@@ -236,7 +236,7 @@
                                         <div class="space-y-2">
                                             @php $arrIndex = 0; @endphp
                                             @foreach ((array) ($this->values[$activeGroup][$setting['key']] ?? []) as $arrIndex => $item)
-                                                <div class="flex gap-2 items-center">
+                                                <div wire:key="array-{{ $setting['key'] }}-{{ $arrIndex }}" class="flex gap-2 items-center">
                                                     <input
                                                         type="text"
                                                         wire:model="values.{{ $activeGroup }}.{{ $setting['key'] }}.{{ $arrIndex }}"
@@ -266,7 +266,7 @@
                                         <div class="space-y-2">
                                             @php $dynIndex = 0; @endphp
                                             @foreach ((array) ($this->values[$activeGroup][$setting['key']] ?? []) as $dynIndex => $row)
-                                                <div class="flex gap-2 items-center">
+                                                <div wire:key="dynamic-{{ $setting['key'] }}-{{ $dynIndex }}" class="flex gap-2 items-center">
                                                     <input
                                                         type="text"
                                                         wire:model="values.{{ $activeGroup }}.{{ $setting['key'] }}.{{ $dynIndex }}.key"

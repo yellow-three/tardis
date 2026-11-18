@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Artisan;
+use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
@@ -131,7 +132,8 @@ new #[Title('tardis::system.command_runner')] #[Layout('tardis::layouts.admin')]
         $this->failure = '';
     }
 
-    public function getEnabledProperty(): bool
+    #[Computed]
+    public function enabled(): bool
     {
         $allowlist = app(CommandAllowlist::class);
 
@@ -141,7 +143,8 @@ new #[Title('tardis::system.command_runner')] #[Layout('tardis::layouts.admin')]
     /**
      * @return array<int, string>
      */
-    public function getPermittedArgumentsProperty(): array
+    #[Computed]
+    public function permittedArguments(): array
     {
         if ($this->command === '') {
             return [];

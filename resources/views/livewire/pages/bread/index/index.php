@@ -158,18 +158,21 @@ new #[Title('tardis::shell.titles.bread')] #[Layout('tardis::layouts.admin')] cl
     }
 
     /** @return array<string, array<string, mixed>> named filters declared by the layout */
-    public function getNamedFiltersProperty(): array
+    #[Computed]
+    public function namedFilters(): array
     {
         return $this->query()->namedFilters();
     }
 
     /** @return array<int, string> columns that accept an inline search term */
-    public function getSearchableColumnsProperty(): array
+    #[Computed]
+    public function searchableColumns(): array
     {
         return $this->query()->searchable();
     }
 
-    public function getHasFiltersProperty(): bool
+    #[Computed]
+    public function hasFilters(): bool
     {
         return $this->search !== ''
             || array_filter($this->columnSearch) !== []
@@ -178,22 +181,26 @@ new #[Title('tardis::shell.titles.bread')] #[Layout('tardis::layouts.admin')] cl
             || $this->trashed !== 'without';
     }
 
-    public function getRowsProperty()
+    #[Computed]
+    public function rows()
     {
         return $this->listing?->rows ?? collect();
     }
 
-    public function getExecutionMsProperty(): float
+    #[Computed]
+    public function executionMs(): float
     {
         return $this->listing?->executionMs ?? 0.0;
     }
 
-    public function getWarningsProperty(): array
+    #[Computed]
+    public function warnings(): array
     {
         return $this->listing?->warnings ?? [];
     }
 
-    public function getLayoutFieldsProperty(): array
+    #[Computed]
+    public function layoutFields(): array
     {
         $layout = $this->bread['layout'] ?? [];
         $listLayout = $layout['list'] ?? $layout['browse'] ?? [];
@@ -223,7 +230,8 @@ new #[Title('tardis::shell.titles.bread')] #[Layout('tardis::layouts.admin')] cl
         return $this->visibleFields;
     }
 
-    public function getVisibleFieldsProperty(): array
+    #[Computed]
+    public function visibleFields(): array
     {
         if (empty($this->bread)) {
             return [];
@@ -238,7 +246,8 @@ new #[Title('tardis::shell.titles.bread')] #[Layout('tardis::layouts.admin')] cl
      *
      * @return array<string, Formfield>
      */
-    public function getFormfieldsProperty(): array
+    #[Computed]
+    public function formfields(): array
     {
         // Build from layout columns first so per-column config (relation target,
         // label column, …) reaches the field type; fall back to browse fields.
@@ -306,7 +315,8 @@ new #[Title('tardis::shell.titles.bread')] #[Layout('tardis::layouts.admin')] cl
         ];
     }
 
-    public function getCreateUrlProperty(): string
+    #[Computed]
+    public function createUrl(): string
     {
         return url(trim(config('tardis.admin.prefix', 'admin'), '/').'/'.$this->slug.'/create');
     }

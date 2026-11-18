@@ -209,6 +209,7 @@
             <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-4">
                 @foreach ($files as $file)
                     <div
+                        wire:key="grid-{{ $file['relative_path'] }}"
                         @if ($file['type'] === 'directory')
                             wire:click="navigateTo('{{ $file['relative_path'] }}')"
                         @else
@@ -274,7 +275,7 @@
                         </thead>
                         <tbody>
                             @foreach ($files as $file)
-                                <tr class="{{ in_array($file['relative_path'], $selectedFiles) ? 'bg-primary/10' : 'hover' }}">
+                                <tr wire:key="list-{{ $file['relative_path'] }}" class="{{ in_array($file['relative_path'], $selectedFiles) ? 'bg-primary/10' : 'hover' }}">
                                     <td>
                                         <input type="checkbox" class="checkbox checkbox-sm"
                                                {{ in_array($file['relative_path'], $selectedFiles) ? 'checked' : '' }}

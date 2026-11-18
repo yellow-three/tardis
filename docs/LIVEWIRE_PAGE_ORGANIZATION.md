@@ -61,3 +61,6 @@ Route::livewire('/bread', 'tardis::pages.bread.manage')->name('bread.manage');
 2. Public properties are client-writable. Anything authorisation depends on (`slug`, `id`, `bread`, `record` on the BREAD pages) must be `#[Locked]`.
 3. Keep routes as Livewire page routes; reserve controllers for non-page backend work (the logout route is the only one).
 4. Do not use a `⚡` emoji in file names — the package is published through Composer.
+5. Every loop that renders interactive or changing rows gives its root element a `wire:key` built from a stable id (record key, slug, path), never the loop index alone when rows can be reordered or filtered.
+6. A value derived from the definition or from state that only the view reads is a `#[Computed]` method. Livewire caches it for the rest of the request, so an action that reads a value and then changes what it depends on (the BREAD builder's field order, for example) must call a plain method instead, or the response shows the old value.
+7. A redirect to another panel screen uses `navigate: true`, like the menu's `wire:navigate`. The login page is the exception: after signing in, the session changes and a full page load follows.

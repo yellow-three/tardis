@@ -64,7 +64,7 @@
                     </thead>
                     <tbody>
                         @foreach ($this->breads as $slug => $bread)
-                            <tr>
+                            <tr wire:key="bread-{{ $slug }}">
                                 <td class="font-semibold">{{ $bread->resolvedName() ?: $slug }}</td>
                                 <td><code class="badge badge-ghost badge-sm">{{ $slug }}</code></td>
                                 <td><span class="badge badge-info badge-sm">{{ __('tardis::bread.json') }}</span></td>

@@ -172,7 +172,7 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                @forelse ($this->visibleFieldKeys as $position => $key)
+                                @forelse ($this->visibleFieldKeys() as $position => $key)
                                     @php $field = $fieldConfig[$key]; @endphp
                                     <tr wire:key="field-{{ $key }}">
                                         <td>
@@ -293,7 +293,7 @@
                         <div class="flex flex-col gap-2">
                             <label class="label">
                                 <span class="text-base-content">{{ __('tardis::builder.slug_url') }}</span>
-                                @php [$slugClass, $slugLabel] = $slugBadges[$this->slugStatus]; @endphp
+                                @php [$slugClass, $slugLabel] = $slugBadges[$this->slugStatus()]; @endphp
                                 <span class="badge badge-sm {{ $slugClass }}">{{ $slugLabel }}</span>
                             </label>
                             <input type="text" wire:model="slug" class="input font-mono" placeholder="{{ __('tardis::builder.e_g_posts') }}" />
@@ -391,7 +391,7 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                @forelse ($this->orderedFieldKeys as $key)
+                                @forelse ($this->orderedFieldKeys() as $key)
                                     <tr wire:key="browse-{{ $key }}">
                                         <td class="font-medium">{{ $fieldConfig[$key]['label'] ?? $key }}</td>
                                         <td class="text-center"><input type="checkbox" wire:model.live="browseColumns.{{ $key }}.visible" class="checkbox checkbox-sm" /></td>
@@ -466,13 +466,13 @@
                         @endforelse
                     </div>
 
-                    @if (count($readLayout) < count($this->orderedFieldKeys))
+                    @if (count($readLayout) < count($this->orderedFieldKeys()))
                         <div class="mt-4">
                             <p class="text-xs uppercase tracking-wide text-base-content/60 mb-2">{{ __('tardis::builder.add_fields') }}</p>
                             <div class="flex flex-wrap gap-1">
-                                @foreach ($this->orderedFieldKeys as $key)
+                                @foreach ($this->orderedFieldKeys() as $key)
                                     @continue(in_array($key, $readLayout, true))
-                                    <button wire:click="toggleReadField('{{ $key }}')" class="btn btn-xs btn-outline">
+                                    <button wire:key="read-add-{{ $key }}" wire:click="toggleReadField('{{ $key }}')" class="btn btn-xs btn-outline">
                                         <x-tardis::icon name="plus" class="w-3 h-3" />
                                         {{ $fieldConfig[$key]['label'] ?? $key }}
                                     </button>
@@ -520,8 +520,8 @@
                                         </button>
                                     </div>
                                     <div class="flex flex-wrap gap-2">
-                                        @foreach ($this->orderedFieldKeys as $key)
-                                            <label class="flex items-center gap-1 cursor-pointer">
+                                        @foreach ($this->orderedFieldKeys() as $key)
+                                            <label wire:key="tab-{{ $tabIndex }}-{{ $key }}" class="flex items-center gap-1 cursor-pointer">
                                                 <input type="checkbox" wire:model.live="editTabs.{{ $tabIndex }}.fields" value="{{ $key }}" class="checkbox checkbox-sm checkbox-primary" />
                                                 <span class="text-xs">{{ $fieldConfig[$key]['label'] ?? $key }}</span>
                                             </label>
@@ -541,12 +541,12 @@
     <!-- Step 4: Review & Save -->
     @if ($step === 4)
         <div class="space-y-4">
-            @if (count($this->reviewWarnings) > 0)
+            @if (count($this->reviewWarnings()) > 0)
                 <div class="card bg-base-100 border border-base-300">
                     <div class="card-body">
                         <h2 class="card-title text-base">{{ __('tardis::builder.before_you_save') }}</h2>
                         <ul class="space-y-2">
-                            @foreach ($this->reviewWarnings as $warning)
+                            @foreach ($this->reviewWarnings() as $warning)
                                 @php
                                     $styles = [
                                         'error' => ['alert-error', 'exclamation-triangle'],
@@ -574,25 +574,25 @@
                             <tbody>
                                 <tr>
                                     <th class="w-48" scope="row">{{ __('tardis::builder.slug') }}</th>
-                                    <td class="font-mono">{{ $this->reviewSummary['slug'] ?: '—' }}</td>
+                                    <td class="font-mono">{{ $this->reviewSummary()['slug'] ?: '—' }}</td>
                                 </tr>
                                 <tr>
                                     <th scope="row">{{ __('tardis::builder.model') }}</th>
                                     <td>
-                                        {{ class_basename($this->reviewSummary['model'] ?: '') ?: '—' }}
-                                        <span class="badge badge-ghost badge-sm ml-2">{{ $this->reviewSummary['table'] ?: 'no table' }}</span>
+                                        {{ class_basename($this->reviewSummary()['model'] ?: '') ?: '—' }}
+                                        <span class="badge badge-ghost badge-sm ml-2">{{ $this->reviewSummary()['table'] ?: 'no table' }}</span>
                                     </td>
                                 </tr>
                                 <tr>
                                     <th scope="row">{{ __('tardis::builder.names') }}</th>
-                                    <td>{{ $this->reviewSummary['name'] ?: '—' }} <span class="text-base-content/50">/</span> {{ $this->reviewSummary['name_plural'] ?: '—' }}</td>
+                                    <td>{{ $this->reviewSummary()['name'] ?: '—' }} <span class="text-base-content/50">/</span> {{ $this->reviewSummary()['name_plural'] ?: '—' }}</td>
                                 </tr>
                                 <tr>
                                     <th scope="row">{{ __('tardis::builder.icon') }}</th>
                                     <td>
-                                        @if ($this->reviewSummary['icon'])
-                                            <x-tardis::icon :name="$this->reviewSummary['icon']" class="w-4 h-4 inline" />
-                                            <span class="font-mono text-sm ml-1">{{ $this->reviewSummary['icon'] }}</span>
+                                        @if ($this->reviewSummary()['icon'])
+                                            <x-tardis::icon :name="$this->reviewSummary()['icon']" class="w-4 h-4 inline" />
+                                            <span class="font-mono text-sm ml-1">{{ $this->reviewSummary()['icon'] }}</span>
                                         @else
                                             —
                                         @endif
@@ -601,18 +601,18 @@
                                 <tr>
                                     <th scope="row">{{ __('tardis::builder.fields') }}</th>
                                     <td>
-                                        <span class="badge badge-sm">{{ __('tardis::builder.summary_total', ['count' => $this->reviewSummary['total_fields']]) }}</span>
-                                        <span class="badge badge-sm badge-ghost ml-1">{{ __('tardis::builder.summary_browse', ['count' => $this->reviewSummary['browse_fields'] ? count($this->reviewSummary['browse_fields']) : 0]) }}</span>
-                                        <span class="badge badge-sm badge-ghost ml-1">{{ __('tardis::builder.summary_read', ['count' => count($this->reviewSummary['read_fields'])]) }}</span>
-                                        <span class="badge badge-sm badge-ghost ml-1">{{ __('tardis::builder.summary_add', ['count' => $this->reviewSummary['add_fields']]) }}</span>
-                                        <span class="badge badge-sm badge-ghost ml-1">{{ __('tardis::builder.summary_edit', ['count' => $this->reviewSummary['edit_fields']]) }}</span>
+                                        <span class="badge badge-sm">{{ __('tardis::builder.summary_total', ['count' => $this->reviewSummary()['total_fields']]) }}</span>
+                                        <span class="badge badge-sm badge-ghost ml-1">{{ __('tardis::builder.summary_browse', ['count' => $this->reviewSummary()['browse_fields'] ? count($this->reviewSummary()['browse_fields']) : 0]) }}</span>
+                                        <span class="badge badge-sm badge-ghost ml-1">{{ __('tardis::builder.summary_read', ['count' => count($this->reviewSummary()['read_fields'])]) }}</span>
+                                        <span class="badge badge-sm badge-ghost ml-1">{{ __('tardis::builder.summary_add', ['count' => $this->reviewSummary()['add_fields']]) }}</span>
+                                        <span class="badge badge-sm badge-ghost ml-1">{{ __('tardis::builder.summary_edit', ['count' => $this->reviewSummary()['edit_fields']]) }}</span>
                                     </td>
                                 </tr>
-                                @if ($this->reviewSummary['browse_fields'])
+                                @if ($this->reviewSummary()['browse_fields'])
                                     <tr>
                                         <th scope="row">{{ __('tardis::builder.browse_columns') }}</th>
                                         <td class="flex flex-wrap gap-1">
-                                            @foreach ($this->reviewSummary['browse_fields'] as $key)
+                                            @foreach ($this->reviewSummary()['browse_fields'] as $key)
                                                 <span class="badge badge-outline badge-sm">{{ $fieldConfig[$key]['label'] ?? $key }}</span>
                                             @endforeach
                                         </td>
@@ -620,25 +620,25 @@
                                 @endif
                                 <tr>
                                     <th scope="row">{{ __('tardis::builder.relationships') }}</th>
-                                    <td>{{ $this->reviewSummary['relationships'] }}</td>
+                                    <td>{{ $this->reviewSummary()['relationships'] }}</td>
                                 </tr>
                                 <tr>
                                     <th scope="row">{{ __('tardis::builder.search_key_2') }}</th>
-                                    <td class="font-mono">{{ $this->reviewSummary['search_key'] ?: '—' }}</td>
+                                    <td class="font-mono">{{ $this->reviewSummary()['search_key'] ?: '—' }}</td>
                                 </tr>
                                 <tr>
                                     <th scope="row">{{ __('tardis::builder.ordering') }}</th>
                                     <td class="font-mono">
-                                        {{ $this->reviewSummary['order_column'] ?: 'none' }}
-                                        @if ($this->reviewSummary['order_column'])
-                                            <span class="badge badge-ghost badge-sm ml-1">{{ $this->reviewSummary['order_direction'] }}</span>
+                                        {{ $this->reviewSummary()['order_column'] ?: 'none' }}
+                                        @if ($this->reviewSummary()['order_column'])
+                                            <span class="badge badge-ghost badge-sm ml-1">{{ $this->reviewSummary()['order_direction'] }}</span>
                                         @endif
                                     </td>
                                 </tr>
                                 <tr>
                                     <th scope="row">{{ __('tardis::builder.soft_delete') }}</th>
                                     <td>
-                                        @if ($this->reviewSummary['soft_delete'])
+                                        @if ($this->reviewSummary()['soft_delete'])
                                             <span class="badge badge-success badge-sm">{{ __('tardis::builder.enabled') }}</span>
                                         @else
                                             <span class="badge badge-ghost badge-sm">{{ __('tardis::builder.disabled') }}</span>
@@ -712,9 +712,9 @@
                     @php
                         $query = mb_strtolower(trim($iconSearch));
                         $visibleIcons = $query === ''
-                            ? $this->iconOptions
+                            ? $this->iconOptions()
                             : array_values(array_filter(
-                                $this->iconOptions,
+                                $this->iconOptions(),
                                 fn ($name) => str_contains($name, $query)
                             ));
                     @endphp

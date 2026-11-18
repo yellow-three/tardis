@@ -1,5 +1,6 @@
 <?php
 
+use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Locked;
 use Livewire\Attributes\Title;
@@ -66,7 +67,8 @@ new #[Title('tardis::shell.titles.view')] #[Layout('tardis::layouts.admin')] cla
         );
     }
 
-    public function getLayoutFieldsProperty(): array
+    #[Computed]
+    public function layoutFields(): array
     {
         $layout = $this->bread['layout'] ?? [];
         $viewLayout = $layout['view'] ?? $layout['read'] ?? [];
@@ -94,7 +96,8 @@ new #[Title('tardis::shell.titles.view')] #[Layout('tardis::layouts.admin')] cla
         return $this->fields;
     }
 
-    public function getFieldsProperty(): array
+    #[Computed]
+    public function fields(): array
     {
         if (empty($this->bread)) {
             return [];
@@ -109,7 +112,8 @@ new #[Title('tardis::shell.titles.view')] #[Layout('tardis::layouts.admin')] cla
      *
      * @return array<string, Formfield>
      */
-    public function getFormfieldsProperty(): array
+    #[Computed]
+    public function formfields(): array
     {
         return collect(app(FormfieldManager::class)->fields($this->fields))
             ->keyBy(fn (Formfield $field) => $field->name)

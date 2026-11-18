@@ -49,6 +49,7 @@
                         @php($active = (bool) ($filters[$name] ?? false))
                         @php($tone = in_array($filter['color'] ?? '', ['primary', 'secondary', 'accent', 'info', 'success', 'warning', 'error', 'neutral'], true) ? $filter['color'] : 'primary')
                         <button
+                            wire:key="filter-{{ $name }}"
                             type="button"
                             wire:click="toggleFilter('{{ $name }}')"
                             class="badge gap-1 {{ $active ? 'badge-'.$tone : 'badge-outline' }} cursor-pointer"
@@ -86,7 +87,7 @@
                     <div class="flex flex-wrap items-center gap-2 border-b border-base-300 px-4 py-2">
                         <span class="text-sm">{{ __('tardis::bread.selected_count', ['count' => count($selected)]) }}</span>
                         @foreach ($bulkActions as $action)
-                            <button type="button" wire:click="runBulk(@js($action->name()))" {!! $action->getConfirmMessage() ? 'wire:confirm="'.e($action->getConfirmMessage()).'"' : '' !!} class="btn btn-xs {{ $action->tone === 'error' ? 'btn-error btn-outline' : 'btn-ghost' }}">{{ $action->getTitle() }}</button>
+                            <button type="button" wire:key="bulk-{{ $action->name() }}" wire:click="runBulk(@js($action->name()))" {!! $action->getConfirmMessage() ? 'wire:confirm="'.e($action->getConfirmMessage()).'"' : '' !!} class="btn btn-xs {{ $action->tone === 'error' ? 'btn-error btn-outline' : 'btn-ghost' }}">{{ $action->getTitle() }}</button>
                         @endforeach
                     </div>
                 @endif
@@ -130,7 +131,7 @@
                     </thead>
                     <tbody>
                         @foreach ($this->rows as $row)
-                            <tr>
+                            <tr wire:key="row-{{ $row->getKey() }}">
                                 @if ($bulkActions->isNotEmpty())
                                     <td><input type="checkbox" wire:model.live="selected" value="{{ $row->getKey() }}" class="checkbox checkbox-sm" aria-label="{{ __('tardis::bread.select') }}" /></td>
                                 @endif

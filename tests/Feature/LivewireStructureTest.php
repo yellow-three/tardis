@@ -98,3 +98,25 @@ describe('ui components page', function () {
         $this->get('/admin/dashboard')->assertOk()->assertDontSee(route('tardis.ui-components'), false);
     });
 });
+
+test('components use #[Computed] instead of legacy getXProperty getters', function () {
+    $legacy = collect(File::allFiles(livewireRoot()))
+        ->filter(fn ($file) => preg_match('/function get[A-Z]\w*Property\(/', $file->getContents()) === 1)
+        ->map(fn ($file) => $file->getRelativePathname())
+        ->values()
+        ->all();
+
+    expect($legacy)->toBe([]);
+});
+
+test('redirects between panel screens keep wire:navigate', function () {
+    $full = collect(File::allFiles(livewireRoot()))
+        ->reject(fn ($file) => $file->getFilename() === 'login.blade.php')
+        ->flatMap(fn ($file) => collect(explode("\n", $file->getContents()))
+            ->filter(fn (string $line) => str_contains($line, '$this->redirect(') && ! str_contains($line, 'navigate: true'))
+            ->map(fn (string $line) => $file->getRelativePathname().': '.trim($line)))
+        ->values()
+        ->all();
+
+    expect($full)->toBe([]);
+});

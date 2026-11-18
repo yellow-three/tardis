@@ -304,7 +304,7 @@ new #[Title('tardis::shell.titles.bread_builder')] #[Layout('tardis::layouts.adm
         $repo->save($bread);
 
         session()->flash('message', __('tardis::builder.saved'));
-        $this->redirect(route('tardis.bread.manage'));
+        $this->redirect(route('tardis.bread.manage'), navigate: true);
     }
 
     /**
@@ -445,7 +445,7 @@ new #[Title('tardis::shell.titles.bread_builder')] #[Layout('tardis::layouts.adm
     /**
      * @return 'empty'|'invalid'|'reserved'|'taken'|'current'|'available'
      */
-    public function getSlugStatusProperty(): string
+    public function slugStatus(): string
     {
         if (trim($this->slug) === '') {
             return 'empty';
@@ -479,7 +479,7 @@ new #[Title('tardis::shell.titles.bread_builder')] #[Layout('tardis::layouts.adm
      *
      * @return list<string>
      */
-    public function getOrderedFieldKeysProperty(): array
+    public function orderedFieldKeys(): array
     {
         $known = array_keys($this->fieldConfig);
         $ordered = array_values(array_filter(
@@ -493,16 +493,16 @@ new #[Title('tardis::shell.titles.bread_builder')] #[Layout('tardis::layouts.adm
     /**
      * @return list<string>
      */
-    public function getVisibleFieldKeysProperty(): array
+    public function visibleFieldKeys(): array
     {
         $query = mb_strtolower(trim($this->fieldSearch));
 
         if ($query === '') {
-            return $this->orderedFieldKeys;
+            return $this->orderedFieldKeys();
         }
 
         return array_values(array_filter(
-            $this->orderedFieldKeys,
+            $this->orderedFieldKeys(),
             function ($key) use ($query) {
                 $field = $this->fieldConfig[$key] ?? [];
 
@@ -515,7 +515,7 @@ new #[Title('tardis::shell.titles.bread_builder')] #[Layout('tardis::layouts.adm
 
     public function moveField(string $key, int $delta): void
     {
-        $keys = $this->orderedFieldKeys;
+        $keys = $this->orderedFieldKeys();
         $index = array_search($key, $keys, true);
 
         if ($index === false) {
@@ -681,7 +681,7 @@ new #[Title('tardis::shell.titles.bread_builder')] #[Layout('tardis::layouts.adm
     /**
      * @return list<string>
      */
-    public function getIconOptionsProperty(): array
+    public function iconOptions(): array
     {
         return [
             'table-cells', 'document-text', 'database', 'folder', 'photo', 'puzzle-piece',
@@ -704,13 +704,13 @@ new #[Title('tardis::shell.titles.bread_builder')] #[Layout('tardis::layouts.adm
      *
      * @return list<array{level: string, message: string}>
      */
-    public function getReviewWarningsProperty(): array
+    public function reviewWarnings(): array
     {
         $warnings = [];
 
         if ($this->slug === '') {
             $warnings[] = ['level' => 'error', 'message' => __('tardis::builder.warnings.slug_empty')];
-        } elseif ($this->getSlugStatusProperty() === 'taken') {
+        } elseif ($this->slugStatus() === 'taken') {
             $warnings[] = ['level' => 'error', 'message' => __('tardis::builder.warnings.slug_taken', ['slug' => $this->slug])];
         }
 
@@ -723,7 +723,7 @@ new #[Title('tardis::shell.titles.bread_builder')] #[Layout('tardis::layouts.adm
 
         if ($this->fieldConfig !== []) {
             $visibleBrowse = array_filter(
-                $this->orderedFieldKeys,
+                $this->orderedFieldKeys(),
                 fn ($key) => $this->browseColumns[$key]['visible'] ?? ($this->fieldConfig[$key]['browse'] ?? true)
             );
 
@@ -776,10 +776,10 @@ new #[Title('tardis::shell.titles.bread_builder')] #[Layout('tardis::layouts.adm
     /**
      * @return array<string, mixed>
      */
-    public function getReviewSummaryProperty(): array
+    public function reviewSummary(): array
     {
         $browse = array_filter(
-            $this->orderedFieldKeys,
+            $this->orderedFieldKeys(),
             fn ($key) => $this->browseColumns[$key]['visible'] ?? ($this->fieldConfig[$key]['browse'] ?? true)
         );
 

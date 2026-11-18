@@ -183,7 +183,7 @@ new #[Title('tardis::roles.roles')] #[Layout('tardis::layouts.admin')] class ext
 
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         @forelse ($roles as $role)
-            <div class="card bg-base-100 border border-base-300">
+            <div wire:key="role-{{ $role['id'] }}" class="card bg-base-100 border border-base-300">
                 <div class="card-body">
                     <h3 class="card-title">{{ $role['name'] }}</h3>
                     <p class="text-sm text-base-content/60">{{ $role['slug'] }}</p>
@@ -251,7 +251,7 @@ new #[Title('tardis::roles.roles')] #[Layout('tardis::layouts.admin')] class ext
                                     </div>
                                 @endif
                                 @foreach ($permissions as $perm)
-                                    <label class="flex items-center gap-3 py-1.5 border-b border-base-200 {{ $resource !== '' ? 'pl-4' : '' }}">
+                                    <label wire:key="perm-{{ $perm['id'] }}" class="flex items-center gap-3 py-1.5 border-b border-base-200 {{ $resource !== '' ? 'pl-4' : '' }}">
                                         <input type="checkbox" wire:model="editRolePermissions" value="{{ $perm['id'] }}" class="checkbox checkbox-sm checkbox-primary" />
                                         <div>
                                             <span class="font-medium">{{ $perm['name'] }}</span>

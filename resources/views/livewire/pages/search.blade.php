@@ -151,12 +151,12 @@ new #[Title('tardis::search.search')] #[Layout('tardis::layouts.admin')] class e
         @else
             <div class="space-y-4">
                 @foreach ($results as $result)
-                    <div class="card bg-base-100 border border-base-300">
+                    <div wire:key="result-{{ $loop->index }}-{{ $result['name'] }}" class="card bg-base-100 border border-base-300">
                         <div class="card-body">
                             <h3 class="card-title text-lg">{{ $result['name'] }}</h3>
                             <div class="divide-y divide-base-200">
                                 @foreach ($result['items'] as $item)
-                                    <a href="{{ $item['url'] }}" class="flex items-center gap-3 py-3 hover:bg-base-200 px-2 rounded transition-colors">
+                                    <a wire:key="result-item-{{ $item['url'] }}" href="{{ $item['url'] }}" class="flex items-center gap-3 py-3 hover:bg-base-200 px-2 rounded transition-colors">
                                         <x-tardis::icon name="database" class="w-4 h-4 text-primary" />
                                         <span class="font-medium">{{ $item['title'] }}</span>
                                         <span class="text-xs text-base-content/40 ml-auto">#{{ $item['id'] }}</span>

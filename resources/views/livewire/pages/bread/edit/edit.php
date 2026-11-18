@@ -1,5 +1,6 @@
 <?php
 
+use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Locked;
 use Livewire\Attributes\Title;
@@ -125,7 +126,8 @@ new #[Title('tardis::shell.titles.edit')] #[Layout('tardis::layouts.admin')] cla
      *
      * @return array<int, string>
      */
-    public function getTranslatableLocalesProperty(): array
+    #[Computed]
+    public function translatableLocales(): array
     {
         $locales = [];
 
@@ -199,12 +201,14 @@ new #[Title('tardis::shell.titles.edit')] #[Layout('tardis::layouts.admin')] cla
      *
      * @return array<int, Formfield>
      */
-    public function getFormfieldsProperty(): array
+    #[Computed]
+    public function formfields(): array
     {
         return app(FormfieldManager::class)->fields($this->fields);
     }
 
-    public function getLayoutFieldsProperty(): array
+    #[Computed]
+    public function layoutFields(): array
     {
         $layout = $this->bread['layout'] ?? [];
         $viewLayout = $layout['view'] ?? $layout['read'] ?? [];
@@ -233,7 +237,8 @@ new #[Title('tardis::shell.titles.edit')] #[Layout('tardis::layouts.admin')] cla
         return $this->fields;
     }
 
-    public function getFieldsProperty(): array
+    #[Computed]
+    public function fields(): array
     {
         if (empty($this->bread)) {
             return [];
@@ -268,6 +273,6 @@ new #[Title('tardis::shell.titles.edit')] #[Layout('tardis::layouts.admin')] cla
         }
 
         session()->flash('message', __('tardis::bread.item_updated'));
-        $this->redirect(url(trim(config('tardis.admin.prefix', 'admin'), '/').'/'.$this->slug));
+        $this->redirect(url(trim(config('tardis.admin.prefix', 'admin'), '/').'/'.$this->slug), navigate: true);
     }
 };

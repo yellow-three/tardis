@@ -77,7 +77,7 @@
 
                 <div class="mt-4 space-y-2">
                     @forelse ($this->roles as $role)
-                        <label class="flex cursor-pointer items-center gap-3">
+                        <label wire:key="role-{{ $role->id }}" class="flex cursor-pointer items-center gap-3">
                             <input type="checkbox" class="checkbox checkbox-sm" wire:model="editRoleIds" value="{{ $role->id }}" />
                             <span>{{ $role->name }}</span>
                             <span class="text-xs text-base-content/50">{{ $role->slug }}</span>

@@ -53,6 +53,7 @@
                             @foreach ($files as $file)
                                 @if ($file['type'] === 'directory')
                                     <button
+                                        wire:key="dir-{{ $file['relative_path'] }}"
                                         type="button"
                                         wire:click="navigateTo('{{ $file['relative_path'] }}')"
                                         class="aspect-square rounded-xl overflow-hidden border-2 border-transparent hover:border-base-300 bg-base-200 transition-all">
@@ -63,6 +64,7 @@
                                     </button>
                                 @else
                                     <button
+                                        wire:key="file-{{ $file['path'] }}"
                                         type="button"
                                         wire:click="toggleSelect('{{ $file['path'] }}')"
                                         class="group relative aspect-square rounded-xl overflow-hidden border-2 transition-all {{ in_array($file['path'], $selected, true) ? 'border-primary ring-2 ring-primary/30' : 'border-transparent hover:border-base-300' }} bg-base-100">

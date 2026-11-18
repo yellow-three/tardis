@@ -154,6 +154,8 @@ Açık/kapalı durumu `storage/tardis/plugins.json` içinde tutulur (cache deği
 
 Medya ekranı yüklemeleri `tardis-media.allowed_mimes` uzantılarıyla (`extensions:` + `mimes:`) ve `max_file_size` ile sınırlar; liste boşsa kural uygulanmaz. Disk genelde `public` olduğundan `.php`/`.html` yüklemek web kökünden sunulan/çalıştırılan dosya demektir. Varsayılan listede `svg` var ve script taşıyabilir.
 
+Dosya önce Livewire'ın geçici yüklemesinden geçer ve onun sınırı önce uygulanır (varsayılan 12 MB, `throttle:60,1`); `max_file_size` bunu büyütmez, host `livewire.temporary_file_upload.rules`'ı da yükseltmelidir (README "Media uploads").
+
 **Sonuç**: Medya yükleyen yeni bir yüzey eklerken aynı listeyi kullan. `MediaManager::upload()` kendisi doğrulama yapmaz — çağıran doğrulamalıdır.
 
 ---

@@ -1,5 +1,6 @@
 <?php
 
+use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
@@ -27,7 +28,8 @@ new #[Title('tardis::system.title')] #[Layout('tardis::layouts.admin')] class ex
      *
      * @return list<CheckResult>
      */
-    public function getChecksProperty(): array
+    #[Computed]
+    public function checks(): array
     {
         return DoctorReport::run()->checks;
     }
@@ -51,7 +53,8 @@ new #[Title('tardis::system.title')] #[Layout('tardis::layouts.admin')] class ex
         return $this->countWhere(static fn (CheckResult $check) => $check->isFailure());
     }
 
-    public function getSummaryColorProperty(): string
+    #[Computed]
+    public function summaryColor(): string
     {
         return match (true) {
             $this->failedCount() > 0 => 'error',
@@ -60,7 +63,8 @@ new #[Title('tardis::system.title')] #[Layout('tardis::layouts.admin')] class ex
         };
     }
 
-    public function getSummaryTextProperty(): string
+    #[Computed]
+    public function summaryText(): string
     {
         return match (true) {
             $this->failedCount() > 0 => __('tardis::system.checks_failed', ['count' => $this->failedCount()]),

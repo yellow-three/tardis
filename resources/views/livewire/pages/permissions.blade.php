@@ -101,7 +101,7 @@ new #[Title('tardis::permissions.permissions')] #[Layout('tardis::layouts.admin'
                 </thead>
                 <tbody>
                     @forelse ($permissions as $permission)
-                        <tr>
+                        <tr wire:key="permission-{{ $permission['id'] ?? $permission['slug'] }}">
                             <td class="font-semibold">{{ $permission['name'] }}</td>
                             <td><code class="badge badge-ghost badge-sm">{{ $permission['slug'] }}</code></td>
                             <td>{{ $permission['group'] ?? '-' }}</td>

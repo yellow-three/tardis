@@ -2,6 +2,7 @@
 
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
+use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
@@ -46,7 +47,8 @@ new #[Title('tardis::users.users')] #[Layout('tardis::layouts.admin')] class ext
      * One page of users with their Tardis role names. Paged rather than cut
      * off at a fixed count, so every user stays reachable.
      */
-    public function getUsersProperty(): LengthAwarePaginator
+    #[Computed]
+    public function users(): LengthAwarePaginator
     {
         $model = $this->userModel();
         $query = $model::query()->orderBy((new $model)->getKeyName());
@@ -76,7 +78,8 @@ new #[Title('tardis::users.users')] #[Layout('tardis::layouts.admin')] class ext
         ]);
     }
 
-    public function getRolesProperty()
+    #[Computed]
+    public function roles()
     {
         return ModelResolver::role()::query()->orderBy('name')->get(['id', 'name', 'slug'])->all();
     }

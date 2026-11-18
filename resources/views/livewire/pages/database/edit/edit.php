@@ -335,7 +335,7 @@ new #[Title('tardis::shell.titles.edit_table')] #[Layout('tardis::layouts.admin'
 
             session()->flash('message', __('tardis::database.table_dropped'));
 
-            $this->redirect(route('tardis.database.index'));
+            $this->redirect(route('tardis.database.index'), navigate: true);
         } catch (Throwable $e) {
             $this->error = __('tardis::database.could_not_drop_table', ['error' => $e->getMessage()]);
             $this->confirmDropTable = false;

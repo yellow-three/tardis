@@ -242,7 +242,10 @@ test('moveField reorders the field table without dropping fields', function () {
 
     $expected = ['email', 'name', 'avatar', 'tags', 'body'];
 
-    expect($component->get('fieldOrder'))->toBe($expected);
+    expect($component->get('fieldOrder'))->toBe($expected)
+        // The same response already shows the new order: nothing read before
+        // the move may be served from a per-request cache.
+        ->and(renderedFieldKeys($component->html()))->toBe($expected);
 
     // A fresh component is what the browser receives on the next request, so
     // this asserts the order the table is genuinely rendered in.
@@ -260,7 +263,7 @@ test('orderedFieldKeys appends fields missing from a stale field order', functio
         ->call('detectFields')
         ->set('fieldOrder', ['body', 'name']);
 
-    expect($component->instance()->orderedFieldKeys)
+    expect($component->instance()->orderedFieldKeys())
         ->toBe(['body', 'name', 'email', 'avatar', 'tags']);
 });
 
@@ -270,16 +273,16 @@ test('fieldSearch filters the field table by key, label and type', function () {
         ->call('detectFields');
 
     $component->set('fieldSearch', 'email');
-    expect($component->instance()->visibleFieldKeys)->toBe(['email']);
+    expect($component->instance()->visibleFieldKeys())->toBe(['email']);
 
     $component->set('fieldSearch', 'file');
-    expect($component->instance()->visibleFieldKeys)->toBe(['avatar']);
+    expect($component->instance()->visibleFieldKeys())->toBe(['avatar']);
 
     $component->set('fieldSearch', 'no-such-field');
-    expect($component->instance()->visibleFieldKeys)->toBe([]);
+    expect($component->instance()->visibleFieldKeys())->toBe([]);
 
     $component->set('fieldSearch', '');
-    expect($component->instance()->visibleFieldKeys)->toHaveCount(5);
+    expect($component->instance()->visibleFieldKeys())->toHaveCount(5);
 });
 
 test('toggleAllFields flips one flag across every field and ignores unknown flags', function () {
@@ -328,7 +331,7 @@ test('selectIcon sets the icon and closes the picker', function () {
 test('review step warns about an incomplete definition', function () {
     $component = Livewire::test('tardis::pages.bread-builder');
 
-    expect(implode("\n", array_column($component->instance()->reviewWarnings, 'message')))
+    expect(implode("\n", array_column($component->instance()->reviewWarnings(), 'message')))
         ->toContain('Slug is empty');
 
     $component->set('model', BreadBuilderTestModel::class)
@@ -336,7 +339,7 @@ test('review step warns about an incomplete definition', function () {
         ->set('slug', 'bread-builder-test')
         ->set('readLayout', []);
 
-    expect(implode("\n", array_column($component->instance()->reviewWarnings, 'message')))
+    expect(implode("\n", array_column($component->instance()->reviewWarnings(), 'message')))
         ->toContain('Read layout is empty');
 });
 
@@ -346,7 +349,7 @@ test('review step raises no warnings for a complete definition', function () {
         ->call('detectFields')
         ->set('slug', 'bread-builder-test');
 
-    expect($component->instance()->reviewWarnings)->toBe([]);
+    expect($component->instance()->reviewWarnings())->toBe([]);
 });
 
 test('review summary counts the fields that reach the generated views', function () {
@@ -356,7 +359,7 @@ test('review summary counts the fields that reach the generated views', function
         ->set('slug', 'bread-builder-test')
         ->set('readLayout', ['name', 'email']);
 
-    $summary = $component->instance()->reviewSummary;
+    $summary = $component->instance()->reviewSummary();
 
     expect($summary['total_fields'])->toBe(5)
         ->and($summary['read_fields'])->toBe(['name', 'email'])
@@ -391,13 +394,13 @@ test('slug status distinguishes empty, invalid, available and taken slugs', func
     app()->instance(JsonBreadSource::class, $source);
 
     $component = Livewire::test('tardis::pages.bread-builder');
-    expect($component->instance()->slugStatus)->toBe('empty');
+    expect($component->instance()->slugStatus())->toBe('empty');
 
     $component->set('slug', 'Not A Slug');
-    expect($component->instance()->slugStatus)->toBe('invalid');
+    expect($component->instance()->slugStatus())->toBe('invalid');
 
     $component->set('slug', 'brand-new-slug');
-    expect($component->instance()->slugStatus)->toBe('available');
+    expect($component->instance()->slugStatus())->toBe('available');
 
     $source->save([
         'slug' => 'brand-new-slug',
@@ -411,7 +414,7 @@ test('slug status distinguishes empty, invalid, available and taken slugs', func
     ]);
 
     $component->set('slug', 'brand-new-slug');
-    expect($component->instance()->slugStatus)->toBe('taken');
+    expect($component->instance()->slugStatus())->toBe('taken');
 });
 
 test('save coerces a field type that is not registered', function () {

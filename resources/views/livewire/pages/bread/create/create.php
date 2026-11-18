@@ -1,5 +1,6 @@
 <?php
 
+use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Locked;
 use Livewire\Attributes\Title;
@@ -118,7 +119,8 @@ new #[Title('tardis::shell.titles.create')] #[Layout('tardis::layouts.admin')] c
      *
      * @return array<int, string>
      */
-    public function getTranslatableLocalesProperty(): array
+    #[Computed]
+    public function translatableLocales(): array
     {
         $locales = [];
 
@@ -192,12 +194,14 @@ new #[Title('tardis::shell.titles.create')] #[Layout('tardis::layouts.admin')] c
      *
      * @return array<int, Formfield>
      */
-    public function getFormfieldsProperty(): array
+    #[Computed]
+    public function formfields(): array
     {
         return app(FormfieldManager::class)->fields($this->fields);
     }
 
-    public function getFieldsProperty(): array
+    #[Computed]
+    public function fields(): array
     {
         if (empty($this->bread)) {
             return [];
@@ -234,6 +238,6 @@ new #[Title('tardis::shell.titles.create')] #[Layout('tardis::layouts.admin')] c
         }
 
         session()->flash('message', __('tardis::bread.item_created'));
-        $this->redirect(url(trim(config('tardis.admin.prefix', 'admin'), '/').'/'.$this->slug));
+        $this->redirect(url(trim(config('tardis.admin.prefix', 'admin'), '/').'/'.$this->slug), navigate: true);
     }
 };

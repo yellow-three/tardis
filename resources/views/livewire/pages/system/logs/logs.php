@@ -1,5 +1,6 @@
 <?php
 
+use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
@@ -94,17 +95,20 @@ new #[Title('tardis::system.log_viewer')] #[Layout('tardis::layouts.admin')] cla
         return max(1, min($this->tail, 5000));
     }
 
-    public function getHasFilesProperty(): bool
+    #[Computed]
+    public function hasFiles(): bool
     {
         return $this->available !== [];
     }
 
-    public function getIsEmptyProperty(): bool
+    #[Computed]
+    public function isEmpty(): bool
     {
         return $this->lines === [];
     }
 
-    public function getIsTruncatedProperty(): bool
+    #[Computed]
+    public function isTruncated(): bool
     {
         return count($this->lines) >= $this->tailLines();
     }
