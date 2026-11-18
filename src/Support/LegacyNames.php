@@ -71,6 +71,35 @@ final class LegacyNames
         'Tardis\\Tardis' => TardisManager::class,
     ];
 
+    /**
+     * Route names renamed in 0.2 that a stored menu may still use. The names
+     * whose meaning moved (tardis.bread.create and tardis.bread.edit were the
+     * builder, now they are record screens) cannot be mapped and are left out.
+     */
+    public const ROUTES = [
+        'tardis.media' => 'tardis.media.index',
+        'tardis.permissions' => 'tardis.permissions.index',
+        'tardis.roles' => 'tardis.roles.index',
+        'tardis.bread.manage' => 'tardis.builder.index',
+        'tardis.bread.read' => 'tardis.bread.show',
+        'tardis.bread.edit.item' => 'tardis.bread.edit',
+    ];
+
+    public static function route(string $name): string
+    {
+        return self::ROUTES[$name] ?? $name;
+    }
+
+    /**
+     * A menu overlay id is a route name with optional ":params".
+     */
+    public static function menuId(string $id): string
+    {
+        [$route, $params] = array_pad(explode(':', $id, 2), 2, null);
+
+        return self::route($route).($params === null ? '' : ':'.$params);
+    }
+
     public static function autoload(string $class): void
     {
         $target = self::MAP[$class] ?? null;

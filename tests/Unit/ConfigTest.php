@@ -54,7 +54,7 @@ test('keys nothing reads were removed so changing them is never a silent no-op',
     // are per definition.
     expect(config('tardis.admin.middleware'))->toBeNull()
         ->and(config('tardis.plugins'))->toBeNull()
-        ->and(config('tardis.media'))->toBeNull()
+        ->and(config('tardis.media.index'))->toBeNull()
         ->and(config('tardis.bread.soft_deletes'))->toBeNull()
         ->and(config('tardis.bread.timestamps'))->toBeNull();
 });

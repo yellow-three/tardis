@@ -70,7 +70,7 @@ class MenuManager
                 ->section(__('tardis::menu.sections.overview'))
                 ->order(0),
             (new MenuItem(__('tardis::menu.media'), 'heroicon-o-photo'))
-                ->route('tardis.media')
+                ->route('tardis.media.index')
                 ->permission(Abilities::MEDIA_BROWSE)
                 ->section(__('tardis::menu.sections.overview'))
                 ->activeMode('prefix')
@@ -128,21 +128,21 @@ class MenuManager
                 ->section(__('tardis::menu.sections.management'))
                 ->order(49),
             (new MenuItem(__('tardis::menu.bread'), 'heroicon-o-table-cells'))
-                ->route('tardis.bread.manage')
+                ->route('tardis.builder.index')
                 ->permission(Abilities::BREAD)
                 ->section(__('tardis::menu.sections.management'))
                 // The builder screens share the tardis.bread.* prefix with the
                 // BREAD resource screens, so they are listed explicitly here
                 // instead of relying on a prefix match.
                 ->activeOnRoutes([
-                    'tardis.bread.manage',
-                    'tardis.bread.create',
-                    'tardis.bread.edit',
+                    'tardis.builder.index',
+                    'tardis.builder.create',
+                    'tardis.builder.edit',
                 ])
                 ->order(50),
             MenuItem::makeDivider(),
             (new MenuItem(__('tardis::menu.permissions'), 'heroicon-o-lock-closed'))
-                ->route('tardis.permissions')
+                ->route('tardis.permissions.index')
                 ->permission(Abilities::ROLES)
                 ->section(__('tardis::menu.sections.access'))
                 ->order(60),
@@ -152,7 +152,7 @@ class MenuManager
                 ->section(__('tardis::menu.sections.access'))
                 ->order(55),
             (new MenuItem(__('tardis::menu.roles'), 'heroicon-o-user-group'))
-                ->route('tardis.roles')
+                ->route('tardis.roles.index')
                 ->permission(Abilities::ROLES)
                 ->section(__('tardis::menu.sections.access'))
                 ->order(70),
@@ -271,9 +271,9 @@ class MenuManager
                 ->section(__('tardis::menu.sections.bread'))
                 ->activeOnRoutes([
                     'tardis.bread.index',
-                    'tardis.bread.add',
-                    'tardis.bread.read',
-                    'tardis.bread.edit.item',
+                    'tardis.bread.create',
+                    'tardis.bread.show',
+                    'tardis.bread.edit',
                 ])
                 ->order(100))
             ->values()

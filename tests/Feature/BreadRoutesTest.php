@@ -43,9 +43,9 @@ test('a BREAD definition gets its own browse, add, read and edit routes', functi
     loadAdminRoutes();
 
     expect(routedMatch('/admin/posts')?->getName())->toBe('tardis.bread.index')
-        ->and(routedMatch('/admin/posts/create')?->getName())->toBe('tardis.bread.add')
-        ->and(routedMatch('/admin/posts/7')?->getName())->toBe('tardis.bread.read')
-        ->and(routedMatch('/admin/posts/7/edit')?->getName())->toBe('tardis.bread.edit.item');
+        ->and(routedMatch('/admin/posts/create')?->getName())->toBe('tardis.bread.create')
+        ->and(routedMatch('/admin/posts/7')?->getName())->toBe('tardis.bread.show')
+        ->and(routedMatch('/admin/posts/7/edit')?->getName())->toBe('tardis.bread.edit');
 });
 
 test('an unknown slug is not swallowed by a wildcard', function () {
@@ -78,8 +78,8 @@ test('create is never captured by the read route', function () {
     storeRoutedBread($this->source, 'posts', ['components' => ['read' => 'acme::pages.post-read']]);
     loadAdminRoutes();
 
-    expect(routedMatch('/admin/posts/create')?->getName())->toBe('tardis.bread.add')
-        ->and(routedMatch('/admin/posts/12')?->getName())->toBe('tardis.bread.read.posts');
+    expect(routedMatch('/admin/posts/create')?->getName())->toBe('tardis.bread.create')
+        ->and(routedMatch('/admin/posts/12')?->getName())->toBe('tardis.bread.show.posts');
 });
 
 test('a definition can replace the component behind one action', function () {
@@ -88,9 +88,9 @@ test('a definition can replace the component behind one action', function () {
     loadAdminRoutes();
 
     expect(routedMatch('/admin/posts')?->getName())->toBe('tardis.bread.index.posts')
-        ->and(routedMatch('/admin/posts/4/edit')?->getName())->toBe('tardis.bread.edit.item.posts')
+        ->and(routedMatch('/admin/posts/4/edit')?->getName())->toBe('tardis.bread.edit.posts')
         // Other actions and other BREADs keep the stock pages.
-        ->and(routedMatch('/admin/posts/create')?->getName())->toBe('tardis.bread.add')
+        ->and(routedMatch('/admin/posts/create')?->getName())->toBe('tardis.bread.create')
         ->and(routedMatch('/admin/pages')?->getName())->toBe('tardis.bread.index')
         // URL generation by the stock name still produces the same address.
         ->and(route('tardis.bread.index', ['slug' => 'posts']))->toEndWith('/admin/posts');

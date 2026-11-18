@@ -76,8 +76,8 @@ new #[Title('tardis::search.search')] #[Layout('tardis::layouts.admin')] class e
                 // Link to the page the user may open: edit, else read, else the
                 // listing filtered to the record (browse is all they hold).
                 $route = match (true) {
-                    $authorization->allows('edit', (string) $slug) => 'tardis.bread.edit.item',
-                    $authorization->allows('read', (string) $slug) => 'tardis.bread.read',
+                    $authorization->allows('edit', (string) $slug) => 'tardis.bread.edit',
+                    $authorization->allows('read', (string) $slug) => 'tardis.bread.show',
                     default => null,
                 };
 

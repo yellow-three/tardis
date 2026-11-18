@@ -2,7 +2,10 @@
 
 declare(strict_types=1);
 
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\File;
+use Tardis\Menu\MenuItem;
+use Tardis\Menu\MenuOverlay;
 use Tardis\Plugins\PluginManager;
 use Tardis\Support\LegacyNames;
 use Tardis\TardisManager;
@@ -36,9 +39,24 @@ test('no concrete class shares its short name with a contract', function () {
 });
 
 test('the pre-0.2 command names still run the renamed commands', function () {
-    $commands = Illuminate\Support\Facades\Artisan::all();
+    $commands = Artisan::all();
 
     foreach (['tardis:make-bread' => 'tardis:make:bread', 'tardis:make-model' => 'tardis:make:model', 'tardis:make-plugin' => 'tardis:make:plugin', 'tardis:bread:migrate' => 'tardis:bread:import-legacy'] as $old => $new) {
         expect($commands[$old] ?? null)->toBe($commands[$new]);
+    }
+});
+
+test('a menu item or overlay entry saved under an old route name keeps working', function () {
+    expect((new MenuItem('Media'))->route('tardis.media')->id())->toBe('tardis.media.index')
+        ->and(LegacyNames::menuId('tardis.bread.read:posts'))->toBe('tardis.bread.show:posts')
+        ->and(LegacyNames::menuId('custom-link'))->toBe('custom-link');
+
+    $path = sys_get_temp_dir().'/tardis-menus-'.uniqid().'.json';
+    file_put_contents($path, json_encode(['items' => ['tardis.media' => ['hidden' => true]], 'custom' => []]));
+
+    try {
+        expect((new MenuOverlay($path))->items())->toBe(['tardis.media.index' => ['hidden' => true]]);
+    } finally {
+        @unlink($path);
     }
 });

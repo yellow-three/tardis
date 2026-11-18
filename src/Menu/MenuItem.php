@@ -8,6 +8,7 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 use Tardis\Contracts\Plugins\AuthorizationPlugin;
 use Tardis\Plugins\PluginManager;
+use Tardis\Support\LegacyNames;
 use Tardis\Support\Translation;
 
 class MenuItem
@@ -144,7 +145,7 @@ class MenuItem
 
     public function route(string $route, array $params = []): self
     {
-        $this->routeName = $route;
+        $this->routeName = LegacyNames::route($route);
         $this->routeParams = $params;
 
         return $this;

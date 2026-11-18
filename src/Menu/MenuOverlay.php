@@ -6,6 +6,7 @@ namespace Tardis\Menu;
 
 use Illuminate\Support\Str;
 use InvalidArgumentException;
+use Tardis\Support\LegacyNames;
 
 /**
  * What an administrator changed about the sidebar, kept in
@@ -190,8 +191,15 @@ class MenuOverlay
         $data = is_file($this->path) ? json_decode((string) file_get_contents($this->path), true) : null;
         $data = is_array($data) ? $data : [];
 
+        $items = [];
+
+        // Entries saved before 0.2 are keyed by the old route names.
+        foreach (is_array($data['items'] ?? null) ? $data['items'] : [] as $id => $entry) {
+            $items[LegacyNames::menuId((string) $id)] = $entry;
+        }
+
         return [
-            'items' => is_array($data['items'] ?? null) ? $data['items'] : [],
+            'items' => $items,
             'custom' => is_array($data['custom'] ?? null) ? array_values($data['custom']) : [],
         ];
     }

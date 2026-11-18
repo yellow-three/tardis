@@ -84,7 +84,7 @@ test('delete removes the disk file and the row then returns to the browser', fun
 
     Livewire::test('tardis::pages.media-edit', ['id' => $media->id])
         ->call('delete')
-        ->assertRedirect(route('tardis.media'));
+        ->assertRedirect(route('tardis.media.index'));
 
     // The row stores the full storage path, so the file must go with it —
     // a leftover orphan is exactly the bug this screen used to have.
@@ -97,7 +97,7 @@ test('delete tolerates a row whose file is already gone', function () {
 
     Livewire::test('tardis::pages.media-edit', ['id' => $media->id])
         ->call('delete')
-        ->assertRedirect(route('tardis.media'));
+        ->assertRedirect(route('tardis.media.index'));
 
     expect(Media::query()->whereKey($media->id)->exists())->toBeFalse();
 });

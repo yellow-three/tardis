@@ -3,7 +3,7 @@
         <h1 class="text-xl font-semibold text-base-content">
             {{ __('tardis::media.edit_media') }}
         </h1>
-        <a href="{{ route('tardis.media') }}" class="btn btn-ghost btn-sm">
+        <a href="{{ route('tardis.media.index') }}" class="btn btn-ghost btn-sm">
             {{ __('tardis::common.back') }}
         </a>
     </div>

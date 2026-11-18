@@ -229,10 +229,10 @@ test('the sidebar hides screens the user may not open', function () {
 
     expect($html)->toContain(route('tardis.settings.index'))
         ->and($html)->not->toContain('href="'.route('tardis.plugins.index').'"')
-        ->and($html)->not->toContain('href="'.route('tardis.roles').'"')
-        ->and($html)->not->toContain('href="'.route('tardis.media').'"')
+        ->and($html)->not->toContain('href="'.route('tardis.roles.index').'"')
+        ->and($html)->not->toContain('href="'.route('tardis.media.index').'"')
         ->and($html)->not->toContain('href="'.route('tardis.database.index').'"')
-        ->and($html)->not->toContain('href="'.route('tardis.bread.manage').'"');
+        ->and($html)->not->toContain('href="'.route('tardis.builder.index').'"');
 });
 
 test('the sidebar lists a BREAD resource only to users who may browse it', function () {
@@ -311,7 +311,7 @@ test('deleting from the edit screen needs the delete ability on top of renaming'
     gateAllows([Abilities::MEDIA_RENAME, Abilities::MEDIA_DELETE]);
 
     Livewire::test('tardis::pages.media-edit', ['id' => $media->id])
-        ->call('delete')->assertRedirect(route('tardis.media'));
+        ->call('delete')->assertRedirect(route('tardis.media.index'));
 
     Storage::disk('public')->assertMissing('media/photo.jpg');
     expect(Media::query()->whereKey($media->id)->exists())->toBeFalse();

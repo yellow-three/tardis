@@ -70,6 +70,6 @@ new #[Title('tardis::media.edit_media')] #[Layout('tardis::layouts.admin')] clas
 
         $this->media->delete();
         session()->flash('success', __('tardis::media.deleted_successfully'));
-        $this->redirectRoute('tardis.media');
+        $this->redirectRoute('tardis.media.index');
     }
 };

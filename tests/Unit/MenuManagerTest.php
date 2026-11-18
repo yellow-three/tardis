@@ -171,7 +171,7 @@ test('the BREAD manager entry is not highlighted while a BREAD resource is open'
 });
 
 test('menu items without route parameters keep matching on the route name alone', function () {
-    $item = (new MenuItem('Media'))->route('tardis.media')->activeMode('prefix');
+    $item = (new MenuItem('Media'))->route('tardis.media.index')->activeMode('prefix');
 
     matchBreadRoute('/admin/bread/create');
     expect($item->isActive())->toBeFalse();

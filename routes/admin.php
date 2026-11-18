@@ -38,9 +38,9 @@ PanelRoutes::panel(function () {
     Route::livewire('/themes', 'tardis::pages.theme-editor')->name('themes.index');
     Route::livewire('/menus', 'tardis::pages.menu-builder')->name('menus.index');
     Route::livewire('/plugins', 'tardis::pages.plugins')->name('plugins.index');
-    Route::livewire('/media', 'tardis::pages.media-browser')->name('media');
+    Route::livewire('/media', 'tardis::pages.media-browser')->name('media.index');
     // The media screen used to answer here too; old links land on it.
-    Route::get('/media/browse', fn () => redirect()->route('tardis.media'))->name('media.browse');
+    Route::get('/media/browse', fn () => redirect()->route('tardis.media.index'))->name('media.browse');
     Route::livewire('/media/{id}/edit', 'tardis::pages.media-edit')->whereNumber('id')->name('media.edit');
     Route::livewire('/activity-log', 'tardis::pages.activity-log')->name('activity.index');
     Route::livewire('/database', 'tardis::pages.database')->name('database.index');
@@ -55,15 +55,15 @@ PanelRoutes::panel(function () {
     Route::livewire('/system/commands', 'tardis::pages.system.commands')->name('system.commands');
 
     Route::livewire('/search', 'tardis::pages.search')->name('search');
-    Route::livewire('/permissions', 'tardis::pages.permissions')->name('permissions');
-    Route::livewire('/roles', 'tardis::pages.roles')->name('roles');
+    Route::livewire('/permissions', 'tardis::pages.permissions')->name('permissions.index');
+    Route::livewire('/roles', 'tardis::pages.roles')->name('roles.index');
     Route::livewire('/users', 'tardis::pages.users')->name('users.index');
 
     Route::livewire('/ui-components', 'tardis::pages.ui-components')->name('ui-components');
 
-    Route::livewire('/bread', 'tardis::pages.bread.manage')->name('bread.manage');
-    Route::livewire('/bread/create', 'tardis::pages.bread-builder')->name('bread.create');
-    Route::livewire('/bread/{slug}/edit', 'tardis::pages.bread-builder')->name('bread.edit');
+    Route::livewire('/bread', 'tardis::pages.bread.manage')->name('builder.index');
+    Route::livewire('/bread/create', 'tardis::pages.bread-builder')->name('builder.create');
+    Route::livewire('/bread/{slug}/edit', 'tardis::pages.bread-builder')->name('builder.edit');
 });
 
 // Plugin routes, then the BREAD routes generated from the definitions, both

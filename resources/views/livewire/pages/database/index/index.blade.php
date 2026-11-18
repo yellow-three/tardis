@@ -59,7 +59,7 @@
                                             <x-tardis::icon name="pencil-square" class="w-3 h-3" />
                                             {{ __('tardis::database.edit') }}
                                         </a>
-                                        <a href="{{ route('tardis.bread.create') }}" class="btn btn-ghost btn-xs">
+                                        <a href="{{ route('tardis.builder.create') }}" class="btn btn-ghost btn-xs">
                                             <x-tardis::icon name="document-text" class="w-3 h-3" />
                                             {{ __('tardis::database.create_bread') }}
                                         </a>

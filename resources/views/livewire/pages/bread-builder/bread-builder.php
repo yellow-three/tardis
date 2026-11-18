@@ -305,7 +305,7 @@ new #[Title('tardis::shell.titles.bread_builder')] #[Layout('tardis::layouts.adm
         $repo->save($bread);
 
         session()->flash('message', __('tardis::builder.saved'));
-        $this->redirect(route('tardis.bread.manage'), navigate: true);
+        $this->redirect(route('tardis.builder.index'), navigate: true);
     }
 
     /**
