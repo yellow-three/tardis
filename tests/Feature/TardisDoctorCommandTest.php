@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use Illuminate\Support\Facades\File;
+use Tardis\Diagnostics\DoctorReport;
 
 beforeEach(function () {
     File::ensureDirectoryExists(storage_path('framework'));
@@ -34,4 +35,14 @@ test('doctor outputs json with the --json option', function () {
     $this->artisan('tardis:doctor', ['--json' => true])
         ->expectsOutputToContain('"checks"')
         ->assertFailed();
+});
+
+test('a development build of Laravel satisfies the version requirement', function () {
+    $satisfies = new ReflectionMethod(DoctorReport::class, 'satisfies');
+
+    expect($satisfies->invoke(null, '13.x-dev', '^13.0'))->toBeTrue()
+        ->and($satisfies->invoke(null, '13.2.x-dev', '^13.0'))->toBeTrue()
+        ->and($satisfies->invoke(null, '13.4.1', '^13.0'))->toBeTrue()
+        ->and($satisfies->invoke(null, '14.x-dev', '^13.0'))->toBeFalse()
+        ->and($satisfies->invoke(null, '12.40.0', '^13.0'))->toBeFalse();
 });

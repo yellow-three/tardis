@@ -401,7 +401,7 @@ final class DoctorReport
      */
     private static function satisfies(string $version, string $constraint): bool
     {
-        $version = ltrim(trim($version), 'vV');
+        $version = self::normalizeVersion($version);
 
         foreach (preg_split('/\s*\|\|\s*/', trim($constraint)) ?: [] as $group) {
             if (self::satisfiesGroup($version, $group)) {
@@ -410,6 +410,24 @@ final class DoctorReport
         }
 
         return false;
+    }
+
+    /**
+     * A development build reports a branch, not a release ("13.x-dev",
+     * "13.2.x-dev"); read the open parts as the highest release of that
+     * branch, so it satisfies "^13.0" like any 13.x release does.
+     */
+    private static function normalizeVersion(string $version): string
+    {
+        $version = ltrim(trim($version), 'vV');
+
+        if (preg_match('/^(\d+(?:\.\d+)*)(?:\.x)?-dev$/i', $version, $match) === 1) {
+            $parts = explode('.', $match[1]);
+
+            return implode('.', array_pad($parts, 3, '9999'));
+        }
+
+        return $version;
     }
 
     private static function satisfiesGroup(string $version, string $group): bool
