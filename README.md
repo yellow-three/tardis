@@ -78,6 +78,8 @@ php artisan tardis:admin you@example.com --create   # create the user as well (p
 
 `tardis:admin` creates the `super-admin` role, provisions every permission and assigns the role; it is safe to run again. Roles listed in `tardis.authorization.super_admin_roles` (default `super-admin`) bypass every check. Further roles and their permissions are managed on the **Roles** and **Permissions** pages, and roles are assigned to people on the **Users** page.
 
+The **Users** page also creates accounts, edits their name, email and password, and deletes them. A user manager cannot edit or delete a super administrator, or anyone holding a permission they do not hold themselves, and cannot delete their own account or the last super administrator. Everyone edits their own name, email and password on **Profile**; changing the email or the password asks for the current password. Both work on the model of the default auth provider; set `tardis.users.columns` when its name, email or password columns are called something else (a missing column is left out).
+
 What is checked where:
 
 | Screen | Ability |
@@ -107,7 +109,7 @@ Default entries include:
 - Management: Settings, Plugins, Database Explorer, System (diagnostics, logs, commands), BREAD (plus one entry per BREAD resource)
 - Access: Permissions, Users, Roles
 
-Entries the current user is not allowed to open are hidden. The user dropdown offers Logout, and a Profile link only when the host application defines a `profile.edit` route.
+Entries the current user is not allowed to open are hidden. The user dropdown offers the panel's Profile page (`/admin/profile`) and Logout.
 
 Menu items can be grouped by section and can participate in active-route detection across nested admin pages.
 

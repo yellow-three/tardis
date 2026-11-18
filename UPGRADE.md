@@ -240,3 +240,8 @@ A BREAD override route is named after the new action name (`tardis.bread.create.
 ## Faz 11 — front-end helpers
 
 - Tardis now defines `tardis_setting()` and `tardis_menu()`, and, when your application has not defined them already, `setting()` and `menu()`. The short names are declared when the service provider registers, after Composer has loaded your own helper files, so a function of yours with the same name keeps working.
+
+## Faz 11 — users and profile
+
+- The user menu's Profile link now opens the panel's own `/admin/profile` page; a host `profile.edit` route is no longer linked. Add a custom user-menu item if you want your own profile screen there.
+- If your user table names its columns differently, set `tardis.users.columns` (`name`, `email`, `password`).

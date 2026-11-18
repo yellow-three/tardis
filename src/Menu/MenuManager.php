@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Tardis\Menu;
 
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\Route;
 use Tardis\Auth\Abilities;
 use Tardis\Auth\BreadAuthorization;
 use Tardis\Bread\BreadDefinition;
@@ -161,16 +160,12 @@ class MenuManager
         // Register a sidebar entry for every BREAD definition
         $this->addItems(...$this->breadMenuItems());
 
-        // Register default user menu items
-        // The profile screen belongs to the host application (Breeze, Jetstream,
-        // Fortify...), so the link is only offered when that route exists.
-        if (Route::has('profile.edit')) {
-            $this->addItems(
-                (new UserMenuItem(__('tardis::menu.profile'), 'heroicon-o-user'))
-                    ->route('profile.edit')
-                    ->order(0),
-            );
-        }
+        // The panel's own profile page: name, email and password.
+        $this->addItems(
+            (new UserMenuItem(__('tardis::menu.profile'), 'heroicon-o-user'))
+                ->route('tardis.profile')
+                ->order(0),
+        );
 
         $this->addItems(
             (new UserMenuItem(__('tardis::menu.logout'), 'heroicon-o-arrow-left-on-rectangle'))

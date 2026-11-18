@@ -224,3 +224,9 @@ Fixes from the 2026-11-17 review (`docs/notes.md`). Each one is covered by a tes
 
 - **Site menus:** named menus for the host's own pages (`main`, `footer`, …), edited in *Menus → Site menus* with nesting (three levels), ordering, indent/outdent and new-tab links. They are stored in `storage/tardis/site-menus.json` with locked writes. Only http(s), root-relative and `#fragment` URLs are accepted.
 - **Helpers:** `menu('main')` returns a menu as a tree, `setting('group.key', $default)` reads a panel setting, and `<x-tardis::site-menu name="main" />` renders nested lists with `aria-current` on the current page. `tardis_menu()` / `tardis_setting()` always exist; the short names step aside for a host function of the same name.
+
+## Faz 11 — user management and profile (R39)
+
+- **Users screen:** create accounts (with roles), edit name, email and password, delete accounts. Taking over an account is guarded like handing out roles: a user manager cannot touch a super administrator or anyone holding more permissions than they do, and nobody deletes themselves or the last super administrator. Every change is in the activity log.
+- **Profile page** (`/admin/profile`, linked from the user menu): name, email and password; changing the email or the password needs the current password.
+- **`tardis.users.columns`** names the user table's name, email and password columns; the screens leave out a column the table does not have (the Users page no longer assumes `name` and `email`).

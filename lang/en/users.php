@@ -2,7 +2,6 @@
 
 return [
     'users' => 'Users',
-    'assign_roles_to_the_users_of_3707' => 'Assign roles to the users of this application',
     'search_by_name_or_email' => 'Search by name or email',
     'search_users' => 'Search users',
     'user' => 'User',
@@ -17,4 +16,19 @@ return [
     'roles_updated' => 'Roles updated.',
     'cannot_change_super_admin' => 'Only a super administrator can give or take away the super administrator role.',
     'cannot_assign_beyond_own' => 'You cannot assign a role that grants permissions you do not hold yourself.',
+    'description' => 'Create accounts, edit their details and assign roles.',
+    'new_user' => 'New user',
+    'edit_user' => 'Edit user',
+    'edit' => 'Edit',
+    'delete' => 'Delete',
+    'confirm_delete' => 'Delete this user? This cannot be undone.',
+    'name' => 'Name',
+    'email' => 'Email',
+    'password' => 'Password',
+    'password_confirmation' => 'Confirm password',
+    'password_keep' => 'Leave empty to keep the current password.',
+    'user_created' => 'User created.',
+    'user_updated' => 'User updated.',
+    'user_deleted' => 'User deleted.',
+    'cannot_delete_self' => 'You cannot delete your own account.',
 ];

@@ -1,9 +1,22 @@
 <div>
-    <x-tardis::page-header :title="__('tardis::users.users')" :description="__('tardis::users.assign_roles_to_the_users_of_3707')" />
+    <x-tardis::page-header :title="__('tardis::users.users')" :description="__('tardis::users.description')">
+        <x-slot name="action">
+            <button type="button" wire:click="openCreate" class="btn btn-primary btn-sm">
+                <x-tardis::icon name="plus" class="w-4 h-4" />
+                {{ __('tardis::users.new_user') }}
+            </button>
+        </x-slot>
+    </x-tardis::page-header>
 
     @if (session('message'))
         <div class="alert alert-success mb-4" role="status">
             <span>{{ session('message') }}</span>
+        </div>
+    @endif
+
+    @if ($error && ! $showEditModal && ! $showUserModal)
+        <div class="alert alert-error mb-4" role="alert">
+            <span>{{ $error }}</span>
         </div>
     @endif
 
@@ -44,10 +57,23 @@
                                 @endforelse
                             </td>
                             <td class="text-right">
-                                <button wire:click="openEdit({{ $user['id'] }})" class="btn btn-ghost btn-sm">
-                                    <x-tardis::icon name="user-group" class="w-4 h-4" />
-                                    {{ __('tardis::users.roles') }}
-                                </button>
+                                <div class="flex justify-end gap-1">
+                                    @if ($user['manageable'])
+                                        <button type="button" wire:click="openDetails(@js($user['id']))" class="btn btn-ghost btn-sm">
+                                            <x-tardis::icon name="pencil-square" class="w-4 h-4" />
+                                            {{ __('tardis::users.edit') }}
+                                        </button>
+                                    @endif
+                                    <button type="button" wire:click="openEdit(@js($user['id']))" class="btn btn-ghost btn-sm">
+                                        <x-tardis::icon name="user-group" class="w-4 h-4" />
+                                        {{ __('tardis::users.roles') }}
+                                    </button>
+                                    @if ($user['manageable'] && ! $user['self'])
+                                        <button type="button" wire:click="deleteUser(@js($user['id']))" wire:confirm="{{ __('tardis::users.confirm_delete') }}" class="btn btn-ghost btn-sm text-error">
+                                            {{ __('tardis::users.delete') }}
+                                        </button>
+                                    @endif
+                                </div>
                             </td>
                         </tr>
                     @empty
@@ -63,6 +89,63 @@
             </div>
         </div>
     </div>
+
+    @if ($showUserModal)
+        <div class="modal modal-open" role="dialog" aria-modal="true" aria-labelledby="user-form-title">
+            <form wire:submit="saveUser" class="modal-box">
+                <h3 id="user-form-title" class="text-lg font-bold">{{ $formUserId === null ? __('tardis::users.new_user') : __('tardis::users.edit_user') }}</h3>
+
+                @if ($error)
+                    <div class="alert alert-error mt-4" role="alert"><span>{{ $error }}</span></div>
+                @endif
+
+                <div class="mt-4 space-y-3">
+                    @foreach (['name' => 'text', 'email' => 'email'] as $fieldName => $inputType)
+                        @if (app(\Tardis\Auth\UserAccounts::class)->column($fieldName) !== null)
+                            <label class="form-control w-full">
+                                <span class="label-text">{{ __('tardis::users.'.$fieldName) }}</span>
+                                <input type="{{ $inputType }}" wire:model="userForm.{{ $fieldName }}" class="input w-full" autocomplete="off" />
+                                @error('userForm.'.$fieldName) <span class="text-error text-xs">{{ $message }}</span> @enderror
+                            </label>
+                        @endif
+                    @endforeach
+
+                    @if (app(\Tardis\Auth\UserAccounts::class)->column('password') !== null)
+                        <label class="form-control w-full">
+                            <span class="label-text">{{ __('tardis::users.password') }}</span>
+                            <input type="password" wire:model="userForm.password" class="input w-full" autocomplete="new-password" />
+                            @if ($formUserId !== null)
+                                <span class="text-xs text-base-content/60">{{ __('tardis::users.password_keep') }}</span>
+                            @endif
+                            @error('userForm.password') <span class="text-error text-xs">{{ $message }}</span> @enderror
+                        </label>
+                        <label class="form-control w-full">
+                            <span class="label-text">{{ __('tardis::users.password_confirmation') }}</span>
+                            <input type="password" wire:model="userForm.password_confirmation" class="input w-full" autocomplete="new-password" />
+                        </label>
+                    @endif
+
+                    @if ($formUserId === null && $this->roles !== [])
+                        <fieldset class="space-y-2">
+                            <legend class="label-text mb-1">{{ __('tardis::users.roles') }}</legend>
+                            @foreach ($this->roles as $role)
+                                <label wire:key="create-role-{{ $role->id }}" class="flex cursor-pointer items-center gap-3">
+                                    <input type="checkbox" class="checkbox checkbox-sm" wire:model="createRoleIds" value="{{ $role->id }}" />
+                                    <span>{{ $role->name }}</span>
+                                </label>
+                            @endforeach
+                        </fieldset>
+                    @endif
+                </div>
+
+                <div class="modal-action">
+                    <button type="button" wire:click="closeUserModal" class="btn btn-ghost">{{ __('tardis::users.cancel') }}</button>
+                    <button type="submit" class="btn btn-primary">{{ __('tardis::users.save') }}</button>
+                </div>
+            </form>
+            <div class="modal-backdrop" wire:click="closeUserModal"></div>
+        </div>
+    @endif
 
     @if ($showEditModal)
         <div class="modal modal-open" role="dialog" aria-modal="true" aria-labelledby="edit-roles-title">
