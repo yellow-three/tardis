@@ -229,8 +229,8 @@ class FieldValidationRules
         // intent of every rule declared without "required".
         $rules = $required ? $declared : static::makeNullable($declared);
 
-        if (($field['type'] ?? null) === 'file' && $value instanceof UploadedFile) {
-            $rules[] = 'file';
+        if (in_array($field['type'] ?? null, ['file', 'image'], true) && $value instanceof UploadedFile) {
+            $rules[] = ($field['type'] ?? null) === 'image' ? 'image' : 'file';
 
             if (! empty($field['mimes'])) {
                 $rules[] = 'mimes:'.implode(',', (array) $field['mimes']);

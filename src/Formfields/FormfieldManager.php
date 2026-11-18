@@ -16,6 +16,7 @@ use Tardis\Formfields\Types\FileField;
 use Tardis\Formfields\Types\HasManyField;
 use Tardis\Formfields\Types\HasOneField;
 use Tardis\Formfields\Types\HiddenField;
+use Tardis\Formfields\Types\ImageField;
 use Tardis\Formfields\Types\MarkdownField;
 use Tardis\Formfields\Types\MediaPickerField;
 use Tardis\Formfields\Types\NumberField;
@@ -53,6 +54,7 @@ class FormfieldManager
             'textarea' => TextareaField::class,
             'password' => PasswordField::class,
             'file' => FileField::class,
+            'image' => ImageField::class,
             'checkbox' => CheckboxField::class,
             'radio' => RadioField::class,
             'slider' => SliderField::class,
@@ -82,7 +84,6 @@ class FormfieldManager
      * @var array<string, string>
      */
     protected array $aliases = [
-        'image' => 'file',
         'email' => 'text',
     ];
 

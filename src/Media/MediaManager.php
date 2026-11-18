@@ -7,6 +7,7 @@ namespace Tardis\Media;
 use Illuminate\Filesystem\DirectoryAttributes;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use InvalidArgumentException;
@@ -18,6 +19,11 @@ class MediaManager
     protected string $disk;
 
     protected string $basePath;
+
+    /** Thumbnails live here, keyed by media id, outside the browsable folder. */
+    public const THUMBNAIL_ROOT = '.tardis-thumbnails';
+
+    private ?bool $thumbnailColumn = null;
 
     public function __construct()
     {
@@ -43,7 +49,7 @@ class MediaManager
         // storeAs() joins with its own separator, so it must not receive a trailing slash.
         $storedPath = $file->storeAs(rtrim($path, '/'), $name, $this->disk);
 
-        return ModelResolver::media()::create([
+        $media = ModelResolver::media()::create([
             'name' => $name,
             'original_name' => $file->getClientOriginalName(),
             'path' => $storedPath,
@@ -54,6 +60,68 @@ class MediaManager
             'collection' => trim($path, '/'),
             'created_by' => auth()->id(),
         ]);
+
+        $this->makeThumbnail($media);
+
+        return $media;
+    }
+
+    /**
+     * Store a thumbnail of an image upload, sized by tardis.media.thumbnail_size,
+     * outside the media folder so the browser never lists it. Without GD, or for
+     * a format it cannot read, there is none and the original is shown.
+     */
+    public function makeThumbnail(Media $media): void
+    {
+        $processor = app(ImageProcessor::class);
+
+        if (! $processor->supports($media->mime_type) || ! $this->hasThumbnailColumn()) {
+            return;
+        }
+
+        $storage = Storage::disk($media->disk);
+        $size = (array) config('tardis.media.thumbnail_size', []);
+
+        $bytes = $processor->resize(
+            (string) $storage->get($media->path),
+            (string) $media->mime_type,
+            isset($size['width']) ? (int) $size['width'] : 300,
+            isset($size['height']) ? (int) $size['height'] : 300,
+            (int) config('tardis.media.thumbnail_quality', 85),
+        );
+
+        if ($bytes === null) {
+            return;
+        }
+
+        $extension = pathinfo($media->path, PATHINFO_EXTENSION);
+        $path = self::THUMBNAIL_ROOT.'/'.$media->getKey().($extension !== '' ? '.'.strtolower($extension) : '');
+
+        $storage->put($path, $bytes);
+        $media->forceFill(['thumbnail_path' => $path])->saveQuietly();
+    }
+
+    /**
+     * Delete the thumbnails of the media rows a query matches, before the rows.
+     */
+    protected function deleteThumbnails(mixed $query): void
+    {
+        if (! $this->hasThumbnailColumn()) {
+            return;
+        }
+
+        $query->clone()->whereNotNull('thumbnail_path')->get(['disk', 'thumbnail_path'])
+            ->filter(fn ($media) => is_string($media->thumbnail_path) && $media->thumbnail_path !== '')
+            ->each(fn ($media) => Storage::disk($media->disk)->delete($media->thumbnail_path));
+    }
+
+    /**
+     * Until the 2026_11_19 migration has run there is nowhere to record a
+     * thumbnail; uploads then work as before, without one.
+     */
+    protected function hasThumbnailColumn(): bool
+    {
+        return $this->thumbnailColumn ??= Schema::hasColumn((new (ModelResolver::media()))->getTable(), 'thumbnail_path');
     }
 
     public function listFiles(string $path = ''): Collection
@@ -62,6 +130,9 @@ class MediaManager
         $storage = Storage::disk($this->disk);
 
         $files = collect($storage->listContents($path))
+            // Hidden entries (the thumbnail folder when the media path is the
+            // disk root) are never shown.
+            ->reject(fn ($item) => str_starts_with(basename((string) $item['path']), '.'))
             ->map(function ($item) use ($storage) {
                 $isDir = $item instanceof DirectoryAttributes
                     || str_ends_with($item['path'], '/');
@@ -110,7 +181,9 @@ class MediaManager
 
         $deleted = Storage::disk($this->disk)->delete($fullPath);
 
-        ModelResolver::media()::query()->where('path', $fullPath)->delete();
+        $rows = ModelResolver::media()::query()->where('path', $fullPath);
+        $this->deleteThumbnails($rows);
+        $rows->delete();
 
         return $deleted;
     }
@@ -121,7 +194,9 @@ class MediaManager
 
         $deleted = Storage::disk($this->disk)->deleteDirectory($fullPath);
 
-        ModelResolver::media()::query()->whereRaw("path like ? escape '!'", [$this->likePrefix($fullPath.'/')])->delete();
+        $rows = ModelResolver::media()::query()->whereRaw("path like ? escape '!'", [$this->likePrefix($fullPath.'/')]);
+        $this->deleteThumbnails($rows);
+        $rows->delete();
 
         return $deleted;
     }

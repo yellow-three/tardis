@@ -29,7 +29,6 @@ Kapsam: `src/`, `routes/`, `resources/views/pages`, migration'lar, CI ve doküma
 
 | # | Bulgu | Kod ref |
 |---|-------|---------|
-| B33 | Thumbnail/kırpma kodu yok: `tardis-media.thumbnail_size` hiçbir yerde okunmuyor, `Media::thumbnail_url` orijinal dosyayı döndürüyor. `docs/backlog.md` R26 "thumbnail + kırpma ✅" diyor, `docs/TEST_CHECKLIST.md:179` "kırpma yok" diyor. | `src/Models/Media.php`, `config/tardis-media.php` |
 | B34 | Medya: `listFiles()` dosya başına 3 depolama çağrısı yapıyor (S3'te yavaş) ve sayfalama yok; varsayılan listede `svg` var (script taşıyabilir, temizlenmiyor). (`LIKE` kaçışı Faz 10'da düzeltildi.) | `src/Manager/MediaManager.php` |
 | B35 | **Durum dosyaları: kalan kısım.** `plugins.json` ve `preferences.json` artık kilit altında ve değişiklik bazında yazılıyor (`Tardis\Support\JsonFile`, Faz 10). Açık: `menus.json`, `dashboard.json`, `themes.json` ve ayarlar hâlâ tam kopya yazıyor (`JsonFile::update()`'e taşınmalı); `storage/` çok sunuculu/efemeral dağıtımlarda paylaşılmıyor, BREAD tanımları deploy ile taşınmıyor (R51). | `src/Menu/MenuOverlay.php`, `src/Dashboard/DashboardLayout.php`, `src/Manager/ThemeManager.php`, `src/Manager/SettingsManager.php` |
 | B37 | ~~`BreadRemoved` olayını dinleyen yok.~~ **Kasıtlı, bulgu değil:** `src/Events/BreadRemoved.php` izinlerin ve geçmişin bilerek bırakıldığını söylüyor (aynı slug yeniden oluşturulunca roller korunur). Yetim menü bindirmesi zararsız. Satır bir sonraki temizlikte silinebilir. | `src/Events/BreadRemoved.php` |
