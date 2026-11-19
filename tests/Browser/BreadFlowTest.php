@@ -24,6 +24,7 @@ beforeEach(function () {
 
     $this->artisan('migrate');
     $this->artisan('tardis:demo');
+    addBreadRoutes();
 
     BrowserUser::create(['name' => 'Ada', 'email' => 'ada@example.test', 'password' => Hash::make('correct horse')]);
 });
