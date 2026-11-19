@@ -8,10 +8,7 @@
 
     <title>{{ isset($title) ? __($title) : __('tardis::auth.login') }} - {{ __('tardis::shell.brand.name') }}</title>
 
-    <x-tardis::theme-boot />
-
-    @tardisStyles('auth')
-    @livewireStyles
+    <x-tardis::head scope="auth" :theme="$tardisTheme" />
 </head>
 <body class="min-h-screen bg-base-200 flex items-center justify-center p-4">
     <div class="w-full max-w-md">
@@ -33,7 +30,6 @@
         </p>
     </div>
 
-    @tardisScripts('auth')
-    @livewireScripts
+    <x-tardis::scripts scope="auth" />
 </body>
 </html>

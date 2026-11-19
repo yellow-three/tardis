@@ -40,11 +40,6 @@ class InstallCommand extends Command
             return true;
         });
 
-        $this->components->task('Publishing assets', fn (): bool => $this->call('vendor:publish', [
-            '--tag' => 'tardis-assets',
-            '--force' => (bool) $this->option('force'),
-        ]) === 0);
-
         // Livewire compiles the package components into the view cache and
         // renews them by file time; a release unpacked by Composer can carry
         // older times than the cached copy, so clear it after every install.

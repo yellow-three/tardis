@@ -6,6 +6,7 @@ namespace Tardis\Diagnostics;
 
 use Illuminate\Support\Facades\Schema;
 use Tardis\Assets\Asset;
+use Tardis\Assets\AssetManager;
 use Tardis\Bread\BreadManager;
 use Tardis\Bread\DefinitionHealth;
 use Tardis\Contracts\Plugins\Features\Provider\CSS;
@@ -36,7 +37,7 @@ final class DoctorReport
             self::guard('Laravel version', self::checkLaravelVersion(...)),
             self::guard('Storage', self::checkStorage(...)),
             self::guard('Database tables', self::checkTables(...)),
-            self::guard('Published assets', self::checkAssets(...)),
+            self::guard('Core assets', self::checkAssets(...)),
             self::guard('Route cache', self::checkRouteCache(...)),
             self::guard('Authorization plugin', self::checkAuthorization(...)),
             self::guard('Themes', self::checkThemes(...)),
@@ -186,45 +187,27 @@ final class DoctorReport
 
     private static function checkAssets(): CheckResult
     {
-        $published = public_path('vendor/tardis/assets');
-        $source = dirname(__DIR__, 2).'/resources/compiled/assets';
-        $files = ['app.css', 'app.js'];
-
-        $missing = [];
-        $stale = [];
-
-        foreach ($files as $file) {
-            $publishedFile = $published.'/'.$file;
-            $sourceFile = $source.'/'.$file;
-
-            if (! is_file($publishedFile)) {
-                $missing[] = $file;
-
-                continue;
-            }
-
-            if (is_file($sourceFile) && hash_file('sha256', $publishedFile) !== hash_file('sha256', $sourceFile)) {
-                $stale[] = $file;
-            }
-        }
+        $missing = array_values(array_filter(['app.css', 'app.js'], fn (string $file) => ! is_file(AssetManager::compiledPath($file))));
 
         if ($missing !== []) {
             return CheckResult::fail(
-                'Published assets',
-                'Missing published assets: '.implode(', ', $missing).'.',
-                'Run php artisan vendor:publish --tag=tardis-assets --force.',
+                'Core assets',
+                'The package is missing its built assets: '.implode(', ', $missing).'.',
+                'Reinstall the package (composer reinstall yellow-three/tardis), or run npm run build when developing it.',
             );
         }
 
-        if ($stale !== []) {
+        // Before 0.2 the assets were copied to public/vendor/tardis; nothing
+        // reads that copy any more, it only goes stale.
+        if (is_dir(public_path('vendor/tardis/assets'))) {
             return CheckResult::warn(
-                'Published assets',
-                'Published assets differ from the built files: '.implode(', ', $stale).'.',
-                'Run npm run build then republish the assets.',
+                'Core assets',
+                'public/vendor/tardis/assets is a leftover copy; the panel serves its assets from the package now.',
+                'Delete public/vendor/tardis.',
             );
         }
 
-        return CheckResult::ok('Published assets', 'The published assets match the build.');
+        return CheckResult::ok('Core assets', 'Served from the package.');
     }
 
     private static function checkRouteCache(): CheckResult

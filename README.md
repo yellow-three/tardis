@@ -48,7 +48,7 @@ Publish the package configuration if you want to change it:
 php artisan vendor:publish --tag=tardis-config
 ```
 
-The compiled admin assets are published by the installer (`--tag=tardis-assets`); run `php artisan vendor:publish --tag=tardis-assets --force` again after upgrading the package. When developing the package itself, rebuild them with `npm run build`.
+The admin stylesheet and script are served from the package itself, from a content-hash URL, so there is nothing to publish and an upgrade is picked up on the next page load. When developing the package, rebuild them with `npm run build`, or run `npm run dev` for live reloading.
 
 ## Current architecture
 

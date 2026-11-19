@@ -4,7 +4,7 @@
  * Loaded as a plain script before Livewire starts Alpine, so everything here
  * registers through whenAlpine(): immediately if Alpine is already running, on
  * `alpine:init` otherwise. The server hands it the page's data in
- * window.__TARDIS__ (see components/theme-boot.blade.php).
+ * the #tardis-boot JSON block (see components/theme-boot.blade.php).
  *
  * The public surface for plugins is window.Tardis; the stores behind it
  * (`theme`, `toasts`) are internal and may change between major versions.
@@ -12,8 +12,27 @@
 (function () {
     'use strict';
 
-    var boot = window.__TARDIS__ || {};
+    var boot = readBoot();
+    // Kept for plugins written against 0.1, which read the global directly.
+    window.__TARDIS__ = boot;
     var listeners = {};
+
+    // The server writes the page data as a JSON block (components/theme-boot),
+    // which needs no CSP nonce; a page from an older layout may still set the
+    // global itself.
+    function readBoot() {
+        var element = document.getElementById('tardis-boot');
+
+        if (element) {
+            try {
+                return JSON.parse(element.textContent) || {};
+            } catch (error) {
+                console.error('[tardis] the page data block is not valid JSON', error);
+            }
+        }
+
+        return window.__TARDIS__ || {};
+    }
 
     function whenAlpine(callback) {
         if (window.Alpine) {
