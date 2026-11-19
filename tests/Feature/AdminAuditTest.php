@@ -97,12 +97,13 @@ test('menu, site menu, theme and dashboard changes are logged', function () {
     Livewire::test('tardis::pages.site-menus')
         ->set('newMenu', 'footer')->call('createMenu')
         ->set('itemTitle', 'Home')->set('itemUrl', '/')->call('addItem');
-    expect(auditEntry('tardis.site_menu', 'menu_created'))->new_values->toBe(['menu' => 'footer'])
-        ->and(auditEntry('tardis.site_menu', 'item_added'))->new_values->toBe(['menu' => 'footer', 'title' => 'Home', 'url' => '/']);
+    // MySQL's JSON column does not keep key order, so compare the pairs only.
+    expect(auditEntry('tardis.site_menu', 'menu_created'))->new_values->toEqualCanonicalizing(['menu' => 'footer'])
+        ->and(auditEntry('tardis.site_menu', 'item_added'))->new_values->toEqualCanonicalizing(['menu' => 'footer', 'title' => 'Home', 'url' => '/']);
 
     Livewire::test('tardis::pages.theme-editor')
         ->call('startNew')->set('name', 'audit-theme')->set('label', 'Audit')->call('save');
-    expect(auditEntry('tardis.theme', 'theme_saved'))->new_values->toBe(['theme' => 'audit-theme']);
+    expect(auditEntry('tardis.theme', 'theme_saved'))->new_values->toEqualCanonicalizing(['theme' => 'audit-theme']);
 
     Livewire::test('tardis::pages.dashboard')->call('resetLayout');
     expect(auditEntry('tardis.dashboard', 'layout_reset'))->not->toBeNull();
