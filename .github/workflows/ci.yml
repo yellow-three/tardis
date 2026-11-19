@@ -6,6 +6,12 @@ on:
   pull_request:
     branches: [ master ]
 
+# Composer downloads packages from GitHub; anonymous downloads share a low
+# rate limit, and a dozen jobs starting at once ran into it (HTTP 429). With
+# the workflow's own token the downloads count against a much higher one.
+env:
+  COMPOSER_AUTH: '{"github-oauth": {"github.com": "${{ secrets.GITHUB_TOKEN }}"}}'
+
 jobs:
   lint:
     runs-on: ubuntu-latest
