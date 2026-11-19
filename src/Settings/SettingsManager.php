@@ -7,12 +7,17 @@ namespace Tardis\Settings;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
+use Tardis\Support\FileSignature;
+use Tardis\Support\JsonFile;
 
 class SettingsManager
 {
     protected string $path;
 
     protected ?Collection $settings = null;
+
+    /** The version of settings.json the list was read from (FileSignature). */
+    protected ?string $signature = null;
 
     public function __construct()
     {
@@ -44,57 +49,99 @@ class SettingsManager
 
     public function set(string $key, mixed $value, bool $save = true): void
     {
-        $this->load();
+        if (! $save) {
+            $this->load();
+            $setting = $this->findByKey($key);
 
-        $setting = $this->findByKey($key);
-
-        if ($setting) {
-            $setting->value = $value;
-
-            if ($save) {
-                $this->save();
+            if ($setting) {
+                $setting->value = $value;
             }
+
+            return;
         }
+
+        $this->update([$key => $value]);
     }
 
+    /**
+     * Write values by full key. Only these values change, on top of what is
+     * on disk now: a setting another administrator saved a moment ago stays.
+     *
+     * @param  array<string, mixed>  $settings
+     */
     public function update(array $settings): void
     {
-        foreach ($settings as $key => $value) {
-            $this->set($key, $value, false);
-        }
+        $this->mutate(function (array $items) use ($settings) {
+            foreach ($items as $index => $item) {
+                $fullKey = self::fullKey($item);
 
-        $this->save();
+                if (array_key_exists($fullKey, $settings)) {
+                    $items[$index]['value'] = $settings[$fullKey];
+                }
+            }
+
+            return $items;
+        });
     }
 
+    /**
+     * Replace every setting with $data, or write the list as it is in memory.
+     *
+     * @param  array<int, array<string, mixed>>|null  $data
+     */
     public function save(?array $data = null): void
     {
-        if ($data !== null) {
-            $this->settings = collect($data)->map(
-                fn (array $item) => new Setting($item)
-            );
-        }
+        $data ??= $this->all()->map(fn (Setting $setting) => $setting->toArray())->values()->all();
 
-        $content = $this->settings->map(fn (Setting $setting) => $setting->toArray()
-        )->values()->toJson(JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
-
-        File::ensureDirectoryExists(dirname($this->path));
-        File::put($this->path, $content);
+        $this->mutate(fn () => $data);
     }
 
     public function load(bool $force = false): void
     {
-        if ($this->settings === null || $force) {
-            $this->ensureDirectoryExists();
+        // Re-read when another process wrote the file since, so a long-running
+        // worker never keeps serving a value that was changed elsewhere.
+        $signature = FileSignature::of($this->path);
 
-            // No file yet: start from the preset shipped with the package. It
-            // is only read here; the file is written when someone saves.
-            $source = File::exists($this->path) ? $this->path : self::presetPath();
-            $data = File::exists($source) ? (json_decode(File::get($source), true) ?? []) : [];
-
-            $this->settings = collect($data)->map(
-                fn (array $item) => new Setting($item)
-            );
+        if ($this->settings !== null && ! $force && $signature === $this->signature) {
+            return;
         }
+
+        $this->ensureDirectoryExists();
+        $this->signature = $signature;
+        $this->settings = collect($this->readItems())->map(fn (array $item) => new Setting($item));
+    }
+
+    /**
+     * The stored items, or the preset shipped with the package while nothing
+     * has been saved yet. The preset is only read; saving writes the file.
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    protected function readItems(): array
+    {
+        $source = is_file($this->path) ? $this->path : self::presetPath();
+
+        return array_values(array_filter(JsonFile::read($source), 'is_array'));
+    }
+
+    /**
+     * Change the stored list under the file's lock, starting from what is on
+     * disk now.
+     *
+     * @param  callable(array<int, array<string, mixed>>): array<int, array<string, mixed>>  $change
+     */
+    protected function mutate(callable $change): void
+    {
+        $written = JsonFile::update($this->path, fn () => array_values($change($this->readItems())));
+
+        $this->settings = collect($written)->map(fn (array $item) => new Setting($item));
+        $this->signature = FileSignature::of($this->path);
+    }
+
+    /** @param array<string, mixed> $item */
+    protected static function fullKey(array $item): string
+    {
+        return ! empty($item['group']) ? $item['group'].'.'.($item['key'] ?? '') : (string) ($item['key'] ?? '');
     }
 
     public static function presetPath(): string
@@ -141,8 +188,15 @@ class SettingsManager
             throw new \RuntimeException("Setting with key '{$setting->getFullKey()}' already exists.");
         }
 
-        $this->settings->push($setting);
-        $this->save();
+        $this->mutate(function (array $items) use ($setting) {
+            foreach ($items as $item) {
+                if (self::fullKey($item) === $setting->getFullKey()) {
+                    throw new \RuntimeException("Setting with key '{$setting->getFullKey()}' already exists.");
+                }
+            }
+
+            return [...$items, $setting->toArray()];
+        });
 
         $this->logAudit('created', $setting->getFullKey(), null, $setting->toArray());
 
@@ -159,11 +213,7 @@ class SettingsManager
         }
 
         $oldValues = $setting->toArray();
-        $this->settings = $this->settings->filter(
-            fn (Setting $s) => $s->getFullKey() !== $key
-        )->values();
-
-        $this->save();
+        $this->mutate(fn (array $items) => array_filter($items, fn (array $item) => self::fullKey($item) !== $key));
 
         $this->logAudit('deleted', $key, $oldValues, null);
 
@@ -245,18 +295,11 @@ class SettingsManager
             'timestamp' => now()->toIso8601String(),
         ];
 
-        $audit = [];
-        if (File::exists($auditPath)) {
-            $audit = json_decode(File::get($auditPath), true) ?? [];
-        }
+        JsonFile::update($auditPath, function (array $audit) use ($entry) {
+            $audit[] = $entry;
 
-        $audit[] = $entry;
-
-        if (count($audit) > 100) {
-            $audit = array_slice($audit, -100);
-        }
-
-        File::put($auditPath, json_encode($audit, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+            return array_values(array_slice($audit, -100));
+        });
     }
 
     protected function ensureDirectoryExists(): void
