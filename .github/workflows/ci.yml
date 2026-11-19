@@ -286,6 +286,7 @@ jobs:
   browser:
     name: browser tests
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v7
 
@@ -324,4 +325,9 @@ jobs:
       # Sign-in and BREAD flows in a real browser: what the Livewire tests
       # cannot see (JavaScript errors, navigation, the forms as rendered).
       - name: Run browser tests
-        run: vendor/bin/pest tests/Browser
+        run: vendor/bin/pest tests/Browser --log-events-text=browser-events.txt
+        timeout-minutes: 8
+
+      - name: Show the test event log
+        if: always()
+        run: tail -n 80 browser-events.txt || true

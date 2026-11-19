@@ -7,6 +7,12 @@ use Tests\TestCase;
 
 uses(TestCase::class)->in('Unit', 'Feature', 'Integration', 'Browser');
 
+// A browser step that cannot find what it waits for fails after 10 seconds
+// instead of holding the run.
+if (function_exists('pest') && method_exists(pest(), 'browser')) {
+    pest()->browser()->timeout(10_000);
+}
+
 beforeEach(function () {
     // Safety net: bind JsonBreadSource to a disposable temp dir so tests that
     // trigger container resolution never write into the real storage path.
