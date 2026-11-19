@@ -5,6 +5,7 @@ use Livewire\Attributes\Title;
 use Livewire\Component;
 use Tardis\Auth\Abilities;
 use Tardis\Auth\BreadAuthorization;
+use Tardis\Bread\ActivityLogger;
 use Tardis\Menu\SiteMenuStore;
 
 new #[Title('tardis::shell.titles.site_menus')] #[Layout('tardis::layouts.admin')] class extends Component
@@ -71,6 +72,7 @@ new #[Title('tardis::shell.titles.site_menus')] #[Layout('tardis::layouts.admin'
 
         $this->store()->create($name);
         $this->menu = $name;
+        $this->audit('menu_created');
         $this->reset('newMenu');
     }
 
@@ -81,6 +83,7 @@ new #[Title('tardis::shell.titles.site_menus')] #[Layout('tardis::layouts.admin'
         }
 
         $this->store()->delete($this->menu);
+        $this->audit('menu_deleted');
         $this->menu = $this->store()->names()[0] ?? '';
     }
 
@@ -100,6 +103,7 @@ new #[Title('tardis::shell.titles.site_menus')] #[Layout('tardis::layouts.admin'
             return;
         }
 
+        $this->audit('item_added', ['title' => $this->itemTitle, 'url' => $this->itemUrl]);
         $this->reset('itemTitle', 'itemUrl', 'itemNewTab', 'itemParent');
     }
 
@@ -113,6 +117,7 @@ new #[Title('tardis::shell.titles.site_menus')] #[Layout('tardis::layouts.admin'
 
         try {
             $this->store()->update($this->menu, $id, [$field => $value]);
+            $this->audit('item_updated', ['item' => $id, $field => $value]);
         } catch (InvalidArgumentException) {
             $this->addError('items', __('tardis::site_menus.invalid_item'));
         }
@@ -121,21 +126,33 @@ new #[Title('tardis::shell.titles.site_menus')] #[Layout('tardis::layouts.admin'
     public function removeItem(string $id): void
     {
         $this->store()->remove($this->menu, $id);
+        $this->audit('item_removed', ['item' => $id]);
     }
 
     public function moveItem(string $id, int $direction): void
     {
         $this->store()->move($this->menu, $id, $direction);
+        $this->audit('item_moved', ['item' => $id]);
     }
 
     public function indentItem(string $id): void
     {
         $this->store()->indent($this->menu, $id);
+        $this->audit('item_indented', ['item' => $id]);
     }
 
     public function outdentItem(string $id): void
     {
         $this->store()->outdent($this->menu, $id);
+        $this->audit('item_outdented', ['item' => $id]);
+    }
+
+    /**
+     * @param  array<string, mixed>  $values
+     */
+    protected function audit(string $action, array $values = []): void
+    {
+        app(ActivityLogger::class)->audit('tardis.site_menu', $action, ['menu' => $this->menu, ...$values]);
     }
 
     protected function store(): SiteMenuStore

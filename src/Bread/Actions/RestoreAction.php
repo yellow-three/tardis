@@ -6,6 +6,7 @@ namespace Tardis\Bread\Actions;
 
 use Illuminate\Database\Eloquent\Model;
 use Tardis\Bread\Action;
+use Tardis\Events\BreadRecordRestored;
 
 class RestoreAction extends Action
 {
@@ -33,6 +34,12 @@ class RestoreAction extends Action
     public function handle(Model $record, string $slug): mixed
     {
         // appliesTo() only offers this on a trashed record of a SoftDeletes model.
-        return method_exists($record, 'restore') ? $record->restore() : false;
+        $restored = method_exists($record, 'restore') ? $record->restore() : false;
+
+        if ($restored) {
+            BreadRecordRestored::dispatch($slug, $record);
+        }
+
+        return $restored;
     }
 }

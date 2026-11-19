@@ -5,6 +5,7 @@ use Livewire\Attributes\Title;
 use Livewire\Component;
 use Tardis\Auth\Abilities;
 use Tardis\Auth\BreadAuthorization;
+use Tardis\Bread\ActivityLogger;
 use Tardis\Theme\ThemeManager;
 use Tardis\Theme\Theme;
 
@@ -66,6 +67,7 @@ new #[Title('tardis::theme_editor.title')] #[Layout('tardis::layouts.admin')] cl
 
         if ($theme !== null && ! $theme->builtin) {
             app(ThemeManager::class)->deleteCustom($name);
+            app(ActivityLogger::class)->audit('tardis.theme', 'theme_deleted', ['theme' => $name]);
         }
     }
 
@@ -87,6 +89,7 @@ new #[Title('tardis::theme_editor.title')] #[Layout('tardis::layouts.admin')] cl
             return;
         }
 
+        app(ActivityLogger::class)->audit('tardis.theme', 'theme_saved', ['theme' => $this->name]);
         $this->saved = true;
     }
 
