@@ -30,8 +30,7 @@ Kapsam: `src/`, `routes/`, `resources/views/pages`, migration'lar, CI ve doküma
 | # | Bulgu | Kod ref |
 |---|-------|---------|
 | B34 | Medya: `listFiles()` dosya başına 3 depolama çağrısı yapıyor (S3'te yavaş) ve sayfalama yok; varsayılan listede `svg` var (script taşıyabilir, temizlenmiyor). (`LIKE` kaçışı Faz 10'da düzeltildi.) | `src/Manager/MediaManager.php` |
-| B35 | **Durum dosyaları: kalan kısım.** `plugins.json` ve `preferences.json` artık kilit altında ve değişiklik bazında yazılıyor (`Tardis\Support\JsonFile`, Faz 10). Açık: `menus.json`, `dashboard.json`, `themes.json` ve ayarlar hâlâ tam kopya yazıyor (`JsonFile::update()`'e taşınmalı); `storage/` çok sunuculu/efemeral dağıtımlarda paylaşılmıyor, BREAD tanımları deploy ile taşınmıyor (R51). | `src/Menu/MenuOverlay.php`, `src/Dashboard/DashboardLayout.php`, `src/Manager/ThemeManager.php`, `src/Manager/SettingsManager.php` |
-| B37 | ~~`BreadRemoved` olayını dinleyen yok.~~ **Kasıtlı, bulgu değil:** `src/Events/BreadRemoved.php` izinlerin ve geçmişin bilerek bırakıldığını söylüyor (aynı slug yeniden oluşturulunca roller korunur). Yetim menü bindirmesi zararsız. Satır bir sonraki temizlikte silinebilir. | `src/Events/BreadRemoved.php` |
+| B35 | **Durum dosyaları: kalan kısım.** (Bütün durum dosyaları — eklentiler, tercihler, menü bindirmesi, dashboard, temalar, ayarlar, ayar denetim kaydı — kilit altında ve değişiklik bazında yazılıyor; uzun süreli süreçler dosya imzasıyla değişikliği görüyor.) Açık: `storage/` çok sunuculu/efemeral dağıtımlarda paylaşılmıyor, BREAD tanımları deploy ile taşınmıyor (R51). | `storage/tardis/*` |
 
 ## Depo / paketleme / CI
 
@@ -55,7 +54,6 @@ Hepsi kod okumasıyla tespit edildi; isimlendirme ve yapı önerileri `docs/back
 
 | # | Bulgu | Kod ref |
 |---|-------|---------|
-| B59 | **Uzun süreli süreçte bayat okumalar.** `AssetManager`'ın "bir kez yaz" bayrağı Faz 10c'de isteğe taşındı (ikinci istekte stil/betik kayboluyordu). Açık: `ThemeManager` (tema listesi), `SettingsManager`, `MenuManager` ve `PluginManager`'ın kapalı listesi ilk okumayı süreç boyunca saklıyor; başka bir işçide yapılan değişikliği görmezler. Kayıtlar (singleton) ile okunan durum (istek başına) ayrılmalı. | `src/TardisServiceProvider.php` |
 
 ## Rotalar, Blade direktifleri ve Livewire 4 yapısı (2026-11-17 incelemesi)
 

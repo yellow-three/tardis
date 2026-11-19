@@ -237,6 +237,12 @@ class MenuItem
     /**
      * Add child menu items.
      */
+    /** A copy owns copies of its children, so changing one leaves the other alone. */
+    public function __clone()
+    {
+        $this->children = $this->children->map(fn (MenuItem $child) => clone $child);
+    }
+
     public function addChildren(MenuItem ...$children): static
     {
         foreach ($children as $child) {

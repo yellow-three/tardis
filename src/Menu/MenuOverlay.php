@@ -6,6 +6,7 @@ namespace Tardis\Menu;
 
 use Illuminate\Support\Str;
 use InvalidArgumentException;
+use Tardis\Support\JsonFile;
 use Tardis\Support\LegacyNames;
 
 /**
@@ -58,26 +59,27 @@ class MenuOverlay
      */
     public function change(string $id, array $changes): void
     {
-        $data = $this->read();
-        $entry = $data['items'][$id] ?? [];
+        $this->update(function (array $data) use ($id, $changes) {
+            $entry = $data['items'][$id] ?? [];
 
-        foreach ($changes as $key => $value) {
-            match ($key) {
-                'hidden' => $value ? $entry['hidden'] = true : $this->forgetKey($entry, 'hidden'),
-                'title' => $this->title($value, $entry),
-                'section' => is_string($value) && trim($value) !== '' ? $entry['section'] = mb_substr(trim($value), 0, 120) : $this->forgetKey($entry, 'section'),
-                'order' => is_numeric($value) ? $entry['order'] = (int) $value : $this->forgetKey($entry, 'order'),
-                default => null,
-            };
-        }
+            foreach ($changes as $key => $value) {
+                match ($key) {
+                    'hidden' => $value ? $entry['hidden'] = true : $this->forgetKey($entry, 'hidden'),
+                    'title' => $this->title($value, $entry),
+                    'section' => is_string($value) && trim($value) !== '' ? $entry['section'] = mb_substr(trim($value), 0, 120) : $this->forgetKey($entry, 'section'),
+                    'order' => is_numeric($value) ? $entry['order'] = (int) $value : $this->forgetKey($entry, 'order'),
+                    default => null,
+                };
+            }
 
-        if ($entry === []) {
-            unset($data['items'][$id]);
-        } else {
-            $data['items'][$id] = $entry;
-        }
+            if ($entry === []) {
+                unset($data['items'][$id]);
+            } else {
+                $data['items'][$id] = $entry;
+            }
 
-        $this->write($data);
+            return $data;
+        });
     }
 
     /**
@@ -133,10 +135,8 @@ class MenuOverlay
             throw new InvalidArgumentException('A custom menu link needs an http(s) or root-relative url.');
         }
 
-        $data = $this->read();
         $id = 'custom-'.Str::lower(Str::random(6));
-
-        $data['custom'][] = [
+        $link = [
             'id' => $id,
             'title' => mb_substr($title, 0, 120),
             'url' => $url,
@@ -147,17 +147,22 @@ class MenuOverlay
             'new_tab' => (bool) ($link['new_tab'] ?? false),
         ];
 
-        $this->write($data);
+        $this->update(function (array $data) use ($link) {
+            $data['custom'][] = $link;
+
+            return $data;
+        });
 
         return $id;
     }
 
     public function removeCustom(string $id): void
     {
-        $data = $this->read();
-        $data['custom'] = array_values(array_filter($data['custom'], fn (array $link) => ($link['id'] ?? null) !== $id));
+        $this->update(function (array $data) use ($id) {
+            $data['custom'] = array_values(array_filter($data['custom'], fn (array $link) => ($link['id'] ?? null) !== $id));
 
-        $this->write($data);
+            return $data;
+        });
     }
 
     /** Restore the menu code defines. */
@@ -188,9 +193,30 @@ class MenuOverlay
     /** @return array{items: array<string, array<string, mixed>>, custom: array<int, array<string, mixed>>} */
     protected function read(): array
     {
-        $data = is_file($this->path) ? json_decode((string) file_get_contents($this->path), true) : null;
-        $data = is_array($data) ? $data : [];
+        return $this->normalize(JsonFile::read($this->path));
+    }
 
+    /**
+     * Change the file under its lock, starting from what is on disk now, so
+     * two administrators editing the menu at once both keep their change.
+     *
+     * @param  callable(array{items: array<string, mixed>, custom: array<int, mixed>}): array{items: array<string, mixed>, custom: array<int, mixed>}  $change
+     */
+    protected function update(callable $change): void
+    {
+        JsonFile::update(
+            $this->path,
+            fn (array $data) => $change($this->normalize($data)),
+            JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES,
+        );
+    }
+
+    /**
+     * @param  array<mixed>  $data
+     * @return array{items: array<string, array<string, mixed>>, custom: array<int, array<string, mixed>>}
+     */
+    protected function normalize(array $data): array
+    {
         $items = [];
 
         // Entries saved before 0.2 are keyed by the old route names.
@@ -202,19 +228,5 @@ class MenuOverlay
             'items' => $items,
             'custom' => is_array($data['custom'] ?? null) ? array_values($data['custom']) : [],
         ];
-    }
-
-    /** @param  array{items: array<string, mixed>, custom: array<int, mixed>}  $data */
-    protected function write(array $data): void
-    {
-        $dir = dirname($this->path);
-
-        if (! is_dir($dir)) {
-            mkdir($dir, 0755, true);
-        }
-
-        $tmp = tempnam($dir, '.menus-');
-        file_put_contents($tmp, json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)."\n");
-        rename($tmp, $this->path);
     }
 }

@@ -265,6 +265,11 @@ Fixes from the 2026-11-17 review (`docs/notes.md`). Each one is covered by a tes
 - **Dependency range:** CI tests the lowest versions `composer.json` allows (PHP 8.3, `--prefer-lowest`), and the unreleased branches of Laravel 13 and Livewire 4 as an early warning that does not block a merge.
 - **Laravel 14 watch:** a non-blocking job runs the suite on Laravel's `master` branch with Testbench 12, where Laravel 14 will be built, so incompatibilities show up before it is released. `composer.json` allows `^14.0` once a Laravel 14 beta passes it.
 
+## Open findings — long-running processes and state files (B59, B35)
+
+- **No stale reads in long-running workers** (Octane, queue workers): settings, custom themes and plugin switches are re-read when another process changed their file (a file-signature check, one `stat`). The sidebar is rebuilt for every request from the registered items, so its titles follow each request's locale and new BREADs and menu builder changes show up at once.
+- **No lost writes:** menu builder changes, the dashboard layout, custom themes, settings and the settings audit log are written under a lock, on top of what is on disk at that moment; two administrators saving at the same time both keep their change.
+
 ## Findings — activity log coverage (B38)
 
 - **Restore and force delete** are logged as `restored` and `force_deleted` (a force delete was logged as `deleted`, a restore not at all). `BreadRecordRestored` is a new event; `BreadRecordDeleted` carries `$permanently`. Both actions are in the default `tardis.activity_log.log_events`; a published config that lists events needs them added.
