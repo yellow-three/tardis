@@ -194,3 +194,85 @@ jobs:
 
       - name: Run tests
         run: vendor/bin/pest
+
+  test-lowest:
+    name: test (lowest dependencies)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: 8.3
+          extensions: json, mbstring, openssl, sqlite, pdo, pdo_sqlite, gd
+          tools: composer
+
+      # The lowest version of every dependency composer.json allows: proves
+      # the declared minimums (laravel/framework ^13.0, livewire ^4.0, ...)
+      # are really enough.
+      - name: Install lowest dependencies
+        run: composer update --prefer-lowest --prefer-stable --no-interaction --no-progress --prefer-dist
+
+      - name: Run tests
+        run: vendor/bin/pest
+
+  test-next:
+    name: test (upcoming Laravel and Livewire)
+    runs-on: ubuntu-latest
+    # The unreleased branches of Laravel 13 and Livewire 4 move every day; a
+    # failure here is an early warning of the next release,
+    # not a reason to block a merge.
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: 8.5
+          extensions: json, mbstring, openssl, sqlite, pdo, pdo_sqlite, gd
+          tools: composer
+
+      - name: Install development versions
+        run: |
+          composer config minimum-stability dev
+          composer config prefer-stable true
+          composer require laravel/framework:"13.x-dev as 13.99" livewire/livewire:"dev-main as 4.99" --no-update --no-interaction
+          composer update --no-interaction --no-progress --prefer-dist
+
+      - name: Run tests
+        run: vendor/bin/pest
+
+  test-next-major:
+    name: test (Laravel master, next major)
+    runs-on: ubuntu-latest
+    # Laravel's master branch is where the next major (14) is built, and
+    # Testbench 12 follows it. Today master is still aliased 13.0.x-dev on
+    # Packagist; the alias below lets it stand in for a 13.x release, so this
+    # job starts testing Laravel 14 the day work on it lands, long before
+    # composer.json can allow ^14.0. Unreleased code: it warns, never blocks.
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: 8.5
+          extensions: json, mbstring, openssl, sqlite, pdo, pdo_sqlite, gd
+          tools: composer
+
+      - name: Install Laravel master
+        run: |
+          composer config minimum-stability dev
+          composer config prefer-stable true
+          composer require laravel/framework:"dev-master as 13.99" livewire/livewire:"dev-main as 4.99" --no-update --no-interaction
+          composer require --dev orchestra/testbench:"12.x-dev" --no-update --no-interaction
+          composer update --no-interaction --no-progress --prefer-dist
+
+      - name: Show the versions under test
+        run: composer show | grep -E '^(laravel/framework|livewire/livewire|orchestra/testbench) '
+
+      - name: Run tests
+        run: vendor/bin/pest
