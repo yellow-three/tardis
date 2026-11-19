@@ -9,7 +9,7 @@ test('@tardisStyles directive renders HTML', function () {
 
     expect($html)->toContain('<!-- Tardis Styles -->');
     expect($html)->toContain('<link rel="stylesheet"');
-    expect($html)->toContain('vendor/tardis/assets/app.css');
+    expect($html)->toContain('/_assets/')->toContain('.css');
 });
 
 test('@tardisScripts directive renders HTML', function () {

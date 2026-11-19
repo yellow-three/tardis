@@ -11,8 +11,7 @@ beforeEach(function () {
     File::ensureDirectoryExists(storage_path('framework'));
 
     $this->publicDir = sys_get_temp_dir().'/tardis-public-'.uniqid();
-    File::ensureDirectoryExists($this->publicDir.'/vendor/tardis/assets');
-    File::ensureDirectoryExists($this->publicDir.'/tardis-assets');
+    File::ensureDirectoryExists($this->publicDir);
     app()->usePublicPath($this->publicDir);
 });
 
@@ -76,15 +75,14 @@ test('the route cache check warns when a cached route file exists', function () 
     }
 });
 
-test('the assets check fails when published assets are missing', function () {
-    expect(reportCheck(DoctorReport::run(), 'Published assets')->isFailure())->toBeTrue();
+test('the assets check passes with nothing published: the package serves them', function () {
+    expect(reportCheck(DoctorReport::run(), 'Core assets')->isOk())->toBeTrue();
 });
 
-test('the assets check warns when published assets differ from the build', function () {
-    File::put($this->publicDir.'/vendor/tardis/assets/app.css', 'published');
-    File::put($this->publicDir.'/vendor/tardis/assets/app.js', 'published');
+test('the assets check warns about a copy left from publishing', function () {
+    File::ensureDirectoryExists($this->publicDir.'/vendor/tardis/assets');
 
-    expect(reportCheck(DoctorReport::run(), 'Published assets')->isWarning())->toBeTrue();
+    expect(reportCheck(DoctorReport::run(), 'Core assets')->isWarning())->toBeTrue();
 });
 
 test('the themes check needs no build artefact: a fresh install passes it', function () {

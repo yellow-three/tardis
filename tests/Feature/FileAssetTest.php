@@ -77,16 +77,17 @@ test('a registered file asset is written as a hashed link and script', function 
 });
 
 test('an asset scoped to the login pages is not written on admin pages', function () {
-    $this->assets->addCss(Asset::file($this->dir.'/plugin.css')->scope('auth'));
+    $plugin = Asset::file($this->dir.'/plugin.css')->scope('auth');
+    $this->assets->addCss($plugin);
 
-    expect($this->assets->styles('admin'))->not->toContain('_assets');
+    expect($this->assets->styles('admin'))->not->toContain($plugin->hash());
 
     // The login page is another request.
     app()->instance('request', Request::create('/admin/login'));
     app()->instance(AssetManager::class, $auth = new AssetManager(app()));
     $auth->addCss(Asset::file($this->dir.'/plugin.css')->scope('auth'));
 
-    expect($auth->styles('auth'))->toContain('_assets');
+    expect($auth->styles('auth'))->toContain($plugin->hash());
 });
 
 test('an asset can be limited to routes and to an ability', function () {

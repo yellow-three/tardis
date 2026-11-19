@@ -72,11 +72,13 @@ final class Asset
     /** Short content hash; the URL changes whenever the file does. */
     public function hash(): ?string
     {
-        if ($this->file === null || ! is_file($this->file) || ! is_readable($this->file)) {
-            return null;
-        }
+        return $this->file === null ? null : AssetHashes::of($this->file);
+    }
 
-        return substr((string) hash_file('sha256', $this->file), 0, 16);
+    /** Whether a script waits for the document to be parsed (scripts only). */
+    public function defer(bool $defer = true): self
+    {
+        return $this->with(defer: $defer);
     }
 
     /**
@@ -100,12 +102,17 @@ final class Asset
     private function with(...$changes): self
     {
         return new self(
-            $this->type,
-            $this->url,
-            $this->inline,
-            $this->integrity,
-            $this->defer,
-            ...array_merge(['file' => $this->file, 'scope' => $this->scope, 'routes' => $this->routes, 'ability' => $this->ability], $changes),
+            ...array_merge([
+                'type' => $this->type,
+                'url' => $this->url,
+                'inline' => $this->inline,
+                'integrity' => $this->integrity,
+                'defer' => $this->defer,
+                'file' => $this->file,
+                'scope' => $this->scope,
+                'routes' => $this->routes,
+                'ability' => $this->ability,
+            ], $changes),
         );
     }
 

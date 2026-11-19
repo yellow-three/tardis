@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Unit;
 
-use Illuminate\Http\Request;
+use Tardis\Assets\Asset;
 use Tardis\Assets\AssetManager;
 use Tardis\Contracts\Plugins\Features\Provider\CSS;
 use Tardis\Contracts\Plugins\Features\Provider\JS;
@@ -18,7 +18,7 @@ test('styles returns HTML with link tag', function () {
     $manager = app(AssetManager::class);
     $html = $manager->styles();
     expect($html)->toContain('<link rel="stylesheet"');
-    expect($html)->toContain('vendor/tardis/assets/app.css');
+    expect($html)->toContain('/_assets/'.Asset::file(AssetManager::compiledPath('app.css'))->hash().'.css');
 });
 
 test('scripts returns HTML header', function () {
@@ -83,152 +83,46 @@ test('plugin JS is included when plugin implements JS interface', function () {
     expect($html)->toContain('console.log("test-js");');
 });
 
-test('styles uses Vite dev server URL when hot file exists', function () {
+test('development mode loads the Vite client and the sources, the script as a classic script', function () {
     $hotPath = AssetManager::packageHotPath();
-    $hotDir = dirname($hotPath);
-
-    if (! is_dir($hotDir)) {
-        mkdir($hotDir, 0755, true);
-    }
-
-    file_put_contents($hotPath, 'http://localhost:5173');
+    $previous = is_file($hotPath) ? file_get_contents($hotPath) : null;
+    file_put_contents($hotPath, 'https://tardis.test:5173');
 
     try {
         $manager = new AssetManager(app());
-        $html = $manager->styles();
+        $styles = $manager->styles();
+        $scripts = $manager->scripts();
 
-        expect($html)->toContain('http://localhost:5173/resources/css/app.css');
-        expect($html)->not->toContain('vendor/tardis/assets/app.css');
+        expect($styles)->toContain('<script type="module" src="https://tardis.test:5173/@vite/client"></script>')
+            ->toContain('<link rel="stylesheet" href="https://tardis.test:5173/resources/css/app.css">')
+            ->not->toContain('/_assets/')
+            ->and($scripts)->toContain('<script src="https://tardis.test:5173/resources/js/app.js"></script>')
+            ->not->toContain('type="module"');
     } finally {
-        @unlink($hotPath);
+        $previous === null ? @unlink($hotPath) : file_put_contents($hotPath, $previous);
     }
 });
 
-test('styles uses production URL when hot file does not exist', function () {
-    $hotPath = AssetManager::packageHotPath();
-    @unlink($hotPath);
+test('the core assets are served from the package, with nothing published', function () {
+    @unlink(AssetManager::packageHotPath());
 
     $manager = new AssetManager(app());
-    $html = $manager->styles();
+    $styles = $manager->styles();
+    $scripts = $manager->scripts();
+    [$css, $js] = $manager->coreAssets();
 
-    expect($html)->toContain('vendor/tardis/assets/app.css');
-    expect($html)->not->toContain('/resources/css/app.css');
+    expect($styles)->toContain('/_assets/'.$css->hash().'.css')->not->toContain('vendor/tardis')
+        ->and($scripts)->toContain('<script src="'.route('tardis.assets', ['hash' => $js->hash(), 'extension' => 'js']).'"></script>')
+        ->and($manager->findByHash((string) $css->hash(), 'css'))->not->toBeNull()
+        ->and($manager->findByHash((string) $js->hash(), 'js'))->not->toBeNull();
 });
 
-// ThemePlugin is a theme source now; see ThemeSourceTest.
-
-test('published CSS URL carries a content hash so redeploys bust the cache', function () {
+test('the core script is not deferred: it has to run before Livewire starts Alpine', function () {
     @unlink(AssetManager::packageHotPath());
 
-    $cssPath = public_path('vendor/tardis/assets/app.css');
-    $dir = dirname($cssPath);
-    $createdDir = ! is_dir($dir);
+    [, $js] = (new AssetManager(app()))->coreAssets();
 
-    if ($createdDir) {
-        mkdir($dir, 0755, true);
-    }
-
-    file_put_contents($cssPath, '.tardis-test{color:red}');
-
-    try {
-        $manager = new AssetManager(app());
-        $html = $manager->styles();
-
-        expect($html)->toContain('vendor/tardis/assets/app.css?v=');
-        expect($html)->toContain('?v='.substr(md5_file($cssPath), 0, 8));
-    } finally {
-        @unlink($cssPath);
-
-        if ($createdDir) {
-            @rmdir($dir);
-        }
-    }
-});
-
-test('CSS URL stays bare when the bundle was never published', function () {
-    @unlink(AssetManager::packageHotPath());
-
-    $cssPath = public_path('vendor/tardis/assets/app.css');
-    $existed = is_file($cssPath);
-    $original = $existed ? file_get_contents($cssPath) : null;
-
-    if ($existed) {
-        @unlink($cssPath);
-    }
-
-    try {
-        $manager = new AssetManager(app());
-        $html = $manager->styles();
-
-        expect($html)->toContain('vendor/tardis/assets/app.css');
-        expect($html)->not->toContain('?v=');
-    } finally {
-        if ($existed) {
-            file_put_contents($cssPath, $original);
-        }
-    }
-});
-
-test('CSS content hash changes when the published bundle changes', function () {
-    @unlink(AssetManager::packageHotPath());
-
-    $cssPath = public_path('vendor/tardis/assets/app.css');
-    $dir = dirname($cssPath);
-    $createdDir = ! is_dir($dir);
-
-    if ($createdDir) {
-        mkdir($dir, 0755, true);
-    }
-
-    $existed = is_file($cssPath);
-    $original = $existed ? file_get_contents($cssPath) : null;
-
-    try {
-        file_put_contents($cssPath, '.a{color:red}');
-        $firstHtml = (new AssetManager(app()))->styles();
-
-        file_put_contents($cssPath, '.b{color:blue}');
-        // A later request: what was written is remembered per request.
-        app()->instance('request', Request::create('/admin'));
-        $secondHtml = (new AssetManager(app()))->styles();
-
-        preg_match('/app\.css\?v=([a-f0-9]+)/', $firstHtml, $first);
-        preg_match('/app\.css\?v=([a-f0-9]+)/', $secondHtml, $second);
-
-        expect($first[1] ?? null)->not->toBeNull();
-        expect($second[1] ?? null)->not->toBeNull();
-        expect($first[1])->not->toBe($second[1]);
-    } finally {
-        if ($existed) {
-            file_put_contents($cssPath, $original);
-        } else {
-            @unlink($cssPath);
-        }
-
-        if ($createdDir) {
-            @rmdir($dir);
-        }
-    }
-});
-
-test('dev mode CSS URL is never given a content hash', function () {
-    $hotPath = AssetManager::packageHotPath();
-    $hotDir = dirname($hotPath);
-
-    if (! is_dir($hotDir)) {
-        mkdir($hotDir, 0755, true);
-    }
-
-    file_put_contents($hotPath, 'http://localhost:5173');
-
-    try {
-        $html = (new AssetManager(app()))->styles();
-
-        expect($html)->toContain('http://localhost:5173/resources/css/app.css');
-        expect($html)->not->toContain('?v=');
-    } finally {
-        @unlink($hotPath);
-    }
+    expect($js->defer)->toBeFalse()->and($js->scope)->toBe('both');
 });
 
 test('configured additional css and js are emitted after the package assets', function () {

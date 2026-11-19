@@ -8,10 +8,7 @@
 
     <title>{{ isset($title) ? __($title) : __('tardis::shell.brand.admin') }} - {{ __('tardis::shell.brand.name') }}</title>
 
-    <x-tardis::theme-boot />
-
-    @tardisStyles
-    @livewireStyles
+    <x-tardis::head :theme="$tardisTheme" />
 </head>
 <body class="min-h-screen bg-base-200">
     <a href="#main-content" class="tardis-skip-link btn btn-primary btn-sm">{{ __('tardis::shell.skip_to_content') }}</a>
@@ -37,8 +34,6 @@
     <x-tardis::toasts />
     <x-tardis::loading-bar />
 
-    @tardisScripts
-
-    @livewireScripts
+    <x-tardis::scripts />
 </body>
 </html>
