@@ -56,7 +56,7 @@ Read the report, then run it without `--dry-run`. `--only=bread,menus,settings,r
 | `voyager.*` route names | `tardis.*`: `tardis.bread.index` (with `slug`), `tardis.bread.edit`, `tardis.dashboard` |
 | custom BREAD controller | `components` in the definition replaces a screen; actions add buttons ([CUSTOMIZATION.md](CUSTOMIZATION.md)) |
 | `voyager-*` icons | Heroicon names (`document-text`, `photo`, …) in the builder's icon picker |
-| BREAD events (`BreadDataAdded` …) | `Tardis\Events\BreadRecordCreated`, `BreadRecordUpdated`, `BreadRecordDeleted` |
+| BREAD events (`BreadDataAdded` …) | `Tardis\Events\BreadRecordCreated`, `BreadRecordUpdated`, `BreadRecordDeleted` (`$permanently` on a force delete), `BreadRecordRestored` |
 
 Translated content needs a data migration: Voyager keeps translations in its `translations` table, while Tardis keeps a locale map in the column itself. Copy each translation into the column (`{"en": "…", "tr": "…"}`) before you remove Voyager.
 

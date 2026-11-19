@@ -94,13 +94,14 @@ Authorization plugin'i yetenekleri `tardis_permissions` / `tardis_roles` üzerin
 
 | Varlık | Nasıl sunulur | Önbellek |
 |---|---|---|
-| Çekirdek `app.css` / `app.js` | `vendor:publish --tag=tardis-assets` ile `public/vendor/tardis/assets` altına kopyalanır | Sabit dosya adı + `?v=<md5>`; yayınlanan kopya paket güncellenince bayatlar (`tardis:doctor` bildirir) |
+| Çekirdek `app.css` / `app.js` | Paketten (`resources/compiled/assets`), plugin dosyalarıyla aynı hash'li rota; yayınlama yok | İçerik hash'i + `immutable`; hash dosya imzasıyla `storage/framework/cache/tardis-asset-hashes.php`'de tutulur (istek başına bir `stat`) |
 | Plugin / host dosyası (`Asset::file()`) | `/{prefix}/_assets/{hash}.css|js` rotası (`AssetController`), yalnızca kayıtlı varlıklar | İçerik hash'i + `immutable`; yayınlama gerekmez |
-| Satır içi (`Asset::inlineCss/Js`, temalar, `appearance.custom_css`, `window.__TARDIS__`) | Sayfaya yazılır | Yok; CSP için nonce (`tardis.csp.nonce` ya da Vite nonce'u) |
+| Satır içi (`Asset::inlineCss/Js`, temalar, `appearance.custom_css`) | Sayfaya yazılır | Yok; CSP için nonce (`tardis.csp.nonce` ya da Vite nonce'u) |
+| Sayfa verisi (`#tardis-boot`) | `<script type="application/json">` veri bloğu; çekirdek betik okur ve `window.__TARDIS__`'e de koyar | Yok; çalıştırılmadığı için nonce gerekmez (yalnızca `system` modundaki tek satır nonce taşır) |
 
-`@tardisStyles` sırası: çekirdek `app.css` → tüm temalar → `appearance.custom_css` → `Tardis::addCss()` → plugin CSS → `tardis.assets.css`. `@tardisScripts` sırası: çekirdek `app.js` → `Tardis::addJs()` → plugin JS → `tardis.assets.js`; ardından `@livewireScripts`.
+`@tardisStyles` sırası: çekirdek `app.css` → tüm temalar → `appearance.custom_css` → `Tardis::addCss()` → plugin CSS → `tardis.assets.css`. `@tardisScripts` sırası: çekirdek `app.js` → `Tardis::addJs()` → plugin JS → `tardis.assets.js`; ardından `@livewireScripts`. Sıra layout'ta değil bileşenlerde: `<x-tardis::head :theme="$tardisTheme" />` (tema verisi, `@tardisStyles`, `@livewireStyles`) ve `<x-tardis::scripts />` (`@tardisScripts`, `@livewireScripts`). Layout temayı bir kez çözer ve `head`'e verir.
 
-Geliştirme modu: `npm run dev` `resources/hot` dosyasını yazar (`vite-plugins/hot-file.js`); dosya varken `AssetManager` çekirdek varlıkları Vite sunucusundan yükler. Laravel'in `Vite` facade'ı ve manifest'i kullanılmaz.
+Geliştirme modu: `npm run dev` `resources/hot` dosyasını yazar (`vite-plugins/hot-file.js`); dosya varken `AssetManager` çekirdek varlıkları Vite sunucusundan yükler: `@vite/client` (CSS sıcak yenilemesi), stil dosyası ve çekirdek betik — betik üretimdeki gibi klasik betik, aynı noktada çalışır. Adres Vite'ın `server.origin` / `server.https` / `server.host` ayarlarından gelir; `TARDIS_VITE_URL` hepsini ezer. Laravel'in `Vite` facade'ı ve manifest'i kullanılmaz.
 
 **Sonuç**: Çekirdek CSS/JS'i değiştirdikten sonra `npm run build` çalıştır ve `resources/compiled`'ı aynı commit'e koy. Plugin varlığı için `public/`'e dosya kopyalama; `Asset::file()` kullan. Paket CSS'i yalnızca paketin kendi view'larındaki Tailwind sınıflarını içerir: plugin/host sayfası DaisyUI bileşen sınıflarını kullanır, gerisini kendi CSS'iyle getirir.
 

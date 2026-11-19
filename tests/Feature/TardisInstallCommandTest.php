@@ -38,13 +38,13 @@ afterEach(function () {
     File::deleteDirectory(public_path('vendor/tardis'));
 });
 
-test('install migrates, seeds permissions and publishes assets', function () {
+test('install migrates and seeds permissions, with nothing to publish', function () {
     $this->artisan('tardis:install', ['--force' => true])->assertSuccessful();
 
     expect(Schema::hasTable('tardis_permissions'))->toBeTrue()
         ->and(Permission::query()->count())->toBeGreaterThan(0)
         ->and(Role::where('slug', 'super-admin')->exists())->toBeTrue()
-        ->and(File::exists(public_path('vendor/tardis/assets/app.css')))->toBeTrue();
+        ->and(File::exists(public_path('vendor/tardis/assets/app.css')))->toBeFalse();
 });
 
 test('install creates an administrator when an email is given', function () {

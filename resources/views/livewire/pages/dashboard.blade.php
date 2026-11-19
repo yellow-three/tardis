@@ -5,6 +5,7 @@ use Livewire\Attributes\Title;
 use Livewire\Component;
 use Tardis\Auth\Abilities;
 use Tardis\Auth\BreadAuthorization;
+use Tardis\Bread\ActivityLogger;
 use Tardis\Dashboard\DashboardLayout;
 use Tardis\Plugins\PluginManager;
 use Tardis\Dashboard\WidgetManager;
@@ -42,6 +43,7 @@ new #[Title('tardis::dashboard.dashboard')] #[Layout('tardis::layouts.admin')] c
         $hidden = app(DashboardLayout::class)->all()[$id]['hidden'] ?? false;
 
         app(DashboardLayout::class)->change($id, ['hidden' => ! $hidden]);
+        $this->audit($hidden ? 'widget_shown' : 'widget_hidden', ['widget' => $id]);
     }
 
     public function resize(string $id, int $width): void
@@ -49,6 +51,7 @@ new #[Title('tardis::dashboard.dashboard')] #[Layout('tardis::layouts.admin')] c
         $this->authorizeLayout();
 
         app(DashboardLayout::class)->change($id, ['width' => $width]);
+        $this->audit('widget_resized', ['widget' => $id, 'width' => $width]);
     }
 
     public function move(string $id, int $direction): void
@@ -68,6 +71,8 @@ new #[Title('tardis::dashboard.dashboard')] #[Layout('tardis::layouts.admin')] c
         foreach ($ids as $position => $widgetId) {
             app(DashboardLayout::class)->change($widgetId, ['order' => ($position + 1) * 10]);
         }
+
+        $this->audit('widget_moved', ['widget' => $id]);
     }
 
     public function resetLayout(): void
@@ -75,6 +80,15 @@ new #[Title('tardis::dashboard.dashboard')] #[Layout('tardis::layouts.admin')] c
         $this->authorizeLayout();
 
         app(DashboardLayout::class)->reset();
+        $this->audit('layout_reset');
+    }
+
+    /**
+     * @param  array<string, mixed>  $values
+     */
+    protected function audit(string $action, array $values = []): void
+    {
+        app(ActivityLogger::class)->audit('tardis.dashboard', $action, $values);
     }
 
     protected function authorizeLayout(): void

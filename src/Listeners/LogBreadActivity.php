@@ -10,6 +10,7 @@ use Tardis\Bread\ActivityLogger;
 use Tardis\Bread\BreadManager;
 use Tardis\Events\BreadRecordCreated;
 use Tardis\Events\BreadRecordDeleted;
+use Tardis\Events\BreadRecordRestored;
 use Tardis\Events\BreadRecordUpdated;
 use Tardis\Models\ActivityLog;
 
@@ -23,16 +24,18 @@ class LogBreadActivity
 {
     public function __construct(protected ActivityLogger $logger) {}
 
-    public function handle(BreadRecordCreated|BreadRecordUpdated|BreadRecordDeleted $event): void
+    public function handle(BreadRecordCreated|BreadRecordUpdated|BreadRecordDeleted|BreadRecordRestored $event): void
     {
         $action = match (true) {
             $event instanceof BreadRecordCreated => 'created',
             $event instanceof BreadRecordUpdated => 'updated',
+            $event instanceof BreadRecordRestored => 'restored',
+            $event->permanently => 'force_deleted',
             default => 'deleted',
         };
 
         if (! config('tardis.activity_log.enabled', true)
-            || ! in_array($action, (array) config('tardis.activity_log.log_events', ['created', 'updated', 'deleted']), true)) {
+            || ! in_array($action, (array) config('tardis.activity_log.log_events', ['created', 'updated', 'deleted', 'restored', 'force_deleted']), true)) {
             return;
         }
 
@@ -70,7 +73,7 @@ class LogBreadActivity
     /**
      * @return array<int, string>
      */
-    protected function redactedKeys(BreadRecordCreated|BreadRecordUpdated|BreadRecordDeleted $event): array
+    protected function redactedKeys(BreadRecordCreated|BreadRecordUpdated|BreadRecordDeleted|BreadRecordRestored $event): array
     {
         $keys = $event->model->getHidden();
         $definition = app(BreadManager::class)->find($event->slug);

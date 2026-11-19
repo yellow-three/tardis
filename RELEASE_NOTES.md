@@ -270,3 +270,15 @@ Fixes from the 2026-11-17 review (`docs/notes.md`). Each one is covered by a tes
 
 - **No stale reads in long-running workers** (Octane, queue workers): settings, custom themes and plugin switches are re-read when another process changed their file (a file-signature check, one `stat`). The sidebar is rebuilt for every request from the registered items, so its titles follow each request's locale and new BREADs and menu builder changes show up at once.
 - **No lost writes:** menu builder changes, the dashboard layout, custom themes, settings and the settings audit log are written under a lock, on top of what is on disk at that moment; two administrators saving at the same time both keep their change.
+
+## Findings — activity log coverage (B38)
+
+- **Restore and force delete** are logged as `restored` and `force_deleted` (a force delete was logged as `deleted`, a restore not at all). `BreadRecordRestored` is a new event; `BreadRecordDeleted` carries `$permanently`. Both actions are in the default `tardis.activity_log.log_events`; a published config that lists events needs them added.
+- **Admin changes outside BREAD** are logged too: the menu builder (`tardis.admin_menu`), site menus (`tardis.site_menu`), the theme editor (`tardis.theme`) and the dashboard layout (`tardis.dashboard`). The activity log page filters and colours the new actions.
+
+## Findings — assets (B55, B56, B58, B72)
+
+- **No more publishing:** the core stylesheet and script are served from the package through the content-hash route plugins already used, so an upgraded package is live on the next page and a missing `vendor:publish` no longer leaves the panel unstyled. Hashes are cached by file signature (one `stat` per file and request) instead of an `md5_file()` of both files on every page.
+- **Development mode matches production:** `npm run dev` adds the Vite client (stylesheet changes apply without a reload) and loads the core script as the same classic script the build is, at the same point. The hot file follows Vite's `server.origin`, `https` and `host` (or `TARDIS_VITE_URL`) instead of a fixed `http://localhost`.
+- **Asset order in one place:** `<x-tardis::head />` and `<x-tardis::scripts />` hold the order the layouts relied on (core script before Livewire).
+- **Smaller things:** the theme choice is resolved once per request; the page data is a JSON block that needs no CSP nonce; stale build folders are gone.

@@ -8,6 +8,8 @@ return [
     'created' => 'Created',
     'updated' => 'Updated',
     'deleted' => 'Deleted',
+    'restored' => 'Restored',
+    'force_deleted' => 'Permanently deleted',
     'action' => 'Action',
     'model' => 'Model',
     'user' => 'User',

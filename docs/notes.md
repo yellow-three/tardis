@@ -12,7 +12,7 @@ Bu dosya **yalnızca aktif/açık** bulguları, denemeleri ve açık işleri tut
 
 Kapsam: `src/`, `routes/`, `resources/views/pages`, migration'lar, CI ve dokümanlar okundu. Başlangıç durumu: `composer test` → 918 passed (2369 assertions), `composer lint` temiz. **Doğrulama** sütunu: *test* = geçici bir Pest testiyle yeniden üretildi (test sonra silindi), *kod* = yalnızca kod okumasıyla tespit edildi, çalıştırılarak doğrulanmadı. Hiçbir bulgu için kod değişikliği yapılmadı.
 
-**Plan bağlantısı (2026-11-17, kabul edildi):** düzeltme sırası `docs/backlog.md` → *1.0 yol haritası*. **R34 (Faz 9, P0):** kapandı (2026-11-17, `fix/phase-9a-access-and-auth-flows`): B17, B18, B19, B20, B22, B23, B24, B25, B26, B31, B32, B68, B69, B70 — satırları silindi, ayrıntı `RELEASE_NOTES.md` ve git geçmişinde. **R35 (Faz 10, P1):** büyük ölçüde kapandı (PR #37 ve `fix/phase-10b-remaining`): B21, B27, B28, B30, B36, B39, B40, B43 silindi. Kalan kısımlar satırlarında: B29, B34, B35, B38, B41, B42. **R37:** B33. **R39:** B41. **R45 (Faz 13):** B44–B47. **R56 (Faz 10b):** ilk parça (`feature/phase-10b-theme-assets`): B52, B53, B54, B57 kapandı, B58 kısmen. Açık: B55 (çekirdek varlıkların hash'li rotadan sunulması), B56 (Vite geliştirme modu), B58'in kalanı, tema editöründe `shape` düzenleme. **R57 (Faz 10c):** hata düzeltmeleri dilimi (`fix/phase-10c-core-api`): B60–B66, B71 kapandı; B59, B72 kısmen. Açık: B59/B72'nin kalanı, B67, B73–B76 ve yeniden adlandırma PR'ı. Her düzeltme, bulguyu yeniden üreten kalıcı bir testle başlar; kapanan satır bu dosyadan silinir.
+**Plan bağlantısı (2026-11-17, kabul edildi):** düzeltme sırası `docs/backlog.md` → *1.0 yol haritası*. **R34 (Faz 9, P0):** kapandı (2026-11-17, `fix/phase-9a-access-and-auth-flows`): B17, B18, B19, B20, B22, B23, B24, B25, B26, B31, B32, B68, B69, B70 — satırları silindi, ayrıntı `RELEASE_NOTES.md` ve git geçmişinde. **R35 (Faz 10, P1):** büyük ölçüde kapandı (PR #37 ve `fix/phase-10b-remaining`): B21, B27, B28, B30, B36, B39, B40, B43 silindi. Kalan kısımlar satırlarında: B29, B34, B35, B41, B42 (B38 kapandı). **R37:** B33. **R39:** B41. **R45 (Faz 13):** B44–B47. **R56 (Faz 10b):** ilk parça (`feature/phase-10b-theme-assets`): B52, B53, B54, B57 kapandı, B58 kısmen. Açık: tema editöründe `shape` düzenleme (B55, B56, B58 kapandı). **R57 (Faz 10c):** hata düzeltmeleri dilimi (`fix/phase-10c-core-api`): B60–B66, B71 kapandı; B59, B72 kısmen. Açık: B67, B73–B76 ve yeniden adlandırma PR'ı. Her düzeltme, bulguyu yeniden üreten kalıcı bir testle başlar; kapanan satır bu dosyadan silinir.
 
 ## Yüksek (HIGH)
 
@@ -31,7 +31,6 @@ Kapsam: `src/`, `routes/`, `resources/views/pages`, migration'lar, CI ve doküma
 |---|-------|---------|
 | B34 | Medya: `listFiles()` dosya başına 3 depolama çağrısı yapıyor (S3'te yavaş) ve sayfalama yok; varsayılan listede `svg` var (script taşıyabilir, temizlenmiyor). (`LIKE` kaçışı Faz 10'da düzeltildi.) | `src/Manager/MediaManager.php` |
 | B35 | **Durum dosyaları: kalan kısım.** (Bütün durum dosyaları — eklentiler, tercihler, menü bindirmesi, dashboard, temalar, ayarlar, ayar denetim kaydı — kilit altında ve değişiklik bazında yazılıyor; uzun süreli süreçler dosya imzasıyla değişikliği görüyor.) Açık: `storage/` çok sunuculu/efemeral dağıtımlarda paylaşılmıyor, BREAD tanımları deploy ile taşınmıyor (R51). | `storage/tardis/*` |
-| B38 | **Activity log: kalan kısım.** Giriş/çıkış, rol ve kullanıcı-rol değişikliği, plugin aç/kapa, IP/user-agent ve indeksler Faz 10'da eklendi. (Tablo adı Faz 10c'de `tardis_activity_logs` oldu.) Açık: geri yükleme (`RestoreAction`) loglanmıyor, kalıcı silme `deleted` olarak görünüyor; ayar değişiklikleri dışında kalan yönetici işlemleri (menü, tema, dashboard) yazılmıyor. | `src/Listeners/LogBreadActivity.php`, `src/Bread/Actions/*` |
 
 ## Depo / paketleme / CI
 
@@ -44,9 +43,6 @@ Hepsi kod okumasıyla tespit edildi; hedef yapı ve gerekçeler `docs/backlog.md
 
 | # | Bulgu | Kod ref |
 |---|-------|---------|
-| B55 | **Çekirdek varlıklar yayınlamaya bağlı ve bayatlıyor.** `app.css`/`app.js` `public/vendor/tardis/assets`'e kopyalanmadan panel stilsiz açılır; `composer update` sonrası yeniden yayınlanmazsa eski sürüm sunulur. Plugin varlıkları ise aynı pakette hash'li rotadan, yayınlamasız sunuluyor. Ek olarak `?v=` için her istekte iki dosyanın `md5_file()`'ı hesaplanıyor. | `src/Manager/AssetManager.php` (`publishedVersion`, `coreScript`), `src/Http/Controllers/AssetController.php` |
-| B56 | **Geliştirme modu üretimden farklı çalışıyor.** `resources/hot` varken çekirdek betik `type="module"` olarak yükleniyor; üretimde ise "Livewire Alpine'i başlatmadan önce çalışmalı" gerekçesiyle klasik betik. `@vite/client` eklenmediği için CSS/JS sıcak yenilemesi yok. Hot dosyası adresi `http://localhost` sabit (https `.test` sitesinde ve farklı host'ta çalışan Vite'ta uyumsuz). | `src/Manager/AssetManager.php` (`coreScript`, `styles`), `vite-plugins/hot-file.js` |
-| B58 | **Küçük artıklar.** Çalışma kopyasında eski çıktı klasörleri duruyor (`dist/`, `public/tardis-assets/themes-manifest.json`; ikisi de git dışında); tema seçimi bir istekte iki kez çözülüyor (layout + `theme-boot`); `window.__TARDIS__` çalıştırılabilir satır içi betik olarak yazılıyor (veri bloğu olsaydı CSP nonce'u gerekmezdi). (Plugin iskeletinin Vite sürümü Faz 10b'de hizalandı.) | `resources/views/layouts/*.blade.php`, `resources/views/components/theme-boot.blade.php` |
 
 ## Servis sağlayıcı, facade ve `Tardis` sınıfı (2026-11-17 incelemesi)
 
@@ -61,7 +57,6 @@ Livewire sürümü: 4.4.7 (`composer.lock`). *test* = geçici Pest testiyle yeni
 
 | # | Bulgu | Kod ref | Doğrulama |
 |---|-------|---------|-----------|
-| B72 | **Varlık sırası layout'a emanet.** (Kararlı direktif anahtarı ve tek anonim bileşen mekanizması Faz 10c'de yapıldı.) Açık: `@tardisScripts`'in `@livewireScripts`'ten önce gelmesi yalnızca layout sırasına emanet; layout'lar için `<x-tardis::head />` / `<x-tardis::scripts />` bileşenleri sırayı tek yerde tutmalı. | `resources/views/layouts/*.blade.php` |
 | B75 | **BREAD sayfalarının snapshot'ı.** (`wire:key`, `#[Computed]`, `navigate: true` ve yükleme sınırı belgesi Faz 10c'de yapıldı.) Açık: BREAD sayfaları tanımın tamamını `#[Locked] array $bread` olarak her istekte snapshot'ta taşıyor; yalnızca `slug` taşınıp tanım sunucuda yeniden okunabilir (istek başına okuma `JsonBreadSource` içinde zaten önbellekte). | `resources/views/livewire/pages/bread/**` | kod |
 
 ---
