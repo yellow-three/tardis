@@ -8,9 +8,9 @@ use Livewire\Component;
 use Livewire\WithFileUploads;
 use Tardis\Auth\BreadAuthorization;
 use Tardis\Bread\BreadDefinition;
-use Tardis\Bread\BreadManager;
 use Tardis\Bread\BreadSaver;
 use Tardis\Bread\FieldValidationRules;
+use Tardis\Bread\Livewire\ReadsBreadDefinition;
 use Tardis\Bread\MissingColumnsException;
 use Tardis\Formfields\Formfield;
 use Tardis\Formfields\FormfieldManager;
@@ -18,6 +18,7 @@ use Tardis\Support\Translation;
 
 new #[Title('tardis::shell.titles.create')] #[Layout('tardis::layouts.admin')] class extends Component
 {
+    use ReadsBreadDefinition;
     use WithFileUploads;
 
     /** Field types whose control searches the related records. */
@@ -25,9 +26,6 @@ new #[Title('tardis::shell.titles.create')] #[Layout('tardis::layouts.admin')] c
 
     #[Locked]
     public string $slug = '';
-
-    #[Locked]
-    public array $bread = [];
 
     public array $form = [];
 
@@ -55,16 +53,17 @@ new #[Title('tardis::shell.titles.create')] #[Layout('tardis::layouts.admin')] c
         }
     }
 
+    /** @return array<string, mixed> read from the slug on every request */
+    #[Computed]
+    public function bread(): array
+    {
+        return $this->breadArray();
+    }
+
     public function mount(string $slug): void
     {
         $this->slug = $slug;
-        $definition = app(BreadManager::class)->find($slug);
-
-        if (! $definition) {
-            abort(404);
-        }
-
-        $this->bread = $definition->toDisplayArray();
+        $this->definition(); // a missing definition is a 404 before anything else
 
         if (! BreadDefinition::isModelClass($this->bread['model'] ?? null)) {
             abort(404);

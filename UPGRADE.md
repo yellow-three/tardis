@@ -260,3 +260,7 @@ A BREAD override route is named after the new action name (`tardis.bread.create.
 
 - `svg` is no longer in the default `tardis.media.allowed_mimes`. A published config keeps its own list; remove `svg` there too unless every uploader is trusted (an SVG can carry script).
 - New `tardis.media.per_page` (60): the media screen and picker show one page of a folder. `$files` on those components holds that page only; `$totalFiles` is the count over all pages.
+
+## BREAD pages
+
+- `$bread` on the BREAD pages is a computed property now (`$this->bread`), not public state: a replaced screen that extended one of them, or a test that read `bread` from the snapshot or set `bread.*`, reads `$this->bread` or the definition from `BreadManager` instead.

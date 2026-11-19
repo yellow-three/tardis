@@ -65,3 +65,35 @@ test('saving the edit page still leaves the other columns alone', function () {
         ->title->toBe('New title')
         ->internal_note->toBe('never-show-this');
 });
+
+test('the definition stays on the server: only the slug is in the snapshot', function (string $component, array $params) {
+    $page = Livewire::test($component, ['slug' => 'notes'] + ($params === [] ? [] : ['id' => $this->note->id]))->assertOk();
+
+    expect($page->snapshot['data'])->not->toHaveKey('bread')
+        ->and(json_encode($page->snapshot))->not->toContain(addslashes(SnapshotScopeNote::class))
+        ->and($page->snapshot['data']['slug'])->toBe('notes');
+})->with([
+    'index' => ['tardis::pages.bread.index', []],
+    'create' => ['tardis::pages.bread.create', []],
+    'read' => ['tardis::pages.bread.read', ['id']],
+    'edit' => ['tardis::pages.bread.edit', ['id']],
+]);
+
+test('an open page follows a definition changed in the meantime', function () {
+    $page = Livewire::test('tardis::pages.bread.index', ['slug' => 'notes'])->assertSee('Notes');
+
+    $definition = json_decode(File::get($this->breadPath.'/notes.json'), true);
+    File::put($this->breadPath.'/notes.json', json_encode(['name_plural' => 'Memos'] + $definition));
+    app()->instance(JsonBreadSource::class, new JsonBreadSource($this->breadPath));
+
+    $page->call('$refresh')->assertSee('Memos')->assertDontSee('Notes');
+});
+
+test('a definition removed while the page is open is a 404 on the next request', function () {
+    $page = Livewire::test('tardis::pages.bread.index', ['slug' => 'notes'])->assertOk();
+
+    File::delete($this->breadPath.'/notes.json');
+    app()->instance(JsonBreadSource::class, new JsonBreadSource($this->breadPath));
+
+    $page->call('$refresh')->assertStatus(404);
+});
