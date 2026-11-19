@@ -15,13 +15,14 @@ use Tardis\Bread\Action;
 use Tardis\Bread\ActionManager;
 use Tardis\Bread\BreadDefinition;
 use Tardis\Bread\BreadListing;
-use Tardis\Bread\BreadManager;
 use Tardis\Bread\BreadQuery;
+use Tardis\Bread\Livewire\ReadsBreadDefinition;
 use Tardis\Formfields\Formfield;
 use Tardis\Formfields\FormfieldManager;
 
 new #[Title('tardis::shell.titles.bread')] #[Layout('tardis::layouts.admin')] class extends Component
 {
+    use ReadsBreadDefinition;
     use WithPagination;
 
     #[Locked]
@@ -51,9 +52,6 @@ new #[Title('tardis::shell.titles.bread')] #[Layout('tardis::layouts.admin')] cl
     /** @var array<string, string> inline per-column search terms, keyed by column */
     public array $columnSearch = [];
 
-    #[Locked]
-    public array $bread = [];
-
     /**
      * Runs on every request, not only on mount: Livewire keeps component state
      * between requests, so a permission removed while the page is open has to
@@ -67,23 +65,19 @@ new #[Title('tardis::shell.titles.bread')] #[Layout('tardis::layouts.admin')] cl
         }
     }
 
+    /** @return array<string, mixed> read from the slug on every request */
+    #[Computed]
+    public function bread(): array
+    {
+        return $this->breadArray();
+    }
+
     public function mount(string $slug): void
     {
         $this->slug = $slug;
-        $definition = app(BreadManager::class)->find($slug);
-
-        if (! $definition) {
-            abort(404);
-        }
-
-        $this->bread = $definition->toDisplayArray();
+        $this->definition(); // a missing definition is a 404 before anything else
 
         app(BreadAuthorization::class)->authorize('browse', $this->slug);
-    }
-
-    protected function bread(): BreadDefinition
-    {
-        return BreadDefinition::fromArray($this->bread);
     }
 
     public function updatingSearch(): void
@@ -142,7 +136,7 @@ new #[Title('tardis::shell.titles.bread')] #[Layout('tardis::layouts.admin')] cl
 
     public function query(): BreadQuery
     {
-        return new BreadQuery($this->bread());
+        return new BreadQuery($this->definition());
     }
 
     #[Computed]
