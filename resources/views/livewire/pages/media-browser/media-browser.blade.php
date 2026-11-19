@@ -146,7 +146,7 @@
         {{-- Results Count + Select All --}}
         @if (!empty($files) && empty($selectedFiles))
             <div class="flex justify-between items-center text-sm font-semibold text-base-content/60">
-                <span>{{ __('tardis::media.all_results', ['count' => count($files)]) }}</span>
+                <span>{{ __('tardis::media.all_results', ['count' => $totalFiles]) }}</span>
                 <button wire:click="selectAll" class="hover:text-primary transition-colors">{{ __('tardis::media.select_all', ['count' => count($files)]) }}</button>
             </div>
         @endif
@@ -323,6 +323,8 @@
                 </div>
             </div>
         @endif
+
+        <x-tardis::media-pager :page="$page" :last-page="$this->lastPage()" />
 
     </div>
 

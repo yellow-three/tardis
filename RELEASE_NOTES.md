@@ -281,3 +281,9 @@ Fixes from the 2026-11-17 review (`docs/notes.md`). Each one is covered by a tes
 - **Development mode matches production:** `npm run dev` adds the Vite client (stylesheet changes apply without a reload) and loads the core script as the same classic script the build is, at the same point. The hot file follows Vite's `server.origin`, `https` and `host` (or `TARDIS_VITE_URL`) instead of a fixed `http://localhost`.
 - **Asset order in one place:** `<x-tardis::head />` and `<x-tardis::scripts />` hold the order the layouts relied on (core script before Livewire).
 - **Smaller things:** the theme choice is resolved once per request; the page data is a JSON block that needs no CSP nonce; stale build folders are gone.
+
+## Findings — media listing (B34)
+
+- **One request per folder:** the media screen and the media picker read size, modification time and type from the folder listing (the type from the extension) instead of asking the disk three times per file, which on S3 meant three requests per file.
+- **Paging:** both show `tardis.media.per_page` entries (60) at a time; the total stays on screen. A selection on the media screen is per page, the picker keeps it across pages.
+- **No SVG by default:** `svg` is out of the default `tardis.media.allowed_mimes`. An SVG can carry script and is served as uploaded; add it back only for uploaders you trust.

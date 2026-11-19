@@ -255,3 +255,8 @@ A BREAD override route is named after the new action name (`tardis.bread.create.
 - The panel's `app.css` / `app.js` are served from the package through the hashed `/{prefix}/_assets/…` route; `vendor:publish --tag=tardis-assets` is gone and `tardis:install` no longer publishes. Delete `public/vendor/tardis` (`tardis:doctor` warns while it exists).
 - A published layout should replace `<x-tardis::theme-boot />`, `@tardisStyles` and `@livewireStyles` with `<x-tardis::head :theme="$tardisTheme" />` (`scope="auth"` on the login layout), and `@tardisScripts` / `@livewireScripts` with `<x-tardis::scripts />`. The old directives still work.
 - The page data is a JSON block (`<script type="application/json" id="tardis-boot">`). The core script still sets `window.__TARDIS__`, but a script that ran before it must read the block instead.
+
+## Media
+
+- `svg` is no longer in the default `tardis.media.allowed_mimes`. A published config keeps its own list; remove `svg` there too unless every uploader is trusted (an SVG can carry script).
+- New `tardis.media.per_page` (60): the media screen and picker show one page of a folder. `$files` on those components holds that page only; `$totalFiles` is the count over all pages.
