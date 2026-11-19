@@ -103,7 +103,8 @@ test('a formfield asset is required once however many fields ask for it', functi
         $html = Blade::render('<x-tardis::form-field :field="$field" />', ['field' => $field]);
     }
 
-    expect(substr_count($assets->scripts(), '/_assets/'))->toBe(1);
+    // One for the field's script; the other is the core script.
+    expect(substr_count($assets->scripts(), '/_assets/'))->toBe(2);
 
     File::deleteDirectory($dir);
 });

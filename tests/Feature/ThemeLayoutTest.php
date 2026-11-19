@@ -5,6 +5,7 @@ declare(strict_types=1);
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Support\Facades\Schema;
 use Tardis\Assets\AssetManager;
+use Tardis\Settings\SettingsManager;
 use Tardis\Support\UserPreferences;
 use Tardis\Theme\ThemeManager;
 use Tardis\Theme\ThemePreference;
@@ -63,8 +64,11 @@ test('the boot data carries the themes, the choice and where to save it', functi
 
     $html = dashboardHtml();
 
-    preg_match('/window\.__TARDIS__\s*=\s*(\{.*?\});/s', $html, $match);
+    preg_match('#<script type="application/json" id="tardis-boot">(.*?)</script>#s', $html, $match);
     $data = json_decode($match[1] ?? '{}', true);
+
+    // A data block, not a script: no nonce needed under a strict CSP.
+    expect($html)->not->toContain('window.__TARDIS__ =');
 
     expect($data['theme']['mode'])->toBe('system')
         ->and(array_column($data['theme']['themes'], 'name'))->toContain('tardis-light', 'tardis-dark', 'ocean')
@@ -84,19 +88,40 @@ test('themes are written as css in the head', function () {
 test('the core script is a file loaded before Livewire and the inline theme store is gone', function () {
     $html = dashboardHtml();
 
+    $core = coreScriptPath();
+
     expect($html)->not->toContain("Alpine.store('theme'")
-        ->and($html)->toContain('assets/app.js');
+        ->and($html)->toContain($core);
 
     preg_match('/livewire[^"\']*\.js/', $html, $livewire, PREG_OFFSET_CAPTURE);
 
     expect($livewire)->not->toBe([])
-        ->and(strpos($html, 'assets/app.js'))->toBeLessThan($livewire[0][1]);
+        ->and(strpos($html, $core))->toBeLessThan($livewire[0][1]);
 });
 
 test('the core script comes before plugin scripts', function () {
     $scripts = app(AssetManager::class)->scripts();
 
-    expect($scripts)->toContain('assets/app.js');
+    expect($scripts)->toContain(coreScriptPath());
+});
+
+test('a request resolves the theme choice once, for both data-theme and the boot data', function () {
+    $spy = new class(app(ThemeManager::class), app(UserPreferences::class), app(SettingsManager::class)) extends ThemePreference
+    {
+        public int $calls = 0;
+
+        public function resolve(int|string|null $userId): array
+        {
+            $this->calls++;
+
+            return parent::resolve($userId);
+        }
+    };
+    app()->instance(ThemePreference::class, $spy);
+
+    $this->get('/admin/dashboard')->assertOk();
+
+    expect($spy->calls)->toBe(1);
 });
 
 test('a user can save a theme choice', function () {
@@ -129,5 +154,10 @@ test('the auth layout resolves the same way', function () {
 
     $html = $this->get('/admin/login')->assertOk()->getContent();
 
-    expect($html)->toMatch('/<html[^>]*\sdata-theme="tardis-dark"/')->toContain('window.__TARDIS__');
+    expect($html)->toMatch('/<html[^>]*\sdata-theme="tardis-dark"/')->toContain('id="tardis-boot"');
 });
+
+function coreScriptPath(): string
+{
+    return '/_assets/'.app(AssetManager::class)->coreAssets()[1]->hash().'.js';
+}

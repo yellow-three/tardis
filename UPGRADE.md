@@ -145,7 +145,7 @@ To keep the old, looser behaviour set `tardis.translation.validation` to `'activ
 ## Faz 10b — themes
 
 - **`ThemePlugin::getTheme()` is replaced by `themes(): array`.** A theme plugin now returns whole theme definitions (the same shape as a `themes.json` entry: `name`, `scheme`, `label`, `colors`, optional `shape`), which appear in the theme picker. The old method wrote an unlayered `:root{…}` rule that overrode every theme, dark mode included; to override individual variables on purpose, ship a stylesheet through `Provider\CSS`.
-- **Built-in themes are no longer in the compiled stylesheet.** They are defined once in `Tardis\Theme\BuiltinThemes` and written at runtime with the other themes. Republish the assets (`php artisan vendor:publish --tag=tardis-assets --force`).
+- **Built-in themes are no longer in the compiled stylesheet.** They are defined once in `Tardis\Theme\BuiltinThemes` and written at runtime with the other themes. (Assets are no longer published; see *Core assets from the package* below.)
 - **Themes now set DaisyUI's shape variables** (`--radius-*`, `--size-*`, `--border`, `--depth`, `--noise`), which were never set before; corners and borders of components render with DaisyUI's defaults. A theme may change them with `shape`.
 
 ## Faz 10c — service provider and facade
@@ -249,3 +249,9 @@ A BREAD override route is named after the new action name (`tardis.bread.create.
 ## Faz 13 — no foreign keys to users
 
 - `php artisan migrate` drops the foreign keys from `tardis_role_user.user_id` and `tardis_activity_logs.user_id` to `users.id`. The panel's user model may live in another table, and the keys broke installs and test runs where `users` was not there yet. The columns keep an index. Deleting a user outside the Users screen no longer removes their role links automatically; delete them from `tardis_role_user` in your own code if you need to.
+
+## Core assets from the package
+
+- The panel's `app.css` / `app.js` are served from the package through the hashed `/{prefix}/_assets/…` route; `vendor:publish --tag=tardis-assets` is gone and `tardis:install` no longer publishes. Delete `public/vendor/tardis` (`tardis:doctor` warns while it exists).
+- A published layout should replace `<x-tardis::theme-boot />`, `@tardisStyles` and `@livewireStyles` with `<x-tardis::head :theme="$tardisTheme" />` (`scope="auth"` on the login layout), and `@tardisScripts` / `@livewireScripts` with `<x-tardis::scripts />`. The old directives still work.
+- The page data is a JSON block (`<script type="application/json" id="tardis-boot">`). The core script still sets `window.__TARDIS__`, but a script that ran before it must read the block instead.

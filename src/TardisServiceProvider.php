@@ -205,10 +205,6 @@ class TardisServiceProvider extends ServiceProvider
             __DIR__.'/../database/migrations' => database_path('migrations'),
         ], 'tardis-migrations');
 
-        $this->publishes([
-            __DIR__.'/../resources/compiled' => public_path('vendor/tardis'),
-        ], 'tardis-assets');
-
     }
 
     /**

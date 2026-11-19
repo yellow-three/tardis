@@ -35,13 +35,14 @@ test('every request gets the panel stylesheet and core script', function () {
         $html = $this->actingAs($user)->get(route('tardis.dashboard'))->assertOk()->getContent();
 
         // toContain() treats every argument as a needle, so no message here.
-        expect($html)->toContain('assets/app.css')->toContain('assets/app.js');
+        [$css, $js] = app(AssetManager::class)->coreAssets();
+        expect($html)->toContain('/_assets/'.$css->hash().'.css')->toContain('/_assets/'.$js->hash().'.js');
     }
 });
 
 test('a page that renders the directives twice still writes them once', function () {
     $assets = app(AssetManager::class);
 
-    expect($assets->styles())->toContain('app.css')
+    expect($assets->styles())->toContain('/_assets/')
         ->and($assets->styles())->toBe('');
 });

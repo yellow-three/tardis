@@ -138,7 +138,7 @@ Your component receives the same `slug` (and `id`) parameters as the stock one. 
 
 ## Overriding views
 
-`php artisan vendor:publish --tag=tardis-views` copies the layouts, Blade components, form field views, widgets and partials to `resources/views/vendor/tardis`; a file there wins over the package's. Livewire pages are not published (Livewire reads them from the package only); replace a BREAD screen through `components`, and add your own pages as routes.
+`php artisan vendor:publish --tag=tardis-views` copies the layouts, Blade components, form field views, widgets and partials to `resources/views/vendor/tardis`; a file there wins over the package's. A published layout keeps `<x-tardis::head />` and `<x-tardis::scripts />`: they hold the order the assets must load in. Livewire pages are not published (Livewire reads them from the package only); replace a BREAD screen through `components`, and add your own pages as routes.
 
 ## Panel routes of your own
 

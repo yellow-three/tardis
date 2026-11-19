@@ -41,33 +41,26 @@ class AssetManager
         return dirname(__DIR__, 2).'/resources/hot';
     }
 
-    /**
-     * Short content hash appended to the published CSS URL as `?v=` so that
-     * republishing the bundle busts browser and CDN caches. Vite emits a fixed
-     * filename (assets/[name][extname]), so the URL is otherwise identical
-     * across deploys and stale CSS can survive indefinitely.
-     *
-     * Returns null when the bundle is missing or unreadable — e.g. the host app
-     * never ran `vendor:publish --tag=tardis-assets`. Callers then emit the bare
-     * URL, degrading to the previous behaviour rather than advertising a version
-     * that does not exist.
-     */
-    protected function publishedCssVersion(): ?string
+    /** A built core file inside the package: resources/compiled/assets/{file}. */
+    public static function compiledPath(string $file = ''): string
     {
-        return $this->publishedVersion('app.css');
+        return dirname(__DIR__, 2).'/resources/compiled/assets'.($file === '' ? '' : '/'.$file);
     }
 
-    protected function publishedVersion(string $file): ?string
+    /**
+     * The core stylesheet and script as file assets: served from the package
+     * through the content-hash route, so there is nothing to publish and an
+     * upgraded package is picked up on the next page. The script is not
+     * deferred, it has to run before Livewire starts Alpine.
+     *
+     * @return list<Asset>
+     */
+    public function coreAssets(): array
     {
-        $path = public_path('vendor/tardis/assets/'.$file);
-
-        if (! is_file($path)) {
-            return null;
-        }
-
-        $hash = md5_file($path);
-
-        return $hash === false ? null : substr($hash, 0, 8);
+        return [
+            Asset::file(self::compiledPath('app.css'))->scope('both'),
+            Asset::file(self::compiledPath('app.js'))->scope('both')->defer(false),
+        ];
     }
 
     public function styles(string $scope = 'admin'): string
@@ -78,21 +71,14 @@ class AssetManager
 
         $html = '<!-- Tardis Styles -->'.PHP_EOL;
 
-        // 1. Main CSS asset
+        // 1. Main CSS asset. Under `npm run dev` the Vite client comes along,
+        // so stylesheet changes are applied without a reload.
         if ($this->isViteDevMode()) {
-            $cssUrl = $this->viteDevUrl().'/resources/css/app.css';
+            $html .= '<script type="module" src="'.e($this->viteDevUrl().'/@vite/client').'"></script>'.PHP_EOL;
+            $html .= '<link rel="stylesheet" href="'.e($this->viteDevUrl().'/resources/css/app.css').'">'.PHP_EOL;
         } else {
-            $cssUrl = asset('vendor/tardis/assets/app.css');
-
-            // Cache-bust only when the bundle is actually published, so a host
-            // without `vendor:publish --tag=tardis-assets` keeps a valid URL.
-            $version = $this->publishedCssVersion();
-
-            if ($version !== null) {
-                $cssUrl .= '?v='.$version;
-            }
+            $html .= $this->render($this->coreAssets()[0]);
         }
-        $html .= '<link rel="stylesheet" href="'.$cssUrl.'">'.PHP_EOL;
 
         // 1a. Every theme (built-in, plugin, custom); the stylesheet has none
         $themeCss = app(ThemeManager::class)->css();
@@ -177,16 +163,18 @@ class AssetManager
         ));
     }
 
+    /**
+     * A classic script in development too: the source has no imports, so Vite
+     * serves it as it is, and it runs at the same point as the build does
+     * (ahead of Livewire) instead of deferred like a module.
+     */
     private function coreScript(): string
     {
         if ($this->isViteDevMode()) {
-            return '<script type="module" src="'.e($this->viteDevUrl().'/resources/js/app.js').'"></script>'.PHP_EOL;
+            return '<script src="'.e($this->viteDevUrl().'/resources/js/app.js').'"></script>'.PHP_EOL;
         }
 
-        $url = asset('vendor/tardis/assets/app.js');
-        $version = $this->publishedVersion('app.js');
-
-        return '<script src="'.e($url.($version !== null ? '?v='.$version : '')).'"></script>'.PHP_EOL;
+        return $this->render($this->coreAssets()[1]);
     }
 
     /**
@@ -264,7 +252,7 @@ class AssetManager
      */
     public function fileAssets(): array
     {
-        $all = [...$this->added, ...array_filter($this->pluginAssets('css'), fn ($i) => $i instanceof Asset), ...array_filter($this->pluginAssets('js'), fn ($i) => $i instanceof Asset)];
+        $all = [...$this->coreAssets(), ...$this->added, ...array_filter($this->pluginAssets('css'), fn ($i) => $i instanceof Asset), ...array_filter($this->pluginAssets('js'), fn ($i) => $i instanceof Asset)];
 
         return array_values(array_filter($all, fn (Asset $asset) => $asset->file !== null));
     }
