@@ -403,6 +403,12 @@ final class DoctorReport
     {
         $version = self::normalizeVersion($version);
 
+        // A development install pins a branch ("13.x-dev as 13.99",
+        // "dev-master"): there is no release range to check against.
+        if (preg_match('/(^|\s|\|)dev-|-dev(\s|$)|\sas\s/i', $constraint) === 1) {
+            return true;
+        }
+
         foreach (preg_split('/\s*\|\|\s*/', trim($constraint)) ?: [] as $group) {
             if (self::satisfiesGroup($version, $group)) {
                 return true;
