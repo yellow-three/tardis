@@ -16,6 +16,11 @@ new class extends Component
 
     public array $files = [];
 
+    /** The page of the current folder; $files holds only that page. */
+    public int $page = 1;
+
+    public int $totalFiles = 0;
+
     public array $selected = [];
 
     public ?string $error = null;
@@ -74,7 +79,27 @@ new class extends Component
             return $this->matchesMime($file);
         });
 
-        $this->files = $files->sortBy('name')->values()->toArray();
+        $all = $files->sortBy('name')->values();
+        $this->totalFiles = $all->count();
+        $this->page = max(1, min($this->page, $this->lastPage()));
+        $this->files = $all->forPage($this->page, $this->perPage())->values()->toArray();
+    }
+
+    public function perPage(): int
+    {
+        return max(1, (int) config('tardis.media.per_page', 60));
+    }
+
+    public function lastPage(): int
+    {
+        return max(1, (int) ceil($this->totalFiles / $this->perPage()));
+    }
+
+    /** The selection is kept by path, so it survives paging. */
+    public function goToPage(int $page): void
+    {
+        $this->page = $page;
+        $this->loadFiles();
     }
 
     public function toggleSelect(string $path): void
@@ -134,6 +159,7 @@ new class extends Component
         }
 
         $this->currentPath = $path;
+        $this->page = 1;
         $this->loadFiles();
     }
 

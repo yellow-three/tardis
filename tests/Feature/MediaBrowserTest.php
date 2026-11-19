@@ -388,3 +388,28 @@ test('downloading the selection sends a ZIP and leaves nothing behind', function
 
     expect(glob(storage_path('app/temp/*.zip')) ?: [])->toBe($before);
 });
+
+test('the media screen pages a large folder and keeps the total', function () {
+    config()->set('tardis.media.per_page', 2);
+
+    foreach (['a', 'b', 'c', 'd', 'e'] as $name) {
+        Storage::disk('public')->put("media/{$name}.jpg", 'x');
+    }
+
+    $page = Livewire::test('tardis::pages.media-browser')
+        ->assertSet('totalFiles', 5)
+        ->assertSet('page', 1)
+        ->assertSee('ALL RESULTS · 5')
+        ->assertSee('Page 1 of 3');
+
+    expect(array_column($page->get('files'), 'name'))->toBe(['a.jpg', 'b.jpg']);
+
+    $page->call('toggleSelect', 'a.jpg')->call('goToPage', 3);
+
+    expect(array_column($page->get('files'), 'name'))->toBe(['e.jpg'])
+        ->and($page->get('selectedFiles'))->toBe([]);
+
+    // A page past the end lands on the last one; a filter starts over.
+    $page->call('goToPage', 9)->assertSet('page', 3)
+        ->set('searchQuery', 'b')->assertSet('page', 1)->assertSet('totalFiles', 1);
+});

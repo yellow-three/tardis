@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Illuminate\Filesystem\FilesystemAdapter;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
@@ -312,4 +313,44 @@ test('renaming a folder whose name holds LIKE wildcards only moves its own rows'
     manager()->rename('a_b', 'renamed');
 
     expect($other->fresh()->path)->toBe('media/axb/two.jpg');
+});
+
+test('listing a folder asks the disk for nothing beyond the listing itself', function () {
+    $fake = Storage::disk('public');
+    $fake->put('media/a.jpg', 'jpeg');
+    $fake->put('media/b.pdf', 'pdf!');
+    $fake->makeDirectory('media/docs');
+
+    // Every per-file metadata call fails the test: on S3 each one is a request.
+    $spy = new class($fake->getDriver(), $fake->getAdapter(), $fake->getConfig()) extends FilesystemAdapter
+    {
+        public function fileSize($path): int
+        {
+            throw new RuntimeException("fileSize({$path}) was called");
+        }
+
+        public function mimeType($path): string|false
+        {
+            throw new RuntimeException("mimeType({$path}) was called");
+        }
+
+        public function lastModified($path): int
+        {
+            throw new RuntimeException("lastModified({$path}) was called");
+        }
+    };
+    Storage::set('public', $spy);
+
+    $files = (new MediaManager)->listFiles()->keyBy('name');
+
+    expect($files->keys()->all())->toBe(['a.jpg', 'b.pdf', 'docs'])
+        ->and($files['a.jpg'])->toMatchArray(['type' => 'image/jpeg', 'size' => 4])
+        ->and($files['a.jpg']['last_modified'])->toBeInt()
+        ->and($files['b.pdf']['type'])->toBe('application/pdf')
+        ->and($files['docs']['type'])->toBe('directory');
+});
+
+test('svg is not an allowed upload by default', function () {
+    expect((new MediaManager)->isAllowedFileName('logo.svg'))->toBeFalse()
+        ->and((new MediaManager)->isAllowedFileName('logo.png'))->toBeTrue();
 });

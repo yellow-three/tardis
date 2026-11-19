@@ -85,6 +85,7 @@
                                 @endif
                             @endforeach
                         </div>
+                        <div class="mt-4"><x-tardis::media-pager :page="$page" :last-page="$this->lastPage()" /></div>
                     @endif
                 </div>
 

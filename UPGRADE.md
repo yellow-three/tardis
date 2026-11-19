@@ -249,3 +249,8 @@ A BREAD override route is named after the new action name (`tardis.bread.create.
 ## Faz 13 — no foreign keys to users
 
 - `php artisan migrate` drops the foreign keys from `tardis_role_user.user_id` and `tardis_activity_logs.user_id` to `users.id`. The panel's user model may live in another table, and the keys broke installs and test runs where `users` was not there yet. The columns keep an index. Deleting a user outside the Users screen no longer removes their role links automatically; delete them from `tardis_role_user` in your own code if you need to.
+
+## Media
+
+- `svg` is no longer in the default `tardis.media.allowed_mimes`. A published config keeps its own list; remove `svg` there too unless every uploader is trusted (an SVG can carry script).
+- New `tardis.media.per_page` (60): the media screen and picker show one page of a folder. `$files` on those components holds that page only; `$totalFiles` is the count over all pages.

@@ -274,3 +274,9 @@ Fixes from the 2026-11-17 review (`docs/notes.md`). Each one is covered by a tes
 
 - **Restore and force delete** are logged as `restored` and `force_deleted` (a force delete was logged as `deleted`, a restore not at all). `BreadRecordRestored` is a new event; `BreadRecordDeleted` carries `$permanently`. Both actions are in the default `tardis.activity_log.log_events`; a published config that lists events needs them added.
 - **Admin changes outside BREAD** are logged too: the menu builder (`tardis.admin_menu`), site menus (`tardis.site_menu`), the theme editor (`tardis.theme`) and the dashboard layout (`tardis.dashboard`). The activity log page filters and colours the new actions.
+
+## Findings — media listing (B34)
+
+- **One request per folder:** the media screen and the media picker read size, modification time and type from the folder listing (the type from the extension) instead of asking the disk three times per file, which on S3 meant three requests per file.
+- **Paging:** both show `tardis.media.per_page` entries (60) at a time; the total stays on screen. A selection on the media screen is per page, the picker keeps it across pages.
+- **No SVG by default:** `svg` is out of the default `tardis.media.allowed_mimes`. An SVG can carry script and is served as uploaded; add it back only for uploaders you trust.

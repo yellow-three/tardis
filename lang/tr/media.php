@@ -68,4 +68,7 @@ return [
     'uploaded' => ':count dosya başarıyla yüklendi',
     'uploading' => '1 dosya yükleniyor...|:count dosya yükleniyor...',
     'videos' => 'Videolar',
+    'previous_page' => 'Önceki sayfa',
+    'next_page' => 'Sonraki sayfa',
+    'page_of' => 'Sayfa :page / :last',
 ];

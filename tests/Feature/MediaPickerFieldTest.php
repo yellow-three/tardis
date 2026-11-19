@@ -143,3 +143,20 @@ it('opens the picker when the browse media ability is granted', function () {
         ->call('openPicker', 'form.image', null)
         ->assertSet('open', true);
 });
+
+it('pages the folder and keeps the selection across pages', function () {
+    config()->set('tardis.media.per_page', 2);
+
+    foreach (['a', 'b', 'c'] as $name) {
+        Storage::disk('public')->put("media/{$name}.jpg", 'x');
+    }
+
+    $picker = Livewire::test('tardis::components.media-picker', ['model' => 'form.image', 'multiple' => true])
+        ->dispatch('media-picker-open', model: 'form.image')
+        ->assertSet('totalFiles', 3)
+        ->call('toggleSelect', 'media/a.jpg')
+        ->call('goToPage', 2);
+
+    expect(array_column($picker->get('files'), 'name'))->toBe(['c.jpg'])
+        ->and($picker->get('selected'))->toBe(['media/a.jpg']);
+});
