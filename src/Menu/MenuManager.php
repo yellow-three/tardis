@@ -22,7 +22,20 @@ class MenuManager
     /** @var Collection<int, UserMenuItem> */
     protected Collection $userMenuItems;
 
-    protected bool $collected = false;
+    /**
+     * Items a host or plugin added with addItems(), usually at boot. They are
+     * the registry; the menu itself is rebuilt from them for every request.
+     *
+     * @var array<int, MenuItem>
+     */
+    protected array $registered = [];
+
+    /**
+     * The request and locale the current menu was built for. A long-running
+     * worker serves many requests with one instance: titles are translated,
+     * BREADs listed and the menu builder's choices applied per request.
+     */
+    protected ?string $collectedFor = null;
 
     public function __construct()
     {
@@ -42,6 +55,26 @@ class MenuManager
     public function addItems(MenuItem ...$items): void
     {
         foreach ($items as $item) {
+            $this->registered[] = $item;
+
+            // Listed right away as well; once a menu has been built from the
+            // registry, as a copy, like the items it was built from.
+            $this->push($this->collectedFor === null ? $item : clone $item);
+        }
+    }
+
+    /**
+     * Rebuild the menu on the next collectFromPlugins() even within this
+     * request, after its inputs changed (the menu builder saving a choice).
+     */
+    public function forgetCollected(): void
+    {
+        $this->collectedFor = null;
+    }
+
+    protected function push(MenuItem ...$items): void
+    {
+        foreach ($items as $item) {
             if ($item instanceof UserMenuItem) {
                 $this->userMenuItems->push($item);
             } else {
@@ -51,19 +84,28 @@ class MenuManager
     }
 
     /**
-     * Collect menu items from plugins and register defaults.
-     * Only runs once.
+     * Build the menu: the registered items, the defaults, the BREADs, plugin
+     * items and the menu builder's links and choices. Built once per request
+     * (and locale); a later request rebuilds it from the registry.
      */
     public function collectFromPlugins(PluginManager $plugins): void
     {
-        if ($this->collected) {
+        $for = spl_object_id(app('request')).'|'.app()->getLocale();
+
+        if ($this->collectedFor === $for) {
             return;
         }
 
-        $this->collected = true;
+        $this->collectedFor = $for;
+        $this->items = collect();
+        $this->userMenuItems = collect();
+
+        // Copies, so the overlay and filters applied below never change the
+        // registered items another request starts from.
+        $this->push(...array_map(fn (MenuItem $item) => clone $item, $this->registered));
 
         // Register default sidebar menu items
-        $this->addItems(
+        $this->push(
             (new MenuItem(__('tardis::menu.dashboard'), 'heroicon-o-home'))
                 ->route('tardis.dashboard')
                 ->section(__('tardis::menu.sections.overview'))
@@ -158,16 +200,16 @@ class MenuManager
         );
 
         // Register a sidebar entry for every BREAD definition
-        $this->addItems(...$this->breadMenuItems());
+        $this->push(...$this->breadMenuItems());
 
         // The panel's own profile page: name, email and password.
-        $this->addItems(
+        $this->push(
             (new UserMenuItem(__('tardis::menu.profile'), 'heroicon-o-user'))
                 ->route('tardis.profile')
                 ->order(0),
         );
 
-        $this->addItems(
+        $this->push(
             (new UserMenuItem(__('tardis::menu.logout'), 'heroicon-o-arrow-left-on-rectangle'))
                 ->route('tardis.logout')
                 ->method('POST')
@@ -179,12 +221,12 @@ class MenuManager
         foreach ($plugins->enabledWith(MenuItems::class) as $instance) {
             $menuItems = $instance->provideMenuItems();
             foreach ($menuItems as $item) {
-                $this->addItems($item);
+                $this->push($item);
             }
         }
 
         // Links the administrator added in the menu builder
-        $this->addItems(...$this->customMenuItems());
+        $this->push(...$this->customMenuItems());
 
         // Apply permission validation
         $this->validatePermissions($plugins);

@@ -11,6 +11,7 @@ use Tardis\Contracts\Plugins\AuthorizationPlugin;
 use Tardis\Contracts\Plugins\FormfieldPlugin;
 use Tardis\Contracts\Plugins\GenericPlugin;
 use Tardis\Contracts\Plugins\ThemePlugin;
+use Tardis\Support\FileSignature;
 use Tardis\Support\JsonFile;
 
 class PluginManager
@@ -19,7 +20,13 @@ class PluginManager
 
     protected array $enabled = [];
 
+    /** Plugins switched on at boot unless an administrator turned them off. */
+    protected array $defaults = [];
+
     protected array $disabled = [];
+
+    /** The version of plugins.json $disabled was read from (FileSignature). */
+    protected ?string $signature = null;
 
     protected string $statePath;
 
@@ -32,7 +39,21 @@ class PluginManager
     {
         $this->plugins = collect();
         $this->statePath = $statePath ?? storage_path('tardis/plugins.json');
-        $this->disabled = $this->loadDisabled();
+        $this->refreshDisabled();
+    }
+
+    /**
+     * Re-read the switches when another process changed the file, so a
+     * long-running worker follows a plugin turned on or off elsewhere.
+     */
+    protected function refreshDisabled(): void
+    {
+        $signature = FileSignature::of($this->statePath);
+
+        if ($signature !== $this->signature) {
+            $this->signature = $signature;
+            $this->disabled = $this->loadDisabled();
+        }
     }
 
     protected function loadDisabled(): array
@@ -74,6 +95,7 @@ class PluginManager
             }, JSON_PRETTY_PRINT);
 
             $this->disabled = $data['disabled'];
+            $this->signature = FileSignature::of($this->statePath);
         } catch (\Throwable $e) {
             Log::warning('Could not persist the plugin state.', ['error' => $e->getMessage()]);
         }
@@ -125,11 +147,11 @@ class PluginManager
      */
     public function enableByDefault(string $name): void
     {
-        if ((in_array($name, $this->disabled, true) && ! $this->isLocked($name)) || in_array($name, $this->enabled, true)) {
-            return;
+        // Remembered as a default rather than decided now: whether it is on
+        // is read from the switches each time (isEnabled()).
+        if (! in_array($name, $this->defaults, true)) {
+            $this->defaults[] = $name;
         }
-
-        $this->enabled[] = $name;
     }
 
     public function disable(string $name): void
@@ -148,11 +170,14 @@ class PluginManager
 
     public function isEnabled(string $name): bool
     {
+        $this->refreshDisabled();
+
         if (in_array($name, $this->disabled, true) && ! $this->isLocked($name)) {
             return false;
         }
 
-        return in_array($name, $this->enabled, true) && $this->plugins->has($name);
+        return (in_array($name, $this->enabled, true) || in_array($name, $this->defaults, true))
+            && $this->plugins->has($name);
     }
 
     public function all(): Collection
