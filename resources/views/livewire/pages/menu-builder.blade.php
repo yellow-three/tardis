@@ -40,10 +40,10 @@ new #[Title('tardis::menu_builder.title')] #[Layout('tardis::layouts.admin')] cl
      */
     public function rows(): array
     {
-        // The sidebar already collected the menu in this request; collect it afresh.
-        app()->forgetInstance(MenuManager::class);
-
+        // The sidebar may have built the menu in this request already; build
+        // it again so the rows show the choices just saved.
         $menu = app(MenuManager::class);
+        $menu->forgetCollected();
         $menu->collectFromPlugins(app(PluginManager::class));
 
         return $menu->all(withHidden: true)

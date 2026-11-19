@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Tardis\Dashboard;
 
+use Tardis\Support\JsonFile;
+
 /**
  * How the administrator arranged the dashboard, kept in
  * storage/tardis/dashboard.json on top of the widgets code provides: hide,
@@ -26,9 +28,7 @@ class DashboardLayout
     /** @return array<string, array{hidden?: bool, order?: int, width?: int}> */
     public function all(): array
     {
-        $data = is_file($this->path) ? json_decode((string) file_get_contents($this->path), true) : null;
-
-        return is_array($data) ? array_filter($data, 'is_array') : [];
+        return array_filter(JsonFile::read($this->path), 'is_array');
     }
 
     public function isEmpty(): bool
@@ -37,30 +37,35 @@ class DashboardLayout
     }
 
     /**
+     * Changed under the file's lock, from what is on disk now, so a change
+     * made in another request at the same moment is kept.
+     *
      * @param  array<string, mixed>  $changes  hidden, order, width
      */
     public function change(string $id, array $changes): void
     {
-        $layout = $this->all();
-        $entry = $layout[$id] ?? [];
+        JsonFile::update($this->path, function (array $layout) use ($id, $changes) {
+            $layout = array_filter($layout, 'is_array');
+            $entry = $layout[$id] ?? [];
 
-        foreach ($changes as $key => $value) {
-            if ($key === 'hidden') {
-                $value ? $entry['hidden'] = true : $this->forget($entry, 'hidden');
-            } elseif ($key === 'order' && is_numeric($value)) {
-                $entry['order'] = (int) $value;
-            } elseif ($key === 'width' && in_array((int) $value, self::WIDTHS, true)) {
-                $entry['width'] = (int) $value;
+            foreach ($changes as $key => $value) {
+                if ($key === 'hidden') {
+                    $value ? $entry['hidden'] = true : $this->forget($entry, 'hidden');
+                } elseif ($key === 'order' && is_numeric($value)) {
+                    $entry['order'] = (int) $value;
+                } elseif ($key === 'width' && in_array((int) $value, self::WIDTHS, true)) {
+                    $entry['width'] = (int) $value;
+                }
             }
-        }
 
-        if ($entry === []) {
-            unset($layout[$id]);
-        } else {
-            $layout[$id] = $entry;
-        }
+            if ($entry === []) {
+                unset($layout[$id]);
+            } else {
+                $layout[$id] = $entry;
+            }
 
-        $this->write($layout);
+            return $layout;
+        });
     }
 
     public function reset(): void
@@ -73,19 +78,5 @@ class DashboardLayout
     protected function forget(array &$entry, string $key): void
     {
         unset($entry[$key]);
-    }
-
-    /** @param  array<string, mixed>  $layout */
-    protected function write(array $layout): void
-    {
-        $dir = dirname($this->path);
-
-        if (! is_dir($dir)) {
-            mkdir($dir, 0755, true);
-        }
-
-        $tmp = tempnam($dir, '.dashboard-');
-        file_put_contents($tmp, json_encode($layout, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE)."\n");
-        rename($tmp, $this->path);
     }
 }

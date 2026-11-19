@@ -8,6 +8,8 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
 use Tardis\Contracts\Plugins\ThemePlugin;
 use Tardis\Plugins\PluginManager;
+use Tardis\Support\FileSignature;
+use Tardis\Support\JsonFile;
 
 /**
  * The panel's themes: the ones compiled into the stylesheet plus the ones a
@@ -21,6 +23,9 @@ class ThemeManager
     /** @var Collection<int, Theme>|null */
     protected ?Collection $themes = null;
 
+    /** The version of themes.json the list was built from (FileSignature). */
+    protected ?string $signature = null;
+
     protected string $path;
 
     public function __construct(?string $path = null)
@@ -33,9 +38,15 @@ class ThemeManager
      */
     public function all(): Collection
     {
-        if ($this->themes !== null) {
+        // Another worker may have saved a theme since: rebuild when the file
+        // changed, so a long-running process never serves a stale list.
+        $signature = FileSignature::of($this->path);
+
+        if ($this->themes !== null && $this->signature === $signature) {
             return $this->themes;
         }
+
+        $this->signature = $signature;
 
         $themes = collect(BuiltinThemes::all())
             ->map(fn (array $definition) => Theme::fromArray($definition + ['source' => 'builtin']))
@@ -141,25 +152,24 @@ class ThemeManager
             return false;
         }
 
-        $custom = collect($this->readCustom())
-            ->reject(fn ($existing) => is_array($existing) && ($existing['name'] ?? null) === $theme->name)
-            ->push(array_filter(['name' => $theme->name, 'scheme' => $theme->scheme, 'label' => $theme->label, 'colors' => $theme->colors, 'shape' => $theme->shape]))
-            ->values()
-            ->all();
+        $entry = array_filter(['name' => $theme->name, 'scheme' => $theme->scheme, 'label' => $theme->label, 'colors' => $theme->colors, 'shape' => $theme->shape]);
 
-        return $this->writeCustom($custom);
+        return $this->changeCustom(fn (array $custom) => collect($custom)
+            ->reject(fn ($existing) => is_array($existing) && ($existing['name'] ?? null) === $theme->name)
+            ->push($entry)
+            ->values()
+            ->all());
     }
 
     public function deleteCustom(string $name): bool
     {
-        $custom = $this->readCustom();
-        $remaining = array_values(array_filter($custom, fn ($existing) => ! (is_array($existing) && ($existing['name'] ?? null) === $name)));
+        $isNamed = fn ($existing) => is_array($existing) && ($existing['name'] ?? null) === $name;
 
-        if (count($remaining) === count($custom)) {
+        if (! collect($this->readCustom())->contains($isNamed)) {
             return false;
         }
 
-        return $this->writeCustom($remaining);
+        return $this->changeCustom(fn (array $custom) => array_values(array_filter($custom, fn ($existing) => ! $isNamed($existing))));
     }
 
     /**
@@ -167,30 +177,25 @@ class ThemeManager
      */
     protected function readCustom(): array
     {
-        if (! is_file($this->path)) {
-            return [];
-        }
+        $data = JsonFile::read($this->path);
 
-        $data = json_decode((string) file_get_contents($this->path), true);
-
-        return is_array($data) && is_array($data['themes'] ?? null) ? array_values($data['themes']) : [];
+        return is_array($data['themes'] ?? null) ? array_values($data['themes']) : [];
     }
 
     /**
-     * @param  array<int, mixed>  $themes
+     * Change the custom themes under the file's lock, starting from what is
+     * on disk now, so two editors saving at once both keep their theme.
+     *
+     * @param  callable(array<int, mixed>): array<int, mixed>  $change
      */
-    protected function writeCustom(array $themes): bool
+    protected function changeCustom(callable $change): bool
     {
         try {
-            $dir = dirname($this->path);
+            JsonFile::update($this->path, function (array $data) use ($change) {
+                $custom = is_array($data['themes'] ?? null) ? array_values($data['themes']) : [];
 
-            if (! is_dir($dir)) {
-                mkdir($dir, 0755, true);
-            }
-
-            $tmp = tempnam($dir, '.themes-');
-            file_put_contents($tmp, json_encode(['themes' => $themes], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE)."\n");
-            rename($tmp, $this->path);
+                return ['themes' => $change($custom)];
+            });
 
             $this->themes = null;
 
