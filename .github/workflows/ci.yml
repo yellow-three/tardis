@@ -276,3 +276,46 @@ jobs:
 
       - name: Run tests
         run: vendor/bin/pest
+
+  browser:
+    name: browser tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: 8.4
+          extensions: json, mbstring, openssl, sqlite, pdo, pdo_sqlite, gd, sockets
+          tools: composer
+
+      - name: Setup Node
+        uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Get Composer Cache Directory
+        id: composer-cache
+        run: echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
+
+      - name: Cache Composer Dependencies
+        uses: actions/cache@v6
+        with:
+          path: ${{ steps.composer-cache.outputs.dir }}
+          key: ${{ runner.os }}-composer-${{ hashFiles('composer.json') }}
+          restore-keys: ${{ runner.os }}-composer-
+
+      - name: Install dependencies
+        run: |
+          composer install --no-interaction --no-progress --prefer-dist
+          npm ci
+
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+
+      # Sign-in and BREAD flows in a real browser: what the Livewire tests
+      # cannot see (JavaScript errors, navigation, the forms as rendered).
+      - name: Run browser tests
+        run: vendor/bin/pest tests/Browser

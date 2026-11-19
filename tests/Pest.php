@@ -5,7 +5,7 @@ use Illuminate\Support\Facades\File;
 use Tardis\Bread\Sources\JsonBreadSource;
 use Tests\TestCase;
 
-uses(TestCase::class)->in('Unit', 'Feature', 'Integration');
+uses(TestCase::class)->in('Unit', 'Feature', 'Integration', 'Browser');
 
 beforeEach(function () {
     // Safety net: bind JsonBreadSource to a disposable temp dir so tests that

@@ -264,3 +264,4 @@ Fixes from the 2026-11-17 review (`docs/notes.md`). Each one is covered by a tes
 - CI's Composer cache key now changes with `composer.json` (it hashed a lock file that is not committed, so the cache never refreshed).
 - **Dependency range:** CI tests the lowest versions `composer.json` allows (PHP 8.3, `--prefer-lowest`), and the unreleased branches of Laravel 13 and Livewire 4 as an early warning that does not block a merge.
 - **Laravel 14 watch:** a non-blocking job runs the suite on Laravel's `master` branch with Testbench 12, where Laravel 14 will be built, so incompatibilities show up before it is released. `composer.json` allows `^14.0` once a Laravel 14 beta passes it.
+- **Browser tests:** sign-in (right and wrong password) and BREAD flows (create, list, edit, sidebar navigation on the demo content) run in Chromium through Pest's browser plugin, as a CI job; they also fail on any JavaScript error on those pages.

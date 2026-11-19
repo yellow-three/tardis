@@ -22,6 +22,8 @@ composer analyse   # PHPStan with Larastan
 npm run build      # only when you changed CSS, JS or Blade classes; commit resources/compiled
 ```
 
+Browser tests (sign-in and BREAD flows in Chromium) live in `tests/Browser` and are not part of `composer test`. Run them with `npm ci && npx playwright install chromium && vendor/bin/pest tests/Browser`. They need PHP and the browser on the same system, so they do not run where PHP is inside a container.
+
 CI also runs the suite on MySQL and PostgreSQL. To run it locally against one, set `TARDIS_TEST_DB=mysql` (or `pgsql`) and the usual `DB_HOST`, `DB_PORT`, `DB_DATABASE`, `DB_USERNAME`, `DB_PASSWORD`. Every test starts from an empty database, so use a database you can throw away.
 
 ## Conventions
