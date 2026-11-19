@@ -35,7 +35,6 @@ Kapsam: `src/`, `routes/`, `resources/views/pages`, migration'lar, CI ve doküma
 
 | # | Bulgu |
 |---|-------|
-| B47 | **Tarayıcı/E2E testi yok.** (PHPStan/Larastan seviye 5 ve MySQL/PostgreSQL CI işleri Faz 13'te eklendi; MySQL ve PostgreSQL işleri yeşil.) |
 
 ## Tema, CSS/JS ve Vite (2026-11-17 incelemesi)
 
