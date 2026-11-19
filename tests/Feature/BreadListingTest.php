@@ -12,6 +12,7 @@ use Livewire\Livewire;
 use Tardis\Bread\BreadDefinition;
 use Tardis\Bread\BreadQuery;
 use Tardis\Bread\Sources\JsonBreadSource;
+use Tardis\Models\ActivityLog;
 
 class ListingArticle extends Model
 {
@@ -175,6 +176,19 @@ test('the browse page restores and permanently deletes soft-deleted records', fu
     $page->set('trashed', 'only')->call('forceDelete', $gone->id);
 
     expect(ListingArticle::withTrashed()->find($gone->id))->toBeNull();
+});
+
+test('restoring and permanently deleting are logged as their own actions', function () {
+    $this->artisan('migrate');
+    (new JsonBreadSource($this->path))->save(listingBread());
+    $gone = ListingArticle::withTrashed()->where('title', 'Gone')->first();
+
+    $page = Livewire::test('tardis::pages.bread.index', ['slug' => 'articles'])->call('restore', $gone->id);
+    $page->call('delete', $gone->id)->set('trashed', 'only')->call('forceDelete', $gone->id);
+
+    $actions = ActivityLog::query()->where('model_id', $gone->id)->orderBy('id')->pluck('action')->all();
+
+    expect($actions)->toBe(['restored', 'deleted', 'force_deleted']);
 });
 
 test('named filters apply a column comparison or a model scope', function () {

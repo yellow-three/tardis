@@ -5,6 +5,7 @@ use Livewire\Attributes\Title;
 use Livewire\Component;
 use Tardis\Auth\Abilities;
 use Tardis\Auth\BreadAuthorization;
+use Tardis\Bread\ActivityLogger;
 use Tardis\Menu\MenuManager;
 use Tardis\Plugins\PluginManager;
 use Tardis\Menu\MenuOverlay;
@@ -66,6 +67,7 @@ new #[Title('tardis::menu_builder.title')] #[Layout('tardis::layouts.admin')] cl
         $current = app(MenuOverlay::class)->items()[$id]['hidden'] ?? false;
 
         app(MenuOverlay::class)->change($id, ['hidden' => ! $current]);
+        $this->audit($current ? 'item_shown' : 'item_hidden', ['item' => $id]);
     }
 
     /**
@@ -81,6 +83,7 @@ new #[Title('tardis::menu_builder.title')] #[Layout('tardis::layouts.admin')] cl
 
         if (! is_array($raw)) {
             app(MenuOverlay::class)->change($id, ['title' => $title]);
+            $this->audit('item_renamed', ['item' => $id, 'title' => $title]);
 
             return;
         }
@@ -96,11 +99,13 @@ new #[Title('tardis::menu_builder.title')] #[Layout('tardis::layouts.admin')] cl
         $map[app()->getLocale()] = $title;
 
         app(MenuOverlay::class)->change($id, ['title' => $map]);
+        $this->audit('item_renamed', ['item' => $id, 'title' => $title]);
     }
 
     public function resection(string $id, string $section): void
     {
         app(MenuOverlay::class)->change($id, ['section' => $section]);
+        $this->audit('item_moved_to_section', ['item' => $id, 'section' => $section]);
     }
 
     public function move(string $id, int $direction): void
@@ -119,6 +124,8 @@ new #[Title('tardis::menu_builder.title')] #[Layout('tardis::layouts.admin')] cl
         foreach ($ids as $position => $itemId) {
             app(MenuOverlay::class)->change($itemId, ['order' => ($position + 1) * 10]);
         }
+
+        $this->audit('item_moved', ['item' => $id]);
     }
 
     public function addLink(): void
@@ -140,17 +147,28 @@ new #[Title('tardis::menu_builder.title')] #[Layout('tardis::layouts.admin')] cl
             return;
         }
 
+        $this->audit('link_added', ['title' => $this->linkTitle, 'url' => $this->linkUrl]);
         $this->reset('linkTitle', 'linkUrl', 'linkIcon', 'linkSection', 'linkPermission', 'linkNewTab');
     }
 
     public function removeLink(string $id): void
     {
         app(MenuOverlay::class)->removeCustom($id);
+        $this->audit('link_removed', ['item' => $id]);
     }
 
     public function resetMenu(): void
     {
         app(MenuOverlay::class)->reset();
+        $this->audit('menu_reset');
+    }
+
+    /**
+     * @param  array<string, mixed>  $values
+     */
+    protected function audit(string $action, array $values = []): void
+    {
+        app(ActivityLogger::class)->audit('tardis.admin_menu', $action, $values);
     }
 }; ?>
 

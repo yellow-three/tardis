@@ -40,7 +40,7 @@ class ForceDeleteAction extends Action
     {
         $deleted = $record->forceDelete();
 
-        BreadRecordDeleted::dispatch($slug, $record);
+        BreadRecordDeleted::dispatch($slug, $record, true);
 
         return $deleted;
     }

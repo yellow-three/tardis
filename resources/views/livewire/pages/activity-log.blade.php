@@ -112,7 +112,9 @@ new #[Title('tardis::activity.activity_log')] #[Layout('tardis::layouts.admin')]
         return match ($action) {
             'created' => 'success',
             'updated' => 'info',
-            'deleted' => 'error',
+            'deleted' => 'warning',
+            'restored' => 'success',
+            'force_deleted' => 'error',
             default => 'ghost',
         };
     }
@@ -134,6 +136,8 @@ new #[Title('tardis::activity.activity_log')] #[Layout('tardis::layouts.admin')]
                         <option value="created">{{ __('tardis::activity.created') }}</option>
                         <option value="updated">{{ __('tardis::activity.updated') }}</option>
                         <option value="deleted">{{ __('tardis::activity.deleted') }}</option>
+                        <option value="restored">{{ __('tardis::activity.restored') }}</option>
+                        <option value="force_deleted">{{ __('tardis::activity.force_deleted') }}</option>
                     </select>
                 </div>
             </div>
