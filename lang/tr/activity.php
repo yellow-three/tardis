@@ -8,6 +8,8 @@ return [
     'created' => 'Oluşturuldu',
     'updated' => 'Güncellendi',
     'deleted' => 'Silindi',
+    'restored' => 'Geri yüklendi',
+    'force_deleted' => 'Kalıcı olarak silindi',
     'action' => 'İşlem',
     'model' => 'Model',
     'user' => 'Kullanıcı',

@@ -160,6 +160,8 @@ return [
             'created',
             'updated',
             'deleted',
+            'restored',
+            'force_deleted',
         ],
     ],
 

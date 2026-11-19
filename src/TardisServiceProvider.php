@@ -29,6 +29,7 @@ use Tardis\Dashboard\DashboardLayout;
 use Tardis\Dashboard\WidgetManager;
 use Tardis\Events\BreadRecordCreated;
 use Tardis\Events\BreadRecordDeleted;
+use Tardis\Events\BreadRecordRestored;
 use Tardis\Events\BreadRecordUpdated;
 use Tardis\Events\BreadSaved;
 use Tardis\Formfields\FormfieldManager;
@@ -264,7 +265,7 @@ class TardisServiceProvider extends ServiceProvider
         Event::listen(BreadSaved::class, ProvisionBreadPermissions::class);
 
         Event::listen(
-            [BreadRecordCreated::class, BreadRecordUpdated::class, BreadRecordDeleted::class],
+            [BreadRecordCreated::class, BreadRecordUpdated::class, BreadRecordDeleted::class, BreadRecordRestored::class],
             LogBreadActivity::class
         );
     }
