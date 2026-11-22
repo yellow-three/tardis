@@ -5,6 +5,7 @@ declare(strict_types=1);
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Schema;
@@ -335,4 +336,64 @@ test('a numeric column can be searched on every database', function () {
     // PostgreSQL has no LIKE for integers; the column is compared as text.
     expect(listingTitles($query, ['20']))->toBe(['Beta'])
         ->and(listingTitles($query, ['', null, 'asc', 'without', ['views' => '5']]))->toBe(['Alpha']);
+});
+
+test('the list exports what it shows as CSV, with the current search', function () {
+    Carbon::setTestNow('2026-11-22 10:00:00');
+    (new JsonBreadSource($this->path))->save(listingBread());
+    ListingArticle::create(['title' => '=HYPERLINK("http://x")', 'body' => 'formula', 'views' => 3]);
+    ListingArticle::find(1)->comments()->create(['body' => 'Nice']);
+
+    $page = Livewire::test('tardis::pages.bread.index', ['slug' => 'articles']);
+    $all = $page->call('export')->effects['download'] ?? null;
+
+    expect($all['name'])->toBe('articles-2026-11-22-100000.csv');
+
+    $csv = base64_decode($all['content']);
+    $lines = array_map('str_getcsv', array_filter(explode("\n", trim(substr($csv, 3)))));
+
+    expect(substr($csv, 0, 3))->toBe("\xEF\xBB\xBF")
+        ->and($lines[0])->toBe(['Title', 'Body', 'Views', 'Tags', 'Comments'])
+        ->and(array_column($lines, 0))->toContain('Alpha', 'Beta', 'Gamma 100%', "'=HYPERLINK(\"http://x\")")
+        ->and(array_column($lines, 0))->not->toContain('Gone')
+        ->and($lines[1][4])->toBe('Nice')
+        ->and($csv)->not->toContain('Secret');
+
+    $searched = base64_decode($page->set('search', 'Beta')->call('export')->effects['download']['content']);
+
+    expect($searched)->toContain('Beta')->not->toContain('Alpha');
+});
+
+test('select all matching runs a bulk action on every match across pages', function () {
+    (new JsonBreadSource($this->path))->save(listingBread());
+
+    foreach (range(1, 20) as $n) {
+        ListingArticle::create(['title' => "Bulk {$n}", 'views' => 50]);
+    }
+
+    $page = Livewire::test('tardis::pages.bread.index', ['slug' => 'articles'])
+        ->set('search', 'Bulk')
+        ->call('togglePage')
+        ->assertSee('Select all 20 matching records');
+
+    $page->call('selectMatching')->assertSet('selectAllMatching', true)
+        ->assertSee('Every matching record is selected.');
+
+    $page->call('runBulk', 'delete')->assertSet('selected', [])->assertSet('selectAllMatching', false);
+
+    expect(ListingArticle::where('title', 'like', 'Bulk%')->count())->toBe(0)
+        ->and(ListingArticle::whereIn('title', ['Alpha', 'Beta', 'Gamma 100%'])->count())->toBe(3);
+});
+
+test('select all matching refuses more records than the bulk limit', function () {
+    config()->set('tardis.bread.bulk_limit', 2);
+    (new JsonBreadSource($this->path))->save(listingBread());
+
+    Livewire::test('tardis::pages.bread.index', ['slug' => 'articles'])
+        ->call('togglePage')
+        ->call('selectMatching')
+        ->call('runBulk', 'delete')
+        ->assertHasErrors('selected');
+
+    expect(ListingArticle::count())->toBe(3);
 });

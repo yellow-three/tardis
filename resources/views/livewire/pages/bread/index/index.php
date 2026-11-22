@@ -1,8 +1,10 @@
 <?php
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Locked;
@@ -10,12 +12,15 @@ use Livewire\Attributes\Title;
 use Livewire\Attributes\Url;
 use Livewire\Component;
 use Livewire\WithPagination;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 use Tardis\Auth\BreadAuthorization;
 use Tardis\Bread\Action;
 use Tardis\Bread\ActionManager;
+use Tardis\Bread\ActivityLogger;
 use Tardis\Bread\BreadDefinition;
 use Tardis\Bread\BreadListing;
 use Tardis\Bread\BreadQuery;
+use Tardis\Bread\Export\CsvExporter;
 use Tardis\Bread\Livewire\ReadsBreadDefinition;
 use Tardis\Formfields\Formfield;
 use Tardis\Formfields\FormfieldManager;
@@ -45,6 +50,12 @@ new #[Title('tardis::shell.titles.bread')] #[Layout('tardis::layouts.admin')] cl
 
     /** @var array<int, int|string> ids ticked for a bulk action */
     public array $selected = [];
+
+    /**
+     * The bulk action runs on every record the current search and filters
+     * match, not only the ticked rows of this page.
+     */
+    public bool $selectAllMatching = false;
 
     /** @var array<string, bool> named filters currently applied, keyed by name */
     public array $filters = [];
@@ -82,21 +93,25 @@ new #[Title('tardis::shell.titles.bread')] #[Layout('tardis::layouts.admin')] cl
 
     public function updatingSearch(): void
     {
+        $this->selectAllMatching = false;
         $this->resetPage();
     }
 
     public function updatingPerPage(): void
     {
+        $this->selectAllMatching = false;
         $this->resetPage();
     }
 
     public function updatingTrashed(): void
     {
+        $this->selectAllMatching = false;
         $this->resetPage();
     }
 
     public function updatingColumnSearch(): void
     {
+        $this->selectAllMatching = false;
         $this->resetPage();
     }
 
@@ -338,26 +353,118 @@ new #[Title('tardis::shell.titles.bread')] #[Layout('tardis::layouts.admin')] cl
         }
     }
 
-    /** Run a bulk action on the ticked rows. */
+    /** The number of records the current search and filters match. */
+    #[Computed]
+    public function matchingCount(): int
+    {
+        return $this->listing?->rows?->total() ?? 0;
+    }
+
+    /** @return list<string> the keys of the rows on this page, as the checkboxes send them */
+    public function pageKeys(): array
+    {
+        return $this->rows->map(fn (Model $row) => (string) $row->getKey())->values()->all();
+    }
+
+    public function pageSelected(): bool
+    {
+        $keys = $this->pageKeys();
+
+        return $keys !== [] && array_diff($keys, array_map('strval', $this->selected)) === [];
+    }
+
+    /** Offer "select all matching" once the whole page is ticked and there is more. */
+    public function offersMatching(): bool
+    {
+        return ! $this->selectAllMatching && $this->pageSelected() && $this->matchingCount > count($this->pageKeys());
+    }
+
+    public function togglePage(): void
+    {
+        $this->selectAllMatching = false;
+        $this->selected = $this->pageSelected() ? [] : $this->pageKeys();
+    }
+
+    public function selectMatching(): void
+    {
+        $this->selectAllMatching = true;
+    }
+
+    public function clearSelection(): void
+    {
+        $this->selected = [];
+        $this->selectAllMatching = false;
+    }
+
+    /**
+     * The listing as CSV: the same columns, search, filters, sort and trashed
+     * filter as on screen. Anyone who may browse the BREAD may export it; set
+     * tardis.bread.export to false to switch the button off.
+     */
+    public function export(): StreamedResponse
+    {
+        abort_unless((bool) config('tardis.bread.export', true), 404);
+        app(BreadAuthorization::class)->authorize('browse', $this->slug);
+
+        $exporter = new CsvExporter(array_values($this->layoutFields ?: $this->visibleFields), $this->formfields);
+        $filename = $this->slug.'-'.now()->format('Y-m-d-His').'.csv';
+
+        app(ActivityLogger::class)->audit('tardis.bread', 'exported', ['slug' => $this->slug, 'search' => $this->search, 'filters' => array_filter($this->filters)]);
+
+        return $exporter->download($this->matchingQuery(), $filename);
+    }
+
+    /** The records the listing shows on every page, in its order. */
+    protected function matchingQuery(): Builder
+    {
+        return $this->query()->build($this->search, $this->sort ?: null, $this->direction, $this->trashed, $this->columnSearch, $this->filters);
+    }
+
+    /**
+     * The keys a bulk action runs on: the ticked rows, or every match when
+     * "select all matching" is on, up to tardis.bread.bulk_limit.
+     *
+     * @return list<int|string>
+     */
+    protected function bulkKeys(): array
+    {
+        if (! $this->selectAllMatching) {
+            return array_values(array_unique($this->selected));
+        }
+
+        $query = $this->matchingQuery();
+        $limit = max(1, (int) config('tardis.bread.bulk_limit', 1000));
+        $keys = $query->limit($limit + 1)->pluck($query->getModel()->getQualifiedKeyName())->all();
+
+        if (count($keys) > $limit) {
+            throw ValidationException::withMessages(['selected' => __('tardis::bread.bulk_too_many', ['limit' => $limit])]);
+        }
+
+        return $keys;
+    }
+
+    /** Run a bulk action on the ticked rows, or on every match. */
     public function runBulk(string $name): void
     {
         $action = app(ActionManager::class)->find($this->slug, $name) ?? abort(404);
 
         abort_unless($action->isBulk(), 404);
 
+        $keys = $this->bulkKeys();
+
         // All or nothing: a record that vanished or a refused permission
         // half-way must not leave the first rows changed and the rest not.
-        $done = DB::transaction(function () use ($action) {
+        $done = DB::transaction(function () use ($action, $keys) {
             $done = 0;
 
-            foreach (array_unique($this->selected) as $id) {
+            foreach ($keys as $id) {
                 $done += (int) $this->perform($action, $this->findRecord($id));
             }
 
             return $done;
         });
 
-        $this->selected = [];
+        $this->clearSelection();
 
         if ($done > 0) {
             session()->flash('message', __('tardis::bread.bulk_done', ['title' => $action->getTitle(), 'count' => $done]));
