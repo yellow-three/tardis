@@ -14,6 +14,12 @@
                     {{ __('tardis::bread.order') }}
                 </a>
             @endif
+            @if ($this->canImport())
+                <button type="button" x-on:click="$dispatch('open-modal', 'bread-import')" class="btn btn-ghost">
+                    <x-tardis::icon name="arrow-up-tray" class="w-4 h-4" />
+                    {{ __('tardis::bread.import_csv') }}
+                </button>
+            @endif
             @if (config('tardis.bread.export', true))
                 <button type="button" wire:click="export" class="btn btn-ghost">
                     <x-tardis::icon name="arrow-down-tray" class="w-4 h-4" />
@@ -238,4 +244,38 @@
             @endif
         </div>
     </div>
+
+    @if ($this->canImport())
+        <x-tardis::modal name="bread-import" :title="__('tardis::bread.import_csv')">
+            <p class="mb-3 text-sm text-base-content/70">{{ __('tardis::bread.import_help') }}</p>
+
+            @if ($importReport === null)
+                <form wire:submit="import" class="flex flex-col gap-3">
+                    <input type="file" wire:model="importFile" accept=".csv,text/csv" class="file-input w-full" />
+                    @error('importFile') <p class="text-sm text-error" role="alert">{{ $message }}</p> @enderror
+                    <div class="flex justify-end gap-2">
+                        <button type="button" x-on:click="$dispatch('close-modal', 'bread-import')" class="btn btn-ghost">{{ __('tardis::bread.cancel') }}</button>
+                        <button type="submit" class="btn btn-primary" wire:loading.attr="disabled" wire:target="importFile,import">{{ __('tardis::bread.import_run') }}</button>
+                    </div>
+                </form>
+            @else
+                @if ($importReport['errors'] === [])
+                    <div class="alert alert-success text-sm" role="status">{{ __('tardis::bread.import_done', ['created' => $importReport['created'], 'updated' => $importReport['updated']]) }}</div>
+                @else
+                    <div class="alert alert-error text-sm" role="alert">{{ __('tardis::bread.import_failed') }}</div>
+                    <ul class="mt-2 max-h-60 overflow-y-auto text-sm">
+                        @foreach ($importReport['errors'] as $line => $messages)
+                            <li wire:key="import-error-{{ $line }}"><span class="font-medium">{{ __('tardis::bread.import_row', ['row' => $line]) }}</span> {{ implode(' ', $messages) }}</li>
+                        @endforeach
+                    </ul>
+                @endif
+                @if ($importReport['ignored'] !== [])
+                    <p class="mt-2 text-xs text-base-content/60">{{ __('tardis::bread.import_ignored', ['columns' => implode(', ', $importReport['ignored'])]) }}</p>
+                @endif
+                <div class="mt-4 flex justify-end">
+                    <button type="button" wire:click="closeImport" x-on:click="$dispatch('close-modal', 'bread-import')" class="btn btn-primary">{{ __('tardis::bread.close') }}</button>
+                </div>
+            @endif
+        </x-tardis::modal>
+    @endif
 </div>

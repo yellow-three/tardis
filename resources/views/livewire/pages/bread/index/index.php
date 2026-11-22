@@ -11,6 +11,7 @@ use Livewire\Attributes\Locked;
 use Livewire\Attributes\Title;
 use Livewire\Attributes\Url;
 use Livewire\Component;
+use Livewire\WithFileUploads;
 use Livewire\WithPagination;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 use Tardis\Auth\BreadAuthorization;
@@ -21,6 +22,7 @@ use Tardis\Bread\BreadDefinition;
 use Tardis\Bread\BreadListing;
 use Tardis\Bread\BreadQuery;
 use Tardis\Bread\Export\CsvExporter;
+use Tardis\Bread\Import\CsvImporter;
 use Tardis\Bread\Livewire\ReadsBreadDefinition;
 use Tardis\Formfields\Formfield;
 use Tardis\Formfields\FormfieldManager;
@@ -28,6 +30,7 @@ use Tardis\Formfields\FormfieldManager;
 new #[Title('tardis::shell.titles.bread')] #[Layout('tardis::layouts.admin')] class extends Component
 {
     use ReadsBreadDefinition;
+    use WithFileUploads;
     use WithPagination;
 
     #[Locked]
@@ -56,6 +59,12 @@ new #[Title('tardis::shell.titles.bread')] #[Layout('tardis::layouts.admin')] cl
      * match, not only the ticked rows of this page.
      */
     public bool $selectAllMatching = false;
+
+    /** The CSV chosen in the import dialog. */
+    public $importFile = null;
+
+    /** @var array{created: int, updated: int, errors: array<int, list<string>>, ignored: list<string>}|null */
+    public ?array $importReport = null;
 
     /** @var array<string, bool> named filters currently applied, keyed by name */
     public array $filters = [];
@@ -412,6 +421,45 @@ new #[Title('tardis::shell.titles.bread')] #[Layout('tardis::layouts.admin')] cl
         app(ActivityLogger::class)->audit('tardis.bread', 'exported', ['slug' => $this->slug, 'search' => $this->search, 'filters' => array_filter($this->filters)]);
 
         return $exporter->download($this->matchingQuery(), $filename);
+    }
+
+    /** Whether the import button is offered: the user may add or edit records. */
+    public function canImport(): bool
+    {
+        $auth = app(BreadAuthorization::class);
+
+        return (bool) config('tardis.bread.import', true) && ($auth->allows('add', $this->slug) || $auth->allows('edit', $this->slug));
+    }
+
+    /**
+     * Read the chosen CSV into the BREAD (see CsvImporter): all rows or none,
+     * each authorised as an add or an edit.
+     */
+    public function import(): void
+    {
+        abort_unless($this->canImport(), 403);
+
+        $this->validate(['importFile' => ['required', 'file', 'mimes:csv,txt', 'max:'.max(1, (int) config('tardis.bread.import_max_kb', 5120))]]);
+
+        $result = (new CsvImporter($this->slug, $this->definition()))->import($this->importFile->getRealPath());
+
+        $this->importReport = [
+            'created' => $result->created,
+            'updated' => $result->updated,
+            'errors' => array_slice($result->errors, 0, 20, true),
+            'ignored' => $result->ignoredColumns,
+        ];
+        $this->reset('importFile');
+
+        if (! $result->failed()) {
+            app(ActivityLogger::class)->audit('tardis.bread', 'imported', ['slug' => $this->slug, 'created' => $result->created, 'updated' => $result->updated]);
+            $this->resetPage();
+        }
+    }
+
+    public function closeImport(): void
+    {
+        $this->reset('importFile', 'importReport');
     }
 
     /** The records the listing shows on every page, in its order. */

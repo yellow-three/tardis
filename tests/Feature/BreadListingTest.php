@@ -5,10 +5,12 @@ declare(strict_types=1);
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Schema;
+use Livewire\Features\SupportTesting\Testable;
 use Livewire\Livewire;
 use Tardis\Bread\BreadDefinition;
 use Tardis\Bread\BreadQuery;
@@ -396,4 +398,63 @@ test('select all matching refuses more records than the bulk limit', function ()
         ->assertHasErrors('selected');
 
     expect(ListingArticle::count())->toBe(3);
+});
+
+function importCsv(string $csv): Testable
+{
+    return Livewire::test('tardis::pages.bread.index', ['slug' => 'articles'])
+        ->set('importFile', UploadedFile::fake()->createWithContent('articles.csv', $csv))
+        ->call('import');
+}
+
+test('a CSV adds new rows and updates rows that carry an existing key', function () {
+    $this->artisan('migrate');
+    (new JsonBreadSource($this->path))->save(listingBread());
+
+    $page = importCsv("\xEF\xBB\xBFid,Title,Views,Nonsense\n1,Alpha edited,7,x\n,Delta,4,y\n,'=SUM(1),2,z\n");
+
+    expect($page->get('importReport'))->toMatchArray(['created' => 2, 'updated' => 1, 'errors' => [], 'ignored' => ['Nonsense']])
+        ->and(ListingArticle::find(1)->only('title', 'views'))->toBe(['title' => 'Alpha edited', 'views' => 7])
+        ->and(ListingArticle::where('title', 'Delta')->value('views'))->toBe(4)
+        // The quote the export puts before a formula is taken off again.
+        ->and(ListingArticle::where('title', '=SUM(1)')->exists())->toBeTrue()
+        ->and(ActivityLog::query()->where('action', 'imported')->exists())->toBeTrue();
+});
+
+test('one invalid row and nothing is imported, with the row numbers', function () {
+    $bread = listingBread();
+    $bread['fields'][2]['validation'] = ['required', 'integer', 'max:100'];
+    (new JsonBreadSource($this->path))->save($bread);
+
+    $page = importCsv("title,views\nGood,3\nBad,500\nWorse,\n");
+
+    $report = $page->get('importReport');
+
+    expect($report['created'])->toBe(0)
+        ->and(array_keys($report['errors']))->toBe([3, 4])
+        ->and(ListingArticle::where('title', 'Good')->exists())->toBeFalse();
+
+    $page->assertSee('Row 3:')->call('closeImport')->assertSet('importReport', null);
+});
+
+test('a file whose columns match no field is refused', function () {
+    (new JsonBreadSource($this->path))->save(listingBread());
+
+    expect(importCsv("foo,bar\n1,2\n")->get('importReport')['errors'])->toBe([1 => [__('tardis::bread.import_no_columns')]])
+        ->and(ListingArticle::count())->toBe(3);
+});
+
+test('an exported file reads back in unchanged', function () {
+    (new JsonBreadSource($this->path))->save(listingBread());
+
+    $csv = base64_decode(Livewire::test('tardis::pages.bread.index', ['slug' => 'articles'])->call('export')->effects['download']['content']);
+    $before = ListingArticle::orderBy('id')->get(['title', 'body', 'views'])->toArray();
+
+    $report = importCsv($csv)->get('importReport');
+
+    // The export has no key column, so every row comes back as a new record
+    // with the same values.
+    expect($report['errors'])->toBe([])
+        ->and($report['created'])->toBe(3)
+        ->and(ListingArticle::orderBy('id')->skip(3)->take(3)->get(['title', 'body', 'views'])->toArray())->toBe($before);
 });
