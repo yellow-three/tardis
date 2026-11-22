@@ -287,3 +287,8 @@ Fixes from the 2026-11-17 review (`docs/notes.md`). Each one is covered by a tes
 - **One request per folder:** the media screen and the media picker read size, modification time and type from the folder listing (the type from the extension) instead of asking the disk three times per file, which on S3 meant three requests per file.
 - **Paging:** both show `tardis.media.per_page` entries (60) at a time; the total stays on screen. A selection on the media screen is per page, the picker keeps it across pages.
 - **No SVG by default:** `svg` is out of the default `tardis.media.allowed_mimes`. An SVG can carry script and is served as uploaded; add it back only for uploaders you trust.
+
+## Findings — UUID and ULID users (B29)
+
+- **User columns follow the users table:** `tardis_role_user.user_id`, `tardis_activity_logs.user_id` and `tardis_media.created_by` take the type of the user key (`tardis.users.key_type`; `auto` reads it off the user model: `HasUuids`, `HasUlids`, a string key or an integer). A migration converts them; `php artisan tardis:user-keys` does it again after the type changes, and `tardis:doctor` warns while they do not match.
+- **Role links with any user model:** `Role::users()` named its pivot columns from the model's class name, so a user model not called `User` (or a custom role or permission model) looked for columns that do not exist. The keys are named now.

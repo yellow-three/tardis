@@ -260,3 +260,7 @@ A BREAD override route is named after the new action name (`tardis.bread.create.
 
 - `svg` is no longer in the default `tardis.media.allowed_mimes`. A published config keeps its own list; remove `svg` there too unless every uploader is trusted (an SVG can carry script).
 - New `tardis.media.per_page` (60): the media screen and picker show one page of a folder. `$files` on those components holds that page only; `$totalFiles` is the count over all pages.
+
+## User key columns
+
+- `php artisan migrate` gives the user columns of `tardis_role_user`, `tardis_activity_logs` and `tardis_media` the type of your users table key. On an integer-keyed app nothing changes. With UUID or ULID users, tables that already hold rows of the old (unusable) type are left alone; `php artisan tardis:user-keys --force` empties and converts them. Set `TARDIS_USER_KEY_TYPE` when `auto` cannot tell from the model.

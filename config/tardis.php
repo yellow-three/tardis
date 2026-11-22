@@ -142,6 +142,11 @@ return [
     | read and write; a column the table does not have is left out.
     */
     'users' => [
+        // The type of the user columns in Tardis' tables: auto (read from the
+        // user model), int, uuid, ulid or string. Change it before migrating,
+        // or run php artisan tardis:user-keys afterwards.
+        'key_type' => env('TARDIS_USER_KEY_TYPE', 'auto'),
+
         'columns' => [
             'name' => 'name',
             'email' => 'email',

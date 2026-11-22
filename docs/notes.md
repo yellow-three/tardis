@@ -12,7 +12,7 @@ Bu dosya **yalnızca aktif/açık** bulguları, denemeleri ve açık işleri tut
 
 Kapsam: `src/`, `routes/`, `resources/views/pages`, migration'lar, CI ve dokümanlar okundu. Başlangıç durumu: `composer test` → 918 passed (2369 assertions), `composer lint` temiz. **Doğrulama** sütunu: *test* = geçici bir Pest testiyle yeniden üretildi (test sonra silindi), *kod* = yalnızca kod okumasıyla tespit edildi, çalıştırılarak doğrulanmadı. Hiçbir bulgu için kod değişikliği yapılmadı.
 
-**Plan bağlantısı (2026-11-17, kabul edildi):** düzeltme sırası `docs/backlog.md` → *1.0 yol haritası*. **R34 (Faz 9, P0):** kapandı (2026-11-17, `fix/phase-9a-access-and-auth-flows`): B17, B18, B19, B20, B22, B23, B24, B25, B26, B31, B32, B68, B69, B70 — satırları silindi, ayrıntı `RELEASE_NOTES.md` ve git geçmişinde. **R35 (Faz 10, P1):** büyük ölçüde kapandı (PR #37 ve `fix/phase-10b-remaining`): B21, B27, B28, B30, B36, B39, B40, B43 silindi. Kalan kısımlar satırlarında: B29, B35, B41, B42 (B34, B38 kapandı). **R37:** B33. **R39:** B41. **R45 (Faz 13):** B44–B47. **R56 (Faz 10b):** ilk parça (`feature/phase-10b-theme-assets`): B52, B53, B54, B57 kapandı, B58 kısmen. Açık: tema editöründe `shape` düzenleme (B55, B56, B58 kapandı). **R57 (Faz 10c):** hata düzeltmeleri dilimi (`fix/phase-10c-core-api`): B60–B66, B71 kapandı; B59, B72 kısmen. Açık: B67, B73–B76 ve yeniden adlandırma PR'ı. Her düzeltme, bulguyu yeniden üreten kalıcı bir testle başlar; kapanan satır bu dosyadan silinir.
+**Plan bağlantısı (2026-11-17, kabul edildi):** düzeltme sırası `docs/backlog.md` → *1.0 yol haritası*. **R34 (Faz 9, P0):** kapandı (2026-11-17, `fix/phase-9a-access-and-auth-flows`): B17, B18, B19, B20, B22, B23, B24, B25, B26, B31, B32, B68, B69, B70 — satırları silindi, ayrıntı `RELEASE_NOTES.md` ve git geçmişinde. **R35 (Faz 10, P1):** büyük ölçüde kapandı (PR #37 ve `fix/phase-10b-remaining`): B21, B27, B28, B30, B36, B39, B40, B43 silindi. Kalan kısımlar satırlarında: B35, B41, B42 (B29, B34, B38 kapandı). **R37:** B33. **R39:** B41. **R45 (Faz 13):** B44–B47. **R56 (Faz 10b):** ilk parça (`feature/phase-10b-theme-assets`): B52, B53, B54, B57 kapandı, B58 kısmen. Açık: tema editöründe `shape` düzenleme (B55, B56, B58 kapandı). **R57 (Faz 10c):** hata düzeltmeleri dilimi (`fix/phase-10c-core-api`): B60–B66, B71 kapandı; B59, B72 kısmen. Açık: B67, B73–B76 ve yeniden adlandırma PR'ı. Her düzeltme, bulguyu yeniden üreten kalıcı bir testle başlar; kapanan satır bu dosyadan silinir.
 
 ## Yüksek (HIGH)
 
@@ -23,7 +23,6 @@ Kapsam: `src/`, `routes/`, `resources/views/pages`, migration'lar, CI ve doküma
 
 | # | Bulgu | Kod ref | Doğrulama |
 |---|-------|---------|-----------|
-| B29 | **UUID/ULID: kalan kısım.** BREAD listesi, denetim kaydı ve Users sayfası string anahtarı destekliyor (Faz 10). (`users` tablosuna sabit yabancı anahtarlar Faz 13'te kaldırıldı.) Açık: `user_id` sütunları hâlâ bigint; UUID kullanıcı tablosunda `tardis_role_user`, `activity_logs.user_id`, `tardis_media.created_by` uyumsuz. | `database/migrations/*` | kod |
 
 ## Düşük (LOW)
 
