@@ -306,3 +306,9 @@ Fixes from the 2026-11-17 review (`docs/notes.md`). Each one is covered by a tes
 
 - **Export:** every BREAD list has an *Export CSV* button. The file holds the columns the list shows, with the current search, filters, sort and trashed filter, and the values as the list shows them (relations as their labels). It streams in chunks, leaves out password fields and the model's hidden attributes, guards against spreadsheet formulas (CSV injection) and is recorded in the activity log. Anyone who may browse the BREAD may export it; `tardis.bread.export` switches the button off.
 - **Select all matching:** a header checkbox ticks the page; then *Select all N matching records* makes a bulk action run on every record the search and filters match. Each record is still authorised on its own, the run is all-or-nothing, and `tardis.bread.bulk_limit` (1000) caps it.
+
+## 1.x — CSV import (R46, second part)
+
+- **Import CSV** on every BREAD list, for users who may add or edit records. The header row names the columns by field name or label, so a file exported from the list reads back in. A row carrying the key of an existing record (inside the BREAD's scope) updates it, any other row is added, each authorised as an add or an edit.
+- Rows go through the same validation and saving as the forms (field rules, `store()`/`update()` hooks, record events, so the activity log sees every change). Every row is validated first: one invalid row and nothing is written, and the dialog lists each problem with its row number. A valid file is written in one transaction; a duplicate the database refuses rolls it all back.
+- File, image, media, password, rich text and translatable fields and to-many relations are left out; `tardis.bread.import_limit` (1000 rows) and `import_max_kb` (5 MB) bound a file, `tardis.bread.import` switches it off.

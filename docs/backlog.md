@@ -265,7 +265,7 @@ Ayrıntı ve kod referansı için parantezdeki kimliğe bak.
 
 | ID | Özellik | V1 | V2 | Neden değerli | Boyut |
 |---|---|---|---|---|---|
-| R46 | **Dışa/içe aktarma** (CSV/XLSX), "tüm eşleşenleri seç" ile toplu aksiyon (◐ 2026-11-22: CSV dışa aktarma ve tüm eşleşenler yapıldı; içe aktarma ve XLSX kaldı) | ❌ | ❌ | Yönetim panelinden en sık istenen iş; liste filtreleri ve yetki zaten hazır | M |
+| R46 | **Dışa/içe aktarma** (CSV/XLSX), "tüm eşleşenleri seç" ile toplu aksiyon (◐ 2026-11-22: CSV dışa/içe aktarma ve tüm eşleşenler yapıldı; XLSX kaldı) | ❌ | ❌ | Yönetim panelinden en sık istenen iş; liste filtreleri ve yetki zaten hazır | M |
 | R47 | **Revizyon geçmişi + geri alma** ve eşzamanlı düzenleme uyarısı | ❌ | ❌ | Activity log `old_values`'u zaten tutuyor; üstüne diff görünümü ve "başkası değiştirdi" kontrolü | M |
 | R48 | **Kayıt ve alan düzeyinde yetki** | ❌ (tablo düzeyi) | ❌ (BREAD yetkisi yok) | `AuthorizationPlugin::can()` `$model` alıyor ama kullanılmıyor; "yalnızca kendi kayıtları" en yaygın kural | M |
 | R49 | **2FA (TOTP), oturum listesi, kullanıcı kılığına girme** | ❌ | ❌ | Paket kendi girişini taşıyor; Voyager'ın güvenlik itibarına karşı en görünür fark | M |

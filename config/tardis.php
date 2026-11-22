@@ -32,6 +32,11 @@ return [
         'export' => true,
         // The most records a bulk action runs on with "select all matching".
         'bulk_limit' => 1000,
+        // CSV import on BREAD lists, for users who may add or edit records:
+        // at most this many rows and this size per file.
+        'import' => true,
+        'import_limit' => 1000,
+        'import_max_kb' => 5120,
     ],
 
     /*
