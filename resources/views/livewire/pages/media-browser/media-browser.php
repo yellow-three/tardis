@@ -53,6 +53,15 @@ new #[Title('tardis::shell.titles.media')] #[Layout('tardis::layouts.admin')] cl
 
     public string $mimeTypeFilter = '';
 
+    /** The page of the current folder; $files holds only that page. */
+    public int $page = 1;
+
+    /** Entries in the current folder after the filters, over all pages. */
+    public int $totalFiles = 0;
+
+    /** @var array<string, int> MIME category => files, over all pages */
+    public array $mimeCategories = [];
+
     public string $searchQuery = '';
 
     public string $dateFilter = '';
@@ -145,7 +154,35 @@ new #[Title('tardis::shell.titles.media')] #[Layout('tardis::layouts.admin')] cl
             default => $files->sortBy('name'),
         };
 
-        $this->files = $files->values()->toArray();
+        $all = $files->values();
+        $this->totalFiles = $all->count();
+        $this->mimeCategories = $all->reject(fn ($f) => $f['type'] === 'directory')
+            ->countBy(fn ($f) => explode('/', $f['type'])[0])
+            ->sortKeys()
+            ->all();
+        $this->page = max(1, min($this->page, $this->lastPage()));
+        $this->files = $all->forPage($this->page, $this->perPage())->values()->toArray();
+    }
+
+    public function perPage(): int
+    {
+        return max(1, (int) config('tardis.media.per_page', 60));
+    }
+
+    public function lastPage(): int
+    {
+        return max(1, (int) ceil($this->totalFiles / $this->perPage()));
+    }
+
+    /**
+     * A selection belongs to the page it was made on: the actions resolve
+     * folders against the entries on screen.
+     */
+    public function goToPage(int $page): void
+    {
+        $this->page = $page;
+        $this->selectedFiles = [];
+        $this->loadFiles();
     }
 
     public function formatSize(int $bytes): string
@@ -162,28 +199,33 @@ new #[Title('tardis::shell.titles.media')] #[Layout('tardis::layouts.admin')] cl
     public function updatedMimeTypeFilter(): void
     {
         $this->selectedFiles = [];
+        $this->page = 1;
         $this->loadFiles();
     }
 
     public function updatedDateFilter(): void
     {
         $this->selectedFiles = [];
+        $this->page = 1;
         $this->loadFiles();
     }
 
     public function updatedSizeFilter(): void
     {
         $this->selectedFiles = [];
+        $this->page = 1;
         $this->loadFiles();
     }
 
     public function updatedSortBy(): void
     {
+        $this->page = 1;
         $this->loadFiles();
     }
 
     public function updatedSearchQuery(): void
     {
+        $this->page = 1;
         $this->loadFiles();
     }
 
@@ -203,6 +245,7 @@ new #[Title('tardis::shell.titles.media')] #[Layout('tardis::layouts.admin')] cl
     {
         $this->currentPath = $path;
         $this->selectedFiles = [];
+        $this->page = 1;
         $this->loadFiles();
     }
 
@@ -266,20 +309,7 @@ new #[Title('tardis::shell.titles.media')] #[Layout('tardis::layouts.admin')] cl
 
     public function getMimeTypeCategories(): array
     {
-        $categories = [];
-
-        foreach ($this->files as $file) {
-            if ($file['type'] === 'directory') {
-                continue;
-            }
-
-            $cat = explode('/', $file['type'])[0];
-            $categories[$cat] = ($categories[$cat] ?? 0) + 1;
-        }
-
-        ksort($categories);
-
-        return $categories;
+        return $this->mimeCategories;
     }
 
     public function createDirectory(): void

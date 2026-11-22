@@ -68,4 +68,7 @@ return [
     'uploaded' => ':count file(s) uploaded successfully',
     'uploading' => 'Uploading 1 file...|Uploading :count files...',
     'videos' => 'Videos',
+    'previous_page' => 'Previous page',
+    'next_page' => 'Next page',
+    'page_of' => 'Page :page of :last',
 ];

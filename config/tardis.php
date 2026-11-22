@@ -142,6 +142,11 @@ return [
     | read and write; a column the table does not have is left out.
     */
     'users' => [
+        // The type of the user columns in Tardis' tables: auto (read from the
+        // user model), int, uuid, ulid or string. Change it before migrating,
+        // or run php artisan tardis:user-keys afterwards.
+        'key_type' => env('TARDIS_USER_KEY_TYPE', 'auto'),
+
         'columns' => [
             'name' => 'name',
             'email' => 'email',
@@ -256,7 +261,13 @@ return [
     'media' => [
         'disk' => env('TARDIS_MEDIA_DISK', 'public'),
         'path' => env('TARDIS_MEDIA_PATH', 'media'),
-        'allowed_mimes' => ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg', 'pdf', 'doc', 'docx', 'xls', 'xlsx', 'zip'],
+        // svg is left out on purpose: an SVG can carry script, and the file is
+        // served from the media disk as it was uploaded. Add it only for
+        // uploaders you trust, or serve the disk from another domain.
+        'allowed_mimes' => ['jpg', 'jpeg', 'png', 'gif', 'webp', 'pdf', 'doc', 'docx', 'xls', 'xlsx', 'zip'],
+
+        // Entries per page on the media screen and in the media picker.
+        'per_page' => 60,
         'max_file_size' => env('TARDIS_MEDIA_MAX_SIZE', 10240), // KB
         // Image uploads get a thumbnail fitted inside this box (needs the GD
         // extension; without it the media screen shows the original).

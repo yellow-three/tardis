@@ -7,20 +7,19 @@ use Livewire\Attributes\Title;
 use Livewire\Component;
 use Tardis\Auth\BreadAuthorization;
 use Tardis\Bread\BreadDefinition;
-use Tardis\Bread\BreadManager;
+use Tardis\Bread\Livewire\ReadsBreadDefinition;
 use Tardis\Formfields\Formfield;
 use Tardis\Formfields\FormfieldManager;
 
 new #[Title('tardis::shell.titles.view')] #[Layout('tardis::layouts.admin')] class extends Component
 {
+    use ReadsBreadDefinition;
+
     #[Locked]
     public string $slug = '';
 
     #[Locked]
     public int|string $id = 0;
-
-    #[Locked]
-    public array $bread = [];
 
     #[Locked]
     public array $record = [];
@@ -38,17 +37,18 @@ new #[Title('tardis::shell.titles.view')] #[Layout('tardis::layouts.admin')] cla
         }
     }
 
+    /** @return array<string, mixed> read from the slug on every request */
+    #[Computed]
+    public function bread(): array
+    {
+        return $this->breadArray();
+    }
+
     public function mount(string $slug, int|string $id): void
     {
         $this->slug = $slug;
         $this->id = $id;
-        $definition = app(BreadManager::class)->find($slug);
-
-        if (! $definition) {
-            abort(404);
-        }
-
-        $this->bread = $definition->toDisplayArray();
+        $this->definition(); // a missing definition is a 404 before anything else
 
         app(BreadAuthorization::class)->authorize('read', $this->slug);
 
@@ -58,7 +58,7 @@ new #[Title('tardis::shell.titles.view')] #[Layout('tardis::layouts.admin')] cla
             abort(404);
         }
 
-        $record = BreadDefinition::fromArray($this->bread)->query()->findOrFail($id);
+        $record = $this->definition()->query()->findOrFail($id);
 
         // Only the key and the columns this page shows reach the browser.
         $this->record = array_intersect_key(

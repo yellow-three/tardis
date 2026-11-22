@@ -282,3 +282,18 @@ Fixes from the 2026-11-17 review (`docs/notes.md`). Each one is covered by a tes
 - **Development mode matches production:** `npm run dev` adds the Vite client (stylesheet changes apply without a reload) and loads the core script as the same classic script the build is, at the same point. The hot file follows Vite's `server.origin`, `https` and `host` (or `TARDIS_VITE_URL`) instead of a fixed `http://localhost`.
 - **Asset order in one place:** `<x-tardis::head />` and `<x-tardis::scripts />` hold the order the layouts relied on (core script before Livewire).
 - **Smaller things:** the theme choice is resolved once per request; the page data is a JSON block that needs no CSP nonce; stale build folders are gone.
+
+## Findings — media listing (B34)
+
+- **One request per folder:** the media screen and the media picker read size, modification time and type from the folder listing (the type from the extension) instead of asking the disk three times per file, which on S3 meant three requests per file.
+- **Paging:** both show `tardis.media.per_page` entries (60) at a time; the total stays on screen. A selection on the media screen is per page, the picker keeps it across pages.
+- **No SVG by default:** `svg` is out of the default `tardis.media.allowed_mimes`. An SVG can carry script and is served as uploaded; add it back only for uploaders you trust.
+
+## Findings — BREAD page snapshots (B75)
+
+- **The definition stays on the server:** the browse, create, read and edit pages no longer carry the whole BREAD definition in their Livewire snapshot (`#[Locked] array $bread`). They keep the slug and read the definition on every request (`ReadsBreadDefinition`), so the payload is smaller, nothing about the model or fields can be tampered with, and an open page follows a definition changed in the builder on its next request (a removed one is a 404).
+
+## Findings — UUID and ULID users (B29)
+
+- **User columns follow the users table:** `tardis_role_user.user_id`, `tardis_activity_logs.user_id` and `tardis_media.created_by` take the type of the user key (`tardis.users.key_type`; `auto` reads it off the user model: `HasUuids`, `HasUlids`, a string key or an integer). A migration converts them; `php artisan tardis:user-keys` does it again after the type changes, and `tardis:doctor` warns while they do not match.
+- **Role links with any user model:** `Role::users()` named its pivot columns from the model's class name, so a user model not called `User` (or a custom role or permission model) looked for columns that do not exist. The keys are named now.

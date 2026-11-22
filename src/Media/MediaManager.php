@@ -11,6 +11,9 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use InvalidArgumentException;
 use League\Flysystem\DirectoryAttributes;
+use League\Flysystem\FileAttributes;
+use League\Flysystem\StorageAttributes;
+use League\MimeTypeDetection\ExtensionMimeTypeDetector;
 use Tardis\Models\Media;
 use Tardis\Support\ModelResolver;
 
@@ -124,30 +127,44 @@ class MediaManager
         return $this->thumbnailColumn ??= Schema::hasColumn((new (ModelResolver::media()))->getTable(), 'thumbnail_path');
     }
 
+    /**
+     * The entries of one folder, folders and files, sorted by name.
+     *
+     * Everything comes from the listing itself: size and modification time
+     * are part of what Flysystem returns for each file, and the MIME type is
+     * read from the extension. A folder of a thousand files on S3 is one
+     * listing request, not three requests per file. Only a driver that leaves
+     * the size out of its listing is asked for it.
+     */
     public function listFiles(string $path = ''): Collection
     {
         $path = Str::finish($this->fullPath($path), '/');
         $storage = Storage::disk($this->disk);
+        $mimes = new ExtensionMimeTypeDetector;
 
-        $files = collect($storage->listContents($path))
+        return collect($storage->listContents($path))
             // Hidden entries (the thumbnail folder when the media path is the
             // disk root) are never shown.
             ->reject(fn ($item) => str_starts_with(basename((string) $item['path']), '.'))
-            ->map(function ($item) use ($storage) {
-                $isDir = $item instanceof DirectoryAttributes
-                    || str_ends_with($item['path'], '/');
-
+            ->map(function ($item) use ($storage, $mimes) {
+                $isDir = $item instanceof DirectoryAttributes || str_ends_with($item['path'], '/');
                 $size = 0;
-                $mimeType = 'directory';
                 $lastModified = null;
+                $mimeType = 'directory';
 
                 if (! $isDir) {
-                    try {
-                        $size = $storage->fileSize($item['path']);
-                        $mimeType = $storage->mimeType($item['path']);
-                        $lastModified = $storage->lastModified($item['path']);
-                    } catch (\Throwable) {
-                        // File might not exist or metadata unavailable
+                    $size = $item instanceof FileAttributes ? $item->fileSize() : null;
+                    $lastModified = $item instanceof StorageAttributes ? $item->lastModified() : null;
+                    $mimeType = ($item instanceof FileAttributes ? $item->mimeType() : null)
+                        ?? $mimes->detectMimeTypeFromPath($item['path'])
+                        ?? 'application/octet-stream';
+
+                    if ($size === null) {
+                        try {
+                            $size = $storage->fileSize($item['path']);
+                        } catch (\Throwable) {
+                            $size = 0;
+                        }
                     }
                 }
 
@@ -164,8 +181,6 @@ class MediaManager
             ->sortBy('type')
             ->sortBy('name')
             ->values();
-
-        return $files;
     }
 
     public function createDirectory(string $path, string $name): bool

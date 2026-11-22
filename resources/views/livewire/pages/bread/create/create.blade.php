@@ -1,3 +1,7 @@
+@php
+    // Read from the slug on every request; it is not part of the snapshot.
+    $bread = $this->bread;
+@endphp
 <div>
     <div class="flex items-center justify-between mb-6">
         <div>

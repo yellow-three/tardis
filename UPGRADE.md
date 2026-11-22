@@ -255,3 +255,16 @@ A BREAD override route is named after the new action name (`tardis.bread.create.
 - The panel's `app.css` / `app.js` are served from the package through the hashed `/{prefix}/_assets/…` route; `vendor:publish --tag=tardis-assets` is gone and `tardis:install` no longer publishes. Delete `public/vendor/tardis` (`tardis:doctor` warns while it exists).
 - A published layout should replace `<x-tardis::theme-boot />`, `@tardisStyles` and `@livewireStyles` with `<x-tardis::head :theme="$tardisTheme" />` (`scope="auth"` on the login layout), and `@tardisScripts` / `@livewireScripts` with `<x-tardis::scripts />`. The old directives still work.
 - The page data is a JSON block (`<script type="application/json" id="tardis-boot">`). The core script still sets `window.__TARDIS__`, but a script that ran before it must read the block instead.
+
+## Media
+
+- `svg` is no longer in the default `tardis.media.allowed_mimes`. A published config keeps its own list; remove `svg` there too unless every uploader is trusted (an SVG can carry script).
+- New `tardis.media.per_page` (60): the media screen and picker show one page of a folder. `$files` on those components holds that page only; `$totalFiles` is the count over all pages.
+
+## BREAD pages
+
+- `$bread` on the BREAD pages is a computed property now (`$this->bread`), not public state: a replaced screen that extended one of them, or a test that read `bread` from the snapshot or set `bread.*`, reads `$this->bread` or the definition from `BreadManager` instead.
+
+## User key columns
+
+- `php artisan migrate` gives the user columns of `tardis_role_user`, `tardis_activity_logs` and `tardis_media` the type of your users table key. On an integer-keyed app nothing changes. With UUID or ULID users, tables that already hold rows of the old (unusable) type are left alone; `php artisan tardis:user-keys --force` empties and converts them. Set `TARDIS_USER_KEY_TYPE` when `auto` cannot tell from the model.
