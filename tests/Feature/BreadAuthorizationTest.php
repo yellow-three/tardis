@@ -7,6 +7,7 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
+use Livewire\Exceptions\PublicPropertyNotFoundException;
 use Livewire\Features\SupportLockedProperties\CannotUpdateLockedPropertyException;
 use Livewire\Livewire;
 use Tardis\Auth\RoleAuthorizationPlugin;
@@ -433,15 +434,16 @@ test('the client cannot rewrite the BREAD definition a page was authorised again
 
     $this->actingAs(authzUser());
 
-    // Livewire public properties are client-writable. A tampered `bread.model`
-    // would point an authorised ability at an unrelated model, and a tampered
-    // `slug` would be checked against the wrong permission.
+    // Livewire public properties are client-writable. The definition is not
+    // one at all (it is read from the slug on the server), so there is no
+    // `bread.model` to point at an unrelated model; the slug is locked, so it
+    // cannot be checked against the wrong permission.
     $component = Livewire::test($page, $params);
 
-    foreach (['bread.model', 'slug'] as $property) {
-        expect(fn () => $component->set($property, 'App\\Models\\User'))
-            ->toThrow(CannotUpdateLockedPropertyException::class);
-    }
+    expect(fn () => $component->set('bread.model', 'App\\Models\\User'))
+        ->toThrow(PublicPropertyNotFoundException::class)
+        ->and(fn () => $component->set('slug', 'users'))
+        ->toThrow(CannotUpdateLockedPropertyException::class);
 })->with([
     'index' => ['tardis::pages.bread.index', ['slug' => 'bread-page-authz']],
     'create' => ['tardis::pages.bread.create', ['slug' => 'bread-page-authz']],

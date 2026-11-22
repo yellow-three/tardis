@@ -8,9 +8,9 @@ use Livewire\Component;
 use Livewire\WithFileUploads;
 use Tardis\Auth\BreadAuthorization;
 use Tardis\Bread\BreadDefinition;
-use Tardis\Bread\BreadManager;
 use Tardis\Bread\BreadSaver;
 use Tardis\Bread\FieldValidationRules;
+use Tardis\Bread\Livewire\ReadsBreadDefinition;
 use Tardis\Bread\MissingColumnsException;
 use Tardis\Formfields\Formfield;
 use Tardis\Formfields\FormfieldManager;
@@ -19,6 +19,7 @@ use Tardis\Support\Translation;
 
 new #[Title('tardis::shell.titles.edit')] #[Layout('tardis::layouts.admin')] class extends Component
 {
+    use ReadsBreadDefinition;
     use WithFileUploads;
 
     /** Field types whose control searches the related records. */
@@ -29,9 +30,6 @@ new #[Title('tardis::shell.titles.edit')] #[Layout('tardis::layouts.admin')] cla
 
     #[Locked]
     public int|string $id = 0;
-
-    #[Locked]
-    public array $bread = [];
 
     #[Locked]
     public array $record = [];
@@ -62,17 +60,18 @@ new #[Title('tardis::shell.titles.edit')] #[Layout('tardis::layouts.admin')] cla
         }
     }
 
+    /** @return array<string, mixed> read from the slug on every request */
+    #[Computed]
+    public function bread(): array
+    {
+        return $this->breadArray();
+    }
+
     public function mount(string $slug, int|string $id): void
     {
         $this->slug = $slug;
         $this->id = $id;
-        $definition = app(BreadManager::class)->find($slug);
-
-        if (! $definition) {
-            abort(404);
-        }
-
-        $this->bread = $definition->toDisplayArray();
+        $this->definition(); // a missing definition is a 404 before anything else
         $modelClass = $this->bread['model'] ?? null;
 
         if (! BreadDefinition::isModelClass($modelClass)) {
@@ -81,7 +80,7 @@ new #[Title('tardis::shell.titles.edit')] #[Layout('tardis::layouts.admin')] cla
 
         app(BreadAuthorization::class)->authorize('edit', $this->slug);
 
-        $record = BreadDefinition::fromArray($this->bread)->query()->findOrFail($id);
+        $record = $this->definition()->query()->findOrFail($id);
         // Livewire sends public properties to the browser, so only the key and
         // the columns this form edits are kept; anything else on the row stays
         // on the server.
@@ -266,7 +265,7 @@ new #[Title('tardis::shell.titles.edit')] #[Layout('tardis::layouts.admin')] cla
         $modelClass = $this->bread['model'] ?? null;
 
         if (BreadDefinition::isModelClass($modelClass)) {
-            $record = BreadDefinition::fromArray($this->bread)->query()->findOrFail($this->id);
+            $record = $this->definition()->query()->findOrFail($this->id);
 
             try {
                 app(BreadSaver::class)->update($this->slug, $record, $this->fields, $this->form);

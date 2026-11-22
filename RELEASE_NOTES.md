@@ -288,6 +288,10 @@ Fixes from the 2026-11-17 review (`docs/notes.md`). Each one is covered by a tes
 - **Paging:** both show `tardis.media.per_page` entries (60) at a time; the total stays on screen. A selection on the media screen is per page, the picker keeps it across pages.
 - **No SVG by default:** `svg` is out of the default `tardis.media.allowed_mimes`. An SVG can carry script and is served as uploaded; add it back only for uploaders you trust.
 
+## Findings — BREAD page snapshots (B75)
+
+- **The definition stays on the server:** the browse, create, read and edit pages no longer carry the whole BREAD definition in their Livewire snapshot (`#[Locked] array $bread`). They keep the slug and read the definition on every request (`ReadsBreadDefinition`), so the payload is smaller, nothing about the model or fields can be tampered with, and an open page follows a definition changed in the builder on its next request (a removed one is a 404).
+
 ## Findings — UUID and ULID users (B29)
 
 - **User columns follow the users table:** `tardis_role_user.user_id`, `tardis_activity_logs.user_id` and `tardis_media.created_by` take the type of the user key (`tardis.users.key_type`; `auto` reads it off the user model: `HasUuids`, `HasUlids`, a string key or an integer). A migration converts them; `php artisan tardis:user-keys` does it again after the type changes, and `tardis:doctor` warns while they do not match.
