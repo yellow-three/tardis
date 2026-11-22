@@ -65,7 +65,10 @@ test('a record is created, listed, edited and searched', function () {
 });
 
 test('the sidebar leads to the demo BREADs', function () {
+    // The sign-in redirect is a Livewire navigation; open the dashboard as a
+    // page of its own, as the other test does, so the check does not race it.
     signIn()
+        ->navigate('/admin/dashboard')
         ->assertSee('Posts')
         ->click('Posts')
         ->assertPathIs('/admin/posts')
