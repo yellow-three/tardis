@@ -40,8 +40,19 @@ function signIn(): mixed
         ->assertPathIs('/admin/dashboard');
 }
 
-test('a record is created, listed, edited and searched', function () {
+/*
+ * One test per file that signs in: the browser server keeps serving the
+ * application of the first test in the file, so a second test that signs in
+ * finds neither its user nor its session. Each flow is a step of one test.
+ */
+test('the sidebar leads to a demo BREAD, where a record is created and edited', function () {
     $page = signIn();
+
+    $page->navigate('/admin/dashboard')
+        ->assertSee('Posts')
+        ->click('Posts')
+        ->assertPathIs('/admin/posts')
+        ->assertSee('Welcome to Tardis');
 
     $page->navigate('/admin/categories/create')
         ->type('#field_form_name', 'Recipes')
@@ -62,16 +73,4 @@ test('a record is created, listed, edited and searched', function () {
         ->assertNoJavaScriptErrors();
 
     expect($recipes->fresh()->name)->toBe('Kitchen');
-});
-
-test('the sidebar leads to the demo BREADs', function () {
-    // The sign-in redirect is a Livewire navigation; open the dashboard as a
-    // page of its own, as the other test does, so the check does not race it.
-    signIn()
-        ->navigate('/admin/dashboard')
-        ->assertSee('Posts')
-        ->click('Posts')
-        ->assertPathIs('/admin/posts')
-        ->assertSee('Welcome to Tardis')
-        ->assertNoJavaScriptErrors();
 });
