@@ -331,3 +331,12 @@ jobs:
       - name: Show the test event log
         if: always()
         run: tail -n 80 browser-events.txt || true
+
+      - name: Keep the screenshots of failed steps
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: browser-screenshots
+          path: tests/Browser/Screenshots
+          if-no-files-found: ignore
+          retention-days: 7
