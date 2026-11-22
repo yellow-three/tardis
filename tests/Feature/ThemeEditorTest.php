@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use Livewire\Livewire;
+use Tardis\Theme\Theme;
 use Tardis\Theme\ThemeManager;
 
 function themeManager(): ThemeManager
@@ -65,4 +66,36 @@ test('a custom theme can be edited and deleted but a built-in cannot be deleted'
 
     $page->call('delete', 'mint');
     expect(themeManager()->has('mint'))->toBeFalse();
+});
+
+test('the shape fields show every variable and only changed ones are stored', function () {
+    $page = Livewire::test('tardis::pages.theme-editor');
+
+    expect($page->get('shape'))->toHaveKeys(array_keys(Theme::SHAPE));
+
+    $page->set('name', 'rounded')->set('label', 'Rounded')
+        ->set('shape.radius-box', '1.5rem')
+        ->set('shape.border', '2px')
+        ->set('shape.depth', '')
+        ->call('save')
+        ->assertHasNoErrors()->assertSet('saved', true);
+
+    $theme = themeManager()->find('rounded');
+
+    expect($theme->shape)->toBe(['radius-box' => '1.5rem', 'border' => '2px'])
+        ->and(themeManager()->css())->toContain('--radius-box:1.5rem')->toContain('--border:2px');
+
+    // Opened again, the editor shows the stored values and the defaults.
+    $page->call('edit', 'rounded')
+        ->assertSet('shape.radius-box', '1.5rem')
+        ->assertSet('shape.radius-field', Theme::SHAPE['radius-field']);
+});
+
+test('a shape value that is not a length is refused on its own field', function () {
+    Livewire::test('tardis::pages.theme-editor')
+        ->set('name', 'broken')->set('shape.radius-box', '1rem;} body{display:none')
+        ->call('save')
+        ->assertHasErrors('shape')->assertHasNoErrors('name')->assertSet('saved', false);
+
+    expect(themeManager()->find('broken'))->toBeNull();
 });
