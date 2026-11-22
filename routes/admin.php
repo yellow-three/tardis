@@ -28,6 +28,7 @@ PanelRoutes::guest(function () {
     Route::get('/', fn () => redirect()->route('tardis.dashboard'))->name('home');
 
     Route::livewire('/login', 'tardis::pages.login')->name('login');
+    Route::livewire('/two-factor', 'tardis::pages.two-factor-challenge')->name('two-factor');
     Route::livewire('/forgot-password', 'tardis::pages.forgot-password')->name('password.request');
     Route::livewire('/reset-password/{token}', 'tardis::pages.reset-password')->name('password.reset');
 });

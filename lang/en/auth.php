@@ -19,4 +19,10 @@ return [
     'reset_link_sent' => 'If an account exists for that address, we have emailed it a password reset link.',
     'reset_link_invalid' => 'This reset link is invalid or has expired. Request a new one.',
     'password_reset_done' => 'Your password has been reset successfully.',
+    'two_factor_title' => 'Two-factor authentication',
+    'two_factor_prompt' => 'Enter the six-digit code from your authenticator app, or one of your recovery codes.',
+    'two_factor_code' => 'Code',
+    'two_factor_verify' => 'Verify',
+    'two_factor_cancel' => 'Back to sign-in',
+    'two_factor_wrong' => 'That code is not valid.',
 ];

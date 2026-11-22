@@ -53,6 +53,20 @@ new #[Title('tardis::auth.login')] #[Layout('tardis::layouts.auth')] class exten
 
         if ($signedIn) {
             $limiter->clear($key);
+            $user = $plugin?->user() ?? auth()->user();
+
+            // The password was right; with two-factor on, the session is not
+            // the user's until the second step. They are signed out again and
+            // the challenge page finishes the sign-in.
+            if ($user instanceof \Illuminate\Database\Eloquent\Model && app(\Tardis\Auth\TwoFactor\TwoFactorAuthentication::class)->enabledFor($user)) {
+                $guard = $plugin instanceof \Tardis\Auth\SessionAuthenticationPlugin ? $plugin->guard() : config('auth.defaults.guard');
+                auth()->guard($guard)->logout();
+                session()->put('tardis.two_factor', ['id' => $user->getKey(), 'remember' => $this->remember, 'guard' => $guard, 'redirect' => $plugin?->redirectTo() ?? route('tardis.dashboard')]);
+                $this->redirect(route('tardis.two-factor'));
+
+                return;
+            }
+
             app(\Tardis\Bread\ActivityLogger::class)->audit('tardis.auth', 'signed_in');
             $this->redirect($plugin !== null ? $plugin->redirectTo() : route('tardis.dashboard'));
 
