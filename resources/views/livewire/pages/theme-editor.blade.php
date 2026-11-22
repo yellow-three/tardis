@@ -20,6 +20,9 @@ new #[Title('tardis::theme_editor.title')] #[Layout('tardis::layouts.admin')] cl
     /** @var array<string, string> colour name => css colour */
     public array $colors = [];
 
+    /** @var array<string, string> DaisyUI shape variable (radius-box, border...) => length */
+    public array $shape = [];
+
     public bool $saved = false;
 
     /** Runs on every request: the ability can be revoked while the page is open. */
@@ -75,11 +78,21 @@ new #[Title('tardis::theme_editor.title')] #[Layout('tardis::layouts.admin')] cl
     {
         $this->resetErrorBag();
 
+        $badShape = array_keys(array_filter($this->changedShape(), fn (string $value) => ! Theme::isSafeLength($value)));
+
+        if ($badShape !== []) {
+            $this->addError('shape', __('tardis::theme_editor.invalid_shape', ['names' => implode(', ', $badShape)]));
+            $this->saved = false;
+
+            return;
+        }
+
         $ok = app(ThemeManager::class)->saveCustom([
             'name' => $this->name,
             'label' => $this->label,
             'scheme' => $this->scheme,
             'colors' => array_filter(array_map('trim', $this->colors), fn ($value) => $value !== ''),
+            'shape' => $this->changedShape(),
         ]);
 
         if (! $ok) {
@@ -103,6 +116,23 @@ new #[Title('tardis::theme_editor.title')] #[Layout('tardis::layouts.admin')] cl
         $this->label = $theme->label;
         $this->scheme = $theme->scheme;
         $this->colors = $theme->colors;
+        // Every variable is shown, with DaisyUI's default where the theme
+        // sets none, so the fields say what the theme looks like.
+        $this->shape = array_map('strval', $theme->shape + Theme::SHAPE);
+    }
+
+    /**
+     * Only what differs from DaisyUI's defaults is stored, so a theme keeps
+     * following them for the values nobody touched. An empty field means the
+     * default too.
+     *
+     * @return array<string, string>
+     */
+    protected function changedShape(): array
+    {
+        $shape = array_intersect_key(array_map(fn ($value) => trim((string) $value), $this->shape), Theme::SHAPE);
+
+        return array_filter($shape, fn (string $value, string $key) => $value !== '' && $value !== Theme::SHAPE[$key], ARRAY_FILTER_USE_BOTH);
     }
 
     public function themes()
@@ -165,13 +195,28 @@ new #[Title('tardis::theme_editor.title')] #[Layout('tardis::layouts.admin')] cl
 
                 <fieldset>
                     <legend class="mb-2 font-medium">{{ __('tardis::theme_editor.colors') }}</legend>
-                    <div class="grid gap-2 sm:grid-cols-2">
+                    <div class="grid gap-2 sm:grid-cols-2 lg:grid-cols-1 2xl:grid-cols-2">
                         @foreach (\Tardis\Theme\Theme::COLORS as $colorName)
                             <label class="flex items-center gap-2">
                                 @php($current = trim((string) ($colors[$colorName] ?? '')))
                                 <span class="h-6 w-6 shrink-0 rounded border border-base-300" @if ($current !== '' && \Tardis\Theme\Theme::isSafeColor($current)) style="background-color: {{ $current }}" @endif></span>
                                 <span class="w-32 shrink-0 text-xs">{{ $colorName }}</span>
                                 <input type="text" wire:model.live.debounce.400ms="colors.{{ $colorName }}" class="input input-sm w-full font-mono" />
+                            </label>
+                        @endforeach
+                    </div>
+                </fieldset>
+
+                <fieldset>
+                    <legend class="mb-1 font-medium">{{ __('tardis::theme_editor.shape') }}</legend>
+                    <p class="mb-2 text-xs text-base-content/60">{{ __('tardis::theme_editor.shape_help') }}</p>
+                    @error('shape') <p class="mb-2 text-sm text-error" role="alert">{{ $message }}</p> @enderror
+                    {{-- One column while the card is half the page (lg), so a value fits. --}}
+                    <div class="grid gap-2 sm:grid-cols-2 lg:grid-cols-1 2xl:grid-cols-2">
+                        @foreach (\Tardis\Theme\Theme::SHAPE as $shapeName => $shapeDefault)
+                            <label class="flex items-center gap-2">
+                                <span class="w-28 shrink-0 text-xs">{{ $shapeName }}</span>
+                                <input type="text" wire:model="shape.{{ $shapeName }}" placeholder="{{ $shapeDefault }}" class="input input-sm w-full font-mono" />
                             </label>
                         @endforeach
                     </div>

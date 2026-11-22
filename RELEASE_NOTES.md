@@ -298,6 +298,10 @@ Fixes from the 2026-11-17 review (`docs/notes.md`). Each one is covered by a tes
 - **User columns follow the users table:** `tardis_role_user.user_id`, `tardis_activity_logs.user_id` and `tardis_media.created_by` take the type of the user key (`tardis.users.key_type`; `auto` reads it off the user model: `HasUuids`, `HasUlids`, a string key or an integer). A migration converts them; `php artisan tardis:user-keys` does it again after the type changes, and `tardis:doctor` warns while they do not match.
 - **Role links with any user model:** `Role::users()` named its pivot columns from the model's class name, so a user model not called `User` (or a custom role or permission model) looked for columns that do not exist. The keys are named now.
 
+## Theme editor: shape
+
+- The theme editor edits a theme's shape too: corner rounding (`radius-box`, `radius-field`, `radius-selector`), field and selector sizes, border width, depth and noise. Every variable is shown with DaisyUI's default; only the values you change are stored, and a value that is not a length or a number is refused on its own field.
+
 ## 1.x — CSV export and "select all matching" (R46, first part)
 
 - **Export:** every BREAD list has an *Export CSV* button. The file holds the columns the list shows, with the current search, filters, sort and trashed filter, and the values as the list shows them (relations as their labels). It streams in chunks, leaves out password fields and the model's hidden attributes, guards against spreadsheet formulas (CSV injection) and is recorded in the activity log. Anyone who may browse the BREAD may export it; `tardis.bread.export` switches the button off.
