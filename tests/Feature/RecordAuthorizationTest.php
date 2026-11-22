@@ -185,3 +185,18 @@ test('saving the definition creates the manage and field abilities', function ()
 
     expect(Permission::query()->whereIn('slug', ['manage tickets', 'see budgets'])->count())->toBe(2);
 });
+
+test('undo does not write back a field the user may not see', function () use ($crud) {
+    $this->artisan('migrate');
+    ticketAbilities([...$crud, 'manage tickets', 'see budgets']);
+    $this->actingAs($this->ada);
+
+    Livewire::test('tardis::pages.bread.edit', ['slug' => 'tickets', 'id' => $this->adas->id])
+        ->set('form.title', 'Changed')->set('form.budget', 500)->call('save');
+
+    ticketAbilities([...$crud, 'manage tickets']);
+    $page = Livewire::test('tardis::pages.bread.read', ['slug' => 'tickets', 'id' => $this->adas->id]);
+    $page->call('revert', $page->instance()->history->first()['id']);
+
+    expect($this->adas->fresh()->only('title', 'budget'))->toBe(['title' => 'Ada ticket', 'budget' => 500]);
+});

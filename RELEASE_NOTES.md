@@ -318,3 +318,10 @@ Fixes from the 2026-11-17 review (`docs/notes.md`). Each one is covered by a tes
 - **History:** a record's page lists its changes from the activity log (who, when, each field by its label with the old and the new value), limited to the fields that page shows, so the history cannot reveal a value the page hides.
 - **Undo:** *Restore these values* on an update puts back what it replaced, through the same saving as the edit form (so the undo is logged too). Needs `edit`; relations, files and passwords are not restored (the log never holds secret values).
 - **Edit conflicts:** the edit form remembers the record as it opened it. If someone saves it in the meantime, saving shows a warning instead of overwriting their change; *Save anyway* then overwrites on purpose.
+
+## 1.x — record ownership and field abilities (R48)
+
+- **Own records only:** a definition's `owner_column` (`"owner_column": "user_id"`) limits users without `manage {policy}` to their own records: the list, search, record pages, actions, export and import all see only those, and another user's record is a 404. A new record belongs to whoever creates it, and a limited user cannot hand one to someone else.
+- **Fields behind an ability:** a field with `"ability": "see salaries"` is left out of the list, the record pages, the forms, export, import and history for users without that ability, so it is never shown or written by them.
+- Saving the definition creates `manage {policy}` and the field abilities, so they appear on the Roles page.
+- Import: a key that matches no record the user can reach is reported as an error instead of being added as a new record.

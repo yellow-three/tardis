@@ -267,7 +267,7 @@ Ayrıntı ve kod referansı için parantezdeki kimliğe bak.
 |---|---|---|---|---|---|
 | R46 | **Dışa/içe aktarma** (CSV/XLSX), "tüm eşleşenleri seç" ile toplu aksiyon (◐ 2026-11-22: CSV dışa/içe aktarma ve tüm eşleşenler yapıldı; XLSX kaldı) | ❌ | ❌ | Yönetim panelinden en sık istenen iş; liste filtreleri ve yetki zaten hazır | M |
 | R47 | **Revizyon geçmişi + geri alma** ve eşzamanlı düzenleme uyarısı (✅ 2026-11-22) | ❌ | ❌ | Activity log `old_values`'u zaten tutuyor; üstüne diff görünümü ve "başkası değiştirdi" kontrolü | M |
-| R48 | **Kayıt ve alan düzeyinde yetki** | ❌ (tablo düzeyi) | ❌ (BREAD yetkisi yok) | `AuthorizationPlugin::can()` `$model` alıyor ama kullanılmıyor; "yalnızca kendi kayıtları" en yaygın kural | M |
+| R48 | **Kayıt ve alan düzeyinde yetki** (✅ 2026-11-22: `owner_column` + `manage`, alan `ability`) | ❌ (tablo düzeyi) | ❌ (BREAD yetkisi yok) | `AuthorizationPlugin::can()` `$model` alıyor ama kullanılmıyor; "yalnızca kendi kayıtları" en yaygın kural | M |
 | R49 | **2FA (TOTP), oturum listesi, kullanıcı kılığına girme** | ❌ | ❌ | Paket kendi girişini taşıyor; Voyager'ın güvenlik itibarına karşı en görünür fark | M |
 | R50 | **Tam denetim kaydı:** giriş/çıkış, rol ve izin değişikliği, plugin, ayar, şema; IP + user-agent; saklama ve `tardis:activity:prune` | ❌ | ❌ | Bugün yalnızca BREAD kayıtları ve komut çalıştırıcı yazılıyor (B38) | S |
 | R51 | **Durum deposu sürücüsü** (dosya varsayılan + veritabanı) | — (V1 her şeyi DB'de tutar) | ❌ (dosya) | Çok sunuculu/efemeral dağıtım; BREAD tanımlarının deploy ile taşınması (B35) | M |
