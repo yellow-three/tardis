@@ -84,6 +84,29 @@ class BreadAuthorization
         return $auth->can($ability, null);
     }
 
+    /**
+     * Whether a BREAD field is shown to and written by this user: a field
+     * with an "ability" needs it, any other field is open to everyone who may
+     * open the page.
+     *
+     * @param  array<string, mixed>  $field
+     */
+    public function allowsField(array $field): bool
+    {
+        $ability = $field['ability'] ?? null;
+
+        return ! is_string($ability) || trim($ability) === '' || $this->allowsAbility(trim($ability));
+    }
+
+    /**
+     * @param  array<int, array<string, mixed>>  $fields
+     * @return list<array<string, mixed>>
+     */
+    public function visibleFields(array $fields): array
+    {
+        return array_values(array_filter($fields, fn ($field) => is_array($field) && $this->allowsField($field)));
+    }
+
     public function authorizeAbility(string $ability): void
     {
         if (! $this->allowsAbility($ability)) {

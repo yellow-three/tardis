@@ -10,6 +10,7 @@ use Tardis\Events\BreadRecordCreated;
 use Tardis\Events\BreadRecordUpdated;
 use Tardis\Formfields\Formfield;
 use Tardis\Formfields\FormfieldManager;
+use Tardis\Support\PanelUser;
 use Throwable;
 
 /**
@@ -29,6 +30,7 @@ class BreadSaver
     public function create(string $slug, string $modelClass, array $fieldDefinitions, array $form): Model
     {
         [$data, $relations] = $this->prepare($modelClass, $fieldDefinitions, $form, 'create');
+        $data = $this->withOwner($slug, $data, creating: true);
 
         // The parent row is inserted before the relations are written, so a
         // relation that dies mid-loop would otherwise leave a committed record
@@ -59,6 +61,7 @@ class BreadSaver
     public function update(string $slug, Model $record, array $fieldDefinitions, array $form): array
     {
         [$data, $relations] = $this->prepare($record::class, $fieldDefinitions, $form, 'update', $record);
+        $data = $this->withOwner($slug, $data, creating: false);
 
         DB::transaction(function () use ($record, $data, $relations) {
             $record->update($data);
@@ -75,6 +78,44 @@ class BreadSaver
         }
 
         return $changes;
+    }
+
+    /**
+     * The owner column of a BREAD with one: a new record belongs to whoever
+     * creates it unless someone allowed to manage every record set it; a user
+     * limited to their own records can neither give a record away nor take one.
+     *
+     * @param  array<string, mixed>  $data
+     * @return array<string, mixed>
+     */
+    protected function withOwner(string $slug, array $data, bool $creating): array
+    {
+        $definition = app(BreadManager::class)->find($slug);
+        $column = $definition?->ownerColumn;
+
+        if ($definition === null || $column === null) {
+            return $data;
+        }
+
+        $restricted = $definition->restrictedOwner();
+
+        if ($restricted !== null) {
+            if ($creating) {
+                $data[$column] = $restricted;
+            } else {
+                unset($data[$column]);
+            }
+
+            return $data;
+        }
+
+        $user = PanelUser::current();
+
+        if ($creating && blank($data[$column] ?? null) && $user instanceof Model) {
+            $data[$column] = $user->getKey();
+        }
+
+        return $data;
     }
 
     /**

@@ -89,6 +89,7 @@ return [
     'import_not_allowed' => 'You may not :ability records here.',
     'import_rejected' => 'The database refused this row (a duplicate or a constraint); nothing was imported.',
     'close' => 'Close',
+    'import_unknown_key' => 'No record with the key :key (or not one you may change).',
     'select' => 'Select',
     'fallback_locale' => 'There is no :locale translation yet, so this one is shown instead.',
 
