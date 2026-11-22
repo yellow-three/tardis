@@ -48,9 +48,10 @@ function signIn(): mixed
 test('the sidebar leads to a demo BREAD, where a record is created and edited', function () {
     $page = signIn();
 
+    // The sidebar starts collapsed to icons, so the link is found by where it
+    // goes rather than by its (hidden) label.
     $page->navigate('/admin/dashboard')
-        ->assertSee('Posts')
-        ->click('Posts')
+        ->click('aside a[href$="/admin/posts"]')
         ->assertPathIs('/admin/posts')
         ->assertSee('Welcome to Tardis');
 
