@@ -22,4 +22,10 @@ return [
     'two_factor_new_codes' => 'Yeni kurtarma kodları',
     'two_factor_disable' => 'Kapat',
     'two_factor_recovery_codes' => 'Bu kurtarma kodlarını güvenli bir yerde saklayın. Telefonunuzu kaybederseniz her biri bir kez giriş yaptırır; bir daha gösterilmez.',
+    'sessions' => 'Oturumlar',
+    'sessions_help' => 'Giriş yaptığınız yerler. Diğer oturumları kapatmak o tarayıcılardaki "beni hatırla"yı da sonlandırır.',
+    'sessions_need_database' => 'Liste için veritabanı oturum sürücüsü gerekir (SESSION_DRIVER=database); diğer oturumları kapatmak yine de "beni hatırla"yı sıfırlar.',
+    'this_session' => 'Bu oturum',
+    'sessions_logout_others' => 'Diğer oturumları kapat',
+    'sessions_ended' => ':count diğer oturum kapatıldı.',
 ];

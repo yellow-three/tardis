@@ -102,10 +102,44 @@
                     <button type="button" wire:click="confirmTwoFactor" class="btn btn-primary btn-sm">{{ __('tardis::profile.two_factor_confirm') }}</button>
                 </div>
             @else
-                <button type="button" wire:click="startTwoFactor" class="btn btn-primary btn-sm">{{ __('tardis::profile.two_factor_enable') }}</button>
+                <button type="button" wire:click="startTwoFactor" class="btn btn-primary btn-sm w-fit">{{ __('tardis::profile.two_factor_enable') }}</button>
             @endif
 
             @error('twoFactorCode') <p class="mt-2 text-sm text-error" role="alert">{{ $message }}</p> @enderror
         </x-tardis::card>
     @endif
+
+    <x-tardis::card :title="__('tardis::profile.sessions')" class="mt-6">
+        <p class="mb-3 text-sm text-base-content/70">{{ __('tardis::profile.sessions_help') }}</p>
+        @if ($this->sessions()->available())
+            @php
+                $openSessions = $this->sessions()->forUser(\Tardis\Support\PanelUser::current());
+            @endphp
+            <ul class="mb-4 divide-y divide-base-200">
+                @foreach ($openSessions as $openSession)
+                    <li wire:key="session-{{ md5($openSession['id']) }}" class="flex flex-wrap items-center gap-2 py-2 text-sm">
+                        <span class="font-medium">{{ $openSession['agent'] }}</span>
+                        <span class="text-base-content/60">{{ $openSession['ip'] }}</span>
+                        <span class="ml-auto text-base-content/60">
+                            @if ($openSession['current'])
+                                <span class="badge badge-success badge-sm">{{ __('tardis::profile.this_session') }}</span>
+                            @else
+                                {{ $openSession['last_active'] }}
+                            @endif
+                        </span>
+                    </li>
+                @endforeach
+            </ul>
+        @else
+            <p class="mb-4 text-sm text-base-content/60">{{ __('tardis::profile.sessions_need_database') }}</p>
+        @endif
+        <div class="flex flex-wrap items-end gap-2">
+            <label class="flex flex-col gap-1">
+                <span class="text-sm font-medium">{{ __('tardis::profile.current_password') }}</span>
+                <input type="password" wire:model="sessionsPassword" autocomplete="current-password" class="input input-sm w-56" />
+            </label>
+            <button type="button" wire:click="logoutOtherSessions" class="btn btn-ghost btn-sm">{{ __('tardis::profile.sessions_logout_others') }}</button>
+        </div>
+        @error('sessionsPassword') <p class="mt-2 text-sm text-error" role="alert">{{ $message }}</p> @enderror
+    </x-tardis::card>
 </div>

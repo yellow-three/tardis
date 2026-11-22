@@ -331,3 +331,9 @@ Fixes from the 2026-11-17 review (`docs/notes.md`). Each one is covered by a tes
 - **TOTP two-factor sign-in:** users turn it on from their profile (scan a QR code or type the key into an authenticator app, then confirm with a code). After the password, sign-in asks for a code from the app or a one-time recovery code; the session is not the user's until then. Wrong codes are throttled (5 a minute) and logged; a code cannot be used twice.
 - Eight recovery codes are shown once and stored hashed; new ones can be made with a current code, and turning it off takes one too. The secret is encrypted with the app key, in `tardis_two_factor` (run `php artisan migrate`).
 - No new dependency: the codes are computed by the package (RFC 6238). Install `bacon/bacon-qr-code` to get a QR code; without it the key is shown to type in. `tardis.two_factor.enabled` and `issuer` configure it.
+
+## 1.x — sessions and impersonation (R49, second part)
+
+- **Sessions:** the profile lists where the user is signed in (browser, address, last activity, this session) and signs out every other session with the current password. "Remember me" on those browsers stops too. The list needs Laravel's database session driver; with another driver the profile says so.
+- **Sign in as another user:** with the new `impersonate users` ability, the Users screen offers *Sign in as*, within the same limits as managing that user (never a super administrator or someone holding more). A banner on every panel page leads back; both ends are in the activity log. Signing in as someone who may not open the panel ends at once and says why, instead of leaving the administrator on a 403.
+- Run `php artisan tardis:install` (or the permission seeder) to create `impersonate users` on an existing install; super administrators have it already.

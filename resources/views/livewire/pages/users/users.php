@@ -9,6 +9,7 @@ use Livewire\Component;
 use Livewire\WithPagination;
 use Tardis\Auth\Abilities;
 use Tardis\Auth\BreadAuthorization;
+use Tardis\Auth\Impersonation;
 use Tardis\Auth\PrivilegeGuard;
 use Tardis\Auth\UserAccounts;
 use Tardis\Bread\ActivityLogger;
@@ -93,6 +94,7 @@ new #[Title('tardis::users.users')] #[Layout('tardis::layouts.admin')] class ext
             'roles' => $roles->get($user->getKey(), []),
             'manageable' => app(PrivilegeGuard::class)->mayManageUser(auth()->user(), $user),
             'self' => auth()->id() !== null && (string) auth()->id() === (string) $user->getKey(),
+            'impersonable' => app(Impersonation::class)->mayImpersonate(auth()->user(), $user),
         ]);
     }
 
@@ -247,6 +249,14 @@ new #[Title('tardis::users.users')] #[Layout('tardis::layouts.admin')] class ext
 
         $this->closeUserModal();
         session()->flash('message', __($creating ? 'tardis::users.user_created' : 'tardis::users.user_updated'));
+    }
+
+    /** Sign in as the user; the banner on every page leads back. */
+    public function impersonate(int|string $userId): void
+    {
+        app(Impersonation::class)->start($this->userModel()::query()->findOrFail($userId));
+
+        $this->redirect(route('tardis.dashboard'), navigate: true);
     }
 
     public function deleteUser(int|string $userId): void

@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
+use Tardis\Auth\BrowserSessions;
 use Tardis\Auth\TwoFactor\Totp;
 use Tardis\Auth\TwoFactor\TwoFactorAuthentication;
 use Tardis\Auth\UserAccounts;
@@ -24,6 +25,9 @@ new #[Title('tardis::shell.titles.profile')] #[Layout('tardis::layouts.admin')] 
 
     /** @var list<string> recovery codes, shown once right after they are made */
     public array $recoveryCodes = [];
+
+    /** Current password, to sign out the other sessions. */
+    public string $sessionsPassword = '';
 
     public function mount(): void
     {
@@ -61,6 +65,29 @@ new #[Title('tardis::shell.titles.profile')] #[Layout('tardis::layouts.admin')] 
 
         $this->userForm = [...$this->userForm, 'current_password' => '', 'password' => '', 'password_confirmation' => ''];
         session()->flash('message', __('tardis::profile.saved'));
+    }
+
+    public function sessions(): BrowserSessions
+    {
+        return app(BrowserSessions::class);
+    }
+
+    /** End every other session of this user; takes the current password. */
+    public function logoutOtherSessions(): void
+    {
+        $this->resetErrorBag('sessionsPassword');
+        $user = $this->user();
+
+        if (! $this->accounts()->passwordMatches($user, $this->sessionsPassword)) {
+            $this->addError('sessionsPassword', __('tardis::profile.current_password_wrong'));
+
+            return;
+        }
+
+        $ended = $this->sessions()->logoutOthers($user);
+        $this->sessionsPassword = '';
+        app(ActivityLogger::class)->audit('tardis.profile', 'other_sessions_ended', ['count' => $ended], $user->getKey());
+        session()->flash('message', __('tardis::profile.sessions_ended', ['count' => $ended]));
     }
 
     public function twoFactor(): TwoFactorAuthentication

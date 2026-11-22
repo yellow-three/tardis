@@ -37,4 +37,6 @@ return [
         'ui_components' => 'UI Components',
         'view' => 'View',
     ],
+    'impersonating' => 'You are signed in as :name.',
+    'impersonation_leave' => 'Back to my account',
 ];
