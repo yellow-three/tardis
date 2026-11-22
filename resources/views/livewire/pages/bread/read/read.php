@@ -1,5 +1,6 @@
 <?php
 
+use Illuminate\Support\Collection;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Locked;
@@ -8,6 +9,7 @@ use Livewire\Component;
 use Tardis\Auth\BreadAuthorization;
 use Tardis\Bread\BreadDefinition;
 use Tardis\Bread\Livewire\ReadsBreadDefinition;
+use Tardis\Bread\RecordHistory;
 use Tardis\Formfields\Formfield;
 use Tardis\Formfields\FormfieldManager;
 
@@ -58,13 +60,51 @@ new #[Title('tardis::shell.titles.view')] #[Layout('tardis::layouts.admin')] cla
             abort(404);
         }
 
-        $record = $this->definition()->query()->findOrFail($id);
+        $this->loadRecord();
+    }
+
+    protected function loadRecord(): void
+    {
+        $record = $this->definition()->query()->findOrFail($this->id);
 
         // Only the key and the columns this page shows reach the browser.
         $this->record = array_intersect_key(
             $record->toArray(),
             array_flip([$record->getKeyName(), ...array_filter(array_column($this->fields, 'name'))]),
         );
+    }
+
+    /**
+     * The record's revisions, limited to the fields this page shows, so the
+     * history cannot reveal a value the page itself hides.
+     *
+     * @return Collection<int, array<string, mixed>>
+     */
+    #[Computed]
+    public function history()
+    {
+        $record = $this->definition()->query()->findOrFail($this->id);
+
+        return (new RecordHistory($this->slug, $this->definition()))
+            ->entries($record, array_values(array_filter(array_column($this->fields, 'name'))));
+    }
+
+    public function canRevert(): bool
+    {
+        return app(BreadAuthorization::class)->allows('edit', $this->slug);
+    }
+
+    /** Put back the values one update replaced; the undo is logged as an update. */
+    public function revert(int $entryId): void
+    {
+        $record = $this->definition()->query()->findOrFail($this->id);
+        app(BreadAuthorization::class)->authorize('edit', $this->slug, $record);
+
+        $changes = (new RecordHistory($this->slug, $this->definition()))->revert($record, $entryId);
+
+        unset($this->history);
+        $this->loadRecord();
+        session()->flash('message', $changes === [] ? __('tardis::bread.history_nothing_to_revert') : __('tardis::bread.history_reverted'));
     }
 
     #[Computed]

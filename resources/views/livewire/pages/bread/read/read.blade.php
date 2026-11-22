@@ -72,4 +72,49 @@
             @endforeach
         </div>
     </div>
+
+    @php
+        $history = $this->history;
+        $mayRevert = $this->canRevert();
+    @endphp
+    @if (session('message'))
+        <div class="alert alert-success mt-6 text-sm" role="status">{{ session('message') }}</div>
+    @endif
+    <div class="card bg-base-100 border border-base-300 mt-6">
+        <div class="card-body">
+            <h2 class="card-title text-base">{{ __('tardis::bread.history') }}</h2>
+            @forelse ($history as $entry)
+                <div wire:key="history-{{ $entry['id'] }}" class="border-b border-base-200 py-3 last:border-0">
+                    <div class="flex flex-wrap items-center gap-2 text-sm">
+                        <span class="badge badge-ghost badge-sm">{{ __('tardis::activity.'.$entry['action']) }}</span>
+                        <span class="font-medium">{{ $entry['user'] }}</span>
+                        <span class="text-base-content/50">{{ $entry['at'] }}</span>
+                        @if ($entry['revertible'] && $mayRevert)
+                            <button type="button" wire:click="revert({{ $entry['id'] }})" wire:confirm="{{ __('tardis::bread.history_revert_confirm') }}" class="btn btn-ghost btn-xs ml-auto">{{ __('tardis::bread.history_revert') }}</button>
+                        @endif
+                    </div>
+                    @if ($entry['changes'] !== [])
+                        <ul class="mt-2 space-y-1 text-sm">
+                            @foreach ($entry['changes'] as $change)
+                                @php
+                                    $oldText = is_scalar($change['old']) || $change['old'] === null ? (string) $change['old'] : json_encode($change['old'], JSON_UNESCAPED_UNICODE);
+                                    $newText = is_scalar($change['new']) || $change['new'] === null ? (string) $change['new'] : json_encode($change['new'], JSON_UNESCAPED_UNICODE);
+                                @endphp
+                                <li class="flex flex-wrap gap-x-2">
+                                    <span class="text-base-content/60">{{ $change['label'] }}:</span>
+                                    @if ($entry['action'] === 'updated')
+                                        <del class="text-error/80">{{ \Illuminate\Support\Str::limit($oldText, 120) }}</del>
+                                        <span aria-hidden="true">→</span>
+                                    @endif
+                                    <ins class="text-success no-underline">{{ \Illuminate\Support\Str::limit($newText, 120) }}</ins>
+                                </li>
+                            @endforeach
+                        </ul>
+                    @endif
+                </div>
+            @empty
+                <p class="text-sm text-base-content/60">{{ __('tardis::bread.history_empty') }}</p>
+            @endforelse
+        </div>
+    </div>
 </div>

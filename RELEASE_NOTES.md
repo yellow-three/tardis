@@ -312,3 +312,9 @@ Fixes from the 2026-11-17 review (`docs/notes.md`). Each one is covered by a tes
 - **Import CSV** on every BREAD list, for users who may add or edit records. The header row names the columns by field name or label, so a file exported from the list reads back in. A row carrying the key of an existing record (inside the BREAD's scope) updates it, any other row is added, each authorised as an add or an edit.
 - Rows go through the same validation and saving as the forms (field rules, `store()`/`update()` hooks, record events, so the activity log sees every change). Every row is validated first: one invalid row and nothing is written, and the dialog lists each problem with its row number. A valid file is written in one transaction; a duplicate the database refuses rolls it all back.
 - File, image, media, password, rich text and translatable fields and to-many relations are left out; `tardis.bread.import_limit` (1000 rows) and `import_max_kb` (5 MB) bound a file, `tardis.bread.import` switches it off.
+
+## 1.x — revision history, undo and edit conflicts (R47)
+
+- **History:** a record's page lists its changes from the activity log (who, when, each field by its label with the old and the new value), limited to the fields that page shows, so the history cannot reveal a value the page hides.
+- **Undo:** *Restore these values* on an update puts back what it replaced, through the same saving as the edit form (so the undo is logged too). Needs `edit`; relations, files and passwords are not restored (the log never holds secret values).
+- **Edit conflicts:** the edit form remembers the record as it opened it. If someone saves it in the meantime, saving shows a warning instead of overwriting their change; *Save anyway* then overwrites on purpose.

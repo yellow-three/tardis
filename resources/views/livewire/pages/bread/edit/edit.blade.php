@@ -30,7 +30,7 @@
 
             <div class="card-actions justify-end">
                 <a href="{{ url(trim(config('tardis.admin.prefix', 'admin'), '/').'/'.$slug) }}" class="btn btn-ghost">{{ __('tardis::bread.cancel') }}</a>
-                <button type="submit" class="btn btn-primary">{{ __('tardis::bread.update') }}</button>
+                <button type="submit" class="btn {{ $overwrite ? 'btn-warning' : 'btn-primary' }}">{{ $overwrite ? __('tardis::bread.save_anyway') : __('tardis::bread.update') }}</button>
             </div>
         </div>
     </form>
