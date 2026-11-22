@@ -111,7 +111,8 @@ test('components use #[Computed] instead of legacy getXProperty getters', functi
 
 test('redirects between panel screens keep wire:navigate', function () {
     $full = collect(File::allFiles(livewireRoot()))
-        ->reject(fn ($file) => $file->getFilename() === 'login.blade.php')
+        // The sign-in pages switch layouts and regenerate the session: a full load.
+        ->reject(fn ($file) => in_array($file->getFilename(), ['login.blade.php', 'two-factor-challenge.blade.php'], true))
         ->flatMap(fn ($file) => collect(explode("\n", $file->getContents()))
             ->filter(fn (string $line) => str_contains($line, '$this->redirect(') && ! str_contains($line, 'navigate: true'))
             ->map(fn (string $line) => $file->getRelativePathname().': '.trim($line)))

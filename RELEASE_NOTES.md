@@ -325,3 +325,9 @@ Fixes from the 2026-11-17 review (`docs/notes.md`). Each one is covered by a tes
 - **Fields behind an ability:** a field with `"ability": "see salaries"` is left out of the list, the record pages, the forms, export, import and history for users without that ability, so it is never shown or written by them.
 - Saving the definition creates `manage {policy}` and the field abilities, so they appear on the Roles page.
 - Import: a key that matches no record the user can reach is reported as an error instead of being added as a new record.
+
+## 1.x — two-factor authentication (R49, first part)
+
+- **TOTP two-factor sign-in:** users turn it on from their profile (scan a QR code or type the key into an authenticator app, then confirm with a code). After the password, sign-in asks for a code from the app or a one-time recovery code; the session is not the user's until then. Wrong codes are throttled (5 a minute) and logged; a code cannot be used twice.
+- Eight recovery codes are shown once and stored hashed; new ones can be made with a current code, and turning it off takes one too. The secret is encrypted with the app key, in `tardis_two_factor` (run `php artisan migrate`).
+- No new dependency: the codes are computed by the package (RFC 6238). Install `bacon/bacon-qr-code` to get a QR code; without it the key is shown to type in. `tardis.two_factor.enabled` and `issuer` configure it.

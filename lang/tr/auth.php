@@ -19,4 +19,10 @@ return [
     'reset_link_sent' => 'Bu adrese ait bir hesap varsa parola sıfırlama bağlantısını e-postayla gönderdik.',
     'reset_link_invalid' => 'Bu sıfırlama bağlantısı geçersiz ya da süresi dolmuş. Yeni bir bağlantı isteyin.',
     'password_reset_done' => 'Parolanız başarıyla sıfırlandı.',
+    'two_factor_title' => 'İki adımlı doğrulama',
+    'two_factor_prompt' => 'Doğrulama uygulamanızdaki altı haneli kodu ya da kurtarma kodlarınızdan birini girin.',
+    'two_factor_code' => 'Kod',
+    'two_factor_verify' => 'Doğrula',
+    'two_factor_cancel' => 'Girişe dön',
+    'two_factor_wrong' => 'Bu kod geçerli değil.',
 ];

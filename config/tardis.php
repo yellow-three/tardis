@@ -151,6 +151,16 @@ return [
     | auth provider (auth.providers.users.model). These are the columns they
     | read and write; a column the table does not have is left out.
     */
+    /*
+    | Two-factor authentication (TOTP). Users turn it on from their profile;
+    | the issuer is the name their authenticator app shows. A QR code is
+    | drawn when bacon/bacon-qr-code is installed, else the key is typed in.
+    */
+    'two_factor' => [
+        'enabled' => env('TARDIS_TWO_FACTOR', true),
+        'issuer' => env('TARDIS_TWO_FACTOR_ISSUER'),
+    ],
+
     'users' => [
         // The type of the user columns in Tardis' tables: auto (read from the
         // user model), int, uuid, ulid or string. Change it before migrating,
