@@ -27,6 +27,11 @@ return [
         'path' => null,
         // How many timestamped backups to keep per definition.
         'backup_keep' => 10,
+        // The CSV export button on every BREAD list (anyone who may browse
+        // the BREAD may export what they see).
+        'export' => true,
+        // The most records a bulk action runs on with "select all matching".
+        'bulk_limit' => 1000,
     ],
 
     /*

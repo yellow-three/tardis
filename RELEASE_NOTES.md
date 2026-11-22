@@ -301,3 +301,8 @@ Fixes from the 2026-11-17 review (`docs/notes.md`). Each one is covered by a tes
 ## Theme editor: shape
 
 - The theme editor edits a theme's shape too: corner rounding (`radius-box`, `radius-field`, `radius-selector`), field and selector sizes, border width, depth and noise. Every variable is shown with DaisyUI's default; only the values you change are stored, and a value that is not a length or a number is refused on its own field.
+
+## 1.x — CSV export and "select all matching" (R46, first part)
+
+- **Export:** every BREAD list has an *Export CSV* button. The file holds the columns the list shows, with the current search, filters, sort and trashed filter, and the values as the list shows them (relations as their labels). It streams in chunks, leaves out password fields and the model's hidden attributes, guards against spreadsheet formulas (CSV injection) and is recorded in the activity log. Anyone who may browse the BREAD may export it; `tardis.bread.export` switches the button off.
+- **Select all matching:** a header checkbox ticks the page; then *Select all N matching records* makes a bulk action run on every record the search and filters match. Each record is still authorised on its own, the run is all-or-nothing, and `tardis.bread.bulk_limit` (1000) caps it.

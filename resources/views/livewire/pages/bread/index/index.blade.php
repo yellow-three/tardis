@@ -14,6 +14,12 @@
                     {{ __('tardis::bread.order') }}
                 </a>
             @endif
+            @if (config('tardis.bread.export', true))
+                <button type="button" wire:click="export" class="btn btn-ghost">
+                    <x-tardis::icon name="arrow-down-tray" class="w-4 h-4" />
+                    {{ __('tardis::bread.export_csv') }}
+                </button>
+            @endif
             <a href="{{ $this->createUrl }}" class="btn btn-primary">
                 <x-tardis::icon name="plus" class="w-4 h-4" />
                 {{ __('tardis::bread.new_record', ['name' => $bread['name'] ?? ucfirst($slug)]) }}
@@ -94,19 +100,30 @@
             @else
                 @php($bulkActions = $this->actions()->filter(fn ($action) => $action->isBulk()))
                 @if ($bulkActions->isNotEmpty() && $selected !== [])
+                    @php($selectedCount = $selectAllMatching ? $this->matchingCount : count($selected))
                     <div class="flex flex-wrap items-center gap-2 border-b border-base-300 px-4 py-2">
-                        <span class="text-sm">{{ __('tardis::bread.selected_count', ['count' => count($selected)]) }}</span>
+                        <span class="text-sm">{{ __('tardis::bread.selected_count', ['count' => $selectedCount]) }}</span>
+                        @if ($this->offersMatching())
+                            <button type="button" wire:click="selectMatching" class="link link-primary text-sm">{{ __('tardis::bread.select_all_matching', ['count' => $this->matchingCount]) }}</button>
+                        @elseif ($selectAllMatching)
+                            <span class="text-sm text-base-content/60">{{ __('tardis::bread.all_matching_selected') }}</span>
+                        @endif
+                        <button type="button" wire:click="clearSelection" class="btn btn-ghost btn-xs">{{ __('tardis::bread.clear_selection') }}</button>
                         @foreach ($bulkActions as $action)
                             <button type="button" wire:key="bulk-{{ $action->name() }}" wire:click="runBulk(@js($action->name()))" {!! $action->getConfirmMessage() ? 'wire:confirm="'.e($action->getConfirmMessage()).'"' : '' !!} class="btn btn-xs {{ $action->tone === 'error' ? 'btn-error btn-outline' : 'btn-ghost' }}">{{ $action->getTitle() }}</button>
                         @endforeach
                     </div>
                 @endif
+                @error('selected') <div class="alert alert-warning mx-4 my-2 text-sm" role="alert">{{ $message }}</div> @enderror
 
                 <table class="table table-zebra">
                     <thead>
                         <tr>
                             @if ($bulkActions->isNotEmpty())
-                                <th class="w-8" scope="col"><span class="sr-only">{{ __('tardis::bread.select') }}</span></th>
+                                @php($pageChecked = $this->pageSelected())
+                                <th class="w-8" scope="col">
+                                    <input type="checkbox" wire:click="togglePage" @checked($pageChecked) class="checkbox checkbox-sm" aria-label="{{ __('tardis::bread.select_page') }}" />
+                                </th>
                             @endif
                             @foreach (($this->layoutFields ?? $this->visibleFields) as $field)
                                 @php($fieldName = (string) ($field['name'] ?? ''))

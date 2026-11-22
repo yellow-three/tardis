@@ -70,6 +70,12 @@ return [
     'action_completed' => 'Done.',
     'bulk_done' => ':title: :count record(s).',
     'selected_count' => ':count selected',
+    'export_csv' => 'Export CSV',
+    'select_page' => 'Select every row on this page',
+    'select_all_matching' => 'Select all :count matching records',
+    'all_matching_selected' => 'Every matching record is selected.',
+    'clear_selection' => 'Clear selection',
+    'bulk_too_many' => 'More than :limit records match; narrow the filters and run it again.',
     'select' => 'Select',
     'fallback_locale' => 'There is no :locale translation yet, so this one is shown instead.',
 

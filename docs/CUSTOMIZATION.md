@@ -10,6 +10,7 @@ Most changes need no fork: register something in a service provider of your appl
 - [Panel routes of your own](#panel-routes-of-your-own)
 - [Signing in with another guard](#signing-in-with-another-guard)
 - [Soft deletes](#soft-deletes)
+- [Export and bulk actions on every match](#export-and-bulk-actions-on-every-match)
 - [Who sees what](#who-sees-what)
 
 ## Actions on records
@@ -189,6 +190,10 @@ The users screen and the profile page work on `auth.providers.users.model`; poin
 ## Soft deletes
 
 When the model uses `SoftDeletes` and the definition has `"soft_delete": true` (the builder's *Enable soft delete* switch), the list gets a *trashed* filter (without / with / only) and the *restore* and *force delete* actions appear on trashed rows. Deleting stays a soft delete. Without the switch, trashed records stay hidden as Eloquent hides them.
+
+## Export and bulk actions on every match
+
+*Export CSV* on a BREAD list writes the columns the list shows, for the records the current search, filters and sort select. Password fields and the model's `$hidden` attributes are left out; set `tardis.bread.export` to `false` to remove the button. Ticking the header checkbox selects the page; *Select all N matching records* then makes a bulk action (`$bulk = true`) run on every match, each record authorised on its own, up to `tardis.bread.bulk_limit`.
 
 ## Who sees what
 
