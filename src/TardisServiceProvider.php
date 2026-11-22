@@ -25,6 +25,7 @@ use Tardis\Commands\MakeBreadCommand;
 use Tardis\Commands\MakeModelCommand;
 use Tardis\Commands\MakePluginCommand;
 use Tardis\Commands\PluginsCommand;
+use Tardis\Commands\UserKeysCommand;
 use Tardis\Dashboard\DashboardLayout;
 use Tardis\Dashboard\WidgetManager;
 use Tardis\Events\BreadRecordCreated;
@@ -286,6 +287,7 @@ class TardisServiceProvider extends ServiceProvider
             MakeModelCommand::class,
             MakePluginCommand::class,
             PluginsCommand::class,
+            UserKeysCommand::class,
         ]);
     }
 }

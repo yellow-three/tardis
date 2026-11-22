@@ -264,3 +264,7 @@ A BREAD override route is named after the new action name (`tardis.bread.create.
 ## BREAD pages
 
 - `$bread` on the BREAD pages is a computed property now (`$this->bread`), not public state: a replaced screen that extended one of them, or a test that read `bread` from the snapshot or set `bread.*`, reads `$this->bread` or the definition from `BreadManager` instead.
+
+## User key columns
+
+- `php artisan migrate` gives the user columns of `tardis_role_user`, `tardis_activity_logs` and `tardis_media` the type of your users table key. On an integer-keyed app nothing changes. With UUID or ULID users, tables that already hold rows of the old (unusable) type are left alone; `php artisan tardis:user-keys --force` empties and converts them. Set `TARDIS_USER_KEY_TYPE` when `auto` cannot tell from the model.

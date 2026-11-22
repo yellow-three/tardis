@@ -16,7 +16,7 @@ class Permission extends Model
 
     public function roles(): BelongsToMany
     {
-        return $this->belongsToMany(ModelResolver::role(), 'tardis_permission_role');
+        return $this->belongsToMany(ModelResolver::role(), 'tardis_permission_role', 'permission_id', 'role_id');
     }
 
     public static function forBread(string $slug): void

@@ -16,11 +16,14 @@ class Role extends Model
 
     public function permissions(): BelongsToMany
     {
-        return $this->belongsToMany(ModelResolver::permission(), 'tardis_permission_role');
+        return $this->belongsToMany(ModelResolver::permission(), 'tardis_permission_role', 'role_id', 'permission_id');
     }
 
     public function users(): BelongsToMany
     {
-        return $this->belongsToMany(config('auth.providers.users.model', 'App\\Models\\User'), 'tardis_role_user');
+        // Named keys: Eloquent would derive the pivot column from the model's
+        // class name, so a user model not called User looked for a column
+        // such as admin_id that tardis_role_user does not have.
+        return $this->belongsToMany(config('auth.providers.users.model', 'App\\Models\\User'), 'tardis_role_user', 'role_id', 'user_id');
     }
 }

@@ -12,6 +12,7 @@ use Tardis\Bread\DefinitionHealth;
 use Tardis\Contracts\Plugins\Features\Provider\CSS;
 use Tardis\Contracts\Plugins\Features\Provider\JS;
 use Tardis\Plugins\PluginManager;
+use Tardis\Support\UserKey;
 use Tardis\Theme\ThemeManager;
 
 /**
@@ -37,6 +38,7 @@ final class DoctorReport
             self::guard('Laravel version', self::checkLaravelVersion(...)),
             self::guard('Storage', self::checkStorage(...)),
             self::guard('Database tables', self::checkTables(...)),
+            self::guard('User key columns', self::checkUserKeys(...)),
             self::guard('Core assets', self::checkAssets(...)),
             self::guard('Route cache', self::checkRouteCache(...)),
             self::guard('Authorization plugin', self::checkAuthorization(...)),
@@ -208,6 +210,28 @@ final class DoctorReport
         }
 
         return CheckResult::ok('Core assets', 'Served from the package.');
+    }
+
+    private static function checkUserKeys(): CheckResult
+    {
+        $type = UserKey::type();
+        $wrong = [];
+
+        foreach (UserKey::COLUMNS as $table => [$column]) {
+            if (Schema::hasTable($table) && Schema::hasColumn($table, $column) && ! UserKey::matches($table, $column, $type)) {
+                $wrong[] = $table.'.'.$column;
+            }
+        }
+
+        if ($wrong !== []) {
+            return CheckResult::warn(
+                'User key columns',
+                'These columns do not match the ['.$type.'] user key: '.implode(', ', $wrong).'.',
+                'Run php artisan tardis:user-keys (set tardis.users.key_type if auto picks the wrong type).',
+            );
+        }
+
+        return CheckResult::ok('User key columns', 'They match the ['.$type.'] user key.');
     }
 
     private static function checkRouteCache(): CheckResult
