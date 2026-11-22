@@ -61,9 +61,10 @@
             <p class="mb-3 text-sm text-base-content/70">{{ __('tardis::profile.two_factor_help') }}</p>
 
             @if ($recoveryCodes !== [])
-                <div class="alert alert-warning mb-3 flex-col items-start text-sm" role="status">
-                    <span>{{ __('tardis::profile.two_factor_recovery_codes') }}</span>
-                    <ul class="mt-2 grid grid-cols-2 gap-x-6 font-mono">
+                {{-- A plain box, not .alert: the alert's grid pushed the code list out of it. --}}
+                <div class="mb-3 rounded-box border border-warning bg-warning/10 p-4 text-sm" role="status">
+                    <p>{{ __('tardis::profile.two_factor_recovery_codes') }}</p>
+                    <ul class="mt-3 grid grid-cols-2 gap-x-6 gap-y-1 font-mono">
                         @foreach ($recoveryCodes as $recoveryCode)
                             <li>{{ $recoveryCode }}</li>
                         @endforeach
@@ -90,7 +91,7 @@
                     <li>{{ __('tardis::profile.two_factor_scan') }}</li>
                 </ol>
                 @if ($tfQr)
-                    <div class="mb-3 inline-block rounded bg-white p-2">{!! $tfQr !!}</div>
+                    <div class="mb-3 w-fit rounded bg-white p-2 [&>svg]:block [&>svg]:size-48">{!! $tfQr !!}</div>
                 @endif
                 <p class="mb-3 text-sm">{{ __('tardis::profile.two_factor_key') }} <code class="font-mono select-all">{{ trim(chunk_split($tfPending, 4, ' ')) }}</code></p>
                 <div class="flex flex-wrap items-end gap-2">
