@@ -8,6 +8,19 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
+/**
+ * @property int $id
+ * @property int|string|null $user_id
+ * @property string $model_type
+ * @property string $model_id
+ * @property string $action
+ * @property array<string, mixed>|null $old_values
+ * @property array<string, mixed>|null $new_values
+ * @property string|null $ip_address
+ * @property string|null $user_agent
+ * @property \Illuminate\Support\Carbon|null $created_at
+ * @property \Illuminate\Support\Carbon|null $updated_at
+ */
 class ActivityLog extends Model
 {
     use HasFactory;

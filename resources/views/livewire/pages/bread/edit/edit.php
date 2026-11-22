@@ -1,5 +1,6 @@
 <?php
 
+use Illuminate\Database\Eloquent\Model;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Locked;
@@ -33,6 +34,17 @@ new #[Title('tardis::shell.titles.edit')] #[Layout('tardis::layouts.admin')] cla
 
     #[Locked]
     public array $record = [];
+
+    /**
+     * A fingerprint of the record as it was when the form opened. Saving
+     * compares it with the record now, so a change someone else made in the
+     * meantime is not silently overwritten.
+     */
+    #[Locked]
+    public string $version = '';
+
+    /** Set after the conflict warning: the next save overwrites on purpose. */
+    public bool $overwrite = false;
 
     public array $form = [];
 
@@ -81,6 +93,7 @@ new #[Title('tardis::shell.titles.edit')] #[Layout('tardis::layouts.admin')] cla
         app(BreadAuthorization::class)->authorize('edit', $this->slug);
 
         $record = $this->definition()->query()->findOrFail($id);
+        $this->version = $this->fingerprint($record);
         // Livewire sends public properties to the browser, so only the key and
         // the columns this form edits are kept; anything else on the row stays
         // on the server.
@@ -258,6 +271,24 @@ new #[Title('tardis::shell.titles.edit')] #[Layout('tardis::layouts.admin')] cla
         return FieldValidationRules::for($this->fields, $this->form, $this->activeLocale, 'edit');
     }
 
+    /**
+     * The stored values of the columns this form edits, and the update time
+     * when the table has one.
+     */
+    protected function fingerprint(Model $record): string
+    {
+        $columns = array_flip(array_filter(array_column($this->fields, 'name')));
+
+        if ($record->usesTimestamps()) {
+            $columns[$record->getUpdatedAtColumn()] = true;
+        }
+
+        $values = array_intersect_key($record->getAttributes(), $columns);
+        ksort($values);
+
+        return hash('xxh128', (string) json_encode($values));
+    }
+
     public function save(): void
     {
         $this->validate($this->validationRules());
@@ -266,6 +297,13 @@ new #[Title('tardis::shell.titles.edit')] #[Layout('tardis::layouts.admin')] cla
 
         if (BreadDefinition::isModelClass($modelClass)) {
             $record = $this->definition()->query()->findOrFail($this->id);
+
+            if ($this->fingerprint($record) !== $this->version && ! $this->overwrite) {
+                $this->overwrite = true;
+                $this->addError('form', __('tardis::bread.edit_conflict'));
+
+                return;
+            }
 
             try {
                 app(BreadSaver::class)->update($this->slug, $record, $this->fields, $this->form);
