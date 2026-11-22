@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
+use Tardis\Bread\Livewire\ReadsBreadDefinition;
 use Tardis\Models\ActivityLog;
 use Tardis\Support\ModelResolver;
 use Tardis\Support\PanelUser;
@@ -90,7 +91,7 @@ final class RecordHistory
             ->firstOrFail();
 
         $values = $this->revertibleValues((array) ($log->old_values ?? []));
-        $fields = array_values(array_filter($this->definition->toDisplayArray()['fields'] ?? [], fn (array $field) => array_key_exists((string) ($field['name'] ?? ''), $values)));
+        $fields = array_values(array_filter($this->fields(), fn (array $field) => array_key_exists((string) ($field['name'] ?? ''), $values)));
 
         return $values === [] ? [] : app(BreadSaver::class)->update($this->slug, $record, $fields, $values);
     }
@@ -106,7 +107,7 @@ final class RecordHistory
     {
         $editable = [];
 
-        foreach ($this->definition->toDisplayArray()['fields'] ?? [] as $field) {
+        foreach ($this->fields() as $field) {
             $type = (string) ($field['type'] ?? '');
 
             if (($field['edit'] ?? true) !== false && ! BreadQuery::showsRelation($field)
@@ -118,12 +119,23 @@ final class RecordHistory
         return array_intersect_key($old, $editable);
     }
 
+    /**
+     * The definition's fields this user may see: a field behind an "ability"
+     * the user lacks is neither shown in the history nor restored.
+     *
+     * @return list<array<string, mixed>>
+     */
+    private function fields(): array
+    {
+        return ReadsBreadDefinition::withoutHiddenFields($this->definition->toDisplayArray())['fields'] ?? [];
+    }
+
     /** @return array<string, string> field name => label */
     private function labels(): array
     {
         $labels = [];
 
-        foreach ($this->definition->toDisplayArray()['fields'] ?? [] as $field) {
+        foreach ($this->fields() as $field) {
             $name = (string) ($field['name'] ?? '');
 
             if ($name !== '') {

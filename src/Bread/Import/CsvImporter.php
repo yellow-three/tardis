@@ -16,6 +16,7 @@ use Tardis\Bread\BreadQuery;
 use Tardis\Bread\BreadSaver;
 use Tardis\Bread\Export\CsvExporter;
 use Tardis\Bread\FieldValidationRules;
+use Tardis\Bread\Livewire\ReadsBreadDefinition;
 use Tardis\Bread\MissingColumnsException;
 
 /**
@@ -89,7 +90,8 @@ final class CsvImporter
     {
         $fields = [];
 
-        foreach ($this->definition->toDisplayArray()['fields'] ?? [] as $field) {
+        // Fields the user may not see ("ability") cannot be written either.
+        foreach (ReadsBreadDefinition::withoutHiddenFields($this->definition->toDisplayArray())['fields'] ?? [] as $field) {
             $name = (string) ($field['name'] ?? '');
             $type = (string) ($field['type'] ?? '');
 
@@ -153,6 +155,15 @@ final class CsvImporter
         foreach ($rows as $line => $cells) {
             $key = $keyIndex === null ? '' : trim((string) ($cells[$keyIndex] ?? ''));
             $record = $key === '' ? null : $this->definition->query()->find($key);
+
+            // A key that matches nothing the user can reach is an error, not
+            // a new record: it may be someone else's, or a typo.
+            if ($key !== '' && $record === null) {
+                $errors[$line] = [__('tardis::bread.import_unknown_key', ['key' => $key])];
+
+                continue;
+            }
+
             $context = $record === null ? 'add' : 'edit';
 
             if (! $auth->allows($context, $this->slug, $record)) {

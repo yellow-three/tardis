@@ -200,5 +200,7 @@ When the model uses `SoftDeletes` and the definition has `"soft_delete": true` (
 ## Who sees what
 
 - `scope`: a model scope applied to the list, search, relation pickers and every record lookup, so a record outside it cannot be opened by URL either (`"scope": "published"`).
+- `owner_column`: the column holding a record's owner (`"owner_column": "user_id"`). Users without `manage {policy}` see, open and change only their own records; new records belong to their creator.
+- A field's `ability` (`"ability": "see salaries"`): the field is hidden from lists, record pages, forms, export, import and history for users without it.
 - `policy`: the word abilities are built from, when several BREADs should share permissions (`"policy": "content"` → `browse content`, `edit content`).
 - A Laravel policy for the model keeps working: `Tardis\Policies\BasePolicy` answers through the same abilities the pages check.

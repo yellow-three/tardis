@@ -89,6 +89,7 @@ return [
     'import_not_allowed' => 'Burada kayıtlar için :ability yetkiniz yok.',
     'import_rejected' => 'Veritabanı bu satırı reddetti (yinelenen değer ya da kısıt); hiçbir şey içe aktarılmadı.',
     'close' => 'Kapat',
+    'import_unknown_key' => ':key anahtarlı bir kayıt yok (ya da değiştirebileceğiniz bir kayıt değil).',
     'history' => 'Geçmiş',
     'history_empty' => 'Henüz kayıtlı değişiklik yok.',
     'history_system' => 'Sistem',

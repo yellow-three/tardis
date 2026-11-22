@@ -6,6 +6,8 @@ namespace Tardis\Bread;
 
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Tardis\Auth\BreadAuthorization;
+use Tardis\Support\PanelUser;
 use Tardis\Support\Translation;
 
 class BreadDefinition
@@ -32,6 +34,11 @@ class BreadDefinition
         public ?string $policy = null,
         /** Model query scope applied to listings and record lookups */
         public ?string $scope = null,
+        /**
+         * Column holding the user who owns a record. Set, users without
+         * "manage {policy}" see and change only their own records.
+         */
+        public ?string $ownerColumn = null,
     ) {}
 
     /**
@@ -144,6 +151,7 @@ class BreadDefinition
             components: array_filter((array) ($data['components'] ?? []), fn ($component) => is_string($component) && $component !== ''),
             policy: $data['policy'] ?? null,
             scope: $data['scope'] ?? null,
+            ownerColumn: is_string($data['owner_column'] ?? null) && preg_match('/^[A-Za-z_][A-Za-z0-9_]*$/', $data['owner_column']) === 1 ? $data['owner_column'] : null,
         );
     }
 
@@ -168,6 +176,7 @@ class BreadDefinition
             'components' => $this->components,
             'policy' => $this->policy,
             'scope' => $this->scope,
+            'owner_column' => $this->ownerColumn,
         ];
     }
 
@@ -205,7 +214,33 @@ class BreadDefinition
             $query->scopes([$this->scope]);
         }
 
+        $owner = $this->restrictedOwner();
+
+        if ($owner !== null) {
+            $query->where($query->getModel()->qualifyColumn((string) $this->ownerColumn), $owner);
+        }
+
         return $query;
+    }
+
+    /**
+     * The user this BREAD's records are limited to, or null when the signed-in
+     * user may see everyone's (no owner column, "manage {policy}", or no user,
+     * as in a console command).
+     */
+    public function restrictedOwner(): int|string|null
+    {
+        if ($this->ownerColumn === null) {
+            return null;
+        }
+
+        $user = PanelUser::current();
+
+        if (! $user instanceof Model || app(BreadAuthorization::class)->allows('manage', $this->slug)) {
+            return null;
+        }
+
+        return $user->getKey();
     }
 
     /**

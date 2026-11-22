@@ -19,9 +19,17 @@ class Permission extends Model
         return $this->belongsToMany(ModelResolver::role(), 'tardis_permission_role', 'permission_id', 'role_id');
     }
 
-    public static function forBread(string $slug): void
+    /**
+     * @param  list<string>  $extra  further abilities the definition uses: "manage {slug}"
+     *                               for an owner column, and the abilities its fields name
+     */
+    public static function forBread(string $slug, array $extra = []): void
     {
         $actions = ['browse', 'read', 'edit', 'add', 'delete'];
+
+        foreach ($extra as $ability) {
+            static::firstOrCreate(['slug' => $ability], ['name' => ucfirst($ability), 'group' => 'BREAD']);
+        }
 
         foreach ($actions as $action) {
             static::firstOrCreate(

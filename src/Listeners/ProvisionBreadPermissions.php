@@ -21,7 +21,13 @@ class ProvisionBreadPermissions
     {
         try {
             if (Schema::hasTable('tardis_permissions')) {
-                ModelResolver::permission()::forBread($event->definition->permissionKey());
+                $definition = $event->definition;
+                $extra = array_values(array_unique(array_filter([
+                    $definition->ownerColumn !== null ? 'manage '.$definition->permissionKey() : null,
+                    ...array_map(fn ($field) => is_array($field) && is_string($field['ability'] ?? null) ? trim($field['ability']) : null, $definition->fields),
+                ])));
+
+                ModelResolver::permission()::forBread($definition->permissionKey(), $extra);
             }
         } catch (\Throwable $e) {
             Log::warning('Could not provision BREAD permissions.', [

@@ -89,6 +89,7 @@ return [
     'import_not_allowed' => 'You may not :ability records here.',
     'import_rejected' => 'The database refused this row (a duplicate or a constraint); nothing was imported.',
     'close' => 'Close',
+    'import_unknown_key' => 'No record with the key :key (or not one you may change).',
     'history' => 'History',
     'history_empty' => 'No changes recorded yet.',
     'history_system' => 'System',
