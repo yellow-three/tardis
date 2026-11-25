@@ -28,7 +28,7 @@ CI also runs the suite on MySQL and PostgreSQL. To run it locally against one, s
 
 ## Conventions
 
-- Livewire components are anonymous single-file or multi-file components under `resources/views/livewire/` (see [docs/LIVEWIRE_PAGE_ORGANIZATION.md](docs/LIVEWIRE_PAGE_ORGANIZATION.md)); no class-based components.
+- Livewire components are anonymous single-file or multi-file components under `resources/views/livewire/` (see [docs/LIVEWIRE_PAGE_ORGANIZATION.md](https://github.com/yellow-three/tardis/blob/master/docs/LIVEWIRE_PAGE_ORGANIZATION.md)); no class-based components.
 - Every user-facing string goes through `lang/` (English and Turkish); a test fails on hard-coded text in views.
 - A behaviour change comes with a test; a bug fix with a test that failed before it.
 - Commit messages follow Conventional Commits (`feat:`, `fix:`, `docs:`, …) and say why, not only what.
