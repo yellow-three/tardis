@@ -263,6 +263,8 @@ To ship BREAD definitions with the code instead, keep the file driver and point 
 
 The explorer never lists, opens, alters or drops framework tables (`migrations`, `sessions`, `jobs`, `cache`, …, configurable in `tardis.database.hidden_tables`) or this package's `tardis_*` tables.
 
+Every change made there (create or drop a table, add, rename, change or drop a column) is written as a migration under `database/migrations` (`tardis.database.migrations.path`) and run at once, so it is in the `migrations` table and, once you commit the file, reaches the other environments with `php artisan migrate`. The generated `down()` reverses it where it can (a dropped table cannot be restored). `TARDIS_DATABASE_MIGRATIONS=write` only writes the files; `off` alters the schema directly as before. Schema changes stay limited to `tardis.database.schema_changes.environments` (local and testing by default).
+
 ## System diagnostics
 
 Three read-mostly screens, each behind its own ability (`view system`, `view logs`, `run commands`). They appear as three separate sidebar entries rather than one collapsible group, so holding one ability never hides or strands a sibling.

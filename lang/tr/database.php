@@ -72,4 +72,7 @@ return [
     'column_unchanged' => 'Değişiklik yok.',
     'schema_changes_disabled' => 'Bu ortamda şema değişiklikleri kapalı. Bir migration kullanın.',
     'read_only_notice' => 'Salt okunur: bu ortamda şema değişiklikleri kapalı (tardis.database.schema_changes).',
+    'migration_written' => 'Migration :file dosyasına yazıldı. Burada uygulamak için php artisan migrate çalıştırın; diğer ortamlar için dosyayı commit edin.',
+    'migrations_notice_migrate' => 'Her değişiklik database/migrations altına bir migration olarak yazılır ve hemen çalıştırılır; diğer ortamlar aynı değişikliği alsın diye dosyayı commit edin.',
+    'migrations_notice_write' => 'Değişiklikler yalnızca database/migrations altına migration olarak yazılır; uygulamak için php artisan migrate çalıştırın.',
 ];

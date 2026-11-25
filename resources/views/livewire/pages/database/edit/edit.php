@@ -10,6 +10,7 @@ use Livewire\Component;
 use Tardis\Auth\Abilities;
 use Tardis\Auth\BreadAuthorization;
 use Tardis\Database\Concerns\ManagesColumnDefinitions;
+use Tardis\Database\MigrationWriter;
 use Tardis\Database\ModelGenerator;
 
 new #[Title('tardis::shell.titles.edit_table')] #[Layout('tardis::layouts.admin')] class extends Component
@@ -150,19 +151,24 @@ new #[Title('tardis::shell.titles.edit_table')] #[Layout('tardis::layouts.admin'
 
         try {
             if ($column['original'] === '') {
-                Schema::connection(config('database.default'))
-                    ->table($this->selectedTable, function (Blueprint $table) use ($column) {
-                        $this->applyColumnDefinition($table, $column);
-                    });
+                $applied = $this->changeSchema(
+                    fn (MigrationWriter $writer) => $writer->addColumn($this->selectedTable, $column),
+                    fn () => Schema::connection(config('database.default'))
+                        ->table($this->selectedTable, function (Blueprint $table) use ($column) {
+                            $this->applyColumnDefinition($table, $column);
+                        }),
+                );
 
                 $this->auditSchema('column_added', ['table' => $this->selectedTable, 'column' => $column['name'], 'type' => $column['type']]);
-                $this->message = __('tardis::database.column_added');
+                $this->message = $applied ? __('tardis::database.column_added') : $this->migrationWrittenMessage();
             } else {
                 $result = $this->modifyColumn($this->selectedTable, $column['original'], $column);
 
-                $this->message = $result === null
-                    ? __('tardis::database.column_unchanged')
-                    : __('tardis::database.column_updated');
+                $this->message = match (true) {
+                    $result === null => __('tardis::database.column_unchanged'),
+                    $this->writtenOnly() => $this->migrationWrittenMessage(),
+                    default => __('tardis::database.column_updated'),
+                };
             }
 
             $this->loadTableData();
@@ -213,12 +219,16 @@ new #[Title('tardis::shell.titles.edit_table')] #[Layout('tardis::layouts.admin'
         }
 
         try {
-            Schema::connection(config('database.default'))
-                ->table($this->selectedTable, function (Blueprint $table) {
-                    $this->applyColumnDefinition($table, $this->newColumn);
-                });
+            $applied = $this->changeSchema(
+                fn (MigrationWriter $writer) => $writer->addColumn($this->selectedTable, $this->newColumn),
+                fn () => Schema::connection(config('database.default'))
+                    ->table($this->selectedTable, function (Blueprint $table) {
+                        $this->applyColumnDefinition($table, $this->newColumn);
+                    }),
+            );
 
             $this->auditSchema('column_added', ['table' => $this->selectedTable, 'column' => $this->newColumn['name'], 'type' => $this->newColumn['type']]);
+            $this->message = $applied ? null : $this->migrationWrittenMessage();
 
             $this->showAddColumnForm = false;
             $this->loadTableData();
@@ -256,7 +266,8 @@ new #[Title('tardis::shell.titles.edit_table')] #[Layout('tardis::layouts.admin'
         }
 
         try {
-            $this->modifyColumn($this->selectedTable, $this->editColumnOriginal, $this->editColumn);
+            $result = $this->modifyColumn($this->selectedTable, $this->editColumnOriginal, $this->editColumn);
+            $this->message = $result !== null && $this->writtenOnly() ? $this->migrationWrittenMessage() : null;
             $this->editColumnOriginal = $this->editColumn['name'];
             $this->showEditColumnForm = false;
             $this->loadTableData();
@@ -284,12 +295,18 @@ new #[Title('tardis::shell.titles.edit_table')] #[Layout('tardis::layouts.admin'
         }
 
         try {
-            Schema::connection(config('database.default'))
-                ->table($this->selectedTable, function (Blueprint $table) {
-                    $table->dropColumn($this->confirmDropColumn);
-                });
+            $previous = $this->isExactlyEditable($this->confirmDropColumn) ? $this->loadedColumn($this->confirmDropColumn) : null;
+
+            $applied = $this->changeSchema(
+                fn (MigrationWriter $writer) => $writer->dropColumn($this->selectedTable, $this->confirmDropColumn, $previous),
+                fn () => Schema::connection(config('database.default'))
+                    ->table($this->selectedTable, function (Blueprint $table) {
+                        $table->dropColumn($this->confirmDropColumn);
+                    }),
+            );
 
             $this->auditSchema('column_dropped', ['table' => $this->selectedTable, 'column' => $this->confirmDropColumn]);
+            $this->message = $applied ? null : $this->migrationWrittenMessage();
 
             $this->confirmDropColumn = null;
             $this->loadTableData();
@@ -330,10 +347,13 @@ new #[Title('tardis::shell.titles.edit_table')] #[Layout('tardis::layouts.admin'
         }
 
         try {
-            Schema::connection(config('database.default'))->dropIfExists($this->selectedTable);
+            $applied = $this->changeSchema(
+                fn (MigrationWriter $writer) => $writer->dropTable($this->selectedTable),
+                fn () => Schema::connection(config('database.default'))->dropIfExists($this->selectedTable),
+            );
             $this->auditSchema('table_dropped', ['table' => $this->selectedTable]);
 
-            session()->flash('message', __('tardis::database.table_dropped'));
+            session()->flash('message', $applied ? __('tardis::database.table_dropped') : $this->migrationWrittenMessage());
 
             $this->redirect(route('tardis.database.index'), navigate: true);
         } catch (Throwable $e) {

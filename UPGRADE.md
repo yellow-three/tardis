@@ -278,3 +278,8 @@ A BREAD override route is named after the new action name (`tardis.bread.create.
 
 - `php artisan migrate` adds the `tardis_state` table. Nothing changes until you set `TARDIS_STATE_DRIVER=database` (`tardis.state.driver`); then run `php artisan tardis:state:copy --to=database` once, from a server that has the current `storage/tardis`, so settings, menus, plugin switches and BREAD definitions come along.
 - Code that read or wrote `storage/tardis/*.json` directly should go through the managers (`Tardis::settings()`, `PluginManager`, `BreadManager`, …) or the `Tardis\State\StateStore` binding; with the database driver those files are no longer written.
+
+## Database screen and migrations (R52)
+
+- The Database screen now writes a migration for every change and runs it, instead of altering the schema directly. Commit the files it writes to `database/migrations`. Set `TARDIS_DATABASE_MIGRATIONS=off` to keep the old behaviour, or `write` to review the files before running `php artisan migrate`.
+- The web server user needs write access to `database/migrations` where schema changes are allowed (local by default).

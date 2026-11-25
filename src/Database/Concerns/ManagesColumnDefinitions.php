@@ -8,6 +8,7 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schema;
 use Tardis\Bread\ActivityLogger;
+use Tardis\Database\MigrationWriter;
 use Tardis\Models\ActivityLog;
 
 trait ManagesColumnDefinitions
@@ -81,6 +82,73 @@ trait ManagesColumnDefinitions
     }
 
     /**
+     * The migration the last change was written to, relative to the app
+     * (null when the schema was altered directly, tardis.database.migrations.mode = off).
+     */
+    public ?string $migrationFile = null;
+
+    /**
+     * Apply a schema change the configured way: write a migration and run it
+     * (migrate), only write it (write), or alter the schema directly (off).
+     *
+     * @param  callable(MigrationWriter): string  $write  writes the migration, returns its path
+     * @param  callable(): void  $direct  the same change on the live schema
+     * @return bool true when the schema was changed now, false when only a file was written
+     */
+    protected function changeSchema(callable $write, callable $direct): bool
+    {
+        $writer = app(MigrationWriter::class);
+        $this->migrationFile = null;
+
+        if (! $writer->enabled()) {
+            $direct();
+
+            return true;
+        }
+
+        $file = $write($writer);
+        $this->migrationFile = str_starts_with($file, base_path().'/') ? substr($file, strlen(base_path()) + 1) : $file;
+
+        if ($writer->mode() === MigrationWriter::MODE_WRITE) {
+            return false;
+        }
+
+        try {
+            $writer->run($file);
+        } catch (\Throwable $e) {
+            // A migration that failed is not left behind to fail again on deploy.
+            @unlink($file);
+            $this->migrationFile = null;
+
+            throw $e;
+        }
+
+        return true;
+    }
+
+    /** What the screen says about where its changes go, or null when they alter the schema directly. */
+    public function migrationNotice(): ?string
+    {
+        return match (app(MigrationWriter::class)->mode()) {
+            MigrationWriter::MODE_MIGRATE => __('tardis::database.migrations_notice_migrate'),
+            MigrationWriter::MODE_WRITE => __('tardis::database.migrations_notice_write'),
+            default => null,
+        };
+    }
+
+    /** Did the last change only write a migration (mode "write")? */
+    protected function writtenOnly(): bool
+    {
+        return $this->migrationFile !== null && app(MigrationWriter::class)->mode() === MigrationWriter::MODE_WRITE;
+    }
+
+    /** The message after a change that only wrote a migration. */
+    protected function migrationWrittenMessage(): string
+    {
+        return __('tardis::database.migration_written', ['file' => (string) $this->migrationFile]);
+    }
+
+    /**
      * Record a schema change in the activity log. A missing log table is not a
      * reason to fail the change that already happened.
      *
@@ -94,7 +162,7 @@ trait ManagesColumnDefinitions
 
         try {
             if (Schema::hasTable(ActivityLog::TABLE)) {
-                app(ActivityLogger::class)->log('tardis.schema', 0, $action, newValues: $values);
+                app(ActivityLogger::class)->log('tardis.schema', 0, $action, newValues: $values + array_filter(['migration' => $this->migrationFile]));
             }
         } catch (\Throwable $e) {
             Log::warning('Could not write a schema change to the activity log.', ['error' => $e->getMessage()]);
@@ -174,19 +242,24 @@ trait ManagesColumnDefinitions
             throw new \DomainException(__('tardis::database.column_not_editable', ['column' => $original]));
         }
 
-        $connection = config('database.default');
-
-        if ($renamed) {
-            Schema::connection($connection)->table($table, fn (Blueprint $t) => $t->renameColumn($original, $column['name']));
-        }
-
-        if ($changed) {
-            Schema::connection($connection)->table($table, fn (Blueprint $t) => $this->applyColumnDefinition($t, $column, false, true));
-        }
-
         if (! $renamed && ! $changed) {
             return null;
         }
+
+        $connection = config('database.default');
+
+        $this->changeSchema(
+            fn (MigrationWriter $writer) => $writer->modifyColumn($table, $original, $column, $changed ? $loaded : null),
+            function () use ($connection, $table, $original, $column, $renamed, $changed) {
+                if ($renamed) {
+                    Schema::connection($connection)->table($table, fn (Blueprint $t) => $t->renameColumn($original, $column['name']));
+                }
+
+                if ($changed) {
+                    Schema::connection($connection)->table($table, fn (Blueprint $t) => $this->applyColumnDefinition($t, $column, false, true));
+                }
+            },
+        );
 
         $this->auditSchema('column_updated', ['table' => $table, 'column' => $original] + ($renamed ? ['renamed_to' => $column['name']] : []) + ($changed ? ['definition' => array_intersect_key($column, array_flip(['type', 'length', 'nullable', 'default']))] : []));
 

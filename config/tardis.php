@@ -71,6 +71,17 @@ return [
             'environments' => ['local', 'testing'],
         ],
 
+        // How a change on the Database screen reaches the schema:
+        //   "migrate" (default) writes a migration under `path` and runs it,
+        //   so the change is in the migrations table and in version control;
+        //   "write" only writes the file (run `php artisan migrate` yourself);
+        //   "off" alters the schema directly, with no file (pre-1.x behaviour).
+        'migrations' => [
+            'mode' => env('TARDIS_DATABASE_MIGRATIONS', 'migrate'),
+            // null = database_path('migrations')
+            'path' => null,
+        ],
+
         'hidden_tables' => [
             'migrations',
             'password_resets',

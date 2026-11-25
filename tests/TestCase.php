@@ -80,6 +80,10 @@ abstract class TestCase extends OrchestraTestCase
 
         $app['config']->set('tardis.state.driver', getenv('TARDIS_TEST_STATE') ?: 'file');
 
+        // Migrations written by the Database screen go to the per-test storage,
+        // never into the shared Testbench skeleton.
+        $app['config']->set('tardis.database.migrations.path', $this->tardisStorage.'/migrations');
+
         $app['config']->set('cache.default', 'array');
         $app['config']->set('cache.stores.array', [
             'driver' => 'array',
