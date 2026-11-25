@@ -5,9 +5,7 @@ declare(strict_types=1);
 namespace Tardis\Formfields\Concerns;
 
 use Illuminate\Database\Eloquent\Builder;
-use Tardis\Auth\BreadAuthorization;
-use Tardis\Bread\BreadDefinition;
-use Tardis\Bread\BreadManager;
+use Tardis\Bread\RelatedRecords;
 use Tardis\Support\Like;
 
 /**
@@ -110,23 +108,7 @@ trait SearchesRelatedRecords
      */
     protected function optionQuery(): ?Builder
     {
-        if (! BreadDefinition::isModelClass($this->model)) {
-            return null;
-        }
-
-        $bread = app(BreadManager::class)
-            ->all()
-            ->first(fn (BreadDefinition $definition) => ltrim($definition->model, '\\') === ltrim((string) $this->model, '\\'));
-
-        if ($bread === null) {
-            return $this->model::query();
-        }
-
-        if (! app(BreadAuthorization::class)->allows('browse', $bread->permissionKey())) {
-            return null;
-        }
-
-        return $bread->query();
+        return RelatedRecords::scopedQuery($this->model);
     }
 
     public function model(string $model): self

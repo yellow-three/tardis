@@ -401,7 +401,10 @@ class BreadQuery
                 continue;
             }
 
-            if ($filter['column'] !== null && $this->columnExists($filter['column'])) {
+            // The same visibility gate as search and sort: a filter on an
+            // ability-hidden field must not expose its values through counts
+            // or the rows it lets through.
+            if ($filter['column'] !== null && $this->hasVisibleColumn($this->bread->getField($filter['column']))) {
                 $query->where($filter['column'], $filter['operator'], $filter['value']);
             }
         }
@@ -439,13 +442,6 @@ class BreadQuery
         return $this->bread->model !== ''
             && BreadDefinition::isModelClass($this->bread->model)
             && method_exists($this->bread->model, 'scope'.ucfirst($scope));
-    }
-
-    protected function columnExists(string $column): bool
-    {
-        $field = $this->bread->getField($column);
-
-        return $field !== null && $this->hasColumn($field);
     }
 
     /**

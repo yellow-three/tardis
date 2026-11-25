@@ -99,6 +99,11 @@ class BreadSaver
 
         $restricted = $definition->restrictedOwner();
 
+        // A user without an id cannot own a record, so they cannot write one.
+        if ($restricted === BreadDefinition::OWNER_UNAVAILABLE) {
+            abort(403);
+        }
+
         if ($restricted !== null) {
             if ($creating) {
                 $data[$column] = $restricted;

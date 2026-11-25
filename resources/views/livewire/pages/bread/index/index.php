@@ -29,6 +29,7 @@ use Tardis\Bread\Export\Xlsx;
 use Tardis\Bread\FieldValidationRules;
 use Tardis\Bread\Import\CsvImporter;
 use Tardis\Bread\Livewire\ReadsBreadDefinition;
+use Tardis\Bread\RelatedRecords;
 use Tardis\Formfields\Formfield;
 use Tardis\Formfields\FormfieldManager;
 use Tardis\Support\UserPreferences;
@@ -308,13 +309,13 @@ new #[Title('tardis::shell.titles.bread')] #[Layout('tardis::layouts.admin')] cl
             return ['items' => [], 'more' => 0];
         }
 
-        $related = $row->{$relation};
-
-        // A to-one relation (belongs_to, has_one) is a single model or null;
-        // collect() on a model would list its attributes instead.
-        if (! $related instanceof Collection) {
-            $related = collect($related instanceof Model || $related === null ? array_filter([$related]) : $related);
-        }
+        // The related BREAD may scope or owner-restrict its records: a raw
+        // relation would reveal labels the picker and the related page hide.
+        $related = RelatedRecords::visible(
+            $row,
+            $relation,
+            isset($field['model']) ? (string) $field['model'] : null
+        );
 
         $limit = max(1, (int) ($field['display_limit'] ?? $field['limit'] ?? 3));
         $labelColumn = (string) ($field['label_column'] ?? 'name');

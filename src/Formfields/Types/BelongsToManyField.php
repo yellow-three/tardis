@@ -44,12 +44,22 @@ class BelongsToManyField extends Formfield
      * as a soft-deleted row — became a dangling pivot row that the read side
      * then hid, leaving the selection quietly out of sync with the database.
      *
+     * The same allowlist as the picker guards the write: a record the related
+     * BREAD's scope or the user's browse ability hides must not be attachable
+     * by submitting its id directly.
+     *
      * @param  array<int, mixed>  $ids
      * @return array<int, mixed>
      */
     protected function resolvableIds(Model $model, array $ids): array
     {
         if ($ids === []) {
+            return [];
+        }
+
+        $selectable = array_map('strval', $this->selectableIds($ids));
+
+        if ($selectable === []) {
             return [];
         }
 
@@ -63,7 +73,7 @@ class BelongsToManyField extends Formfield
         // apply, so an excluded record stays excluded.
         $resolvable = array_flip(array_map(
             'strval',
-            $related->newQuery()->whereIn($keyName, $ids)->pluck($keyName)->all(),
+            $related->newQuery()->whereIn($keyName, $selectable)->pluck($keyName)->all(),
         ));
 
         // Keep the submitted values rather than the ones read back, so custom

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tardis\Bread;
 
+use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Tardis\Auth\BreadAuthorization;
@@ -12,6 +13,13 @@ use Tardis\Support\Translation;
 
 class BreadDefinition
 {
+    /**
+     * Returned by restrictedOwner() when a signed-in user has no id: they may
+     * see no row. It is never compared with the column (a string would break
+     * an integer column on PostgreSQL); query() matches nothing instead.
+     */
+    public const OWNER_UNAVAILABLE = '__tardis_owner_unavailable__';
+
     public function __construct(
         public string $slug,
         public string $model,
@@ -216,7 +224,9 @@ class BreadDefinition
 
         $owner = $this->restrictedOwner();
 
-        if ($owner !== null) {
+        if ($owner === self::OWNER_UNAVAILABLE) {
+            $query->whereRaw('1 = 0');
+        } elseif ($owner !== null) {
             $query->where($query->getModel()->qualifyColumn((string) $this->ownerColumn), $owner);
         }
 
@@ -236,11 +246,21 @@ class BreadDefinition
 
         $user = PanelUser::current();
 
-        if (! $user instanceof Model || app(BreadAuthorization::class)->allows('manage', $this->slug)) {
+        // No user means a console request: there is nobody to restrict to.
+        if ($user === null || app(BreadAuthorization::class)->allows('manage', $this->slug)) {
             return null;
         }
 
-        return $user->getKey();
+        // A custom guard does not have to return an Eloquent model. Prefer the
+        // auth contract's id, then a plain id, so the restriction follows the
+        // plugin's user rather than the default guard's model.
+        $id = $user instanceof Authenticatable ? $user->getAuthIdentifier() : data_get($user, 'id');
+
+        if ($id === null || $id === '') {
+            return self::OWNER_UNAVAILABLE;
+        }
+
+        return is_int($id) || is_string($id) ? $id : (string) $id;
     }
 
     /**
