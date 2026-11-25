@@ -399,3 +399,16 @@ Fixes from the 2026-11-17 review (`docs/notes.md`). Each one is covered by a tes
 - **JSON API errors:** a request without `Accept: application/json` goes through a middleware that marks it as JSON before the configurable auth/throttle middleware, so a guest gets 401 JSON instead of a redirect to a `login` route the host may not define.
 - **Import dialog wording:** with XLSX support the dialog title, its button and the help text mention both CSV and Excel `.xlsx`; with only CSV support the earlier strings stay. All six shipped languages carry the two new keys.
 - **SVG cleaning:** attribute names are checked after the last colon, so an undeclared `xlink:href` cannot hide a `javascript:` link; `<use>`, `<image>` and `<feImage>` keep only `#fragment` references, while `<a href="https://…">` is still allowed.
+
+## 1.x — security audit fixes
+
+A security review before the first stable release found the issues below. Each fix has a regression test (`tests/Feature/SecurityAuthBreadTest.php`, `tests/Feature/SecurityFilesOutputTest.php`).
+
+- **Two-factor with a custom authentication plugin:** the login page signed out the default guard, not the plugin's, so a plugin that authenticated another guard left the user signed in before the second step. The plugin's own guard is now signed out and the challenge completes sign-in on it.
+- **Media file names (stored XSS):** a path was put into a single-quoted JavaScript string in `wire:click`; a file named `x'+alert(1)+'.pdf` ran script for anyone opening the media screen. Every Livewire/Alpine expression in the views now receives its value through `@js()`. Uploads replace quotes, angle brackets and backticks in the stored name, and renaming to such a name is refused.
+- **BREAD builder:** a user with only "manage bread" could save a definition for any model under a policy key they already held and read it through those abilities. A foreign `policy` now needs `manage {policy}` (or a super administrator), and the user, role, permission and activity-log models need their own abilities.
+- **Hidden data through filters and relations:** named filters on an ability-hidden column are ignored; `belongs_to_many` only attaches records the picker would offer; `has_many` child rows write only the declared child fields; relation labels in lists and CSV/XLSX exports follow the related BREAD's scope and owner restriction.
+- **Owner restriction:** a panel user that is not an Eloquent model is restricted by their auth identifier; a signed-in user without one sees no rows and cannot write.
+- **Smaller fixes:** every media-picker action checks "browse media"; the SVG cleaner drops `<style>` and `xml:base`; XLSX cells are always written as text and neutralised like CSV; password reset links are built from `app.url`, not the request's Host header; a BREAD icon that names a missing component falls back to the default icon instead of making every page fail.
+
+If you serve the panel behind a proxy, make sure `APP_URL` is the panel's public address: reset links now use it.

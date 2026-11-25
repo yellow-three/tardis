@@ -43,6 +43,14 @@ First stable release (not tagged yet). Everything since 0.1.0:
 - The import dialog says "Import CSV or Excel" and explains `.xlsx` when Excel support is available.
 - SVG cleaning checks unprefixed attribute names and removes external `<use>`, `<image>` and `<feImage>` references.
 
+### Security
+- Two-factor sign-in could be skipped when a custom authentication plugin used its own guard.
+- A media file name containing a quote could run script on the media screen (stored XSS); values in Livewire/Alpine expressions are now passed with `@js()`.
+- A user with only "manage bread" could expose another model (for example the user model) under a policy key they already held.
+- Named filters, `belongs_to_many` writes, `has_many` child rows and relation labels in lists and exports now respect field abilities, the related BREAD's restrictions and the declared child fields.
+- The owner restriction no longer switches off for a panel user that is not an Eloquent model.
+- The media picker checks "browse media" in every action; SVG uploads lose `<style>` and `xml:base`; XLSX cells are always text; password reset links use `app.url` instead of the request's Host header; an unknown BREAD icon no longer breaks every panel page.
+
 ## [0.1.0]
 
 First pre-release. See RELEASE_NOTES.md.
