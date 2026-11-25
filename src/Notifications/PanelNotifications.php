@@ -8,6 +8,7 @@ use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Schema;
 use Tardis\Models\PanelNotification;
+use Tardis\Support\SafeUrl;
 
 /**
  * Messages for panel users, shown under the bell in the header:
@@ -30,8 +31,9 @@ class PanelNotifications
         }
 
         $level = in_array($level, PanelNotification::LEVELS, true) ? $level : 'info';
-        // A root-relative path or an http(s) link; never "//host" or javascript:.
-        $url = $url !== null && ((str_starts_with($url, '/') && ! str_starts_with($url, '//')) || preg_match('#^https?://#i', $url) === 1) ? $url : null;
+        // A root-relative path or an http(s) link; never "/\host", "//host",
+        // javascript: or a link with backslashes/control characters.
+        $url = $url !== null && SafeUrl::isAllowed($url) ? $url : null;
         $count = 0;
 
         foreach (is_iterable($users) ? $users : [$users] as $user) {

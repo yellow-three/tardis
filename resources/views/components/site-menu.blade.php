@@ -15,7 +15,9 @@
     <ul {{ $depth === 1 ? $attributes : '' }}>
         @foreach ($items as $item)
             @php
-                $href = str_starts_with($item['url'], '#') ? $item['url'] : url($item['url']);
+                $href = \Tardis\Support\SafeUrl::isAllowed($item['url'], allowFragment: true)
+                    ? (str_starts_with($item['url'], '#') ? $item['url'] : url($item['url']))
+                    : '#';
                 $active = rtrim($href, '/') === rtrim($current, '/');
             @endphp
             <li>

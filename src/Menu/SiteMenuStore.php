@@ -8,6 +8,7 @@ use Illuminate\Support\Str;
 use InvalidArgumentException;
 use Tardis\State\UsesStateStore;
 use Tardis\Support\JsonFile;
+use Tardis\Support\SafeUrl;
 
 /**
  * Named menus for the host's own site (header, footer, ...), edited in the
@@ -199,15 +200,17 @@ final class SiteMenuStore
     private static function clean(array $item): array
     {
         $title = mb_substr(trim((string) ($item['title'] ?? '')), 0, 120);
-        $url = trim((string) ($item['url'] ?? ''));
+        $rawUrl = (string) ($item['url'] ?? '');
+        $url = trim($rawUrl);
 
         if ($title === '') {
             throw new InvalidArgumentException('A menu item needs a title.');
         }
 
         // Written into an href on the host's pages: only http(s), a
-        // root-relative path or a fragment, never javascript: or data:.
-        if (preg_match('#^(https?://|/(?!/)|\#)#i', $url) !== 1) {
+        // root-relative path or a fragment; check before trimming so padded
+        // javascript: links cannot slip through.
+        if (! SafeUrl::isAllowed($rawUrl, allowFragment: true)) {
             throw new InvalidArgumentException('A menu item needs an http(s), root-relative or #fragment url.');
         }
 

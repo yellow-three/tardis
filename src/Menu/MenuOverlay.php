@@ -8,6 +8,7 @@ use Illuminate\Support\Str;
 use InvalidArgumentException;
 use Tardis\State\UsesStateStore;
 use Tardis\Support\LegacyNames;
+use Tardis\Support\SafeUrl;
 
 /**
  * What an administrator changed about the sidebar, kept in
@@ -134,7 +135,9 @@ class MenuOverlay
             throw new InvalidArgumentException('A custom menu link needs a title.');
         }
 
-        if (preg_match('#^(https?://|/(?!/))#i', $url) !== 1) {
+        // The trimmed value is what is stored, so surrounding whitespace from a
+        // paste is harmless; "/\host" is "//host" to a browser and is refused.
+        if (! SafeUrl::isAllowed($url)) {
             throw new InvalidArgumentException('A custom menu link needs an http(s) or root-relative url.');
         }
 
@@ -227,7 +230,12 @@ class MenuOverlay
 
         return [
             'items' => $items,
-            'custom' => is_array($data['custom'] ?? null) ? array_values($data['custom']) : [],
+            // A link written by an older version (or by hand in storage) can
+            // still be unsafe; it never reaches a rendered href.
+            'custom' => array_values(array_filter(
+                is_array($data['custom'] ?? null) ? $data['custom'] : [],
+                fn ($link) => is_array($link) && SafeUrl::isAllowed((string) ($link['url'] ?? '')),
+            )),
         ];
     }
 }
