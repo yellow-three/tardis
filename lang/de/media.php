@@ -71,4 +71,8 @@ return [
     'previous_page' => 'Vorherige Seite',
     'next_page' => 'Nächste Seite',
     'page_of' => 'Seite :page von :last',
+    'used_in' => 'Verwendet in',
+    'not_used' => 'Von keinem Datensatz und keiner Einstellung verwendet.',
+    'usage_setting' => 'Einstellung',
+    'still_used' => 'Diese Datei wird noch an :count Stelle verwendet.|Diese Datei wird noch an :count Stellen verwendet.',
 ];

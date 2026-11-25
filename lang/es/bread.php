@@ -110,4 +110,16 @@ return [
     'order_description' => 'Arrastra los registros, o usa las flechas, para definir el orden en que los muestra la lista.',
     'order_saved' => 'Orden guardado.',
     'order_limited' => 'Aquí solo se muestran los primeros :count registros.',
+    'duplicate' => 'Duplicar',
+    'duplicate_notice' => 'Este formulario es una copia del registro #:id. No se guarda nada hasta que lo envíe.',
+    'edit_inline' => 'Editar :field',
+    'views' => [
+        'title' => 'Vistas',
+        'none' => 'Aún no hay vistas guardadas.',
+        'delete' => 'Eliminar la vista :name',
+        'name' => 'Nombre de esta vista',
+        'save' => 'Guardar',
+        'saved' => 'Vista «:name» guardada.',
+        'too_many' => 'Puede guardar como máximo 20 vistas por lista.',
+    ],
 ];

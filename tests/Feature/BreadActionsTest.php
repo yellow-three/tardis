@@ -75,8 +75,8 @@ test('every BREAD gets the stock actions and a slug can add its own', function (
     $manager = new ActionManager;
     $manager->add('items', PublishAction::class);
 
-    expect($manager->for('items')->keys()->all())->toBe(['delete', 'restore', 'force-delete', 'publish'])
-        ->and($manager->for('other')->keys()->all())->toBe(['delete', 'restore', 'force-delete']);
+    expect($manager->for('items')->keys()->all())->toBe(['duplicate', 'delete', 'restore', 'force-delete', 'publish'])
+        ->and($manager->for('other')->keys()->all())->toBe(['duplicate', 'delete', 'restore', 'force-delete']);
 });
 
 test('replace swaps a named action and manipulate can drop one', function () {

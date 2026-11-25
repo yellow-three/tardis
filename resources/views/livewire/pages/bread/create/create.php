@@ -40,6 +40,9 @@ new #[Title('tardis::shell.titles.create')] #[Layout('tardis::layouts.admin')] c
      */
     public string $activeLocale = '';
 
+    /** The key of the record this form was copied from (duplicate action). */
+    public ?string $copiedFrom = null;
+
     /**
      * Runs on every request, not only on mount: Livewire keeps component state
      * between requests, so a permission removed while the page is open has to
@@ -73,7 +76,49 @@ new #[Title('tardis::shell.titles.create')] #[Layout('tardis::layouts.admin')] c
 
         $this->initFieldDefaults();
         $this->initTranslatableFields();
+
+        if (is_scalar($duplicate = request()->query('duplicate')) && (string) $duplicate !== '') {
+            $this->copyFrom((string) $duplicate);
+        }
+
         $this->initRelationSearch();
+    }
+
+    /** Field types a copy leaves empty: secrets, uploads and records owned by the original. */
+    protected const NOT_COPIED = ['password', 'file', 'image', 'multiple_images', 'has_one', 'has_many'];
+
+    /**
+     * Fill the form with a copy of a record the user may read (duplicate
+     * action). A record outside the BREAD's scope or ownership is ignored.
+     */
+    protected function copyFrom(string $id): void
+    {
+        $record = $this->definition()->query()->find($id);
+
+        if ($record === null || ! app(BreadAuthorization::class)->allows('read', $this->slug, $record)) {
+            return;
+        }
+
+        $fieldObjects = collect($this->formfields)->keyBy(fn (Formfield $field) => $field->name);
+
+        foreach ($this->fields as $field) {
+            $name = (string) ($field['name'] ?? '');
+            $type = (string) ($field['type'] ?? '');
+
+            if ($name === '' || in_array($type, self::NOT_COPIED, true)) {
+                continue;
+            }
+
+            if ($type === 'belongs_to_many' && ! empty($field['relation'])) {
+                $this->form[$name] = $record->{$field['relation']}()->get()->modelKeys();
+            } elseif (! empty($field['translatable'])) {
+                $this->form[$name] = Translation::normalize($record->{$name} ?? null, Translation::locales($field['locales'] ?? null));
+            } elseif ($fieldObjects->has($name)) {
+                $this->form[$name] = $fieldObjects->get($name)->edit($record->{$name} ?? null);
+            }
+        }
+
+        $this->copiedFrom = (string) $record->getKey();
     }
 
     /**

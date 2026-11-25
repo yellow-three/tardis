@@ -10,6 +10,13 @@
         </div>
     </div>
 
+    @if ($copiedFrom !== null)
+        <div class="alert alert-info mb-4" role="status">
+            <x-tardis::icon name="document-duplicate" class="w-5 h-5" />
+            <span>{{ __('tardis::bread.duplicate_notice', ['id' => $copiedFrom]) }}</span>
+        </div>
+    @endif
+
     @if (session('error'))
         <div class="alert alert-error mb-4">
             <span>{{ session('error') }}</span>

@@ -370,3 +370,11 @@ Fixes from the 2026-11-17 review (`docs/notes.md`). Each one is covered by a tes
 - **Notification centre:** the bell in the header lists your latest notifications with an unread count, marks them read when opened and has "mark all as read". `Tardis::notify(...)` and a `tardis` notification channel send them; they are stored in the new `tardis_notifications` table (run `php artisan migrate`). Links must be root-relative or http(s).
 - **Chart widget contract:** `Tardis\Dashboard\ChartWidget` (line, bar, doughnut) is drawn on the server as SVG in the theme's colours, with escaped labels and a tooltip per point. The dashboard has a new "Activity, last 14 days" chart (hide it from the dashboard's edit mode).
 - **More languages and RTL:** German, French, Spanish and Arabic join English and Turkish. Arabic pages are written right to left (`dir="rtl"`); the views use logical spacing so the layout mirrors.
+
+## 1.x — list views, inline editing, duplicate, media usage and SVG cleaning (R55)
+
+- **Saved list views:** name the current search, sort, page size, filters and deleted-records mode of a BREAD list and bring it back later; stored per user with their preferences. A view cannot bring back a sort, page size or filter the list does not offer.
+- **Inline editing:** fields marked `"inline": true` (text, number, email, url) are edited in the list cell with the field's validation and the record's edit ability.
+- **Duplicate action:** opens the create form pre-filled from a record the user may read (needs "add"); uploads, passwords and has-one/has-many are not copied.
+- **Media usage:** the media details list the records and settings that use a file, and deleting a file that is still used shows a warning.
+- **SVG cleaning:** SVG uploads, where `svg` is allowed, are stripped of scripts, event handlers, `javascript:`/`data:` links, foreign HTML, DOCTYPEs and entities before they are stored.

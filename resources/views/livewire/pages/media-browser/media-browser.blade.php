@@ -389,6 +389,22 @@
                         </div>
                     </div>
 
+                    <div class="space-y-1 text-sm">
+                        <div class="text-xs font-semibold uppercase tracking-wider text-base-content/50">{{ __('tardis::media.used_in') }}</div>
+                        @forelse ($fileUsage as $use)
+                            <div class="flex justify-between gap-2">
+                                <span class="text-base-content/70">{{ $use['source'] }}</span>
+                                @if ($use['url'])
+                                    <a href="{{ $use['url'] }}" class="link link-hover font-medium" wire:navigate>{{ $use['label'] }}</a>
+                                @else
+                                    <span class="font-medium">{{ $use['label'] }}</span>
+                                @endif
+                            </div>
+                        @empty
+                            <p class="text-base-content/60">{{ __('tardis::media.not_used') }}</p>
+                        @endforelse
+                    </div>
+
                     {{-- Tags Collapse --}}
                     <div class="collapse collapse-arrow bg-base-100 border-none rounded-none">
                         <input type="checkbox" wire:model.live="showTagsSection" />
@@ -491,6 +507,12 @@
                 <p class="py-4">{!! __('tardis::media.confirm_delete_selected', ['count' => '<strong>'.count($selectedFiles).'</strong>']) !!}</p>
             @else
                 <p class="py-4">{!! __('tardis::media.confirm_delete_path', ['path' => '<strong>'.e($deletePath).'</strong>']) !!}</p>
+                @if ($fileUsage !== [])
+                    <div class="alert alert-warning" role="alert">
+                        <x-tardis::icon name="exclamation-triangle" class="w-5 h-5" />
+                        <span>{{ trans_choice('tardis::media.still_used', count($fileUsage), ['count' => count($fileUsage)]) }}</span>
+                    </div>
+                @endif
             @endif
             <div class="modal-action">
                 <button wire:click="$set('showDeleteModal', false)" class="btn btn-ghost">{{ __('tardis::media.cancel') }}</button>

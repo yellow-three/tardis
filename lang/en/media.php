@@ -71,4 +71,8 @@ return [
     'previous_page' => 'Previous page',
     'next_page' => 'Next page',
     'page_of' => 'Page :page of :last',
+    'used_in' => 'Used in',
+    'not_used' => 'Not used by any record or setting.',
+    'usage_setting' => 'Setting',
+    'still_used' => 'This file is still used in :count place.|This file is still used in :count places.',
 ];

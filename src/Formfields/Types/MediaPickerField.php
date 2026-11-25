@@ -6,6 +6,7 @@ namespace Tardis\Formfields\Types;
 
 use Illuminate\Http\UploadedFile;
 use Tardis\Formfields\Formfield;
+use Tardis\Media\SvgSanitizer;
 
 class MediaPickerField extends Formfield
 {
@@ -85,6 +86,8 @@ class MediaPickerField extends Formfield
     public function transform(mixed $value): mixed
     {
         if ($value instanceof UploadedFile) {
+            SvgSanitizer::sanitizeUpload($value);
+
             return $value->store($this->directory, $this->disk);
         }
 

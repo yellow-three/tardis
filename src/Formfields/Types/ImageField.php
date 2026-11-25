@@ -7,6 +7,7 @@ namespace Tardis\Formfields\Types;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Tardis\Media\ImageProcessor;
+use Tardis\Media\SvgSanitizer;
 
 /**
  * An uploaded image, optionally fitted to a size, re-encoded at a quality and
@@ -38,6 +39,7 @@ class ImageField extends FileField
             return $value;
         }
 
+        SvgSanitizer::sanitizeUpload($value);
         $path = $value->store($this->directory, $this->disk);
 
         if (! is_string($path)) {

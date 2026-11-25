@@ -52,6 +52,37 @@
                     </select>
                 </div>
 
+                @php($savedViews = $this->savedViews)
+                <div class="dropdown dropdown-end ms-auto">
+                    <div tabindex="0" role="button" class="btn btn-ghost gap-1">
+                        <x-tardis::icon name="bookmark" class="w-4 h-4" />
+                        {{ __('tardis::bread.views.title') }}
+                    </div>
+                    <div tabindex="0" class="dropdown-content z-30 mt-2 w-72 rounded-box border border-base-300 bg-base-100 p-3 shadow-lg">
+                        @if ($savedViews === [])
+                            <p class="mb-2 text-sm text-base-content/60">{{ __('tardis::bread.views.none') }}</p>
+                        @else
+                            <ul class="menu menu-sm mb-2 p-0">
+                                @foreach ($savedViews as $viewKey => $view)
+                                    <li wire:key="view-{{ md5($viewKey) }}" class="flex-row items-center">
+                                        <button type="button" wire:click="applyView(@js($viewKey))" class="flex-1">{{ $viewKey }}</button>
+                                        <button type="button" wire:click="deleteView(@js($viewKey))" class="btn btn-ghost btn-xs" aria-label="{{ __('tardis::bread.views.delete', ['name' => $viewKey]) }}">
+                                            <x-tardis::icon name="x-mark" class="w-3.5 h-3.5" />
+                                        </button>
+                                    </li>
+                                @endforeach
+                            </ul>
+                        @endif
+                        <form wire:submit="saveView" class="flex gap-2">
+                            <input type="text" wire:model="viewName" maxlength="60" class="input input-sm flex-1" placeholder="{{ __('tardis::bread.views.name') }}" aria-label="{{ __('tardis::bread.views.name') }}" />
+                            <button type="submit" class="btn btn-primary btn-sm">{{ __('tardis::bread.views.save') }}</button>
+                        </form>
+                        @error('viewName')
+                            <p class="mt-1 text-xs text-error">{{ $message }}</p>
+                        @enderror
+                    </div>
+                </div>
+
                 @if ($this->query()->supportsTrashed())
                     <div class="flex flex-col gap-2">
                         <label class="label" for="bread-trashed"><span class="text-base-content">{{ __('tardis::bread.deleted_records') }}</span></label>
@@ -193,7 +224,18 @@
                                             @endif
                                         @else
                                             @php($value = data_get($row, $field['accessor'] ?? $fieldName))
-                                            @if (! empty($field['translatable']))
+                                            @if (isset($this->inlineFields[$fieldName]) && empty($field['accessor']))
+                                                @php($inlineKey = $row->getKey())
+                                                @php($inlineShown = $value ?? '-')
+                                                @php($inlineType = ($field['type'] ?? 'text') === 'number' ? 'number' : 'text')
+                                                @php($inlineLabel = __('tardis::bread.edit_inline', ['field' => $field['label'] ?? $fieldName]))
+                                                <div x-data="{ editing: false, value: @js($value) }">
+                                                    <button type="button" x-show="! editing" x-on:click="editing = true; $nextTick(() => $refs.input.focus())" class="cursor-text border-b border-dashed border-base-content/30 text-start" aria-label="{{ $inlineLabel }}">{{ $inlineShown }}</button>
+                                                    <form x-show="editing" x-cloak x-on:submit.prevent="$wire.updateInline(@js($inlineKey), @js($fieldName), value).then((saved) => { if (saved) editing = false })" x-on:keydown.escape="editing = false">
+                                                        <input x-ref="input" x-model="value" type="{{ $inlineType }}" class="input input-xs w-full" aria-label="{{ $inlineLabel }}" />
+                                                    </form>
+                                                </div>
+                                            @elseif (! empty($field['translatable']))
                                                 {{ \Tardis\Support\Translation::value($value, $field['locales'] ?? null) }}
                                             @elseif ($browseField = ($this->formfields[$fieldName] ?? null))
                                                 {{ $browseField->browse($value) ?? '-' }}

@@ -8,6 +8,7 @@ use Closure;
 use Illuminate\Support\Collection;
 use InvalidArgumentException;
 use Tardis\Bread\Actions\DeleteAction;
+use Tardis\Bread\Actions\DuplicateAction;
 use Tardis\Bread\Actions\ForceDeleteAction;
 use Tardis\Bread\Actions\RestoreAction;
 
@@ -27,6 +28,7 @@ class ActionManager
 
     public function __construct()
     {
+        $this->add(self::ALL, new DuplicateAction);
         $this->add(self::ALL, new DeleteAction);
         $this->add(self::ALL, new RestoreAction);
         $this->add(self::ALL, new ForceDeleteAction);

@@ -4,6 +4,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
@@ -21,11 +22,14 @@ use Tardis\Bread\ActivityLogger;
 use Tardis\Bread\BreadDefinition;
 use Tardis\Bread\BreadListing;
 use Tardis\Bread\BreadQuery;
+use Tardis\Bread\BreadSaver;
 use Tardis\Bread\Export\CsvExporter;
+use Tardis\Bread\FieldValidationRules;
 use Tardis\Bread\Import\CsvImporter;
 use Tardis\Bread\Livewire\ReadsBreadDefinition;
 use Tardis\Formfields\Formfield;
 use Tardis\Formfields\FormfieldManager;
+use Tardis\Support\UserPreferences;
 
 new #[Title('tardis::shell.titles.bread')] #[Layout('tardis::layouts.admin')] class extends Component
 {
@@ -356,10 +360,149 @@ new #[Title('tardis::shell.titles.bread')] #[Layout('tardis::layouts.admin')] cl
     public function runAction(string $name, int|string $id): void
     {
         $action = app(ActionManager::class)->find($this->slug, $name) ?? abort(404);
+        $record = $this->findRecord($id);
 
-        if ($this->perform($action, $this->findRecord($id))) {
+        if (($target = $action->redirectTo($record, $this->slug)) !== null) {
+            app(BreadAuthorization::class)->authorize($action->getPermission(), $this->slug, $record);
+
+            $this->redirect($target, navigate: true);
+
+            return;
+        }
+
+        if ($this->perform($action, $record)) {
             session()->flash('message', $action->getSuccessMessage());
         }
+    }
+
+    // ------------------------------------------------------- saved list views
+
+    /** The refinements a saved view keeps. */
+    protected const VIEW_STATE = ['search', 'sort', 'direction', 'perPage', 'trashed', 'filters', 'columnSearch'];
+
+    public string $viewName = '';
+
+    /** @return array<string, array<string, mixed>> this user's saved views of this BREAD, by name */
+    #[Computed]
+    public function savedViews(): array
+    {
+        $views = app(UserPreferences::class)->get(auth()->id(), 'list_views', []);
+
+        return is_array($views[$this->slug] ?? null) ? $views[$this->slug] : [];
+    }
+
+    public function saveView(): void
+    {
+        $name = trim($this->viewName);
+        $this->validate(['viewName' => ['required', 'string', 'max:60']]);
+
+        $views = $this->savedViews;
+
+        if (! isset($views[$name]) && count($views) >= 20) {
+            $this->addError('viewName', __('tardis::bread.views.too_many'));
+
+            return;
+        }
+
+        $views[$name] = collect(self::VIEW_STATE)->mapWithKeys(fn (string $key) => [$key => $this->{$key}])->all();
+        $this->storeViews($views);
+        $this->viewName = '';
+        $this->dispatch('tardis-toast', message: __('tardis::bread.views.saved', ['name' => $name]), type: 'success');
+    }
+
+    public function applyView(string $name): void
+    {
+        $view = $this->savedViews[$name] ?? null;
+
+        if (! is_array($view)) {
+            return;
+        }
+
+        $this->search = (string) ($view['search'] ?? '');
+        $this->sort = in_array($view['sort'] ?? '', $this->query()->orderable(), true) ? (string) $view['sort'] : '';
+        $this->direction = ($view['direction'] ?? 'asc') === 'desc' ? 'desc' : 'asc';
+        $this->perPage = in_array((int) ($view['perPage'] ?? 15), BreadQuery::PER_PAGE_OPTIONS, true) ? (int) $view['perPage'] : 15;
+        $this->trashed = in_array($view['trashed'] ?? '', BreadQuery::TRASHED, true) ? (string) $view['trashed'] : 'without';
+        $this->filters = array_intersect_key(array_map('boolval', (array) ($view['filters'] ?? [])), $this->query()->namedFilters());
+        $this->columnSearch = array_map('strval', array_filter((array) ($view['columnSearch'] ?? []), 'is_scalar'));
+        $this->selectAllMatching = false;
+        $this->resetPage();
+    }
+
+    public function deleteView(string $name): void
+    {
+        $views = $this->savedViews;
+        unset($views[$name]);
+        $this->storeViews($views);
+    }
+
+    /** @param  array<string, array<string, mixed>>  $views */
+    protected function storeViews(array $views): void
+    {
+        $preferences = app(UserPreferences::class);
+        $all = (array) $preferences->get(auth()->id(), 'list_views', []);
+
+        if ($views === []) {
+            unset($all[$this->slug]);
+        } else {
+            $all[$this->slug] = $views;
+        }
+
+        $preferences->set(auth()->id(), 'list_views', $all);
+        unset($this->savedViews);
+    }
+
+    // ---------------------------------------------------------- inline editing
+
+    /** Field types a list cell can edit in place. */
+    protected const INLINE_TYPES = ['text', 'number', 'email', 'url'];
+
+    /** @return array<string, true> names of the list fields this user may edit in place */
+    #[Computed]
+    public function inlineFields(): array
+    {
+        if (! app(BreadAuthorization::class)->allows('edit', $this->slug)) {
+            return [];
+        }
+
+        $names = [];
+
+        foreach ($this->bread['fields'] ?? [] as $field) {
+            if (! empty($field['inline']) && ($field['edit'] ?? true) !== false && empty($field['translatable'])
+                && in_array($field['type'] ?? 'text', self::INLINE_TYPES, true)) {
+                $names[(string) $field['name']] = true;
+            }
+        }
+
+        return $names;
+    }
+
+    /** Save one cell, with the field's own rules and the record's edit ability. */
+    public function updateInline(int|string $id, string $name, mixed $value): bool
+    {
+        if (! isset($this->inlineFields[$name])) {
+            return false;
+        }
+
+        $record = $this->findRecord($id);
+        app(BreadAuthorization::class)->authorize('edit', $this->slug, $record);
+
+        $field = collect($this->bread['fields'] ?? [])->firstWhere('name', $name);
+        $form = [$name => is_scalar($value) || $value === null ? $value : null];
+
+        $validator = Validator::make(['form' => $form], FieldValidationRules::for([$field], $form, null, 'edit'));
+
+        if ($validator->fails()) {
+            $this->dispatch('tardis-toast', message: $validator->errors()->first(), type: 'error');
+
+            return false;
+        }
+
+        app(BreadSaver::class)->update($this->slug, $record, [$field], $form);
+        unset($this->listing);
+        $this->dispatch('tardis-toast', message: __('tardis::bread.item_updated'), type: 'success');
+
+        return true;
     }
 
     /** The number of records the current search and filters match. */

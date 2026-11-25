@@ -50,6 +50,8 @@ class MediaManager
         // A filename template may end in a different extension than the file.
         $this->assertAllowedExtension($name, 'upload');
 
+        SvgSanitizer::sanitizeUpload($file);
+
         // storeAs() joins with its own separator, so it must not receive a trailing slash.
         $storedPath = $file->storeAs(rtrim($path, '/'), $name, $this->disk);
 

@@ -110,4 +110,16 @@ return [
     'order_description' => 'Ziehen Sie die Datensätze oder verwenden Sie die Pfeile, um die Reihenfolge festzulegen, in der die Liste sie anzeigt.',
     'order_saved' => 'Reihenfolge gespeichert.',
     'order_limited' => 'Hier werden nur die ersten :count Datensätze angezeigt.',
+    'duplicate' => 'Duplizieren',
+    'duplicate_notice' => 'Dieses Formular ist eine Kopie von Datensatz #:id. Gespeichert wird erst beim Absenden.',
+    'edit_inline' => ':field bearbeiten',
+    'views' => [
+        'title' => 'Ansichten',
+        'none' => 'Noch keine gespeicherten Ansichten.',
+        'delete' => 'Ansicht :name löschen',
+        'name' => 'Name dieser Ansicht',
+        'save' => 'Speichern',
+        'saved' => 'Ansicht „:name“ gespeichert.',
+        'too_many' => 'Pro Liste sind höchstens 20 Ansichten möglich.',
+    ],
 ];

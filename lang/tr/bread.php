@@ -108,4 +108,16 @@ return [
     'order_description' => 'Listenin kayıtları hangi sırayla göstereceğini belirlemek için kayıtları sürükleyin ya da okları kullanın.',
     'order_saved' => 'Sıra kaydedildi.',
     'order_limited' => 'Burada yalnızca ilk :count kayıt gösteriliyor.',
+    'duplicate' => 'Kopyala',
+    'duplicate_notice' => 'Bu form #:id kaydının kopyası. Gönderene kadar hiçbir şey kaydedilmez.',
+    'edit_inline' => ':field alanını düzenle',
+    'views' => [
+        'title' => 'Görünümler',
+        'none' => 'Henüz kayıtlı görünüm yok.',
+        'delete' => ':name görünümünü sil',
+        'name' => 'Bu görünümün adı',
+        'save' => 'Kaydet',
+        'saved' => '":name" görünümü kaydedildi.',
+        'too_many' => 'Liste başına en fazla 20 görünüm saklanabilir.',
+    ],
 ];
