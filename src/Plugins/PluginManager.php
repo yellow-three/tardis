@@ -63,7 +63,7 @@ class PluginManager
     {
         $data = $this->state()->read($this->statePath);
 
-        if (! is_array($data) || ! is_array($data['disabled'] ?? null)) {
+        if (! is_array($data['disabled'] ?? null)) {
             return [];
         }
 

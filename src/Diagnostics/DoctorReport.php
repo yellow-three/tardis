@@ -12,6 +12,7 @@ use Tardis\Bread\DefinitionHealth;
 use Tardis\Contracts\Plugins\Features\Provider\CSS;
 use Tardis\Contracts\Plugins\Features\Provider\JS;
 use Tardis\Plugins\PluginManager;
+use Tardis\State\DatabaseStateStore;
 use Tardis\Support\UserKey;
 use Tardis\Theme\ThemeManager;
 
@@ -198,7 +199,7 @@ final class DoctorReport
             return CheckResult::ok('State store', 'File driver: settings, menus and BREAD definitions are kept under storage/tardis on this server.');
         }
 
-        if (! Schema::connection(config('tardis.state.connection'))->hasTable(\Tardis\State\DatabaseStateStore::TABLE)) {
+        if (! Schema::connection(config('tardis.state.connection'))->hasTable(DatabaseStateStore::TABLE)) {
             return CheckResult::fail('State store', 'tardis.state.driver is "database" but the tardis_state table is missing.', 'Run php artisan migrate, then php artisan tardis:state:copy --to=database.');
         }
 

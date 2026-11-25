@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
-use Tardis\Bread\BreadDefinition;
 use Tardis\Bread\Sources\JsonBreadSource;
 use Tardis\Dashboard\DashboardLayout;
 use Tardis\Menu\MenuOverlay;
@@ -17,7 +17,7 @@ use Tardis\State\StateStore;
 use Tardis\Support\UserPreferences;
 use Tardis\Theme\ThemeManager;
 
-class StateStoreTestModel extends Illuminate\Database\Eloquent\Model
+class StateStoreTestModel extends Model
 {
     protected $table = 'state_things';
 }
