@@ -16,4 +16,11 @@ return [
     'time' => 'Zaman',
     'no_activities_found' => 'Etkinlik bulunamadı',
     'showing' => ':total kayıttan :from-:to arası gösteriliyor',
+    'kind' => 'Tür',
+    'all_kinds' => 'Tüm türler',
+    'details' => 'Ayrıntılar',
+    'show_changes' => 'Değişiklikleri göster',
+    'before' => 'Önce',
+    'after' => 'Sonra',
+    'system' => 'Sistem',
 ];

@@ -268,3 +268,8 @@ A BREAD override route is named after the new action name (`tardis.bread.create.
 ## User key columns
 
 - `php artisan migrate` gives the user columns of `tardis_role_user`, `tardis_activity_logs` and `tardis_media` the type of your users table key. On an integer-keyed app nothing changes. With UUID or ULID users, tables that already hold rows of the old (unusable) type are left alone; `php artisan tardis:user-keys --force` empties and converts them. Set `TARDIS_USER_KEY_TYPE` when `auto` cannot tell from the model.
+
+## Activity log retention (R50)
+
+- New `tardis.activity_log.retention_days` (365). Nothing is removed until you run or schedule `php artisan tardis:activity:prune`; a published config without the key keeps everything. Add `Schedule::command('tardis:activity:prune')->daily();` to `routes/console.php` to keep the table bounded.
+- Settings, permissions, media and BREAD definition changes now add rows to `tardis_activity_logs`. A test that counted every row may need to filter by `model_type`.

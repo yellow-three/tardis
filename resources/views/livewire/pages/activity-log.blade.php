@@ -13,6 +13,14 @@ new #[Title('tardis::activity.activity_log')] #[Layout('tardis::layouts.admin')]
 
     public string $filterAction = '';
 
+    public string $filterType = '';
+
+    /** @var array<int, string> */
+    public array $types = [];
+
+    /** @var array<string, string> action => label */
+    public array $actions = [];
+
     public string $filterUser = '';
 
     public string $search = '';
@@ -35,6 +43,12 @@ new #[Title('tardis::activity.activity_log')] #[Layout('tardis::layouts.admin')]
 
     public function mount(): void
     {
+        $table = DB::table(\Tardis\Models\ActivityLog::TABLE);
+        $this->types = (clone $table)->distinct()->orderBy('model_type')->limit(200)->pluck('model_type')->all();
+        $this->actions = (clone $table)->distinct()->orderBy('action')->limit(200)->pluck('action')
+            ->mapWithKeys(fn (string $action) => [$action => \Illuminate\Support\Facades\Lang::has('tardis::activity.'.$action) ? __('tardis::activity.'.$action) : $action])
+            ->all();
+
         $this->loadActivities();
     }
 
@@ -44,6 +58,10 @@ new #[Title('tardis::activity.activity_log')] #[Layout('tardis::layouts.admin')]
 
         if ($this->filterAction) {
             $query->where('action', $this->filterAction);
+        }
+
+        if ($this->filterType) {
+            $query->where('model_type', $this->filterType);
         }
 
         if ($this->filterUser) {
@@ -69,6 +87,12 @@ new #[Title('tardis::activity.activity_log')] #[Layout('tardis::layouts.admin')]
     }
 
     public function updatedFilterAction(): void
+    {
+        $this->page = 1;
+        $this->loadActivities();
+    }
+
+    public function updatedFilterType(): void
     {
         $this->page = 1;
         $this->loadActivities();
@@ -133,11 +157,17 @@ new #[Title('tardis::activity.activity_log')] #[Layout('tardis::layouts.admin')]
                 <div class="flex flex-col gap-2">
                     <select wire:model.live="filterAction" class="select select-sm">
                         <option value="">{{ __('tardis::activity.all_actions') }}</option>
-                        <option value="created">{{ __('tardis::activity.created') }}</option>
-                        <option value="updated">{{ __('tardis::activity.updated') }}</option>
-                        <option value="deleted">{{ __('tardis::activity.deleted') }}</option>
-                        <option value="restored">{{ __('tardis::activity.restored') }}</option>
-                        <option value="force_deleted">{{ __('tardis::activity.force_deleted') }}</option>
+                        @foreach ($actions as $action => $label)
+                            <option value="{{ $action }}">{{ $label }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="flex flex-col gap-2">
+                    <select wire:model.live="filterType" class="select select-sm" aria-label="{{ __('tardis::activity.kind') }}">
+                        <option value="">{{ __('tardis::activity.all_kinds') }}</option>
+                        @foreach ($types as $type)
+                            <option value="{{ $type }}">{{ $type }}</option>
+                        @endforeach
                     </select>
                 </div>
             </div>
@@ -154,6 +184,7 @@ new #[Title('tardis::activity.activity_log')] #[Layout('tardis::layouts.admin')]
                         <th scope="col">{{ __('tardis::activity.model') }}</th>
                         <th scope="col">{{ __('tardis::activity.user') }}</th>
                         <th scope="col">{{ __('tardis::activity.time') }}</th>
+                        <th scope="col">{{ __('tardis::activity.details') }}</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -168,12 +199,32 @@ new #[Title('tardis::activity.activity_log')] #[Layout('tardis::layouts.admin')]
                                 <span class="font-medium">{{ class_basename($activity->model_type) }}</span>
                                 <span class="text-base-content/50">#{{ $activity->model_id }}</span>
                             </td>
-                            <td class="text-sm text-base-content/60">{{ $activity->user_id ?? 'System' }}</td>
-                            <td class="text-sm text-base-content/60">{{ $activity->created_at }}</td>
+                            <td class="text-sm text-base-content/60">{{ $activity->user_id ?? __('tardis::activity.system') }}</td>
+                            <td class="text-sm text-base-content/60">
+                                {{ $activity->created_at }}
+                                @if (! empty($activity->ip_address))
+                                    <span class="block text-xs" title="{{ $activity->user_agent ?? '' }}">{{ $activity->ip_address }}</span>
+                                @endif
+                            </td>
+                            <td class="text-xs">
+                                @if (! empty($activity->old_values) || ! empty($activity->new_values))
+                                    <details>
+                                        <summary class="cursor-pointer text-base-content/60">{{ __('tardis::activity.show_changes') }}</summary>
+                                        @if (! empty($activity->old_values))
+                                            <div class="mt-1 font-medium">{{ __('tardis::activity.before') }}</div>
+                                            <pre class="whitespace-pre-wrap break-all max-w-md">{{ json_encode(json_decode($activity->old_values), JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) }}</pre>
+                                        @endif
+                                        @if (! empty($activity->new_values))
+                                            <div class="mt-1 font-medium">{{ __('tardis::activity.after') }}</div>
+                                            <pre class="whitespace-pre-wrap break-all max-w-md">{{ json_encode(json_decode($activity->new_values), JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) }}</pre>
+                                        @endif
+                                    </details>
+                                @endif
+                            </td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="4" class="text-center py-8 text-base-content/50">{{ __('tardis::activity.no_activities_found') }}</td>
+                            <td colspan="5" class="text-center py-8 text-base-content/50">{{ __('tardis::activity.no_activities_found') }}</td>
                         </tr>
                     @endforelse
                 </tbody>

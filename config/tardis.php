@@ -181,6 +181,12 @@ return [
     */
     'activity_log' => [
         'enabled' => true,
+
+        // Entries older than this many days are removed by
+        // `php artisan tardis:activity:prune` (schedule it daily). null keeps
+        // everything; the command then removes nothing.
+        'retention_days' => env('TARDIS_ACTIVITY_RETENTION_DAYS', 365),
+
         'log_events' => [
             'created',
             'updated',

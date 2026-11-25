@@ -337,3 +337,9 @@ Fixes from the 2026-11-17 review (`docs/notes.md`). Each one is covered by a tes
 - **Sessions:** the profile lists where the user is signed in (browser, address, last activity, this session) and signs out every other session with the current password. "Remember me" on those browsers stops too. The list needs Laravel's database session driver; with another driver the profile says so.
 - **Sign in as another user:** with the new `impersonate users` ability, the Users screen offers *Sign in as*, within the same limits as managing that user (never a super administrator or someone holding more). A banner on every panel page leads back; both ends are in the activity log. Signing in as someone who may not open the panel ends at once and says why, instead of leaving the administrator on a 403.
 - Run `php artisan tardis:install` (or the permission seeder) to create `impersonate users` on an existing install; super administrators have it already.
+
+## 1.x — full audit log (R50)
+
+- **Everything an administrator changes is in the activity log:** besides record changes, sign-in/out, roles, users, plugins, menus, themes and the dashboard, it now records settings (old and new value; a password setting's value is written as `[redacted]`), permissions, media uploads/renames/deletes and folders, and BREAD definitions (created, updated, removed). Schema changes from the Database screen were logged already. Each entry keeps the IP address and user agent.
+- The Activity log screen filters by kind (`tardis.setting`, `tardis.media`, …) and by any action that occurs, shows the address, and opens the before/after values of an entry.
+- **Retention:** `tardis.activity_log.retention_days` (`TARDIS_ACTIVITY_RETENTION_DAYS`, default 365; `null` keeps everything) and `php artisan tardis:activity:prune` (`--days`, `--pretend`). Schedule it: `Schedule::command('tardis:activity:prune')->daily();`.

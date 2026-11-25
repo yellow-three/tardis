@@ -243,6 +243,7 @@ Larger screens (BREAD pages, BREAD builder, media browser, database explorer, se
 | `tardis:import:voyager` | Import BREADs, menus, settings and roles from a Voyager 1.x database (`--connection`, `--only=bread`, `--dry-run`, `--force`) |
 | `tardis:bread:export` | Export all JSON definitions as one document |
 | `tardis:doctor` | Report install health; exits non-zero on failure so it can gate a deploy (`--json` for scripts) |
+| `tardis:activity:prune` | Remove activity log entries older than `tardis.activity_log.retention_days` (`--days`, `--pretend`); schedule it daily |
 | `tardis:install` | Idempotent installer: migrate, seed permissions, publish assets, optionally create the first admin (`--email`, `--force`) |
 
 See [docs/PLUGIN_GUIDE.md](docs/PLUGIN_GUIDE.md) and [docs/EXAMPLE_BREAD.md](docs/EXAMPLE_BREAD.md).

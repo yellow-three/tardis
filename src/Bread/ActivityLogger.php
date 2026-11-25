@@ -41,8 +41,9 @@ class ActivityLogger
      * a disabled or missing log only means nothing is written.
      *
      * @param  array<string, mixed>  $values
+     * @param  array<string, mixed>|null  $old  the state before the change, where there is one
      */
-    public function audit(string $type, string $action, array $values = [], int|string $id = 0): void
+    public function audit(string $type, string $action, array $values = [], int|string $id = 0, ?array $old = null): void
     {
         if (! config('tardis.activity_log.enabled', true)) {
             return;
@@ -50,7 +51,7 @@ class ActivityLogger
 
         try {
             if (Schema::hasTable(ActivityLog::TABLE)) {
-                $this->log($type, $id, $action, newValues: $values);
+                $this->log($type, $id, $action, oldValues: $old, newValues: $values);
             }
         } catch (\Throwable $e) {
             Log::warning('Could not write to the activity log.', ['action' => $type.'.'.$action, 'error' => $e->getMessage()]);

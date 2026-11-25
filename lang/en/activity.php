@@ -16,4 +16,11 @@ return [
     'time' => 'Time',
     'no_activities_found' => 'No activities found',
     'showing' => 'Showing :from-:to of :total',
+    'kind' => 'Kind',
+    'all_kinds' => 'All kinds',
+    'details' => 'Details',
+    'show_changes' => 'Show changes',
+    'before' => 'Before',
+    'after' => 'After',
+    'system' => 'System',
 ];

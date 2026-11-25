@@ -14,6 +14,7 @@ use Tardis\Auth\SessionAuthenticationPlugin;
 use Tardis\Bread\ActionManager;
 use Tardis\Bread\Legacy\LegacyConfigReader;
 use Tardis\Bread\Sources\JsonBreadSource;
+use Tardis\Commands\ActivityPruneCommand;
 use Tardis\Commands\AdminCommand;
 use Tardis\Commands\BreadExportCommand;
 use Tardis\Commands\BreadImportLegacyCommand;
@@ -32,11 +33,13 @@ use Tardis\Events\BreadRecordCreated;
 use Tardis\Events\BreadRecordDeleted;
 use Tardis\Events\BreadRecordRestored;
 use Tardis\Events\BreadRecordUpdated;
+use Tardis\Events\BreadRemoved;
 use Tardis\Events\BreadSaved;
 use Tardis\Formfields\FormfieldManager;
 use Tardis\Http\Middleware\AdminMiddleware;
 use Tardis\Http\Middleware\SetPanelLocale;
 use Tardis\Listeners\LogBreadActivity;
+use Tardis\Listeners\LogBreadDefinitionChange;
 use Tardis\Listeners\ProvisionBreadPermissions;
 use Tardis\Media\MediaManager;
 use Tardis\Menu\MenuManager;
@@ -264,6 +267,7 @@ class TardisServiceProvider extends ServiceProvider
     protected function registerListeners(): void
     {
         Event::listen(BreadSaved::class, ProvisionBreadPermissions::class);
+        Event::listen([BreadSaved::class, BreadRemoved::class], LogBreadDefinitionChange::class);
 
         Event::listen(
             [BreadRecordCreated::class, BreadRecordUpdated::class, BreadRecordDeleted::class, BreadRecordRestored::class],
@@ -276,6 +280,7 @@ class TardisServiceProvider extends ServiceProvider
         // Not limited to the console: the panel's command runner calls
         // Artisan from a web request and may be allowed to run these.
         $this->commands([
+            ActivityPruneCommand::class,
             AdminCommand::class,
             BreadExportCommand::class,
             BreadImportLegacyCommand::class,
