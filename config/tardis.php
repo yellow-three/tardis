@@ -242,6 +242,11 @@ return [
             'restored',
             'force_deleted',
         ],
+
+        // Additional field names whose values are replaced with [redacted] in
+        // old_values/new_values. Common names (password, *_token, *_key,
+        // secret, recovery_code, ...) are already covered without configuration.
+        'redact' => [],
     ],
 
     /*
@@ -321,6 +326,27 @@ return [
     */
     'csp' => [
         'nonce' => null,
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Security Headers
+    |--------------------------------------------------------------------------
+    |
+    | Sent on panel pages, Livewire updates and the JSON API, but never over a
+    | header the host already set. The CSP only restricts framing: a script
+    | policy would break Livewire/Alpine and assets the host injects. HSTS is
+    | left to the host's TLS decision. Set a header to null to skip it, or the
+    | whole list to [] to turn the middleware off.
+    |
+    */
+    'security' => [
+        'headers' => [
+            'X-Frame-Options' => 'SAMEORIGIN',
+            'Content-Security-Policy' => "frame-ancestors 'self'",
+            'X-Content-Type-Options' => 'nosniff',
+            'Referrer-Policy' => 'strict-origin-when-cross-origin',
+        ],
     ],
 
     /*

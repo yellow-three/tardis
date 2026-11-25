@@ -40,6 +40,7 @@ use Tardis\Events\BreadRemoved;
 use Tardis\Events\BreadSaved;
 use Tardis\Formfields\FormfieldManager;
 use Tardis\Http\Middleware\AdminMiddleware;
+use Tardis\Http\Middleware\SecurityHeaders;
 use Tardis\Http\Middleware\SetPanelLocale;
 use Tardis\Listeners\LogBreadActivity;
 use Tardis\Listeners\LogBreadDefinitionChange;
@@ -285,7 +286,18 @@ class TardisServiceProvider extends ServiceProvider
         // answering.
         // The locale too: a failed sign-in or a validation message on any
         // page is rendered by a Livewire update, not the first request.
-        Livewire::addPersistentMiddleware([SetPanelLocale::class, AdminMiddleware::class]);
+        Livewire::addPersistentMiddleware([SetPanelLocale::class, AdminMiddleware::class, SecurityHeaders::class]);
+
+        // Livewire replays persistent middleware in an inner pipeline and drops
+        // the response it builds, so that pass cannot put headers on the actual
+        // update reply. Add the middleware to the update route as well.
+        $this->app->booted(function (): void {
+            foreach ($this->app['router']->getRoutes()->getRoutes() as $route) {
+                if (str_ends_with((string) $route->getName(), 'livewire.update')) {
+                    $route->middleware(SecurityHeaders::class);
+                }
+            }
+        });
     }
 
     protected function registerListeners(): void

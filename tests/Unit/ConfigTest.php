@@ -19,7 +19,7 @@ test('config has authorization settings', function () {
 test('config has activity log settings', function () {
     $config = config('tardis.activity_log');
 
-    expect($config)->toBeArray()->toHaveKeys(['enabled', 'log_events']);
+    expect($config)->toBeArray()->toHaveKeys(['enabled', 'log_events', 'redact']);
 });
 
 test('config has database explorer and extra asset settings', function () {
@@ -67,7 +67,7 @@ test('the published config file keeps every documented section', function () {
 
     expect(array_keys($file))->toEqualCanonicalizing([
         'admin', 'bread', 'database', 'assets', 'locales', 'translation',
-        'authorization', 'activity_log', 'models', 'system', 'csp', 'media', 'icons', 'users', 'two_factor', 'state', 'api',
+        'authorization', 'activity_log', 'models', 'system', 'csp', 'security', 'media', 'icons', 'users', 'two_factor', 'state', 'api',
     ])->and($file['models'])->toHaveKeys(['role', 'permission', 'media', 'activity_log'])
         ->and($file['system'])->toHaveKeys(['logs', 'commands', 'demo']);
 });

@@ -9,6 +9,7 @@ use Illuminate\Support\Str;
 use Tardis\Contracts\Plugins\AuthorizationPlugin;
 use Tardis\Plugins\PluginManager;
 use Tardis\Support\LegacyNames;
+use Tardis\Support\SafeUrl;
 use Tardis\Support\Translation;
 
 class MenuItem
@@ -275,7 +276,9 @@ class MenuItem
             return route($this->routeName, $this->routeParams);
         }
 
-        return $this->url ?? '#';
+        // Check again at render time: the URL may come from stored menu state
+        // written before the stricter rule, or from a plugin's own definition.
+        return $this->url !== null && SafeUrl::isAllowed($this->url, allowFragment: true) ? $this->url : '#';
     }
 
     public function isActive(): bool

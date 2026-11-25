@@ -6,6 +6,7 @@ namespace Tardis\Http;
 
 use Closure;
 use Illuminate\Support\Facades\Route;
+use Tardis\Http\Middleware\SecurityHeaders;
 
 /**
  * The one place that knows how a panel route group looks: the admin prefix,
@@ -16,10 +17,10 @@ use Illuminate\Support\Facades\Route;
 final class PanelRoutes
 {
     /** Middleware of every panel page; `tardis.admin` checks sign-in and "access admin". */
-    public const MIDDLEWARE = ['web', 'tardis.locale', 'tardis.admin'];
+    public const MIDDLEWARE = ['web', 'tardis.locale', 'tardis.admin', SecurityHeaders::class];
 
     /** Middleware of the pages a guest needs: sign-in, password reset, preferences. */
-    public const GUEST_MIDDLEWARE = ['web', 'tardis.locale'];
+    public const GUEST_MIDDLEWARE = ['web', 'tardis.locale', SecurityHeaders::class];
 
     public static function prefix(): string
     {
