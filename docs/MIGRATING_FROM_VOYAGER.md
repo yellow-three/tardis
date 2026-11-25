@@ -12,7 +12,7 @@ Both can live in the same application while you move: Voyager under its prefix (
 ```
 
 ```bash
-composer require yellow-three/tardis:^0.1
+composer require yellow-three/tardis:^1.0
 php artisan tardis:install --email=you@example.com
 ```
 

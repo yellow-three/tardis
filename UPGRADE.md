@@ -1,11 +1,13 @@
-# Upgrading to 0.1
+# Upgrading to 1.0
 
-0.1.0 is the first (pre-release) version and the API may still change before 1.0. These notes are for anyone running an earlier development build of Tardis: 0.1 removes a set of APIs that were either unreachable, unused or unsafe, and every item below is a change from those builds. The commit history groups them by `!` commits.
+1.0.0 is the first stable release; from here on the public API follows semantic versioning. These notes are for anyone running 0.1.0 or an earlier development build. Every section below is a change from those builds: the first sections were already part of 0.1, the ones marked Faz 9–13 or R46–R55 are new since 0.1.0, and the commit history groups breaking changes by `!` commits.
+
+Coming from 0.1.0, run `php artisan migrate` (several new tables and one migration that drops old foreign keys) and then `php artisan tardis:doctor`.
 
 ## Before you upgrade
 
 ```bash
-composer require yellow-three/tardis:^0.1
+composer require yellow-three/tardis:^1.0
 php artisan migrate
 php artisan tardis:admin you@example.com   # authorization is on by default, see below
 ```

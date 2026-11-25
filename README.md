@@ -19,11 +19,11 @@ gives you a panel with sample content to look around in.
 
 ## Installation
 
-> **0.1.0 is a pre-release for testing.** It is not on Packagist yet and the API may still change before 1.0. Install it from the GitHub repository:
+> **1.0.0 is the first stable release.** It is not on Packagist yet; install it from the GitHub repository:
 
 ```bash
 composer config repositories.tardis vcs https://github.com/yellow-three/tardis
-composer require yellow-three/tardis:^0.1
+composer require yellow-three/tardis:^1.0
 ```
 
 Then let the installer migrate the database, seed the permissions, publish the compiled assets and create the first administrator:

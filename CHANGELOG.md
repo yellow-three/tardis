@@ -2,7 +2,9 @@
 
 All notable changes to this package. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and versions follow [Semantic Versioning](https://semver.org/); before 1.0, a minor version may break things, and [UPGRADE.md](UPGRADE.md) lists what to change. The detailed, phase-by-phase notes are in [RELEASE_NOTES.md](RELEASE_NOTES.md).
 
-## [Unreleased]
+## [1.0.0]
+
+First stable release (not tagged yet). Everything since 0.1.0:
 
 ### Added
 - Relation fields `belongs_to` and `has_one`; the builder's Relationships tab adds a detected relation to the form.

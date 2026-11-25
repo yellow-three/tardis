@@ -2,7 +2,7 @@
 
 ## Supported versions
 
-Tardis is in pre-release (`0.x`). Security fixes go into the latest `0.x` release only; upgrade to it before reporting.
+Security fixes go into the latest `1.x` release. The `0.x` pre-releases are no longer supported; upgrade to the latest `1.x` before reporting.
 
 ## Reporting a vulnerability
 
