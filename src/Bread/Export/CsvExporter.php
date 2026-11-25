@@ -110,7 +110,7 @@ final class CsvExporter
     }
 
     /** @param  array<string, mixed>  $field */
-    private function label(array $field): string
+    public function label(array $field): string
     {
         $label = $field['label'] ?? $field['display_name'] ?? null;
 

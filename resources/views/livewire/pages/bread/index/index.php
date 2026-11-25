@@ -14,6 +14,7 @@ use Livewire\Attributes\Url;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 use Livewire\WithPagination;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 use Tardis\Auth\BreadAuthorization;
 use Tardis\Bread\Action;
@@ -24,6 +25,7 @@ use Tardis\Bread\BreadListing;
 use Tardis\Bread\BreadQuery;
 use Tardis\Bread\BreadSaver;
 use Tardis\Bread\Export\CsvExporter;
+use Tardis\Bread\Export\Xlsx;
 use Tardis\Bread\FieldValidationRules;
 use Tardis\Bread\Import\CsvImporter;
 use Tardis\Bread\Livewire\ReadsBreadDefinition;
@@ -553,17 +555,26 @@ new #[Title('tardis::shell.titles.bread')] #[Layout('tardis::layouts.admin')] cl
      * filter as on screen. Anyone who may browse the BREAD may export it; set
      * tardis.bread.export to false to switch the button off.
      */
-    public function export(): StreamedResponse
+    public function export(string $format = 'csv'): StreamedResponse|BinaryFileResponse
     {
         abort_unless((bool) config('tardis.bread.export', true), 404);
         app(BreadAuthorization::class)->authorize('browse', $this->slug);
 
+        $xlsx = $format === 'xlsx' && Xlsx::available();
         $exporter = new CsvExporter(array_values($this->layoutFields ?: $this->visibleFields), $this->formfields);
-        $filename = $this->slug.'-'.now()->format('Y-m-d-His').'.csv';
+        $filename = $this->slug.'-'.now()->format('Y-m-d-His').($xlsx ? '.xlsx' : '.csv');
 
-        app(ActivityLogger::class)->audit('tardis.bread', 'exported', ['slug' => $this->slug, 'search' => $this->search, 'filters' => array_filter($this->filters)]);
+        app(ActivityLogger::class)->audit('tardis.bread', 'exported', ['slug' => $this->slug, 'format' => $xlsx ? 'xlsx' : 'csv', 'search' => $this->search, 'filters' => array_filter($this->filters)]);
 
-        return $exporter->download($this->matchingQuery(), $filename);
+        return $xlsx
+            ? Xlsx::download($exporter, $this->matchingQuery(), $filename)
+            : $exporter->download($this->matchingQuery(), $filename);
+    }
+
+    /** Whether .xlsx export and import are offered (openspout/openspout installed). */
+    public function xlsxAvailable(): bool
+    {
+        return Xlsx::available();
     }
 
     /** Whether the import button is offered: the user may add or edit records. */
@@ -582,9 +593,29 @@ new #[Title('tardis::shell.titles.bread')] #[Layout('tardis::layouts.admin')] cl
     {
         abort_unless($this->canImport(), 403);
 
-        $this->validate(['importFile' => ['required', 'file', 'mimes:csv,txt', 'max:'.max(1, (int) config('tardis.bread.import_max_kb', 5120))]]);
+        $mimes = Xlsx::available() ? 'mimes:csv,txt,xlsx' : 'mimes:csv,txt';
+        $this->validate(['importFile' => ['required', 'file', $mimes, 'max:'.max(1, (int) config('tardis.bread.import_max_kb', 5120))]]);
 
-        $result = (new CsvImporter($this->slug, $this->definition()))->import($this->importFile->getRealPath());
+        $path = $this->importFile->getRealPath();
+        $converted = null;
+
+        if (Xlsx::available() && strtolower($this->importFile->getClientOriginalExtension()) === 'xlsx') {
+            try {
+                $path = $converted = Xlsx::toCsv($path);
+            } catch (Throwable) {
+                $this->addError('importFile', __('tardis::bread.import_unreadable'));
+
+                return;
+            }
+        }
+
+        try {
+            $result = (new CsvImporter($this->slug, $this->definition()))->import($path);
+        } finally {
+            if ($converted !== null) {
+                @unlink($converted);
+            }
+        }
 
         $this->importReport = [
             'created' => $result->created,
