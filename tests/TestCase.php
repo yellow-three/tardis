@@ -11,6 +11,7 @@ use Illuminate\Filesystem\Filesystem;
 use Illuminate\Support\Facades\Schema;
 use Livewire\LivewireServiceProvider;
 use Orchestra\Testbench\TestCase as OrchestraTestCase;
+use Tardis\State\StateStore;
 use Tardis\TardisServiceProvider;
 
 abstract class TestCase extends OrchestraTestCase
@@ -34,7 +35,7 @@ abstract class TestCase extends OrchestraTestCase
 
             // MySQL and PostgreSQL keep tables between tests: whatever the
             // app read while booting came from the previous test's rows.
-            $this->app->forgetInstance(\Tardis\State\StateStore::class);
+            $this->app->forgetInstance(StateStore::class);
         }
     }
 
