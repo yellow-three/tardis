@@ -67,7 +67,7 @@
                     type="button"
                     role="tab"
                     class="tab {{ $locale === $current ? 'tab-active' : '' }}"
-                    wire:click="setActiveLocale('{{ $locale }}')"
+                    wire:click="setActiveLocale(@js($locale))"
                     wire:key="{{ $field->name }}-tab-{{ $locale }}"
                 >{{ strtoupper($locale) }}</button>
             @endforeach
@@ -95,7 +95,7 @@
         <div class="flex flex-wrap items-center gap-2">
             {{-- In "all locales" mode a failing locale may not be the one on screen, so the error names its tab. --}}
             @if ($tabbed && $suffix !== '')
-                <button type="button" class="link link-error text-sm" wire:click="setActiveLocale('{{ $suffix }}')">{{ strtoupper($suffix) }}</button>
+                <button type="button" class="link link-error text-sm" wire:click="setActiveLocale(@js($suffix))">{{ strtoupper($suffix) }}</button>
             @endif
             <span class="text-error text-sm">{{ $message }}</span>
         </div>

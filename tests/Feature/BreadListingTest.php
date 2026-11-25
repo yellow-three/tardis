@@ -497,7 +497,7 @@ test('the list exports what it shows as Excel, with formulas kept as text', func
 
     expect($download['name'])->toBe('articles-2026-11-22-100000.xlsx')
         ->and($rows[0])->toBe(['Title', 'Body', 'Views', 'Tags', 'Comments'])
-        ->and(array_column($rows, 0))->toContain('Alpha', '=HYPERLINK("http://x")')
+        ->and(array_column($rows, 0))->toContain('Alpha', "'=HYPERLINK(\"http://x\")")
         ->and(json_encode($rows))->not->toContain('Secret');
 });
 

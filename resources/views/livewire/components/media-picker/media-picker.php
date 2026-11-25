@@ -46,11 +46,18 @@ new class extends Component
     }
 
     /**
-     * The open event carries the field's model name; every picker embedded on
-     * the page receives it, so a picker that is not the target stays closed.
-     * Authorization lives here (and in confirm()), not in boot()/mount(): the
+     * Authorization lives in the public methods, not in boot()/mount(): the
      * child renders embedded in the form field for every user allowed to see
      * the form, and only browsing the library needs `browse media`.
+     */
+    protected function authorizeBrowse(): void
+    {
+        app(BreadAuthorization::class)->authorizeAbility(Abilities::MEDIA_BROWSE);
+    }
+
+    /**
+     * The open event carries the field's model name; every picker embedded on
+     * the page receives it, so a picker that is not the target stays closed.
      */
     #[On('media-picker-open')]
     public function openPicker(?string $model = null, mixed $value = null): void
@@ -59,7 +66,7 @@ new class extends Component
             return;
         }
 
-        app(BreadAuthorization::class)->authorizeAbility(Abilities::MEDIA_BROWSE);
+        $this->authorizeBrowse();
 
         $this->error = null;
         $this->selected = $this->normalizeSelection($value);
@@ -69,6 +76,8 @@ new class extends Component
 
     public function loadFiles(): void
     {
+        $this->authorizeBrowse();
+
         $files = app(MediaManager::class)->listFiles($this->currentPath);
 
         $files = $files->filter(function (array $file): bool {
@@ -87,23 +96,31 @@ new class extends Component
 
     public function perPage(): int
     {
+        $this->authorizeBrowse();
+
         return max(1, (int) config('tardis.media.per_page', 60));
     }
 
     public function lastPage(): int
     {
+        $this->authorizeBrowse();
+
         return max(1, (int) ceil($this->totalFiles / $this->perPage()));
     }
 
     /** The selection is kept by path, so it survives paging. */
     public function goToPage(int $page): void
     {
+        $this->authorizeBrowse();
+
         $this->page = $page;
         $this->loadFiles();
     }
 
     public function toggleSelect(string $path): void
     {
+        $this->authorizeBrowse();
+
         $this->error = null;
 
         if (in_array($path, $this->selected, true)) {
@@ -129,7 +146,7 @@ new class extends Component
 
     public function confirm(): void
     {
-        app(BreadAuthorization::class)->authorizeAbility(Abilities::MEDIA_BROWSE);
+        $this->authorizeBrowse();
 
         if ($this->min > 0 && count($this->selected) < $this->min) {
             $this->error = __('tardis::media.select_minimum', ['min' => $this->min]);
@@ -148,12 +165,16 @@ new class extends Component
 
     public function close(): void
     {
+        $this->authorizeBrowse();
+
         $this->open = false;
         $this->error = null;
     }
 
     public function navigateTo(string $path): void
     {
+        $this->authorizeBrowse();
+
         if (! $this->showFolders) {
             return;
         }
@@ -165,6 +186,8 @@ new class extends Component
 
     public function goToParent(): void
     {
+        $this->authorizeBrowse();
+
         $parent = dirname($this->currentPath);
         if ($parent === '.' || $parent === '/') {
             $parent = '';
@@ -175,6 +198,8 @@ new class extends Component
 
     public function getBreadcrumbs(): array
     {
+        $this->authorizeBrowse();
+
         $parts = $this->currentPath ? explode('/', $this->currentPath) : [];
         $breadcrumbs = [['label' => 'Home', 'path' => '']];
 
@@ -192,6 +217,8 @@ new class extends Component
 
     public function formatSize(int $bytes): string
     {
+        $this->authorizeBrowse();
+
         if ($bytes > 1048576) {
             return number_format($bytes / 1048576, 2).' MB';
         } elseif ($bytes > 1024) {

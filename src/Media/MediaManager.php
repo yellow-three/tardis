@@ -49,6 +49,10 @@ class MediaManager
 
         // A filename template may end in a different extension than the file.
         $this->assertAllowedExtension($name, 'upload');
+        // Names end up in HTML and Livewire expressions. An uploaded file
+        // keeps its name, so the characters that could close those contexts
+        // are replaced rather than refused ("John's photo.jpg" still uploads).
+        $name = strtr($name, ["'" => '-', '"' => '-', '<' => '-', '>' => '-', '`' => '-']);
 
         SvgSanitizer::sanitizeUpload($file);
 
@@ -433,6 +437,21 @@ class MediaManager
             || str_contains($name, '..')) {
             throw new InvalidArgumentException(
                 $operation.'() name ['.$name.'] is invalid: use a single name without path separators, ".." or null bytes.'
+            );
+        }
+
+        $this->assertSafeFileName($name, $operation);
+    }
+
+    /**
+     * Names end up in HTML and Livewire expressions. Quotes and angle brackets
+     * can close those contexts, and a backtick closes a JavaScript template.
+     */
+    protected function assertSafeFileName(string $name, string $operation): void
+    {
+        if (strpbrk($name, "'\"<>`") !== false) {
+            throw new InvalidArgumentException(
+                $operation.'() name ['.$name.'] is invalid: it may not contain quotes, angle brackets or backticks.'
             );
         }
     }

@@ -18,9 +18,14 @@ class ResetPasswordNotification extends ResetPassword
 {
     protected function resetUrl($notifiable)
     {
-        return url(route('tardis.password.reset', [
+        // url() would use the Host of the current request: an attacker could
+        // send a forged host to the forgot-password form and receive the link
+        // (with the token) meant for the victim.
+        $path = route('tardis.password.reset', [
             'token' => $this->token,
             'email' => $notifiable->getEmailForPasswordReset(),
-        ], false));
+        ], absolute: false);
+
+        return rtrim((string) config('app.url'), '/').'/'.ltrim($path, '/');
     }
 }

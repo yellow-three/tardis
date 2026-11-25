@@ -146,10 +146,10 @@
                     <div class="flex flex-wrap items-center gap-2 mt-4 p-3 rounded-box bg-base-200">
                         <span class="text-xs font-semibold uppercase tracking-wide text-base-content/60">{{ __('tardis::builder.set_all') }}</span>
                         @foreach (['browse' => 'B', 'read' => 'R', 'edit' => 'E', 'add' => 'A'] as $flag => $letter)
-                            <button wire:click="toggleAllFields('{{ $flag }}', true)" class="btn btn-xs btn-outline">
+                            <button wire:click="toggleAllFields(@js($flag), true)" class="btn btn-xs btn-outline">
                                 {{ $letter }} on
                             </button>
-                            <button wire:click="toggleAllFields('{{ $flag }}', false)" class="btn btn-xs btn-ghost">
+                            <button wire:click="toggleAllFields(@js($flag), false)" class="btn btn-xs btn-ghost">
                                 {{ __('tardis::builder.all_off', ['flag' => $letter]) }}
                             </button>
                         @endforeach
@@ -177,10 +177,10 @@
                                     <tr wire:key="field-{{ $key }}">
                                         <td>
                                             <div class="join join-vertical">
-                                                <button wire:click="moveField('{{ $key }}', -1)" class="btn join-item btn-ghost btn-xs px-1" title="{{ __('tardis::builder.move_up') }}">
+                                                <button wire:click="moveField(@js($key), -1)" class="btn join-item btn-ghost btn-xs px-1" title="{{ __('tardis::builder.move_up') }}">
                                                     <x-tardis::icon name="chevron-up" class="w-3 h-3" />
                                                 </button>
-                                                <button wire:click="moveField('{{ $key }}', 1)" class="btn join-item btn-ghost btn-xs px-1" title="{{ __('tardis::builder.move_down') }}">
+                                                <button wire:click="moveField(@js($key), 1)" class="btn join-item btn-ghost btn-xs px-1" title="{{ __('tardis::builder.move_down') }}">
                                                     <x-tardis::icon name="chevron-down" class="w-3 h-3" />
                                                 </button>
                                             </div>
@@ -426,7 +426,7 @@
                             <div
                                 wire:key="read-{{ $key }}"
                                 draggable="true"
-                                x-on:dragstart="startDrag('{{ $key }}', {{ $position }})"
+                                x-on:dragstart="startDrag(@js($key), {{ $position }})"
                                 x-on:dragend="endDrag()"
                                 x-on:dragenter.prevent="dragEnter({{ $position }})"
                                 x-on:dragover.prevent
@@ -443,16 +443,16 @@
                                             {{ $layoutLegends[$key] }}
                                         </span>
                                     @endif
-                                    <button wire:click="moveReadField('{{ $key }}', -1)" class="btn btn-ghost btn-xs px-1" title="{{ __('tardis::builder.move_up') }}">
+                                    <button wire:click="moveReadField(@js($key), -1)" class="btn btn-ghost btn-xs px-1" title="{{ __('tardis::builder.move_up') }}">
                                         <x-tardis::icon name="chevron-up" class="w-3 h-3" />
                                     </button>
-                                    <button wire:click="moveReadField('{{ $key }}', 1)" class="btn btn-ghost btn-xs px-1" title="{{ __('tardis::builder.move_down') }}">
+                                    <button wire:click="moveReadField(@js($key), 1)" class="btn btn-ghost btn-xs px-1" title="{{ __('tardis::builder.move_down') }}">
                                         <x-tardis::icon name="chevron-down" class="w-3 h-3" />
                                     </button>
-                                    <button wire:click="openFieldOptions('{{ $key }}')" class="btn btn-ghost btn-xs px-1" title="{{ __('tardis::builder.field_options') }}">
+                                    <button wire:click="openFieldOptions(@js($key))" class="btn btn-ghost btn-xs px-1" title="{{ __('tardis::builder.field_options') }}">
                                         <x-tardis::icon name="cog-6-tooth" class="w-3 h-3" />
                                     </button>
-                                    <button wire:click="toggleReadField('{{ $key }}')" class="btn btn-ghost btn-xs text-error" title="{{ __('tardis::builder.remove') }}">
+                                    <button wire:click="toggleReadField(@js($key))" class="btn btn-ghost btn-xs text-error" title="{{ __('tardis::builder.remove') }}">
                                         <x-tardis::icon name="x-mark" class="w-3 h-3" />
                                     </button>
                                 </div>
@@ -462,7 +462,7 @@
                                         @foreach (range(1, 6) as $span)
                                             <button
                                                 type="button"
-                                                wire:click="setFieldWidth('{{ $key }}', {{ $span }})"
+                                                wire:click="setFieldWidth(@js($key), {{ $span }})"
                                                 class="w-5 h-5 rounded text-[10px] font-semibold flex items-center justify-center transition-colors {{ ($layoutWidths[$key] ?? 6) === $span ? 'bg-primary text-primary-content' : 'bg-base-300 text-base-content/60 hover:bg-base-content/25' }}"
                                                 title="{{ $span }}/6"
                                             >{{ $span }}</button>
@@ -481,7 +481,7 @@
                             <div class="flex flex-wrap gap-1">
                                 @foreach ($this->orderedFieldKeys() as $key)
                                     @continue(in_array($key, $readLayout, true))
-                                    <button wire:key="read-add-{{ $key }}" wire:click="toggleReadField('{{ $key }}')" class="btn btn-xs btn-outline">
+                                    <button wire:key="read-add-{{ $key }}" wire:click="toggleReadField(@js($key))" class="btn btn-xs btn-outline">
                                         <x-tardis::icon name="plus" class="w-3 h-3" />
                                         {{ $fieldConfig[$key]['label'] ?? $key }}
                                     </button>
@@ -745,7 +745,7 @@
                         @forelse ($visibleIcons as $iconName)
                             <button type="button"
                                     wire:key="icon-{{ $iconName }}"
-                                    wire:click="selectIcon('{{ $iconName }}')"
+                                    wire:click="selectIcon(@js($iconName))"
                                     class="btn btn-ghost btn-sm flex flex-col items-center gap-1 h-auto py-2 {{ $icon === $iconName ? 'btn-active' : '' }}"
                                     title="{{ $iconName }}">
                                 <x-tardis::icon :name="$iconName" class="w-6 h-6" />

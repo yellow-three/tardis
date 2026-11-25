@@ -20,7 +20,7 @@
                                         @if ($loop->last)
                                             <span>{{ $crumb['label'] }}</span>
                                         @else
-                                            <a wire:click="navigateTo('{{ $crumb['path'] }}')" class="cursor-pointer hover:text-primary">{{ $crumb['label'] }}</a>
+                                            <a wire:click="navigateTo(@js($crumb['path']))" class="cursor-pointer hover:text-primary">{{ $crumb['label'] }}</a>
                                         @endif
                                     </li>
                                 @endforeach
@@ -55,7 +55,7 @@
                                     <button
                                         wire:key="dir-{{ $file['relative_path'] }}"
                                         type="button"
-                                        wire:click="navigateTo('{{ $file['relative_path'] }}')"
+                                        wire:click="navigateTo(@js($file['relative_path']))"
                                         class="aspect-square rounded-xl overflow-hidden border-2 border-transparent hover:border-base-300 bg-base-200 transition-all">
                                         <span class="w-full h-full flex flex-col items-center justify-center gap-2">
                                             <x-tardis::icon name="folder" class="w-12 h-12 text-primary/60" />
@@ -66,7 +66,7 @@
                                     <button
                                         wire:key="file-{{ $file['path'] }}"
                                         type="button"
-                                        wire:click="toggleSelect('{{ $file['path'] }}')"
+                                        wire:click="toggleSelect(@js($file['path']))"
                                         class="group relative aspect-square rounded-xl overflow-hidden border-2 transition-all {{ in_array($file['path'], $selected, true) ? 'border-primary ring-2 ring-primary/30' : 'border-transparent hover:border-base-300' }} bg-base-100">
                                         @if (str_starts_with($file['type'], 'image/'))
                                             <img src="{{ $file['url'] }}" alt="{{ $file['name'] }}" class="object-cover w-full h-full" loading="lazy" />

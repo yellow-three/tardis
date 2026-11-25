@@ -184,7 +184,7 @@ $typeLabels = [
                                 </td>
                                 <td class="text-end">
                                     @if ($plugin['settings'])
-                                        <button type="button" wire:click="openSettings('{{ $plugin['slug'] }}')" class="btn btn-ghost btn-sm">
+                                        <button type="button" wire:click="openSettings(@js($plugin['slug']))" class="btn btn-ghost btn-sm">
                                             <x-tardis::icon name="cog-6-tooth" class="w-4 h-4" />
                                             {{ __('tardis::plugins.settings') }}
                                         </button>
@@ -196,7 +196,7 @@ $typeLabels = [
                                         </span>
                                     @elseif ($plugin['enabled'])
                                         <button
-                                            wire:click="disable('{{ $plugin['slug'] }}')"
+                                            wire:click="disable(@js($plugin['slug']))"
                                             class="btn btn-ghost btn-sm text-error"
                                         >
                                             <x-tardis::icon name="power" class="w-4 h-4" />
@@ -204,7 +204,7 @@ $typeLabels = [
                                         </button>
                                     @else
                                         <button
-                                            wire:click="enable('{{ $plugin['slug'] }}')"
+                                            wire:click="enable(@js($plugin['slug']))"
                                             class="btn btn-ghost btn-sm text-success"
                                         >
                                             <x-tardis::icon name="power" class="w-4 h-4" />

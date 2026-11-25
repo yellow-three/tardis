@@ -51,7 +51,7 @@
                             @if ($loop->last)
                                 <span>{{ $crumb['label'] }}</span>
                             @else
-                                <a wire:click="navigateTo('{{ $crumb['path'] }}')" class="cursor-pointer hover:text-primary">{{ $crumb['label'] }}</a>
+                                <a wire:click="navigateTo(@js($crumb['path']))" class="cursor-pointer hover:text-primary">{{ $crumb['label'] }}</a>
                             @endif
                         </li>
                     @endforeach
@@ -211,9 +211,9 @@
                     <div
                         wire:key="grid-{{ $file['relative_path'] }}"
                         @if ($file['type'] === 'directory')
-                            wire:click="navigateTo('{{ $file['relative_path'] }}')"
+                            wire:click="navigateTo(@js($file['relative_path']))"
                         @else
-                            wire:click="showFileInfo('{{ $file['relative_path'] }}')"
+                            wire:click="showFileInfo(@js($file['relative_path']))"
                         @endif
                         class="group relative aspect-square rounded-2xl overflow-hidden cursor-pointer  border-2 transition-all duration-200 bg-base-100
                             {{ $showInfoModal && $infoFile && ($infoFile['relative_path'] ?? '') === $file['relative_path'] ? 'border-primary ring-2 ring-primary/30' : 'border-transparent hover:border-base-300 hover:shadow-md' }}">
@@ -240,7 +240,7 @@
 
                         {{-- Checkbox (top-right) --}}
                         <div class="absolute top-3 end-3 z-20"
-                             wire:click.stop="toggleSelect('{{ $file['relative_path'] }}')">
+                             wire:click.stop="toggleSelect(@js($file['relative_path']))">
                             <input type="checkbox"
                                    class="checkbox checkbox-sm checkbox-primary bg-white/90 border-white/90 {{ in_array($file['relative_path'], $selectedFiles) ? 'opacity-100' : 'opacity-0 group-hover:opacity-100' }} transition-opacity"
                                    {{ in_array($file['relative_path'], $selectedFiles) ? 'checked' : '' }} />
@@ -279,11 +279,11 @@
                                     <td>
                                         <input type="checkbox" class="checkbox checkbox-sm"
                                                {{ in_array($file['relative_path'], $selectedFiles) ? 'checked' : '' }}
-                                               wire:click="toggleSelect('{{ $file['relative_path'] }}')" />
+                                               wire:click="toggleSelect(@js($file['relative_path']))" />
                                     </td>
                                     <td>
                                         @if ($file['type'] === 'directory')
-                                            <a wire:click="navigateTo('{{ $file['relative_path'] }}')" class="link link-hover font-medium flex items-center gap-2 cursor-pointer">
+                                            <a wire:click="navigateTo(@js($file['relative_path']))" class="link link-hover font-medium flex items-center gap-2 cursor-pointer">
                                                 <x-tardis::icon name="folder" class="w-4 h-4 text-primary" />
                                                 {{ $file['name'] }}
                                             </a>
@@ -304,13 +304,13 @@
                                                 <x-tardis::icon name="ellipsis-vertical" class="w-4 h-4" />
                                             </button>
                                             <ul tabindex="0" class="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-40 z-10 border border-base-200">
-                                                <li><a wire:click="showFileInfo('{{ $file['relative_path'] }}')">
+                                                <li><a wire:click="showFileInfo(@js($file['relative_path']))">
                                                     <x-tardis::icon name="information-circle" class="w-4 h-4" /> {{ __('tardis::media.info') }}
                                                 </a></li>
-                                                <li><a wire:click="confirmRename('{{ $file['relative_path'] }}')">
+                                                <li><a wire:click="confirmRename(@js($file['relative_path']))">
                                                     <x-tardis::icon name="pencil-square" class="w-4 h-4" /> {{ __('tardis::media.rename') }}
                                                 </a></li>
-                                                <li><a wire:click="confirmDelete('{{ $file['relative_path'] }}')" class="text-error">
+                                                <li><a wire:click="confirmDelete(@js($file['relative_path']))" class="text-error">
                                                     <x-tardis::icon name="x-mark" class="w-4 h-4" /> {{ __('tardis::media.delete') }}
                                                 </a></li>
                                             </ul>
@@ -431,12 +431,12 @@
                                 {{ __('tardis::media.download') }}
                             </a>
                         @endif
-                        <button wire:click="confirmRename('{{ $infoFile['relative_path'] }}')"
+                        <button wire:click="confirmRename(@js($infoFile['relative_path']))"
                                 class="btn btn-outline btn-sm join-item justify-start gap-2">
                             <x-tardis::icon name="pencil-square" class="w-4 h-4" />
                             {{ __('tardis::media.rename') }}
                         </button>
-                        <button wire:click="confirmDelete('{{ $infoFile['relative_path'] }}')"
+                        <button wire:click="confirmDelete(@js($infoFile['relative_path']))"
                                 class="btn btn-outline btn-error btn-sm join-item justify-start gap-2">
                             <x-tardis::icon name="x-mark" class="w-4 h-4" />
                             {{ __('tardis::media.delete') }}

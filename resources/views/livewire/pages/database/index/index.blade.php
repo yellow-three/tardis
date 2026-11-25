@@ -41,7 +41,7 @@
                         @forelse ($tables as $table)
                             <tr wire:key="table-{{ $table['name'] }}">
                                 <td>
-                                    <button wire:click="viewTable('{{ $table['name'] }}')" class="flex items-center gap-2 font-medium hover:text-primary">
+                                    <button wire:click="viewTable(@js($table['name']))" class="flex items-center gap-2 font-medium hover:text-primary">
                                         <x-tardis::icon name="table-cells" class="w-4 h-4 text-base-content/40" />
                                         {{ $table['name'] }}
                                         @if ($table['has_model'])
@@ -51,7 +51,7 @@
                                 </td>
                                 <td>
                                     <div class="flex items-center justify-end gap-1 flex-wrap">
-                                        <button wire:click="viewTable('{{ $table['name'] }}')" class="btn btn-ghost btn-xs">
+                                        <button wire:click="viewTable(@js($table['name']))" class="btn btn-ghost btn-xs">
                                             <x-tardis::icon name="eye" class="w-3 h-3" />
                                             {{ __('tardis::database.view') }}
                                         </button>

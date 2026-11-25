@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tardis\Menu;
 
+use BladeUI\Icons\Factory;
 use Illuminate\Support\Collection;
 use Tardis\Auth\Abilities;
 use Tardis\Auth\BreadAuthorization;
@@ -320,22 +321,51 @@ class MenuManager
     /**
      * BREAD definitions store a short icon name (e.g. "link"), but the menu
      * partial renders icons as Blade components, so the heroicon prefix has to
-     * be added to keep them resolvable.
+     * be added to keep them resolvable. Only resolvable components go through:
+     * one bad definition must not make every panel page throw.
      */
     protected function breadMenuIcon(?string $icon): string
     {
+        $default = 'heroicon-o-table-cells';
         $icon = trim((string) $icon);
 
-        if ($icon === '') {
-            return 'heroicon-o-table-cells';
+        if (str_starts_with($icon, 'heroicon-') && preg_match('/^[a-z0-9-]+$/', $icon) === 1) {
+            // Already a fully qualified heroicon component.
+            $component = $icon;
+        } elseif (preg_match('/^[a-z0-9-]+$/', $icon) === 1) {
+            $component = 'heroicon-o-'.$icon;
+        } elseif (preg_match('/^[a-z0-9-]+:[a-z0-9.-]+$/', $icon) === 1) {
+            // Already a fully qualified Blade component alias.
+            $component = $icon;
+        } else {
+            return $default;
         }
 
-        // Already a fully qualified Blade component.
-        if (str_starts_with($icon, 'heroicon') || str_contains($icon, ':')) {
-            return $icon;
+        return $this->componentExists($component) ? $component : $default;
+    }
+
+    /** Ask Blade/the icon factory whether this component can actually render. */
+    private function componentExists(string $component): bool
+    {
+        try {
+            if (array_key_exists($component, app('blade.compiler')->getClassComponentAliases())
+                || view()->exists($component)) {
+                return true;
+            }
+
+            // The icon aliases are registered when the icon factory resolves,
+            // which may be later than menu collection. svg() checks the set
+            // directly and throws when the icon does not exist.
+            if (str_starts_with($component, 'heroicon-')) {
+                app(Factory::class)->svg($component);
+
+                return true;
+            }
+        } catch (\Throwable) {
+            // An unknown component is a bad BREAD definition, not a 500.
         }
 
-        return 'heroicon-o-'.$icon;
+        return false;
     }
 
     /**

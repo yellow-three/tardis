@@ -112,7 +112,7 @@
                         <button
                             wire:key="filter-{{ $name }}"
                             type="button"
-                            wire:click="toggleFilter('{{ $name }}')"
+                            wire:click="toggleFilter(@js($name))"
                             class="badge gap-1 {{ $active ? 'badge-'.$tone : 'badge-outline' }} cursor-pointer"
                             aria-pressed="{{ $active ? 'true' : 'false' }}"
                         >
@@ -176,7 +176,7 @@
                                 @php($searchable = in_array($fieldName, $this->searchableColumns, true))
                                 <th scope="col" @if ($sortable && $sort === $fieldName) aria-sort="{{ $direction === 'desc' ? 'descending' : 'ascending' }}" @endif>
                                     @if ($sortable)
-                                        <button type="button" wire:click="sortBy('{{ $fieldName }}')" class="inline-flex items-center gap-1 font-semibold">
+                                        <button type="button" wire:click="sortBy(@js($fieldName))" class="inline-flex items-center gap-1 font-semibold">
                                             {{ $field['label'] ?? ucfirst($fieldName) }}
                                             @if ($sort === $fieldName)
                                                 <span aria-hidden="true">{{ $direction === 'desc' ? '▼' : '▲' }}</span>

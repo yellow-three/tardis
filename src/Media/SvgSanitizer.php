@@ -15,7 +15,7 @@ use Illuminate\Http\UploadedFile;
 final class SvgSanitizer
 {
     /** Elements that are dropped with everything inside them. */
-    private const FORBIDDEN_ELEMENTS = ['script', 'foreignobject', 'iframe', 'embed', 'object', 'audio', 'video', 'canvas', 'handler', 'listener', 'set', 'animate', 'animatemotion', 'animatetransform'];
+    private const FORBIDDEN_ELEMENTS = ['script', 'style', 'foreignobject', 'iframe', 'embed', 'object', 'audio', 'video', 'canvas', 'handler', 'listener', 'set', 'animate', 'animatemotion', 'animatetransform'];
 
     public static function isSvg(UploadedFile $file): bool
     {
@@ -93,6 +93,11 @@ final class SvgSanitizer
             $name = self::localName($attribute->localName);
             $value = strtolower(preg_replace('/[\s\x00-\x1f]+/', '', $attribute->value) ?? '');
 
+            // xml:base changes how every relative href in the subtree resolves,
+            // so it must not survive even when the link itself looks harmless.
+            $xmlBase = $name === 'base'
+                && ($attribute->namespaceURI === 'http://www.w3.org/XML/1998/namespace' || $attribute->name === 'xml:base');
+
             // An <a> may point to the web; <use>, <image> and <feImage> fetch
             // external resources into the document, so they only take #ids.
             $referenceOnly = in_array($elementName, ['use', 'image', 'feimage'], true)
@@ -103,7 +108,7 @@ final class SvgSanitizer
                     && ! ($referenceOnly ? self::fragmentLink($value) : self::safeLink($value)))
                 || ($name === 'style' && (str_contains($value, 'javascript:') || str_contains($value, 'expression(') || preg_match('/url\((?!["\']?#)/', $value) === 1));
 
-            if ($unsafe) {
+            if ($xmlBase || $unsafe) {
                 $element->removeAttributeNode($attribute);
             }
         }
