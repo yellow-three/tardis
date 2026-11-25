@@ -31,4 +31,7 @@ return [
     'user_updated' => 'Kullanıcı güncellendi.',
     'user_deleted' => 'Kullanıcı silindi.',
     'cannot_delete_self' => 'Kendi hesabınızı silemezsiniz.',
+    'impersonate' => 'Olarak gir',
+    'impersonate_confirm' => 'Bu kullanıcı olarak giriş yapılsın mı? Üstteki çubuktan kendi hesabınıza dönebilirsiniz.',
+    'impersonate_no_access' => 'Bu kullanıcı paneli açamıyor; kendi hesabınıza geri döndünüz.',
 ];

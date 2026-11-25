@@ -37,4 +37,6 @@ return [
         'ui_components' => 'Arayüz Bileşenleri',
         'view' => 'Görüntüle',
     ],
+    'impersonating' => ':name olarak giriş yaptınız.',
+    'impersonation_leave' => 'Kendi hesabıma dön',
 ];

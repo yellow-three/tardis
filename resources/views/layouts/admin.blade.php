@@ -17,6 +17,13 @@
         <input id="tardis-drawer" type="checkbox" class="drawer-toggle" />
 
         <div class="drawer-content flex flex-col min-h-screen">
+            @if (session(\Tardis\Auth\Impersonation::SESSION_KEY))
+                <form method="POST" action="{{ route('tardis.impersonation.leave') }}" class="flex flex-wrap items-center justify-center gap-3 bg-warning px-4 py-2 text-sm text-warning-content" role="status">
+                    @csrf
+                    <span>{{ __('tardis::shell.impersonating', ['name' => \Tardis\Support\PanelUser::name()]) }}</span>
+                    <button type="submit" class="btn btn-xs">{{ __('tardis::shell.impersonation_leave') }}</button>
+                </form>
+            @endif
             <x-tardis::admin-header :title="isset($title) ? __($title) : __('tardis::shell.brand.admin')" />
 
             <main id="main-content" tabindex="-1" class="flex-1 p-4 lg:p-6">

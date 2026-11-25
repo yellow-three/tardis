@@ -42,6 +42,9 @@ final class Abilities
 
     public const COMMANDS = 'run commands';
 
+    /** Sign in as another user (Users screen), within what PrivilegeGuard allows. */
+    public const IMPERSONATE = 'impersonate users';
+
     public const MEDIA_BROWSE = 'browse media';
 
     public const MEDIA_UPLOAD = 'upload media';
@@ -73,6 +76,7 @@ final class Abilities
             self::SYSTEM,
             self::LOGS,
             self::COMMANDS,
+            self::IMPERSONATE,
         ];
     }
 

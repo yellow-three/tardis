@@ -22,4 +22,10 @@ return [
     'two_factor_new_codes' => 'New recovery codes',
     'two_factor_disable' => 'Turn off',
     'two_factor_recovery_codes' => 'Store these recovery codes somewhere safe. Each signs you in once if you lose your phone; they are not shown again.',
+    'sessions' => 'Sessions',
+    'sessions_help' => 'Where you are signed in. Signing out the other sessions also stops "remember me" on those browsers.',
+    'sessions_need_database' => 'The list needs the database session driver (SESSION_DRIVER=database); signing out the other sessions still resets "remember me".',
+    'this_session' => 'This session',
+    'sessions_logout_others' => 'Sign out other sessions',
+    'sessions_ended' => ':count other sessions were signed out.',
 ];

@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use Tardis\Http\BreadRoutes;
 use Tardis\Http\Controllers\AssetController;
+use Tardis\Http\Controllers\LeaveImpersonationController;
 use Tardis\Http\Controllers\LocaleController;
 use Tardis\Http\Controllers\LogoutController;
 use Tardis\Http\Controllers\ThemeController;
@@ -25,6 +26,7 @@ PanelRoutes::guest(function () {
     // Outside the panel group: a user without "access admin" must be able
     // to sign out, and the root has to reach the login page for a guest.
     Route::post('/logout', LogoutController::class)->name('logout');
+    Route::post('/impersonation/leave', LeaveImpersonationController::class)->name('impersonation.leave');
     Route::get('/', fn () => redirect()->route('tardis.dashboard'))->name('home');
 
     Route::livewire('/login', 'tardis::pages.login')->name('login');

@@ -14,6 +14,12 @@
         </div>
     @endif
 
+    @if (session('error'))
+        <div class="alert alert-error mb-4" role="alert">
+            <span>{{ __((string) session('error')) }}</span>
+        </div>
+    @endif
+
     @if ($error && ! $showEditModal && ! $showUserModal)
         <div class="alert alert-error mb-4" role="alert">
             <span>{{ $error }}</span>
@@ -68,6 +74,12 @@
                                         <x-tardis::icon name="user-group" class="w-4 h-4" />
                                         {{ __('tardis::users.roles') }}
                                     </button>
+                                    @if ($user['impersonable'])
+                                        <button type="button" wire:click="impersonate(@js($user['id']))" wire:confirm="{{ __('tardis::users.impersonate_confirm') }}" class="btn btn-ghost btn-sm">
+                                            <x-tardis::icon name="arrow-right-end-on-rectangle" class="w-4 h-4" />
+                                            {{ __('tardis::users.impersonate') }}
+                                        </button>
+                                    @endif
                                     @if ($user['manageable'] && ! $user['self'])
                                         <button type="button" wire:click="deleteUser(@js($user['id']))" wire:confirm="{{ __('tardis::users.confirm_delete') }}" class="btn btn-ghost btn-sm text-error">
                                             {{ __('tardis::users.delete') }}

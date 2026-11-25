@@ -31,4 +31,7 @@ return [
     'user_updated' => 'User updated.',
     'user_deleted' => 'User deleted.',
     'cannot_delete_self' => 'You cannot delete your own account.',
+    'impersonate' => 'Sign in as',
+    'impersonate_confirm' => 'Sign in as this user? You can come back from the banner at the top.',
+    'impersonate_no_access' => 'That user may not open the panel, so you are back in your own account.',
 ];
