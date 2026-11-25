@@ -283,3 +283,7 @@ A BREAD override route is named after the new action name (`tardis.bread.create.
 
 - The Database screen now writes a migration for every change and runs it, instead of altering the schema directly. Commit the files it writes to `database/migrations`. Set `TARDIS_DATABASE_MIGRATIONS=off` to keep the old behaviour, or `write` to review the files before running `php artisan migrate`.
 - The web server user needs write access to `database/migrations` where schema changes are allowed (local by default).
+
+## JSON API (R53)
+
+- Off by default. To use it, set `TARDIS_API=true`, install `laravel/sanctum` (or change `tardis.api.middleware` to your own guard) and give API users "access admin" plus the BREAD abilities they need, as for the panel.

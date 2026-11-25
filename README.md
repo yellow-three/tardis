@@ -253,6 +253,21 @@ See [docs/PLUGIN_GUIDE.md](docs/PLUGIN_GUIDE.md) and [docs/EXAMPLE_BREAD.md](doc
 
 `tardis.assets.css` and `tardis.assets.js` take lists of URLs (`https://…` or root-relative `/…`) that load on every admin page after the package assets. Plugins can add inline CSS/JS through the `CSS` / `JS` provider contracts.
 
+## JSON API
+
+Set `TARDIS_API=true` and every BREAD is also a JSON API under `/api/tardis` (`tardis.api.prefix`):
+
+| Request | Ability | Answer |
+|---|---|---|
+| `GET /api/tardis` | — | The BREADs you may browse, with their fields (name, type, label, validation, read/add/edit) |
+| `GET /api/tardis/{slug}` | browse | `data`, `meta` (page, total), `links`; `search`, `sort`, `direction`, `per_page` (≤ `max_per_page`), `filter[]`, `trashed` |
+| `GET /api/tardis/{slug}/{id}` | read | One record |
+| `POST /api/tardis/{slug}` | add | 201 with the record, or 422 with `errors` per field |
+| `PUT` / `PATCH /api/tardis/{slug}/{id}` | edit | PUT sends every field, PATCH only those that change |
+| `DELETE /api/tardis/{slug}/{id}` | delete | 204 |
+
+It is the panel's definition, not a second one: the same validation rules, `scope`, `owner_column` (someone else's record is a 404; a new record belongs to the caller), field `ability` (a field you may not see is neither returned nor written), `read`/`add`/`edit` switches, events and activity log. Passwords and the model's `$hidden` attributes are never returned; uploads are not taken over JSON. The caller needs "access admin" like any panel user. `tardis.api.middleware` decides how a client signs in (default `['api', 'auth:sanctum', 'throttle:60,1']`, which needs `laravel/sanctum`); `tardis.api.only` limits the API to some slugs.
+
 ## Where the panel keeps its state
 
 Settings, themes, the admin menu overlay, site menus, the dashboard layout, plugin switches, user preferences and BREAD definitions are runtime data. By default (`tardis.state.driver = file`) they are JSON files under `storage/tardis`, written atomically and under a lock. On several servers, or in containers whose storage is thrown away on deploy, set `TARDIS_STATE_DRIVER=database`: the same entries are then rows of `tardis_state` (created by `php artisan migrate`), shared by every server and read once per request. Move what you have with `php artisan tardis:state:copy --to=database` (`--to=file` goes back; `--force` overwrites). `tardis:doctor` reports the driver.

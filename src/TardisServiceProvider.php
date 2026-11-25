@@ -195,6 +195,10 @@ class TardisServiceProvider extends ServiceProvider
     protected function registerRoutes(): void
     {
         $this->loadRoutesFrom(__DIR__.'/../routes/admin.php');
+
+        if (config('tardis.api.enabled', false)) {
+            $this->loadRoutesFrom(__DIR__.'/../routes/api.php');
+        }
     }
 
     protected function registerMigrations(): void

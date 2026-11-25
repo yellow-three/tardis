@@ -35,6 +35,24 @@ return [
         'connection' => env('TARDIS_STATE_CONNECTION'),
     ],
 
+    /*
+    | A JSON API over the BREAD definitions: GET {prefix} lists the BREADs,
+    | GET/POST {prefix}/{slug}, GET/PUT/PATCH/DELETE {prefix}/{slug}/{id}.
+    | Same validation, scope, owner_column, field abilities and authorization
+    | as the panel; the user also needs "access admin". Off until enabled.
+    */
+    'api' => [
+        'enabled' => env('TARDIS_API', false),
+        'prefix' => env('TARDIS_API_PREFIX', 'api/tardis'),
+        // How a client signs in. auth:sanctum needs laravel/sanctum; any
+        // guard works ("auth:api", or "web" + "auth" for the same session).
+        'middleware' => ['api', 'auth:sanctum', 'throttle:60,1'],
+        'per_page' => 15,
+        'max_per_page' => 100,
+        // Limit the API to these slugs; null exposes every BREAD.
+        'only' => null,
+    ],
+
     'bread' => [
         // Directory where runtime BREAD definitions are stored as JSON files.
         // When null, defaults to storage_path('tardis/bread').
