@@ -244,6 +244,7 @@ Larger screens (BREAD pages, BREAD builder, media browser, database explorer, se
 | `tardis:bread:export` | Export all JSON definitions as one document |
 | `tardis:doctor` | Report install health; exits non-zero on failure so it can gate a deploy (`--json` for scripts) |
 | `tardis:activity:prune` | Remove activity log entries older than `tardis.activity_log.retention_days` (`--days`, `--pretend`); schedule it daily |
+| `tardis:state:copy` | Copy settings, menus, themes, plugin switches and BREAD definitions between the file and database state drivers (`--to=database\|file`, `--force`) |
 | `tardis:install` | Idempotent installer: migrate, seed permissions, publish assets, optionally create the first admin (`--email`, `--force`) |
 
 See [docs/PLUGIN_GUIDE.md](docs/PLUGIN_GUIDE.md) and [docs/EXAMPLE_BREAD.md](docs/EXAMPLE_BREAD.md).
@@ -251,6 +252,12 @@ See [docs/PLUGIN_GUIDE.md](docs/PLUGIN_GUIDE.md) and [docs/EXAMPLE_BREAD.md](doc
 ## Extra CSS and JavaScript
 
 `tardis.assets.css` and `tardis.assets.js` take lists of URLs (`https://…` or root-relative `/…`) that load on every admin page after the package assets. Plugins can add inline CSS/JS through the `CSS` / `JS` provider contracts.
+
+## Where the panel keeps its state
+
+Settings, themes, the admin menu overlay, site menus, the dashboard layout, plugin switches, user preferences and BREAD definitions are runtime data. By default (`tardis.state.driver = file`) they are JSON files under `storage/tardis`, written atomically and under a lock. On several servers, or in containers whose storage is thrown away on deploy, set `TARDIS_STATE_DRIVER=database`: the same entries are then rows of `tardis_state` (created by `php artisan migrate`), shared by every server and read once per request. Move what you have with `php artisan tardis:state:copy --to=database` (`--to=file` goes back; `--force` overwrites). `tardis:doctor` reports the driver.
+
+To ship BREAD definitions with the code instead, keep the file driver and point `tardis.bread.path` at a directory in the repository.
 
 ## Database Explorer
 

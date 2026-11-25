@@ -30,8 +30,8 @@ function reportCheck(DoctorReport $report, string $name): CheckResult
     throw new RuntimeException("No check named [{$name}].");
 }
 
-test('run returns eleven checks', function () {
-    expect(DoctorReport::run()->checks)->toHaveCount(11);
+test('run returns twelve checks', function () {
+    expect(DoctorReport::run()->checks)->toHaveCount(12);
 });
 
 test('toArray exposes the ok flag and the check shape', function () {

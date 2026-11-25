@@ -201,6 +201,13 @@ jobs:
       - name: Run tests
         run: vendor/bin/pest
 
+      # The same suite with settings, menus, plugin switches and BREAD
+      # definitions kept in tardis_state (tardis.state.driver = database).
+      - name: Run tests on the database state driver
+        run: vendor/bin/pest
+        env:
+          TARDIS_TEST_STATE: database
+
   test-lowest:
     name: test (lowest dependencies)
     runs-on: ubuntu-latest

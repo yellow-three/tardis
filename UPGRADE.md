@@ -273,3 +273,8 @@ A BREAD override route is named after the new action name (`tardis.bread.create.
 
 - New `tardis.activity_log.retention_days` (365). Nothing is removed until you run or schedule `php artisan tardis:activity:prune`; a published config without the key keeps everything. Add `Schedule::command('tardis:activity:prune')->daily();` to `routes/console.php` to keep the table bounded.
 - Settings, permissions, media and BREAD definition changes now add rows to `tardis_activity_logs`. A test that counted every row may need to filter by `model_type`.
+
+## State store driver (R51)
+
+- `php artisan migrate` adds the `tardis_state` table. Nothing changes until you set `TARDIS_STATE_DRIVER=database` (`tardis.state.driver`); then run `php artisan tardis:state:copy --to=database` once, from a server that has the current `storage/tardis`, so settings, menus, plugin switches and BREAD definitions come along.
+- Code that read or wrote `storage/tardis/*.json` directly should go through the managers (`Tardis::settings()`, `PluginManager`, `BreadManager`, …) or the `Tardis\State\StateStore` binding; with the database driver those files are no longer written.

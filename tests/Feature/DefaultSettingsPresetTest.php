@@ -42,7 +42,7 @@ test('saving writes the file, starting from the preset', function () {
 
     expect(app(SettingsManager::class)->get('admin.title'))->toBe('My Panel')
         ->and(app(SettingsManager::class)->get('appearance.mode'))->not->toBeNull();
-});
+})->skip(onDatabaseState(), 'reads and writes the state file itself');
 
 test('an existing settings file is never mixed with the preset', function () {
     File::ensureDirectoryExists(dirname($this->settingsFile));
@@ -50,7 +50,7 @@ test('an existing settings file is never mixed with the preset', function () {
 
     expect(app(SettingsManager::class)->get('admin.title'))->toBeNull()
         ->and(File::get($this->settingsFile))->toBe('[]');
-});
+})->skip(onDatabaseState(), 'reads and writes the state file itself');
 
 test('the service provider no longer touches the settings file at boot', function () {
     expect(method_exists(TardisServiceProvider::class, 'loadDefaultSettings'))->toBeFalse();

@@ -67,7 +67,7 @@ test('the published config file keeps every documented section', function () {
 
     expect(array_keys($file))->toEqualCanonicalizing([
         'admin', 'bread', 'database', 'assets', 'locales', 'translation',
-        'authorization', 'activity_log', 'models', 'system', 'csp', 'media', 'icons', 'users', 'two_factor',
+        'authorization', 'activity_log', 'models', 'system', 'csp', 'media', 'icons', 'users', 'two_factor', 'state',
     ])->and($file['models'])->toHaveKeys(['role', 'permission', 'media', 'activity_log'])
         ->and($file['system'])->toHaveKeys(['logs', 'commands', 'demo']);
 });

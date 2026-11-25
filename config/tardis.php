@@ -21,6 +21,20 @@ return [
     | BREAD (Browse/Read/Edit/Add/Delete) Settings
     |--------------------------------------------------------------------------
     */
+    /*
+    | Where runtime state lives: settings, themes, the admin menu overlay, site
+    | menus, the dashboard layout, plugin switches, user preferences and BREAD
+    | definitions. "file" (default) keeps JSON files under storage/tardis;
+    | "database" keeps them in the tardis_state table, so every server of a
+    | multi-server or ephemeral (container) deploy shares them. Copy existing
+    | state across with `php artisan tardis:state:copy --to=database`.
+    */
+    'state' => [
+        'driver' => env('TARDIS_STATE_DRIVER', 'file'),
+        // Database connection for the "database" driver; null = the default.
+        'connection' => env('TARDIS_STATE_CONNECTION'),
+    ],
+
     'bread' => [
         // Directory where runtime BREAD definitions are stored as JSON files.
         // When null, defaults to storage_path('tardis/bread').

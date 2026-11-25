@@ -6,7 +6,7 @@ namespace Tardis\Menu;
 
 use Illuminate\Support\Str;
 use InvalidArgumentException;
-use Tardis\Support\JsonFile;
+use Tardis\State\UsesStateStore;
 use Tardis\Support\LegacyNames;
 
 /**
@@ -25,10 +25,13 @@ use Tardis\Support\LegacyNames;
  */
 class MenuOverlay
 {
+    use UsesStateStore;
+
     protected string $path;
 
     public function __construct(?string $path = null)
     {
+        $this->ownFile = $path !== null;
         $this->path = $path ?? storage_path('tardis/menus.json');
     }
 
@@ -168,9 +171,7 @@ class MenuOverlay
     /** Restore the menu code defines. */
     public function reset(): void
     {
-        if (is_file($this->path)) {
-            unlink($this->path);
-        }
+        $this->state()->delete($this->path);
     }
 
     /** A heroicon name (letters, digits, dashes); anything else falls back to a link icon. */
@@ -193,7 +194,7 @@ class MenuOverlay
     /** @return array{items: array<string, array<string, mixed>>, custom: array<int, array<string, mixed>>} */
     protected function read(): array
     {
-        return $this->normalize(JsonFile::read($this->path));
+        return $this->normalize($this->state()->read($this->path));
     }
 
     /**
@@ -204,7 +205,7 @@ class MenuOverlay
      */
     protected function update(callable $change): void
     {
-        JsonFile::update(
+        $this->state()->update(
             $this->path,
             fn (array $data) => $change($this->normalize($data)),
             JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES,

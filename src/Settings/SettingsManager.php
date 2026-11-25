@@ -8,6 +8,7 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
 use Tardis\Bread\ActivityLogger;
+use Tardis\State\State;
 use Tardis\Support\FileSignature;
 use Tardis\Support\JsonFile;
 
@@ -117,7 +118,7 @@ class SettingsManager
     {
         // Re-read when another process wrote the file since, so a long-running
         // worker never keeps serving a value that was changed elsewhere.
-        $signature = FileSignature::of($this->path);
+        $signature = State::store()->signature($this->path);
 
         if ($this->settings !== null && ! $force && $signature === $this->signature) {
             return;
@@ -136,9 +137,11 @@ class SettingsManager
      */
     protected function readItems(): array
     {
-        $source = is_file($this->path) ? $this->path : self::presetPath();
+        $items = State::store()->exists($this->path)
+            ? State::store()->read($this->path)
+            : JsonFile::read(self::presetPath());
 
-        return array_values(array_filter(JsonFile::read($source), 'is_array'));
+        return array_values(array_filter($items, 'is_array'));
     }
 
     /**
@@ -149,10 +152,16 @@ class SettingsManager
      */
     protected function mutate(callable $change): void
     {
-        $written = JsonFile::update($this->path, fn () => array_values($change($this->readItems())));
+        // Start from the entry as read under the lock, not from memory: another
+        // server may have written it since. Nothing stored yet means the preset.
+        $written = State::store()->update($this->path, fn (array $current) => array_values($change(
+            $current !== [] || State::store()->exists($this->path)
+                ? array_values(array_filter($current, 'is_array'))
+                : array_values(array_filter(JsonFile::read(self::presetPath()), 'is_array'))
+        )));
 
         $this->settings = collect($written)->map(fn (array $item) => new Setting($item));
-        $this->signature = FileSignature::of($this->path);
+        $this->signature = State::store()->signature($this->path);
     }
 
     /** @param array<string, mixed> $item */
@@ -318,7 +327,7 @@ class SettingsManager
             'timestamp' => now()->toIso8601String(),
         ];
 
-        JsonFile::update(dirname($this->path).'/audit.json', function (array $audit) use ($entry) {
+        State::store()->update(dirname($this->path).'/audit.json', function (array $audit) use ($entry) {
             $audit[] = $entry;
 
             return array_values(array_slice($audit, -100));

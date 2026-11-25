@@ -12,7 +12,7 @@ Bu dosya **yalnızca aktif/açık** bulguları, denemeleri ve açık işleri tut
 
 Kapsam: `src/`, `routes/`, `resources/views/pages`, migration'lar, CI ve dokümanlar okundu. Başlangıç durumu: `composer test` → 918 passed (2369 assertions), `composer lint` temiz. **Doğrulama** sütunu: *test* = geçici bir Pest testiyle yeniden üretildi (test sonra silindi), *kod* = yalnızca kod okumasıyla tespit edildi, çalıştırılarak doğrulanmadı. Hiçbir bulgu için kod değişikliği yapılmadı.
 
-**Plan bağlantısı (2026-11-17, kabul edildi):** düzeltme sırası `docs/backlog.md` → *1.0 yol haritası*. Bu incelemenin bulguları kapandı (2026-11-22): R34 (Faz 9), R35 (Faz 10), R37, R39, R45 (Faz 13, B47 tarayıcı testleriyle PR #55), R56 (Faz 10b), R57 (Faz 10c) ve açık bulgular dilimi (PR #56–#61: B29, B34, B37, B38, B55, B56, B58, B59, B72, B75). Ayrıntı `RELEASE_NOTES.md` ve git geçmişinde. Tema editöründe `shape` düzenleme de eklendi (PR #62). **Açık kalan:** B35'in çok sunuculu kısmı (1.x, R51). Her düzeltme, bulguyu yeniden üreten kalıcı bir testle başlar; kapanan satır bu dosyadan silinir.
+**Plan bağlantısı (2026-11-17, kabul edildi):** düzeltme sırası `docs/backlog.md` → *1.0 yol haritası*. Bu incelemenin bulguları kapandı (2026-11-22): R34 (Faz 9), R35 (Faz 10), R37, R39, R45 (Faz 13, B47 tarayıcı testleriyle PR #55), R56 (Faz 10b), R57 (Faz 10c) ve açık bulgular dilimi (PR #56–#61: B29, B34, B37, B38, B55, B56, B58, B59, B72, B75). Ayrıntı `RELEASE_NOTES.md` ve git geçmişinde. Tema editöründe `shape` düzenleme de eklendi (PR #62). B35'in çok sunuculu kısmı da R51 ile kapandı (2026-11-25, veritabanı durum sürücüsü). Açık bulgu yok. Her düzeltme, bulguyu yeniden üreten kalıcı bir testle başlar; kapanan satır bu dosyadan silinir.
 
 ## Yüksek (HIGH)
 
@@ -28,7 +28,6 @@ Kapsam: `src/`, `routes/`, `resources/views/pages`, migration'lar, CI ve doküma
 
 | # | Bulgu | Kod ref |
 |---|-------|---------|
-| B35 | **Durum dosyaları: kalan kısım.** (Bütün durum dosyaları — eklentiler, tercihler, menü bindirmesi, dashboard, temalar, ayarlar, ayar denetim kaydı — kilit altında ve değişiklik bazında yazılıyor; uzun süreli süreçler dosya imzasıyla değişikliği görüyor.) Açık: `storage/` çok sunuculu/efemeral dağıtımlarda paylaşılmıyor, BREAD tanımları deploy ile taşınmıyor (R51). | `storage/tardis/*` |
 
 ## Depo / paketleme / CI
 

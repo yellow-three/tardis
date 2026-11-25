@@ -12,6 +12,7 @@ use Tardis\Bread\DefinitionHealth;
 use Tardis\Contracts\Plugins\Features\Provider\CSS;
 use Tardis\Contracts\Plugins\Features\Provider\JS;
 use Tardis\Plugins\PluginManager;
+use Tardis\State\DatabaseStateStore;
 use Tardis\Support\UserKey;
 use Tardis\Theme\ThemeManager;
 
@@ -38,6 +39,7 @@ final class DoctorReport
             self::guard('Laravel version', self::checkLaravelVersion(...)),
             self::guard('Storage', self::checkStorage(...)),
             self::guard('Database tables', self::checkTables(...)),
+            self::guard('State store', self::checkStateStore(...)),
             self::guard('User key columns', self::checkUserKeys(...)),
             self::guard('Core assets', self::checkAssets(...)),
             self::guard('Route cache', self::checkRouteCache(...)),
@@ -185,6 +187,23 @@ final class DoctorReport
         }
 
         return CheckResult::ok('Database tables', 'All Tardis tables are present.');
+    }
+
+    /**
+     * The database state driver needs its table; the file driver keeps state
+     * on this server only, which a multi-server deploy should know about.
+     */
+    private static function checkStateStore(): CheckResult
+    {
+        if (config('tardis.state.driver', 'file') !== 'database') {
+            return CheckResult::ok('State store', 'File driver: settings, menus and BREAD definitions are kept under storage/tardis on this server.');
+        }
+
+        if (! Schema::connection(config('tardis.state.connection'))->hasTable(DatabaseStateStore::TABLE)) {
+            return CheckResult::fail('State store', 'tardis.state.driver is "database" but the tardis_state table is missing.', 'Run php artisan migrate, then php artisan tardis:state:copy --to=database.');
+        }
+
+        return CheckResult::ok('State store', 'Database driver: state is shared through the tardis_state table.');
     }
 
     private static function checkAssets(): CheckResult

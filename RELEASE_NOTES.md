@@ -343,3 +343,10 @@ Fixes from the 2026-11-17 review (`docs/notes.md`). Each one is covered by a tes
 - **Everything an administrator changes is in the activity log:** besides record changes, sign-in/out, roles, users, plugins, menus, themes and the dashboard, it now records settings (old and new value; a password setting's value is written as `[redacted]`), permissions, media uploads/renames/deletes and folders, and BREAD definitions (created, updated, removed). Schema changes from the Database screen were logged already. Each entry keeps the IP address and user agent.
 - The Activity log screen filters by kind (`tardis.setting`, `tardis.media`, …) and by any action that occurs, shows the address, and opens the before/after values of an entry.
 - **Retention:** `tardis.activity_log.retention_days` (`TARDIS_ACTIVITY_RETENTION_DAYS`, default 365; `null` keeps everything) and `php artisan tardis:activity:prune` (`--days`, `--pretend`). Schedule it: `Schedule::command('tardis:activity:prune')->daily();`.
+
+## 1.x — state store driver (R51)
+
+- **Database state driver:** `TARDIS_STATE_DRIVER=database` keeps settings (and their audit file), themes, the admin menu overlay, site menus, the dashboard layout, plugin switches, user preferences, the demo marker and BREAD definitions with their backups in the new `tardis_state` table instead of `storage/tardis`. Multi-server and ephemeral (container) deploys now share one state. The table is read once per request or queue job; writes lock the row, so two servers changing the same document both keep their change, and long-running workers notice another server's write through the row version.
+- The file driver stays the default and behaves as before. A store given its own path (tests, a custom `tardis.bread.path` directory used with the file driver) keeps reading that file.
+- `php artisan tardis:state:copy --to=database|file` (`--force`) moves the state between drivers; `tardis:doctor` reports the driver and a missing table.
+- Closes B35 in `docs/notes.md`.
