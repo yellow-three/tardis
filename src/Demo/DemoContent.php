@@ -11,7 +11,7 @@ use Tardis\Demo\Models\DemoCategory;
 use Tardis\Demo\Models\DemoPage;
 use Tardis\Demo\Models\DemoPost;
 use Tardis\Menu\SiteMenuStore;
-use Tardis\Support\JsonFile;
+use Tardis\State\State;
 
 /**
  * Sample content for a fresh panel: categories, posts and pages with their
@@ -57,7 +57,7 @@ final class DemoContent
             $blog = $store->add('main', ['title' => 'Blog', 'url' => '/blog']);
             $store->add('main', ['title' => 'News', 'url' => '/blog/news'], $blog);
             $store->add('main', ['title' => 'About', 'url' => '/about']);
-            JsonFile::update($this->markerPath(), fn (array $data) => [...$data, 'menu' => 'main']);
+            State::store()->update($this->markerPath(), fn (array $data) => [...$data, 'menu' => 'main']);
             $done[] = 'Added the [main] site menu.';
         }
 
@@ -78,14 +78,14 @@ final class DemoContent
             }
         }
 
-        $marker = JsonFile::read($this->markerPath());
+        $marker = State::store()->read($this->markerPath());
 
         if (($marker['menu'] ?? null) === 'main') {
             app(SiteMenuStore::class)->delete('main');
             $done[] = 'Removed the [main] site menu.';
         }
 
-        @unlink($this->markerPath());
+        State::store()->delete($this->markerPath());
 
         Artisan::call('migrate:rollback', ['--path' => $this->migration(), '--realpath' => true, '--force' => true]);
         $done[] = 'Dropped the tardis_demo_* tables.';

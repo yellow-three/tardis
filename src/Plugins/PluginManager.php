@@ -11,11 +11,13 @@ use Tardis\Contracts\Plugins\AuthorizationPlugin;
 use Tardis\Contracts\Plugins\FormfieldPlugin;
 use Tardis\Contracts\Plugins\GenericPlugin;
 use Tardis\Contracts\Plugins\ThemePlugin;
+use Tardis\State\UsesStateStore;
 use Tardis\Support\FileSignature;
-use Tardis\Support\JsonFile;
 
 class PluginManager
 {
+    use UsesStateStore;
+
     protected Collection $plugins;
 
     protected array $enabled = [];
@@ -38,6 +40,7 @@ class PluginManager
     public function __construct(?string $statePath = null)
     {
         $this->plugins = collect();
+        $this->ownFile = $statePath !== null;
         $this->statePath = $statePath ?? storage_path('tardis/plugins.json');
         $this->refreshDisabled();
     }
@@ -48,7 +51,7 @@ class PluginManager
      */
     protected function refreshDisabled(): void
     {
-        $signature = FileSignature::of($this->statePath);
+        $signature = $this->state()->signature($this->statePath);
 
         if ($signature !== $this->signature) {
             $this->signature = $signature;
@@ -58,11 +61,7 @@ class PluginManager
 
     protected function loadDisabled(): array
     {
-        if (! is_file($this->statePath)) {
-            return [];
-        }
-
-        $data = json_decode((string) file_get_contents($this->statePath), true);
+        $data = $this->state()->read($this->statePath);
 
         if (! is_array($data) || ! is_array($data['disabled'] ?? null)) {
             return [];
@@ -83,7 +82,7 @@ class PluginManager
     protected function persistDisabled(string $name, bool $disabled): void
     {
         try {
-            $data = JsonFile::update($this->statePath, function (array $data) use ($name, $disabled) {
+            $data = $this->state()->update($this->statePath, function (array $data) use ($name, $disabled) {
                 $list = array_values(array_filter((array) ($data['disabled'] ?? []), 'is_string'));
                 $list = array_values(array_diff($list, [$name]));
 
@@ -95,7 +94,7 @@ class PluginManager
             }, JSON_PRETTY_PRINT);
 
             $this->disabled = $data['disabled'];
-            $this->signature = FileSignature::of($this->statePath);
+            $this->signature = $this->state()->signature($this->statePath);
         } catch (\Throwable $e) {
             Log::warning('Could not persist the plugin state.', ['error' => $e->getMessage()]);
         }

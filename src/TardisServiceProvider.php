@@ -26,6 +26,7 @@ use Tardis\Commands\MakeBreadCommand;
 use Tardis\Commands\MakeModelCommand;
 use Tardis\Commands\MakePluginCommand;
 use Tardis\Commands\PluginsCommand;
+use Tardis\Commands\StateCopyCommand;
 use Tardis\Commands\UserKeysCommand;
 use Tardis\Dashboard\DashboardLayout;
 use Tardis\Dashboard\WidgetManager;
@@ -46,6 +47,9 @@ use Tardis\Menu\MenuManager;
 use Tardis\Menu\MenuOverlay;
 use Tardis\Plugins\PluginManager;
 use Tardis\Settings\SettingsManager;
+use Tardis\State\DatabaseStateStore;
+use Tardis\State\FileStateStore;
+use Tardis\State\StateStore;
 use Tardis\Support\LegacyNames;
 use Tardis\Support\UserPreferences;
 use Tardis\Theme\ThemeManager;
@@ -96,6 +100,13 @@ class TardisServiceProvider extends ServiceProvider
         // parsed definitions, and a long-running worker starts each request
         // with a fresh read.
         $this->app->scoped(JsonBreadSource::class);
+
+        // Scoped too: the database driver reads its table once per request or job.
+        $this->app->scoped(StateStore::class, fn () => match (config('tardis.state.driver', 'file')) {
+            'database' => new DatabaseStateStore(config('tardis.state.connection')),
+            'file' => new FileStateStore,
+            default => throw new \InvalidArgumentException(sprintf('Unknown tardis.state.driver [%s]; use "file" or "database".', config('tardis.state.driver'))),
+        });
 
         $this->registerBindings();
     }
@@ -292,6 +303,7 @@ class TardisServiceProvider extends ServiceProvider
             MakeModelCommand::class,
             MakePluginCommand::class,
             PluginsCommand::class,
+            StateCopyCommand::class,
             UserKeysCommand::class,
         ]);
     }

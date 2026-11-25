@@ -6,6 +6,7 @@ namespace Tardis\Menu;
 
 use Illuminate\Support\Str;
 use InvalidArgumentException;
+use Tardis\State\UsesStateStore;
 use Tardis\Support\JsonFile;
 
 /**
@@ -22,10 +23,15 @@ use Tardis\Support\JsonFile;
  */
 final class SiteMenuStore
 {
+    use UsesStateStore;
+
     /** How deep items may nest (top level is 1). */
     public const MAX_DEPTH = 3;
 
-    public function __construct(private ?string $path = null) {}
+    public function __construct(private ?string $path = null)
+    {
+        $this->ownFile = $path !== null;
+    }
 
     public function path(): string
     {
@@ -211,14 +217,14 @@ final class SiteMenuStore
     /** @return array<string, list<array<string, mixed>>> */
     private function menus(): array
     {
-        $menus = JsonFile::read($this->path())['menus'] ?? [];
+        $menus = $this->state()->read($this->path())['menus'] ?? [];
 
         return is_array($menus) ? array_filter($menus, 'is_array') : [];
     }
 
     private function change(callable $change): void
     {
-        JsonFile::update($this->path(), function (array $data) use ($change) {
+        $this->state()->update($this->path(), function (array $data) use ($change) {
             $menus = is_array($data['menus'] ?? null) ? $data['menus'] : [];
 
             return ['menus' => $change($menus)];

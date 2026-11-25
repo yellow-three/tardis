@@ -35,7 +35,7 @@ test('themes added in storage/tardis/themes.json are available after the built-i
     expect($themes->pluck('name')->all())->toBe(['tardis-light', 'tardis-dark', 'ocean', 'paper'])
         ->and($themes->firstWhere('name', 'ocean')->builtin)->toBeFalse()
         ->and($themes->firstWhere('name', 'tardis-dark')->builtin)->toBeTrue();
-});
+})->skip(onDatabaseState(), 'reads and writes the state file itself');
 
 test('an invalid or duplicate custom theme is skipped instead of breaking the page', function () {
     File::ensureDirectoryExists(dirname(themesFile()));
@@ -50,7 +50,7 @@ test('an invalid or duplicate custom theme is skipped instead of breaking the pa
 
     expect($themes->pluck('name')->all())->toBe(['tardis-light', 'tardis-dark', 'good'])
         ->and($themes->firstWhere('name', 'tardis-dark')->scheme)->toBe('dark');
-});
+})->skip(onDatabaseState(), 'reads and writes the state file itself');
 
 test('a corrupt themes file means only the built-in themes', function () {
     File::ensureDirectoryExists(dirname(themesFile()));

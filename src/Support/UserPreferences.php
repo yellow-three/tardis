@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tardis\Support;
 
 use Illuminate\Support\Facades\Log;
+use Tardis\State\UsesStateStore;
 
 /**
  * Per-user panel preferences (language, theme) kept in
@@ -17,10 +18,13 @@ use Illuminate\Support\Facades\Log;
  */
 class UserPreferences
 {
+    use UsesStateStore;
+
     protected string $path;
 
     public function __construct(?string $path = null)
     {
+        $this->ownFile = $path !== null;
         $this->path = $path ?? storage_path('tardis/preferences.json');
     }
 
@@ -68,13 +72,7 @@ class UserPreferences
      */
     protected function read(): array
     {
-        if (! is_file($this->path)) {
-            return [];
-        }
-
-        $data = json_decode((string) file_get_contents($this->path), true);
-
-        return is_array($data) ? $data : [];
+        return $this->state()->read($this->path);
     }
 
     /**
@@ -85,7 +83,7 @@ class UserPreferences
     protected function write(callable $change): void
     {
         try {
-            JsonFile::update($this->path, $change);
+            $this->state()->update($this->path, $change);
         } catch (\Throwable $e) {
             Log::warning('Could not persist panel preferences.', ['error' => $e->getMessage()]);
         }

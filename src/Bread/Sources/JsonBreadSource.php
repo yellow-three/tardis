@@ -5,15 +5,16 @@ declare(strict_types=1);
 namespace Tardis\Bread\Sources;
 
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Log;
 use Tardis\Bread\BreadDefinition;
 use Tardis\Bread\ReservedSlugs;
 use Tardis\Formfields\FormfieldManager;
+use Tardis\State\UsesStateStore;
 
 /**
- * Stores BREAD definitions as JSON files, one file per slug, under
- * storage/tardis/bread by default.
+ * Stores BREAD definitions as JSON, one entry per slug: files under
+ * storage/tardis/bread by default, or rows of tardis_state with the
+ * database state driver (tardis.state.driver).
  *
  * Unlike the legacy PHP config source, definitions are runtime data: the
  * admin BREAD builder edits them directly. A timestamped backup is
@@ -22,6 +23,8 @@ use Tardis\Formfields\FormfieldManager;
  */
 class JsonBreadSource implements BreadSource
 {
+    use UsesStateStore;
+
     /**
      * Parsed definitions of this instance, keyed by file. The source is bound
      * per request (scoped), so this lives for one request and does not grow
@@ -33,7 +36,10 @@ class JsonBreadSource implements BreadSource
 
     public function __construct(
         protected ?string $path = null,
-    ) {}
+    ) {
+        // An explicit directory is read as files; the default follows the driver.
+        $this->ownFile = $path !== null;
+    }
 
     public function path(): string
     {
@@ -50,11 +56,12 @@ class JsonBreadSource implements BreadSource
 
         $file = $this->fileFor($slug);
 
-        if (! File::exists($file)) {
+        $raw = $this->state()->get($file);
+
+        if ($raw === null) {
             return null;
         }
 
-        $raw = (string) File::get($file);
         $hash = hash('xxh128', $raw);
 
         // Routes, the menu, search and every authorisation check read the
@@ -86,21 +93,17 @@ class JsonBreadSource implements BreadSource
 
     public function all(): Collection
     {
-        if (! File::isDirectory($this->path())) {
-            return collect();
-        }
-
-        return collect(File::files($this->path()))
-            ->filter(fn ($file) => $file->getExtension() === 'json')
-            ->filter(fn ($file) => ! str_contains($file->getFilename(), '.backup.'))
-            ->mapWithKeys(function ($file) {
-                $slug = $file->getFilenameWithoutExtension();
+        return collect($this->state()->files($this->path()))
+            ->filter(fn (string $name) => str_ends_with($name, '.json'))
+            ->filter(fn (string $name) => ! str_contains($name, '.backup.'))
+            ->mapWithKeys(function (string $name) {
+                $slug = substr($name, 0, -5);
 
                 try {
                     return [$slug => $this->find($slug)];
                 } catch (\Throwable $e) {
                     Log::warning('Skipping invalid BREAD JSON file.', [
-                        'file' => $file->getPathname(),
+                        'file' => $name,
                         'error' => $e->getMessage(),
                     ]);
 
@@ -117,7 +120,7 @@ class JsonBreadSource implements BreadSource
             return false;
         }
 
-        return File::exists($this->fileFor($slug));
+        return $this->state()->exists($this->fileFor($slug));
     }
 
     /**
@@ -170,29 +173,8 @@ class JsonBreadSource implements BreadSource
             );
         }
 
-        File::ensureDirectoryExists($this->path());
-
-        $target = $this->fileFor($slug);
-
-        // Write inside the bread directory so tempnam + rename stay on the
-        // same filesystem and the rename is atomic.
-        $tmp = tempnam($this->path(), '.bread-');
-
-        if ($tmp === false) {
-            throw new \RuntimeException(
-                sprintf('Could not create a temporary file in [%s].', $this->path())
-            );
-        }
-
-        File::put($tmp, $content."\n");
-
-        if (! @rename($tmp, $target)) {
-            @unlink($tmp);
-
-            throw new \RuntimeException(
-                sprintf('Could not write BREAD JSON file [%s].', $target)
-            );
-        }
+        // Atomic in both drivers: temp file + rename, or one row update.
+        $this->state()->put($this->fileFor($slug), $content."\n");
 
         $this->prune($slug, config('tardis.bread.backup_keep') ?: 10);
     }
@@ -204,13 +186,13 @@ class JsonBreadSource implements BreadSource
     {
         $file = $this->fileFor($slug);
 
-        if (! File::exists($file)) {
+        if (! $this->state()->exists($file)) {
             return false;
         }
 
         $this->backup($slug);
 
-        return File::delete($file);
+        return $this->state()->delete($file);
     }
 
     /**
@@ -220,9 +202,9 @@ class JsonBreadSource implements BreadSource
      */
     public function backup(string $slug): ?string
     {
-        $live = $this->fileFor($slug);
+        $live = $this->state()->get($this->fileFor($slug));
 
-        if (! File::exists($live)) {
+        if ($live === null) {
             return null;
         }
 
@@ -232,10 +214,9 @@ class JsonBreadSource implements BreadSource
             now()->format('Y-m-d@H-i-s.u')
         );
 
-        File::ensureDirectoryExists($this->path());
-        $dest = rtrim($this->path(), DIRECTORY_SEPARATOR).DIRECTORY_SEPARATOR.$name;
-
-        if (! @copy($live, $dest)) {
+        try {
+            $this->state()->put(rtrim($this->path(), DIRECTORY_SEPARATOR).DIRECTORY_SEPARATOR.$name, $live);
+        } catch (\RuntimeException) {
             return null;
         }
 
@@ -249,19 +230,15 @@ class JsonBreadSource implements BreadSource
      */
     public function backups(string $slug): Collection
     {
-        if (! File::isDirectory($this->path())) {
-            return collect();
-        }
-
         $prefix = $slug.'.backup.';
 
-        return collect(File::files($this->path()))
-            ->filter(fn ($file) => $file->getExtension() === 'json')
-            ->filter(fn ($file) => str_starts_with($file->getFilename(), $prefix))
-            ->map(fn ($file) => [
+        return collect($this->state()->files($this->path()))
+            ->filter(fn (string $name) => str_ends_with($name, '.json'))
+            ->filter(fn (string $name) => str_starts_with($name, $prefix))
+            ->map(fn (string $name) => [
                 'slug' => $slug,
-                'name' => $file->getFilename(),
-                'date' => substr($file->getFilename(), strlen($prefix), -5), // strip ".json"
+                'name' => $name,
+                'date' => substr($name, strlen($prefix), -5), // strip ".json"
             ])
             ->sortByDesc('date')
             ->values();
@@ -285,29 +262,17 @@ class JsonBreadSource implements BreadSource
             );
         }
 
-        $backupFile = rtrim($this->path(), DIRECTORY_SEPARATOR).DIRECTORY_SEPARATOR.$backup;
+        $content = $this->state()->get(rtrim($this->path(), DIRECTORY_SEPARATOR).DIRECTORY_SEPARATOR.$backup);
 
-        if (! File::exists($backupFile)) {
+        if ($content === null) {
             return false;
         }
 
         $this->backup($slug);
 
-        File::ensureDirectoryExists($this->path());
-
-        $target = $this->fileFor($slug);
-
-        $tmp = tempnam($this->path(), '.bread-');
-
-        if ($tmp === false || ! @copy($backupFile, $tmp)) {
-            @unlink((string) $tmp);
-
-            return false;
-        }
-
-        if (! @rename($tmp, $target)) {
-            @unlink($tmp);
-
+        try {
+            $this->state()->put($this->fileFor($slug), $content);
+        } catch (\RuntimeException) {
             return false;
         }
 
@@ -332,7 +297,7 @@ class JsonBreadSource implements BreadSource
         $backups->slice($keep)->each(function (array $backup) use (&$removed): void {
             $file = rtrim($this->path(), DIRECTORY_SEPARATOR).DIRECTORY_SEPARATOR.$backup['name'];
 
-            if (File::delete($file)) {
+            if ($this->state()->delete($file)) {
                 $removed++;
             }
         });

@@ -63,3 +63,12 @@ function addBreadRoutes(): void
     app('router')->getRoutes()->refreshNameLookups();
     app('router')->getRoutes()->refreshActionLookups();
 }
+
+/**
+ * True when the suite runs on the database state driver (TARDIS_TEST_STATE),
+ * for the few tests that read or write a state file themselves.
+ */
+function onDatabaseState(): bool
+{
+    return getenv('TARDIS_TEST_STATE') === 'database';
+}

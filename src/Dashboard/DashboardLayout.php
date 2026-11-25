@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Tardis\Dashboard;
 
-use Tardis\Support\JsonFile;
+use Tardis\State\UsesStateStore;
 
 /**
  * How the administrator arranged the dashboard, kept in
@@ -15,6 +15,8 @@ use Tardis\Support\JsonFile;
  */
 class DashboardLayout
 {
+    use UsesStateStore;
+
     /** Widths a widget may take, out of a 12-column grid. */
     public const WIDTHS = [3, 4, 6, 8, 12];
 
@@ -22,13 +24,14 @@ class DashboardLayout
 
     public function __construct(?string $path = null)
     {
+        $this->ownFile = $path !== null;
         $this->path = $path ?? storage_path('tardis/dashboard.json');
     }
 
     /** @return array<string, array{hidden?: bool, order?: int, width?: int}> */
     public function all(): array
     {
-        return array_filter(JsonFile::read($this->path), 'is_array');
+        return array_filter($this->state()->read($this->path), 'is_array');
     }
 
     public function isEmpty(): bool
@@ -44,7 +47,7 @@ class DashboardLayout
      */
     public function change(string $id, array $changes): void
     {
-        JsonFile::update($this->path, function (array $layout) use ($id, $changes) {
+        $this->state()->update($this->path, function (array $layout) use ($id, $changes) {
             $layout = array_filter($layout, 'is_array');
             $entry = $layout[$id] ?? [];
 
@@ -70,9 +73,7 @@ class DashboardLayout
 
     public function reset(): void
     {
-        if (is_file($this->path)) {
-            unlink($this->path);
-        }
+        $this->state()->delete($this->path);
     }
 
     protected function forget(array &$entry, string $key): void

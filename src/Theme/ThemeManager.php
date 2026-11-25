@@ -8,8 +8,8 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
 use Tardis\Contracts\Plugins\ThemePlugin;
 use Tardis\Plugins\PluginManager;
+use Tardis\State\UsesStateStore;
 use Tardis\Support\FileSignature;
-use Tardis\Support\JsonFile;
 
 /**
  * The panel's themes: the ones compiled into the stylesheet plus the ones a
@@ -20,6 +20,8 @@ use Tardis\Support\JsonFile;
  */
 class ThemeManager
 {
+    use UsesStateStore;
+
     /** @var Collection<int, Theme>|null */
     protected ?Collection $themes = null;
 
@@ -30,6 +32,7 @@ class ThemeManager
 
     public function __construct(?string $path = null)
     {
+        $this->ownFile = $path !== null;
         $this->path = $path ?? storage_path('tardis/themes.json');
     }
 
@@ -40,7 +43,7 @@ class ThemeManager
     {
         // Another worker may have saved a theme since: rebuild when the file
         // changed, so a long-running process never serves a stale list.
-        $signature = FileSignature::of($this->path);
+        $signature = $this->state()->signature($this->path);
 
         if ($this->themes !== null && $this->signature === $signature) {
             return $this->themes;
@@ -177,7 +180,7 @@ class ThemeManager
      */
     protected function readCustom(): array
     {
-        $data = JsonFile::read($this->path);
+        $data = $this->state()->read($this->path);
 
         return is_array($data['themes'] ?? null) ? array_values($data['themes']) : [];
     }
@@ -191,7 +194,7 @@ class ThemeManager
     protected function changeCustom(callable $change): bool
     {
         try {
-            JsonFile::update($this->path, function (array $data) use ($change) {
+            $this->state()->update($this->path, function (array $data) use ($change) {
                 $custom = is_array($data['themes'] ?? null) ? array_values($data['themes']) : [];
 
                 return ['themes' => $change($custom)];
