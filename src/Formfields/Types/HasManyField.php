@@ -9,15 +9,62 @@ use Tardis\Formfields\Formfield;
 
 class HasManyField extends Formfield
 {
-    protected array $configurable = ['relation', 'model'];
+    protected array $configurable = ['relation', 'model', 'fields'];
 
     public ?string $relation = null;
 
     public ?string $model = null;
 
+    /** @var array<int, mixed> Declared child fields (definitions or bare names). */
+    public array $fields = [];
+
     public function isRelation(): bool
     {
         return true;
+    }
+
+    /**
+     * The field names a child row may write. A definition that declares none
+     * keeps the historical behaviour of writing the whole submitted row.
+     *
+     * @return list<string>|null
+     */
+    private function declaredChildKeys(bool $includeKey = false): ?array
+    {
+        if ($this->fields === []) {
+            return null;
+        }
+
+        $names = [];
+
+        foreach ($this->fields as $field) {
+            if (is_string($field)) {
+                $names[] = $field;
+
+                continue;
+            }
+
+            if (is_array($field) && ! empty($field['name'])) {
+                $names[] = (string) $field['name'];
+            }
+        }
+
+        if ($includeKey) {
+            $names[] = 'id';
+        }
+
+        return array_values(array_unique($names));
+    }
+
+    /**
+     * @param  array<string, mixed>  $row
+     * @return array<string, mixed>
+     */
+    private function writableRow(array $row, bool $includeKey = false): array
+    {
+        $allowed = $this->declaredChildKeys($includeKey);
+
+        return $allowed === null ? $row : array_intersect_key($row, array_flip($allowed));
     }
 
     public function stored(mixed $value, Model $model): void
@@ -26,7 +73,9 @@ class HasManyField extends Formfield
             return;
         }
 
-        $model->{$this->relation}()->createMany($value);
+        $rows = array_map(fn (mixed $row): array => $this->writableRow((array) $row), $value);
+
+        $model->{$this->relation}()->createMany($rows);
     }
 
     public function updated(mixed $value, Model $model): void
@@ -43,13 +92,15 @@ class HasManyField extends Formfield
             $id = isset($row['id']) ? (int) $row['id'] : null;
 
             if ($id !== null && $existing->has($id)) {
-                $data = $row;
+                // The child key is needed to identify the row, never to write it.
+                $data = $this->writableRow($row, true);
                 unset($data['id']);
                 $existing[$id]->update($data);
                 $keep[] = $id;
             } else {
-                unset($row['id']);
-                $created = $model->{$this->relation}()->create($row);
+                $data = $this->writableRow($row);
+                unset($data['id']);
+                $created = $model->{$this->relation}()->create($data);
                 $keep[] = (int) $created->getKey();
             }
         }

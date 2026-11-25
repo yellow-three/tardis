@@ -59,7 +59,10 @@ new #[Title('tardis::auth.login')] #[Layout('tardis::layouts.auth')] class exten
             // the user's until the second step. They are signed out again and
             // the challenge page finishes the sign-in.
             if ($user instanceof \Illuminate\Database\Eloquent\Model && app(\Tardis\Auth\TwoFactor\TwoFactorAuthentication::class)->enabledFor($user)) {
-                $guard = $plugin instanceof \Tardis\Auth\SessionAuthenticationPlugin ? $plugin->guard() : config('auth.defaults.guard');
+                // The guard belongs to the authentication plugin, not to one
+                // concrete plugin class: a custom plugin may authenticate a
+                // different guard altogether.
+                $guard = $plugin?->guard() ?? config('auth.defaults.guard');
                 auth()->guard($guard)->logout();
                 session()->put('tardis.two_factor', ['id' => $user->getKey(), 'remember' => $this->remember, 'guard' => $guard, 'redirect' => $plugin?->redirectTo() ?? route('tardis.dashboard')]);
                 $this->redirect(route('tardis.two-factor'));

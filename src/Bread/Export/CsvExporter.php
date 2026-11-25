@@ -6,10 +6,10 @@ namespace Tardis\Bread\Export;
 
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 use Tardis\Bread\BreadQuery;
+use Tardis\Bread\RelatedRecords;
 use Tardis\Formfields\Formfield;
 use Tardis\Support\Translation;
 
@@ -126,8 +126,11 @@ final class CsvExporter
             return '';
         }
 
-        $related = $row->{$relation};
-        $related = $related instanceof Collection ? $related : collect(array_filter([$related]));
+        $related = RelatedRecords::visible(
+            $row,
+            $relation,
+            isset($field['model']) ? (string) $field['model'] : null
+        );
         $labelColumn = (string) ($field['label_column'] ?? 'name');
 
         return $related->map(fn ($item) => (string) (data_get($item, $labelColumn) ?? data_get($item, 'name') ?? data_get($item, 'id') ?? ''))

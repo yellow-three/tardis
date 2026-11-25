@@ -4,12 +4,11 @@ use Illuminate\Support\Str;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
-use Tardis\Auth\Abilities;
-use Tardis\Auth\BreadAuthorization;
 use Tardis\Bread\BreadDefinition;
 use Tardis\Bread\BreadManager;
 use Tardis\Bread\Builder\BuilderLabels;
 use Tardis\Bread\Builder\BuilderReview;
+use Tardis\Bread\Builder\DefinitionGuard;
 use Tardis\Bread\Builder\RelationFieldFactory;
 use Tardis\Bread\DefinitionHealth;
 use Tardis\Bread\ModelReflector;
@@ -154,7 +153,7 @@ new #[Title('tardis::shell.titles.bread_builder')] #[Layout('tardis::layouts.adm
      */
     public function boot(): void
     {
-        app(BreadAuthorization::class)->authorizeAbility(Abilities::BREAD);
+        app(DefinitionGuard::class)->authorizeScreen();
     }
 
     public function mount(?string $slug = null): void
@@ -266,6 +265,12 @@ new #[Title('tardis::shell.titles.bread_builder')] #[Layout('tardis::layouts.adm
             return;
         }
 
+        if (($error = DefinitionGuard::modelError($this->model)) !== null) {
+            $this->addError('model', __($error));
+
+            return;
+        }
+        app(DefinitionGuard::class)->authorize($this->model, $this->slug, $this->policy);
         $repo = app(BreadManager::class);
 
         // Guard against silently overwriting a different BREAD definition.
