@@ -8,6 +8,7 @@ use Livewire\Component;
 use Tardis\Auth\Abilities;
 use Tardis\Auth\BreadAuthorization;
 use Tardis\Database\Concerns\ManagesColumnDefinitions;
+use Tardis\Database\MigrationWriter;
 use Tardis\Database\ModelGenerator;
 
 new #[Title('tardis::shell.titles.create_table')] #[Layout('tardis::layouts.admin')] class extends Component
@@ -84,23 +85,30 @@ new #[Title('tardis::shell.titles.create_table')] #[Layout('tardis::layouts.admi
         try {
             $connection = config('database.default');
 
-            Schema::connection($connection)->create($this->newTableName, function (Blueprint $table) use ($columns) {
-                if ($this->createAutoId) {
-                    $table->id();
-                }
+            $applied = $this->changeSchema(
+                fn (MigrationWriter $writer) => $writer->createTable($this->newTableName, $columns, $this->createAutoId, $this->createTimestamps),
+                fn () => Schema::connection($connection)->create($this->newTableName, function (Blueprint $table) use ($columns) {
+                    if ($this->createAutoId) {
+                        $table->id();
+                    }
 
-                foreach ($columns as $column) {
-                    $this->applyColumnDefinition($table, $column, ! empty($column['primary']));
-                }
+                    foreach ($columns as $column) {
+                        $this->applyColumnDefinition($table, $column, ! empty($column['primary']));
+                    }
 
-                if ($this->createTimestamps) {
-                    $table->timestamps();
-                }
-            });
+                    if ($this->createTimestamps) {
+                        $table->timestamps();
+                    }
+                }),
+            );
 
             $this->auditSchema('table_created', ['table' => $this->newTableName, 'columns' => array_column($columns, 'name')]);
 
-            if ($this->createModel) {
+            if (! $applied) {
+                // The table does not exist until the migration runs, so there
+                // is nothing to build a model from yet.
+                session()->flash('message', $this->migrationWrittenMessage());
+            } elseif ($this->createModel) {
                 try {
                     $columns = $this->withColumnKeys(
                         Schema::connection($connection)->getColumns($this->newTableName),

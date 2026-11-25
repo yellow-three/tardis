@@ -350,3 +350,9 @@ Fixes from the 2026-11-17 review (`docs/notes.md`). Each one is covered by a tes
 - The file driver stays the default and behaves as before. A store given its own path (tests, a custom `tardis.bread.path` directory used with the file driver) keeps reading that file.
 - `php artisan tardis:state:copy --to=database|file` (`--force`) moves the state between drivers; `tardis:doctor` reports the driver and a missing table.
 - Closes B35 in `docs/notes.md`.
+
+## 1.x — Database screen writes migrations (R52)
+
+- **Schema changes become migrations:** creating or dropping a table and adding, renaming, changing or dropping a column on the Database screen now writes a migration file under `database/migrations` and runs it through `php artisan migrate`. The change is recorded in the `migrations` table, and committing the file brings every other environment to the same schema; no more drift between the database you clicked in and the rest.
+- The generated `down()` reverses the change where it can (drop the created table or added column, undo a rename or a definition change, re-add a dropped column whose definition was known). Values typed into the editor are exported as strings, never as code. A migration that fails is removed again and the error is shown. Files written in the same second keep their order.
+- `tardis.database.migrations.mode` (`TARDIS_DATABASE_MIGRATIONS`): `migrate` (default), `write` (only write the file; the screen says to run `php artisan migrate`), `off` (alter directly, the previous behaviour). `tardis.database.migrations.path` changes the directory. The screen says which mode is on; the activity log entry names the migration file.

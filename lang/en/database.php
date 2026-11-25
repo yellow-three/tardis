@@ -72,4 +72,7 @@ return [
     'column_unchanged' => 'Nothing changed.',
     'schema_changes_disabled' => 'Schema changes are switched off in this environment. Use a migration.',
     'read_only_notice' => 'Read-only: schema changes are switched off in this environment (tardis.database.schema_changes).',
+    'migration_written' => 'Migration written to :file. Run php artisan migrate to apply it here and commit it for the other environments.',
+    'migrations_notice_migrate' => 'Each change is written as a migration under database/migrations and run at once; commit the file so other environments get the same change.',
+    'migrations_notice_write' => 'Changes are only written as migrations under database/migrations; run php artisan migrate to apply them.',
 ];
