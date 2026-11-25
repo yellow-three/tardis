@@ -39,4 +39,20 @@ return [
     ],
     'impersonating' => ':name olarak giriş yaptınız.',
     'impersonation_leave' => 'Kendi hesabıma dön',
+    'palette' => [
+        'shortcut' => 'Ctrl K',
+        'close_key' => 'Esc',
+        'title' => 'Komut paleti',
+        'placeholder' => 'Bir sayfaya git ya da bir işlem çalıştır…',
+        'pages' => 'Sayfalar',
+        'actions' => 'İşlemler',
+        'new' => 'Yeni :name',
+        'search_records' => 'Kayıtlarda ara:',
+        'empty' => 'Gösterilecek bir şey yok.',
+    ],
+    'notification_center' => [
+        'unread' => ':count okunmamış bildirim',
+        'mark_all_read' => 'Tümünü okundu say',
+        'empty' => 'Henüz bildirim yok.',
+    ],
 ];

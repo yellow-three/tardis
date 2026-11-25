@@ -35,6 +35,7 @@ class WidgetManager
             (new Widget('tardis::widgets.breads', __('tardis::dashboard.breads')))->key('breads')->permission(Abilities::BREAD)->width(3)->order(20),
             (new Widget('tardis::widgets.media', __('tardis::dashboard.media_files')))->key('media')->permission(Abilities::MEDIA_BROWSE)->width(3)->order(30),
             (new Widget('tardis::widgets.activities', __('tardis::dashboard.activities')))->key('activities')->permission(Abilities::ACTIVITY)->width(3)->order(40),
+            (new ActivityChart(__('tardis::dashboard.activity_chart')))->key('activity-chart')->permission(Abilities::ACTIVITY)->width(12)->order(45),
             (new Widget('tardis::widgets.recent-activity', __('tardis::dashboard.recent_activity')))->key('recent-activity')->permission(Abilities::ACTIVITY)->width(12)->order(50),
         );
 

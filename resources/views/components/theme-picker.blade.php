@@ -29,7 +29,7 @@
                 <template x-for="theme in $store.theme.{{ $slot }}Themes" :key="theme.name">
                     <button
                         type="button"
-                        class="flex items-center gap-3 rounded-lg border p-3 text-left transition-colors"
+                        class="flex items-center gap-3 rounded-lg border p-3 text-start transition-colors"
                         :class="$store.theme.{{ $slot }} === theme.name ? 'border-primary bg-base-200' : 'border-base-300 hover:bg-base-200'"
                         :aria-pressed="$store.theme.{{ $slot }} === theme.name"
                         @click="$store.theme.set{{ ucfirst($slot) }}(theme.name)"

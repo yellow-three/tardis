@@ -245,17 +245,17 @@ new #[Title('tardis::roles.roles')] #[Layout('tardis::layouts.admin')] class ext
                             </div>
                             @foreach ($resources as $resource => $permissions)
                                 @if ($resource !== '')
-                                    <div class="mt-2 flex items-center justify-between pl-2">
+                                    <div class="mt-2 flex items-center justify-between ps-2">
                                         <span class="text-xs font-medium text-base-content/70">{{ $resource }}</span>
                                         <button type="button" wire:click="toggleGroup(@js($group), @js($resource))" class="btn btn-ghost btn-xs">{{ __('tardis::roles.toggle_all') }}</button>
                                     </div>
                                 @endif
                                 @foreach ($permissions as $perm)
-                                    <label wire:key="perm-{{ $perm['id'] }}" class="flex items-center gap-3 py-1.5 border-b border-base-200 {{ $resource !== '' ? 'pl-4' : '' }}">
+                                    <label wire:key="perm-{{ $perm['id'] }}" class="flex items-center gap-3 py-1.5 border-b border-base-200 {{ $resource !== '' ? 'ps-4' : '' }}">
                                         <input type="checkbox" wire:model="editRolePermissions" value="{{ $perm['id'] }}" class="checkbox checkbox-sm checkbox-primary" />
                                         <div>
                                             <span class="font-medium">{{ $perm['name'] }}</span>
-                                            <span class="text-xs text-base-content/50 ml-2">{{ $perm['slug'] }}</span>
+                                            <span class="text-xs text-base-content/50 ms-2">{{ $perm['slug'] }}</span>
                                         </div>
                                     </label>
                                 @endforeach

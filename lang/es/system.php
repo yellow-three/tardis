@@ -1,0 +1,58 @@
+<?php
+
+return [
+    'system' => 'Sistema',
+    'system_tools' => 'Herramientas del sistema',
+    'overview' => 'Resumen',
+    'logs' => 'Registros',
+    'commands' => 'Comandos',
+
+    // Doctor
+    'title' => 'Sistema',
+    'diagnostics' => 'Diagnóstico',
+    'run_checks' => 'Volver a ejecutar las comprobaciones',
+    'status' => 'Estado',
+    'check' => 'Comprobación',
+    'details' => 'Detalles',
+    'passed' => 'Superadas',
+    'warnings' => 'Advertencias',
+    'failed' => 'Fallidas',
+    'ok' => 'OK',
+    'warn' => 'Advertencia',
+    'error' => 'Fallida',
+    'all_checks_passed' => 'Todas las comprobaciones se han superado. No hay nada que corregir.',
+    'checks_with_warnings' => ':count comprobación(es) requieren atención.',
+    'checks_failed' => ':count comprobación(es) han fallado.',
+    'no_issues' => 'No se detectaron problemas.',
+    'read_only_notice' => 'Estas comprobaciones solo leen el estado. Nunca cambian nada.',
+
+    // Logs
+    'log_viewer' => 'Visor de registros',
+    'log_file' => 'Archivo de registro',
+    'select_log' => 'Selecciona un archivo de registro',
+    'no_log_files' => 'No se encontraron archivos de registro.',
+    'unavailable' => 'Este archivo de registro ya no está disponible.',
+    'lines' => 'Líneas',
+    'tail' => 'Final',
+    'refresh' => 'Actualizar',
+    'empty_log' => 'Este archivo de registro está vacío.',
+    'truncated_notice' => 'Solo se muestra el final de este archivo.',
+
+    // Commands
+    'command_runner' => 'Ejecutor de comandos',
+    'command' => 'Comando',
+    'select_command' => 'Selecciona un comando',
+    'no_allowed_commands' => 'No hay comandos permitidos en este entorno.',
+    'arguments' => 'Argumentos',
+    'allowed_options' => 'Opciones permitidas',
+    'no_arguments' => 'Este comando no admite opciones permitidas.',
+    'run' => 'Ejecutar',
+    'running' => 'Ejecutando...',
+    'output' => 'Salida',
+    'no_output' => 'Sin salida.',
+    'exit_code' => 'Código de salida',
+    'runner_disabled' => 'El ejecutor de comandos está desactivado.',
+    'runner_disabled_hint' => 'Actívalo y añade comandos a la lista de permitidos en la configuración.',
+    'not_allowed' => 'Ese comando no está permitido.',
+    'confirm_run' => '¿Ejecutar este comando?',
+];

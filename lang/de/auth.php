@@ -1,0 +1,28 @@
+<?php
+
+return [
+    'login' => 'Anmeldung',
+    'email_example_com' => 'email@example.com',
+    'email_address' => 'E-Mail-Adresse',
+    'password' => 'Passwort',
+    'remember_me' => 'Angemeldet bleiben',
+    'log_in' => 'Anmelden',
+    'forgot_password' => 'Passwort vergessen',
+    'enter_your_email_address_and_we_112e' => 'Geben Sie Ihre E-Mail-Adresse ein. Wir senden Ihnen einen Link zum Zurücksetzen Ihres Passworts.',
+    'send_reset_link' => 'Link zum Zurücksetzen senden',
+    'or' => 'ODER',
+    'back_to_login' => 'Zurück zur Anmeldung',
+    'reset_password' => 'Passwort zurücksetzen',
+    'new_password' => 'Neues Passwort',
+    'confirm_password' => 'Passwort bestätigen',
+    'too_many_attempts' => 'Zu viele Anmeldeversuche. Bitte versuchen Sie es in :seconds Sekunden erneut.',
+    'reset_link_sent' => 'Falls für diese Adresse ein Konto existiert, haben wir einen Link zum Zurücksetzen des Passworts gesendet.',
+    'reset_link_invalid' => 'Dieser Link zum Zurücksetzen ist ungültig oder abgelaufen. Fordern Sie einen neuen an.',
+    'password_reset_done' => 'Ihr Passwort wurde erfolgreich zurückgesetzt.',
+    'two_factor_title' => 'Zwei-Faktor-Authentifizierung',
+    'two_factor_prompt' => 'Geben Sie den sechsstelligen Code aus Ihrer Authenticator-App oder einen Ihrer Wiederherstellungscodes ein.',
+    'two_factor_code' => 'Code',
+    'two_factor_verify' => 'Bestätigen',
+    'two_factor_cancel' => 'Zurück zur Anmeldung',
+    'two_factor_wrong' => 'Dieser Code ist ungültig.',
+];

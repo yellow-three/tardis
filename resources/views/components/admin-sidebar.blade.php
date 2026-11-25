@@ -8,7 +8,7 @@
 <div class="drawer-side z-40 is-drawer-close:overflow-visible">
     <label for="tardis-drawer" aria-label="{{ __('tardis::shell.close_sidebar') }}" class="drawer-overlay"></label>
 
-    <aside aria-label="{{ __('tardis::shell.main_navigation') }}" class="bg-base-100 min-h-full flex flex-col border-r border-base-300 transition-[width] duration-200 is-drawer-close:w-18 is-drawer-open:w-68">
+    <aside aria-label="{{ __('tardis::shell.main_navigation') }}" class="bg-base-100 min-h-full flex flex-col border-e border-base-300 transition-[width] duration-200 is-drawer-close:w-18 is-drawer-open:w-68">
         <div class="px-3 h-16 flex items-center gap-3 border-b border-base-300 is-drawer-close:justify-center">
             <div class="bg-primary text-primary-content rounded-lg w-9 h-9 flex items-center justify-center shrink-0 shadow-sm">
                 <span class="font-bold text-lg leading-none">T</span>

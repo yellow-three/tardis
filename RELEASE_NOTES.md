@@ -363,3 +363,10 @@ Fixes from the 2026-11-17 review (`docs/notes.md`). Each one is covered by a tes
 - The same authorization: "access admin" plus the browse/read/add/edit/delete ability (and the record for record-level rules). A record outside the caller's scope or ownership is a 404. Errors are JSON (401, 403, 404, 422 with `errors` keyed by field name).
 - Passwords and `$hidden` attributes never appear in a response; uploads are not accepted over JSON. Lists take `search`, `sort`, `direction`, `per_page`, `filter[]` and `trashed`.
 - `tardis.api` configures it: `enabled` (off by default), `prefix`, `middleware` (`auth:sanctum` by default; any guard works), `per_page`, `max_per_page`, `only`.
+
+## 1.x — panel experience (R54)
+
+- **Command palette (Ctrl+K / ⌘K):** jump to any page the sidebar would show you, or to "New …" for the BREADs you may add to, from the keyboard; anything else searches the records. Only what you may open is listed.
+- **Notification centre:** the bell in the header lists your latest notifications with an unread count, marks them read when opened and has "mark all as read". `Tardis::notify(...)` and a `tardis` notification channel send them; they are stored in the new `tardis_notifications` table (run `php artisan migrate`). Links must be root-relative or http(s).
+- **Chart widget contract:** `Tardis\Dashboard\ChartWidget` (line, bar, doughnut) is drawn on the server as SVG in the theme's colours, with escaped labels and a tooltip per point. The dashboard has a new "Activity, last 14 days" chart (hide it from the dashboard's edit mode).
+- **More languages and RTL:** German, French, Spanish and Arabic join English and Turkish. Arabic pages are written right to left (`dir="rtl"`); the views use logical spacing so the layout mirrors.

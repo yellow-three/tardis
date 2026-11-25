@@ -1,0 +1,26 @@
+<?php
+
+return [
+    'activity_log' => 'Journal d\'activité',
+    'track_all_system_activities' => 'Suivez toutes les activités du système',
+    'search' => 'Rechercher…',
+    'all_actions' => 'Toutes les actions',
+    'created' => 'Créé',
+    'updated' => 'Modifié',
+    'deleted' => 'Supprimé',
+    'restored' => 'Restauré',
+    'force_deleted' => 'Supprimé définitivement',
+    'action' => 'Action',
+    'model' => 'Modèle',
+    'user' => 'Utilisateur',
+    'time' => 'Heure',
+    'no_activities_found' => 'Aucune activité trouvée',
+    'showing' => 'Affichage de :from à :to sur :total',
+    'kind' => 'Type',
+    'all_kinds' => 'Tous les types',
+    'details' => 'Détails',
+    'show_changes' => 'Afficher les modifications',
+    'before' => 'Avant',
+    'after' => 'Après',
+    'system' => 'Système',
+];

@@ -59,7 +59,7 @@
                             <th scope="col">{{ __('tardis::bread.source') }}</th>
                             <th scope="col">{{ __('tardis::bread.list_layout') }}</th>
                             <th scope="col">{{ __('tardis::bread.view_layout') }}</th>
-                            <th class="text-right" scope="col">{{ __('tardis::bread.actions') }}</th>
+                            <th class="text-end" scope="col">{{ __('tardis::bread.actions') }}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -79,7 +79,7 @@
                                 <td>
                                     <span class="badge badge-ghost badge-sm">{{ $viewCount }}</span>
                                 </td>
-                                <td class="text-right">
+                                <td class="text-end">
                                     <div class="flex items-center justify-end gap-1">
                                         <div class="dropdown dropdown-end">
                                             <div tabindex="0" role="button" class="btn btn-ghost btn-sm gap-1" aria-label="{{ __('tardis::bread.backups_for', ['slug' => $slug]) }}">

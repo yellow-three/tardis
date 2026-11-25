@@ -143,7 +143,7 @@ $typeLabels = [
                             <th scope="col">{{ __('tardis::plugins.plugin') }}</th>
                             <th scope="col">{{ __('tardis::plugins.type') }}</th>
                             <th scope="col">{{ __('tardis::plugins.status') }}</th>
-                            <th class="text-right" scope="col">{{ __('tardis::plugins.actions') }}</th>
+                            <th class="text-end" scope="col">{{ __('tardis::plugins.actions') }}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -182,7 +182,7 @@ $typeLabels = [
                                         </span>
                                     @endif
                                 </td>
-                                <td class="text-right">
+                                <td class="text-end">
                                     @if ($plugin['settings'])
                                         <button type="button" wire:click="openSettings('{{ $plugin['slug'] }}')" class="btn btn-ghost btn-sm">
                                             <x-tardis::icon name="cog-6-tooth" class="w-4 h-4" />

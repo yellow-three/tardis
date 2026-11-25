@@ -34,7 +34,7 @@
                     <thead>
                         <tr>
                             <th scope="col">{{ __('tardis::database.table') }}</th>
-                            <th class="text-right" scope="col">{{ __('tardis::database.actions') }}</th>
+                            <th class="text-end" scope="col">{{ __('tardis::database.actions') }}</th>
                         </tr>
                     </thead>
                     <tbody>

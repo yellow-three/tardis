@@ -1,0 +1,58 @@
+<?php
+
+return [
+    'system' => 'النظام',
+    'system_tools' => 'أدوات النظام',
+    'overview' => 'نظرة عامة',
+    'logs' => 'السجلات',
+    'commands' => 'الأوامر',
+
+    // Doctor
+    'title' => 'النظام',
+    'diagnostics' => 'التشخيص',
+    'run_checks' => 'إعادة تشغيل الفحوصات',
+    'status' => 'الحالة',
+    'check' => 'الفحص',
+    'details' => 'التفاصيل',
+    'passed' => 'ناجحة',
+    'warnings' => 'تحذيرات',
+    'failed' => 'فاشلة',
+    'ok' => 'سليم',
+    'warn' => 'تحذير',
+    'error' => 'فشل',
+    'all_checks_passed' => 'نجحت جميع الفحوصات. لا شيء يحتاج إصلاحًا.',
+    'checks_with_warnings' => ':count فحوصات تحتاج إلى انتباه.',
+    'checks_failed' => 'فشلت :count فحوصات.',
+    'no_issues' => 'لم تُكتشف مشكلات.',
+    'read_only_notice' => 'هذه الفحوصات تقرأ الحالة فقط ولا تغيّر شيئًا أبدًا.',
+
+    // Logs
+    'log_viewer' => 'عارض السجلات',
+    'log_file' => 'ملف السجل',
+    'select_log' => 'اختر ملف سجل',
+    'no_log_files' => 'لا توجد ملفات سجل.',
+    'unavailable' => 'ملف السجل هذا لم يعد متاحًا.',
+    'lines' => 'الأسطر',
+    'tail' => 'آخر الأسطر',
+    'refresh' => 'تحديث',
+    'empty_log' => 'ملف السجل هذا فارغ.',
+    'truncated_notice' => 'يُعرض آخر هذا الملف فقط.',
+
+    // Commands
+    'command_runner' => 'مشغّل الأوامر',
+    'command' => 'الأمر',
+    'select_command' => 'اختر أمرًا',
+    'no_allowed_commands' => 'لا توجد أوامر مسموحة في هذه البيئة.',
+    'arguments' => 'المعاملات',
+    'allowed_options' => 'الخيارات المسموحة',
+    'no_arguments' => 'هذا الأمر لا يقبل خيارات مسموحة.',
+    'run' => 'تشغيل',
+    'running' => 'جارٍ التشغيل...',
+    'output' => 'المخرجات',
+    'no_output' => 'لا توجد مخرجات.',
+    'exit_code' => 'رمز الخروج',
+    'runner_disabled' => 'مشغّل الأوامر معطّل.',
+    'runner_disabled_hint' => 'فعّله وأدرج الأوامر المسموحة في الإعدادات.',
+    'not_allowed' => 'هذا الأمر غير مسموح.',
+    'confirm_run' => 'تشغيل هذا الأمر؟',
+];

@@ -45,6 +45,16 @@ final class Locales
         return in_array($locale, self::available(), true);
     }
 
+    /** Languages written right to left; the panel sets dir="rtl" for them. */
+    public const RTL = ['ar', 'fa', 'he', 'ur'];
+
+    public static function direction(?string $locale = null): string
+    {
+        $language = strtolower(strtok(str_replace('_', '-', $locale ?? app()->getLocale()), '-') ?: '');
+
+        return in_array($language, self::RTL, true) ? 'rtl' : 'ltr';
+    }
+
     /**
      * Native name for the switcher; falls back to the upper-cased code.
      */

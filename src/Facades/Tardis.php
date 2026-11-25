@@ -18,6 +18,7 @@ use Tardis\TardisManager;
  * @method static \Tardis\Assets\AssetManager assets()
  * @method static \Tardis\Bread\ActionManager actions()
  * @method static \Tardis\Media\MediaManager media()
+ * @method static int notify(mixed $users, string $title, ?string $body = null, ?string $url = null, string $level = 'info')
  * @method static void addCss(\Tardis\Assets\Asset|string $asset)
  * @method static void addJs(\Tardis\Assets\Asset|string $asset)
  * @method static void addAction(string $slug, \Tardis\Bread\Action|string $action)

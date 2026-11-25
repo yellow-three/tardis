@@ -1,0 +1,26 @@
+<?php
+
+return [
+    'activity_log' => 'Aktivitätsprotokoll',
+    'track_all_system_activities' => 'Alle Systemaktivitäten nachverfolgen',
+    'search' => 'Suchen...',
+    'all_actions' => 'Alle Aktionen',
+    'created' => 'Erstellt',
+    'updated' => 'Aktualisiert',
+    'deleted' => 'Gelöscht',
+    'restored' => 'Wiederhergestellt',
+    'force_deleted' => 'Endgültig gelöscht',
+    'action' => 'Aktion',
+    'model' => 'Modell',
+    'user' => 'Benutzer',
+    'time' => 'Zeit',
+    'no_activities_found' => 'Keine Aktivitäten gefunden',
+    'showing' => 'Zeige :from-:to von :total',
+    'kind' => 'Art',
+    'all_kinds' => 'Alle Arten',
+    'details' => 'Details',
+    'show_changes' => 'Änderungen anzeigen',
+    'before' => 'Vorher',
+    'after' => 'Nachher',
+    'system' => 'System',
+];

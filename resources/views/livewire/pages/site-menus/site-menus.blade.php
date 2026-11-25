@@ -50,7 +50,7 @@
                                         <th scope="col">{{ __('tardis::site_menus.item_title') }}</th>
                                         <th scope="col">{{ __('tardis::site_menus.item_url') }}</th>
                                         <th scope="col">{{ __('tardis::site_menus.new_tab') }}</th>
-                                        <th scope="col" class="text-right">{{ __('tardis::menu_builder.actions') }}</th>
+                                        <th scope="col" class="text-end">{{ __('tardis::menu_builder.actions') }}</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -68,7 +68,7 @@
                                             <td>
                                                 <input type="checkbox" @checked($row['new_tab']) wire:change="updateItem(@js($row['id']), 'new_tab', $event.target.checked)" class="checkbox checkbox-sm" aria-label="{{ __('tardis::site_menus.new_tab') }}" />
                                             </td>
-                                            <td class="text-right">
+                                            <td class="text-end">
                                                 <div class="flex justify-end gap-1">
                                                     <button type="button" wire:click="moveItem(@js($row['id']), -1)" @disabled($row['first']) class="btn btn-ghost btn-xs" aria-label="{{ __('tardis::menu_builder.move_up') }}">▲</button>
                                                     <button type="button" wire:click="moveItem(@js($row['id']), 1)" @disabled($row['last']) class="btn btn-ghost btn-xs" aria-label="{{ __('tardis::menu_builder.move_down') }}">▼</button>

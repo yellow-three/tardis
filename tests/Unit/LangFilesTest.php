@@ -72,9 +72,17 @@ test('every English string has a Turkish translation and vice versa', function (
         ->and(array_values(array_diff($turkish, $english)))->toBe([], 'lang/tr has keys English lacks');
 });
 
-test('translations keep the same :placeholders as English', function () {
+test('every shipped language has exactly the English keys', function (string $locale) {
+    $english = array_keys(tardisLangKeys('en'));
+    $other = array_keys(tardisLangKeys($locale));
+
+    expect(array_values(array_diff($english, $other)))->toBe([], "missing from lang/{$locale}")
+        ->and(array_values(array_diff($other, $english)))->toBe([], "lang/{$locale} has keys English lacks");
+})->with(['de', 'fr', 'es', 'ar']);
+
+test('translations keep the same :placeholders as English', function (string $locale) {
     $english = tardisLangKeys('en');
-    $turkish = tardisLangKeys('tr');
+    $turkish = tardisLangKeys($locale);
     $broken = [];
 
     foreach ($english as $key => $text) {
@@ -96,10 +104,10 @@ test('translations keep the same :placeholders as English', function () {
     }
 
     expect($broken)->toBe([]);
-});
+})->with(['tr', 'de', 'fr', 'es', 'ar']);
 
 test('no translation is empty', function () {
-    foreach (['en', 'tr'] as $locale) {
+    foreach (['en', 'tr', 'de', 'fr', 'es', 'ar'] as $locale) {
         $empty = array_keys(array_filter(tardisLangKeys($locale), fn ($text) => trim($text) === ''));
 
         expect($empty)->toBe([], "empty strings in lang/{$locale}");

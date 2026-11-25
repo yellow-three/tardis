@@ -1,0 +1,28 @@
+<?php
+
+return [
+    'login' => 'تسجيل الدخول',
+    'email_example_com' => 'email@example.com',
+    'email_address' => 'البريد الإلكتروني',
+    'password' => 'كلمة المرور',
+    'remember_me' => 'تذكّرني',
+    'log_in' => 'دخول',
+    'forgot_password' => 'نسيت كلمة المرور',
+    'enter_your_email_address_and_we_112e' => 'أدخل بريدك الإلكتروني وسنرسل لك رابطًا لإعادة تعيين كلمة المرور.',
+    'send_reset_link' => 'إرسال رابط إعادة التعيين',
+    'or' => 'أو',
+    'back_to_login' => 'العودة إلى تسجيل الدخول',
+    'reset_password' => 'إعادة تعيين كلمة المرور',
+    'new_password' => 'كلمة المرور الجديدة',
+    'confirm_password' => 'تأكيد كلمة المرور',
+    'too_many_attempts' => 'محاولات تسجيل دخول كثيرة. حاول مجددًا بعد :seconds ثانية.',
+    'reset_link_sent' => 'إن كان هناك حساب بهذا العنوان، فقد أرسلنا إليه رابط إعادة تعيين كلمة المرور.',
+    'reset_link_invalid' => 'رابط إعادة التعيين غير صالح أو منتهي الصلاحية. اطلب رابطًا جديدًا.',
+    'password_reset_done' => 'تمت إعادة تعيين كلمة المرور بنجاح.',
+    'two_factor_title' => 'المصادقة الثنائية',
+    'two_factor_prompt' => 'أدخل الرمز المكوّن من ستة أرقام من تطبيق المصادقة، أو أحد رموز الاسترداد.',
+    'two_factor_code' => 'الرمز',
+    'two_factor_verify' => 'تحقّق',
+    'two_factor_cancel' => 'العودة إلى تسجيل الدخول',
+    'two_factor_wrong' => 'الرمز غير صالح.',
+];

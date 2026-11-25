@@ -39,4 +39,20 @@ return [
     ],
     'impersonating' => 'You are signed in as :name.',
     'impersonation_leave' => 'Back to my account',
+    'palette' => [
+        'shortcut' => 'Ctrl K',
+        'close_key' => 'Esc',
+        'title' => 'Command palette',
+        'placeholder' => 'Go to a page or run an action…',
+        'pages' => 'Pages',
+        'actions' => 'Actions',
+        'new' => 'New :name',
+        'search_records' => 'Search records for',
+        'empty' => 'Nothing to show.',
+    ],
+    'notification_center' => [
+        'unread' => ':count unread notifications',
+        'mark_all_read' => 'Mark all as read',
+        'empty' => 'No notifications yet.',
+    ],
 ];

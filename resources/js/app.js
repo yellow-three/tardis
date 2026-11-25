@@ -253,7 +253,98 @@
     }
 
 
+    // ------------------------------------------------------ command palette --
+
+    // Ctrl+K / ⌘K opens it anywhere in the panel; the entries come from the
+    // JSON block the server rendered (components/command-palette).
+    function commandPalette() {
+        return {
+            open: false,
+            query: '',
+            active: 0,
+            entries: [],
+
+            init() {
+                var block = this.$el.querySelector('[data-palette-entries]');
+
+                try {
+                    this.entries = block ? JSON.parse(block.textContent) || [] : [];
+                } catch (error) {
+                    this.entries = [];
+                }
+
+                this.$watch('query', () => { this.active = 0; });
+            },
+
+            get results() {
+                var terms = this.query.toLowerCase().split(/\s+/).filter(Boolean);
+
+                if (terms.length === 0) {
+                    return this.entries.slice(0, 8);
+                }
+
+                return this.entries.filter(function (entry) {
+                    var text = (entry.title + ' ' + entry.group + ' ' + entry.keywords).toLowerCase();
+
+                    return terms.every(function (term) { return text.indexOf(term) !== -1; });
+                }).slice(0, 20);
+            },
+
+            shortcut(event) {
+                if ((event.ctrlKey || event.metaKey) && !event.altKey && event.key.toLowerCase() === 'k') {
+                    event.preventDefault();
+                    this.open ? this.close() : this.show();
+                }
+            },
+
+            show() {
+                this.open = true;
+                this.query = '';
+                this.active = 0;
+                this.$nextTick(() => this.$refs.input.focus());
+            },
+
+            close() {
+                this.open = false;
+            },
+
+            navigate(event) {
+                var last = this.results.length - (this.query.trim() === '' ? 1 : 0);
+
+                if (event.key === 'Escape') {
+                    event.preventDefault();
+                    this.close();
+                } else if (event.key === 'ArrowDown') {
+                    event.preventDefault();
+                    this.active = Math.min(this.active + 1, last);
+                } else if (event.key === 'ArrowUp') {
+                    event.preventDefault();
+                    this.active = Math.max(this.active - 1, 0);
+                } else if (event.key === 'Enter') {
+                    event.preventDefault();
+                    this.active < this.results.length ? this.go(this.results[this.active]) : this.search();
+                }
+            },
+
+            searchUrl() {
+                return this.$root.dataset.searchUrl + '?query=' + encodeURIComponent(this.query.trim());
+            },
+
+            go(entry) {
+                this.close();
+                window.Livewire && window.Livewire.navigate ? window.Livewire.navigate(entry.url) : (window.location.href = entry.url);
+            },
+
+            search() {
+                if (this.query.trim() !== '') {
+                    this.go({ url: this.searchUrl() });
+                }
+            },
+        };
+    }
+
     whenAlpine(function (Alpine) {
+        Alpine.data('commandPalette', commandPalette);
         Alpine.store('theme', themeStore());
         Alpine.store('toasts', toastsStore());
         Alpine.data('builderLayout', builderLayout);
@@ -289,6 +380,11 @@
             if (name === 'ready' && document.readyState !== 'loading') {
                 listener({});
             }
+        },
+
+        /** Open the command palette, as Ctrl+K does. */
+        palette: function () {
+            window.dispatchEvent(new CustomEvent('tardis-palette'));
         },
 
         toast: function (message, options) {

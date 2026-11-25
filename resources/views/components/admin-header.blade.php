@@ -29,9 +29,12 @@
     </form>
 
     <div class="flex flex-none items-center gap-1">
-        <button class="btn btn-ghost btn-circle btn-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary" aria-label="{{ __('tardis::shell.notifications') }}">
-            <x-tardis::icon name="ui.bell" class="w-5 h-5" />
+        <button type="button" class="btn btn-ghost btn-sm gap-1 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary" onclick="window.Tardis.palette()" aria-label="{{ __('tardis::shell.palette.title') }}" title="{{ __('tardis::shell.palette.title') }}">
+            <x-tardis::icon name="command-line" class="w-5 h-5" />
+            <kbd class="kbd kbd-xs hidden lg:inline-flex">{{ __('tardis::shell.palette.shortcut') }}</kbd>
         </button>
+
+        <livewire:tardis::components.notifications />
 
         <button class="btn btn-ghost btn-circle btn-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary" @click="$store.theme.cycle()" aria-label="{{ __('tardis::shell.toggle_theme') }}" :title="$store.theme.mode">
             <template x-if="$store.theme.mode === 'light'">
@@ -75,7 +78,7 @@
                             <form method="POST" action="{{ $userItem->href() }}">
                                 @csrf
                                 @method($userItem->method)
-                                <button type="submit" class="w-full text-left">
+                                <button type="submit" class="w-full text-start">
                                     @if ($userItem->icon)
                                         <x-dynamic-component :component="$userItem->icon" class="w-4 h-4" />
                                     @endif
@@ -96,7 +99,7 @@
                     <li>
                         <form method="POST" action="{{ route('tardis.logout') }}">
                             @csrf
-                            <button type="submit" class="w-full text-left">{{ __('tardis::menu.logout') }}</button>
+                            <button type="submit" class="w-full text-start">{{ __('tardis::menu.logout') }}</button>
                         </form>
                     </li>
                 @endforelse

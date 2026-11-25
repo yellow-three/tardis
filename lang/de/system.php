@@ -1,0 +1,58 @@
+<?php
+
+return [
+    'system' => 'System',
+    'system_tools' => 'Systemwerkzeuge',
+    'overview' => 'Übersicht',
+    'logs' => 'Protokolle',
+    'commands' => 'Befehle',
+
+    // Doctor
+    'title' => 'System',
+    'diagnostics' => 'Diagnose',
+    'run_checks' => 'Prüfungen erneut ausführen',
+    'status' => 'Status',
+    'check' => 'Prüfung',
+    'details' => 'Details',
+    'passed' => 'Bestanden',
+    'warnings' => 'Warnungen',
+    'failed' => 'Fehlgeschlagen',
+    'ok' => 'OK',
+    'warn' => 'Warnung',
+    'error' => 'Fehlgeschlagen',
+    'all_checks_passed' => 'Alle Prüfungen bestanden. Nichts zu beheben.',
+    'checks_with_warnings' => ':count Prüfung(en) erfordern Aufmerksamkeit.',
+    'checks_failed' => ':count Prüfung(en) fehlgeschlagen.',
+    'no_issues' => 'Keine Probleme erkannt.',
+    'read_only_notice' => 'Diese Prüfungen lesen nur den Zustand. Sie ändern nichts.',
+
+    // Logs
+    'log_viewer' => 'Protokollanzeige',
+    'log_file' => 'Protokolldatei',
+    'select_log' => 'Protokolldatei auswählen',
+    'no_log_files' => 'Keine Protokolldateien gefunden.',
+    'unavailable' => 'Diese Protokolldatei ist nicht mehr verfügbar.',
+    'lines' => 'Zeilen',
+    'tail' => 'Ende',
+    'refresh' => 'Aktualisieren',
+    'empty_log' => 'Diese Protokolldatei ist leer.',
+    'truncated_notice' => 'Es wird nur das Ende dieser Datei angezeigt.',
+
+    // Commands
+    'command_runner' => 'Befehlsausführung',
+    'command' => 'Befehl',
+    'select_command' => 'Befehl auswählen',
+    'no_allowed_commands' => 'In dieser Umgebung sind keine Befehle erlaubt.',
+    'arguments' => 'Argumente',
+    'allowed_options' => 'Erlaubte Optionen',
+    'no_arguments' => 'Dieser Befehl akzeptiert keine erlaubten Optionen.',
+    'run' => 'Ausführen',
+    'running' => 'Wird ausgeführt...',
+    'output' => 'Ausgabe',
+    'no_output' => 'Keine Ausgabe.',
+    'exit_code' => 'Exit-Code',
+    'runner_disabled' => 'Die Befehlsausführung ist deaktiviert.',
+    'runner_disabled_hint' => 'Aktivieren Sie sie und setzen Sie Befehle in der Konfiguration auf die Erlaubnisliste.',
+    'not_allowed' => 'Dieser Befehl ist nicht erlaubt.',
+    'confirm_run' => 'Diesen Befehl ausführen?',
+];

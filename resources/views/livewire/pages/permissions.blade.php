@@ -101,7 +101,7 @@ new #[Title('tardis::permissions.permissions')] #[Layout('tardis::layouts.admin'
                         <th scope="col">{{ __('tardis::permissions.name') }}</th>
                         <th scope="col">{{ __('tardis::permissions.slug') }}</th>
                         <th scope="col">{{ __('tardis::permissions.group') }}</th>
-                        <th class="text-right" scope="col">{{ __('tardis::permissions.actions') }}</th>
+                        <th class="text-end" scope="col">{{ __('tardis::permissions.actions') }}</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -110,7 +110,7 @@ new #[Title('tardis::permissions.permissions')] #[Layout('tardis::layouts.admin'
                             <td class="font-semibold">{{ $permission['name'] }}</td>
                             <td><code class="badge badge-ghost badge-sm">{{ $permission['slug'] }}</code></td>
                             <td>{{ $permission['group'] ?? '-' }}</td>
-                            <td class="text-right">
+                            <td class="text-end">
                                 <button wire:click="confirmDelete({{ $permission['id'] }})" class="btn btn-ghost btn-xs text-error">
                                     <x-tardis::icon name="x-mark" class="w-4 h-4" />
                                 </button>

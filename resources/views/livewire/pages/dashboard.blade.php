@@ -119,7 +119,7 @@ new #[Title('tardis::dashboard.dashboard')] #[Layout('tardis::layouts.admin')] c
                 <x-tardis::card class="h-full">
                     @if ($editing)
                         <div class="mb-3 flex flex-wrap items-center gap-1 border-b border-base-300 pb-2">
-                            <span class="mr-auto text-xs font-semibold uppercase tracking-wide text-base-content/60">{{ $widget->title }}</span>
+                            <span class="me-auto text-xs font-semibold uppercase tracking-wide text-base-content/60">{{ $widget->title }}</span>
                             <button type="button" wire:click="move(@js($widget->id()), -1)" class="btn btn-ghost btn-xs" aria-label="{{ __('tardis::menu_builder.move_up') }}">◀</button>
                             <button type="button" wire:click="move(@js($widget->id()), 1)" class="btn btn-ghost btn-xs" aria-label="{{ __('tardis::menu_builder.move_down') }}">▶</button>
                             <select wire:change="resize(@js($widget->id()), $event.target.value)" class="select select-xs w-auto" aria-label="{{ __('tardis::dashboard.width') }}">
