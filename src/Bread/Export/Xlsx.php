@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tardis\Bread\Export;
 
 use Illuminate\Database\Eloquent\Builder;
+use OpenSpout\Common\Entity\Cell\StringCell;
 use OpenSpout\Common\Entity\Row;
 use OpenSpout\Reader\XLSX\Reader;
 use OpenSpout\Writer\XLSX\Writer;
@@ -26,7 +27,8 @@ final class Xlsx
 
     /**
      * Write the listing as a workbook: cells are stored as text, so nothing
-     * in them is ever read as a formula.
+     * in them is ever read as a formula. Row::fromValues() would let a string
+     * beginning with "=" become a FormulaCell, hence the explicit StringCell.
      */
     public static function download(CsvExporter $exporter, Builder $query, string $filename): BinaryFileResponse
     {
@@ -35,10 +37,10 @@ final class Xlsx
 
         $writer = new Writer;
         $writer->openToFile($path);
-        $writer->addRow(Row::fromValues(array_map(fn (array $field) => $exporter->label($field), $columns)));
+        $writer->addRow(self::textRow(array_map(fn (array $field) => $exporter->label($field), $columns)));
 
         foreach ($query->lazy(self::CHUNK) as $row) {
-            $writer->addRow(Row::fromValues(array_map(fn (array $field) => $exporter->cell($row, $field), $columns)));
+            $writer->addRow(self::textRow(array_map(fn (array $field) => $exporter->cell($row, $field), $columns)));
         }
 
         $writer->close();
@@ -73,6 +75,17 @@ final class Xlsx
         }
 
         return $csv;
+    }
+
+    /** @param  list<string>  $values */
+    private static function textRow(array $values): Row
+    {
+        // The same quote the CSV export uses keeps a spreadsheet from treating
+        // a value as a formula on open.
+        return new Row(array_map(
+            fn (string $value) => new StringCell(CsvExporter::safe($value), null),
+            $values,
+        ));
     }
 
     private static function text(mixed $value): string

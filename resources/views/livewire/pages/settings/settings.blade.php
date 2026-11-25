@@ -70,7 +70,7 @@
     @if (count($filteredGroups) > 0)
         <div class="tabs tabs-box mb-6 bg-base-100 overflow-x-auto">
             @foreach ($filteredGroups as $groupKey => $group)
-                <button wire:key="group-{{ $groupKey }}" wire:click="setActiveGroup('{{ $groupKey }}')"
+                <button wire:key="group-{{ $groupKey }}" wire:click="setActiveGroup(@js($groupKey))"
                         role="tab"
                         class="tab tab-lg gap-2 {{ $activeGroup === $groupKey ? 'tab-active font-semibold' : '' }}">
                     @if ($group['icon'])
@@ -118,14 +118,14 @@
                                             </span>
                                         @endif
                                         <button
-                                            wire:click="cloneSetting('{{ $setting['fullKey'] }}')"
+                                            wire:click="cloneSetting(@js($setting['fullKey']))"
                                             class="btn btn-ghost btn-xs text-info"
                                             title="{{ __('tardis::settings.clone_setting') }}"
                                         >
                                             <x-tardis::icon name="document-text" class="w-3 h-3" />
                                         </button>
                                         <button
-                                            wire:click="confirmDelete('{{ $setting['fullKey'] }}')"
+                                            wire:click="confirmDelete(@js($setting['fullKey']))"
                                             class="btn btn-ghost btn-xs text-error"
                                             title="{{ __('tardis::settings.delete_setting') }}"
                                         >
@@ -244,7 +244,7 @@
                                                         placeholder="{{ __('tardis::settings.item_n', ['number' => $arrIndex + 1]) }}"
                                                     />
                                                     <button
-                                                        wire:click="removeSimpleArrayItem('{{ $setting['fullKey'] }}', {{ $arrIndex }})"
+                                                        wire:click="removeSimpleArrayItem(@js($setting['fullKey']), {{ $arrIndex }})"
                                                         class="btn btn-ghost btn-square btn-sm text-error"
                                                         title="{{ __('tardis::settings.remove_item') }}"
                                                     >
@@ -253,7 +253,7 @@
                                                 </div>
                                             @endforeach
                                             <button
-                                                wire:click="addSimpleArrayItem('{{ $setting['fullKey'] }}')"
+                                                wire:click="addSimpleArrayItem(@js($setting['fullKey']))"
                                                 class="btn btn-ghost btn-sm gap-1 text-primary"
                                             >
                                                 <x-tardis::icon name="plus" class="w-4 h-4" />
@@ -280,7 +280,7 @@
                                                         class="input flex-1 input-sm"
                                                     />
                                                     <button
-                                                        wire:click="removeDynamicRow('{{ $setting['fullKey'] }}', {{ $dynIndex }})"
+                                                        wire:click="removeDynamicRow(@js($setting['fullKey']), {{ $dynIndex }})"
                                                         class="btn btn-ghost btn-square btn-sm text-error"
                                                         title="{{ __('tardis::settings.remove_row') }}"
                                                     >
@@ -289,7 +289,7 @@
                                                 </div>
                                             @endforeach
                                             <button
-                                                wire:click="addDynamicRow('{{ $setting['fullKey'] }}')"
+                                                wire:click="addDynamicRow(@js($setting['fullKey']))"
                                                 class="btn btn-ghost btn-sm gap-1 text-primary"
                                             >
                                                 <x-tardis::icon name="plus" class="w-4 h-4" />

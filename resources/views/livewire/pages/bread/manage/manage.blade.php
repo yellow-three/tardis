@@ -90,7 +90,7 @@
                                                 @forelse ($this->backups($slug) as $backup)
                                                     <li>
                                                         <button
-                                                            wire:click="rollback('{{ $slug }}', '{{ $backup['name'] }}')"
+                                                            wire:click="rollback(@js($slug), @js($backup['name']))"
                                                             wire:confirm="Restore this backup? The current definition will be snapshotted first."
                                                             class="justify-between font-mono text-xs"
                                                         >

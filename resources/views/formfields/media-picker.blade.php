@@ -2,7 +2,7 @@
     {{-- media-picked is dispatched by the embedded picker; only this field's
          model may receive it, otherwise every picker on the page would write
          into every field. --}}
-    <span x-on:media-picked.window="if ($event.detail.model === '{{ $model }}') $wire.set('{{ $model }}', $event.detail.value)"></span>
+    <span x-on:media-picked.window="if ($event.detail.model === '{{ $model }}') $wire.set(@js($model), $event.detail.value)"></span>
 
     <div class="flex gap-2 items-center">
         <input
@@ -19,7 +19,7 @@
             class="btn btn-outline btn-square"
             title="{{ __('tardis::settings.browse_media') }}"
             @disabled($disabled || $readonly)
-            x-on:click="$dispatch('media-picker-open', { model: '{{ $model }}', value: $wire.get('{{ $model }}') })"
+            x-on:click="$dispatch('media-picker-open', { model: '{{ $model }}', value: $wire.get(@js($model)) })"
         >
             <x-tardis::icon name="folder" class="w-4 h-4" />
         </button>
@@ -28,7 +28,7 @@
             class="btn btn-ghost btn-square"
             title="{{ __('tardis::media.clear') }}"
             @disabled($disabled || $readonly)
-            x-on:click="$wire.set('{{ $model }}', null)"
+            x-on:click="$wire.set(@js($model), null)"
         >
             <x-tardis::icon name="x-mark" class="w-4 h-4" />
         </button>
