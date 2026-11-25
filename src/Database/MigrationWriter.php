@@ -48,6 +48,8 @@ class MigrationWriter
      */
     public function createTable(string $table, array $columns, bool $id = true, bool $timestamps = true): string
     {
+        $this->assertIdentifier($table);
+
         $lines = [];
 
         if ($id) {
@@ -55,6 +57,7 @@ class MigrationWriter
         }
 
         foreach ($columns as $column) {
+            $this->assertIdentifier((string) $column['name']);
             $lines[] = $this->columnLine($column, ! empty($column['primary'])).';';
         }
 
@@ -68,6 +71,9 @@ class MigrationWriter
     /** @param  array<string, mixed>  $column */
     public function addColumn(string $table, array $column): string
     {
+        $this->assertIdentifier($table);
+        $this->assertIdentifier((string) $column['name']);
+
         return $this->write(
             "add_{$column['name']}_to_{$table}_table",
             $this->schemaCall('table', $table, [$this->columnLine($column).';']),
@@ -81,6 +87,10 @@ class MigrationWriter
      */
     public function modifyColumn(string $table, string $original, array $column, ?array $previous): string
     {
+        $this->assertIdentifier($table);
+        $this->assertIdentifier($original);
+        $this->assertIdentifier((string) $column['name']);
+
         $up = [];
         $down = [];
         $name = (string) $column['name'];
@@ -104,6 +114,9 @@ class MigrationWriter
     /** @param  array<string, mixed>|null  $previous  the dropped column, re-added on rollback when known */
     public function dropColumn(string $table, string $column, ?array $previous): string
     {
+        $this->assertIdentifier($table);
+        $this->assertIdentifier($column);
+
         return $this->write(
             "drop_{$column}_from_{$table}_table",
             $this->schemaCall('table', $table, ['$table->dropColumn('.$this->export($column).');']),
@@ -115,6 +128,8 @@ class MigrationWriter
 
     public function dropTable(string $table): string
     {
+        $this->assertIdentifier($table);
+
         return $this->write(
             "drop_{$table}_table",
             $this->dropTableCall($table),
@@ -135,10 +150,23 @@ class MigrationWriter
         }
     }
 
+    /**
+     * Table and column names and the column type become PHP method names or
+     * arguments in the migration. Values are exported with var_export, names
+     * have to be plain identifiers.
+     */
+    protected function assertIdentifier(string $value): void
+    {
+        if (preg_match('/^[A-Za-z_][A-Za-z0-9_]*$/D', $value) !== 1) {
+            throw new \InvalidArgumentException('The database name is not a valid identifier.');
+        }
+    }
+
     /** @param  array<string, mixed>  $column */
     protected function columnLine(array $column, bool $primary = false): string
     {
         $type = (string) $column['type'];
+        $this->assertIdentifier($type);
         $name = $this->export($column['name']);
         $length = trim((string) ($column['length'] ?? ''));
 

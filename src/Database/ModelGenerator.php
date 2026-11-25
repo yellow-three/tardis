@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace Tardis\Database;
 
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
+use InvalidArgumentException;
 use RuntimeException;
 
 class ModelGenerator
@@ -13,26 +15,51 @@ class ModelGenerator
     /** @var array<int, string> Columns managed by Eloquent conventions (excluded from fillable and casts). */
     public const MANAGED_COLUMNS = ['id', 'created_at', 'updated_at'];
 
+    /** @var list<string> Columns skipped in the last generate() because their name is not an identifier. */
+    protected array $warnings = [];
+
     /**
      * Generate an Eloquent model file for an existing table.
+     *
+     * Table, namespace, class and column names end up as PHP source, so only
+     * identifiers are accepted. A database may hold any UTF-8 string as a
+     * column name; those columns are skipped, with a warning, rather than
+     * interpolated into the file.
      *
      * @param  array<int, array<string, mixed>>  $columns  Schema::getColumns() shaped column definitions.
      * @param  array{namespace?: string, path?: string, force?: bool}  $options
      *
+     * @throws InvalidArgumentException When a name or the output path is unsafe.
      * @throws RuntimeException When the model already exists and force is not set.
      */
     public function generate(string $table, array $columns, array $options = []): string
     {
-        $namespace = $options['namespace'] ?? 'App\Models';
+        $this->warnings = [];
+
+        $namespace = (string) ($options['namespace'] ?? 'App\Models');
         $force = $options['force'] ?? false;
 
+        if (! $this->isQualifiedIdentifier($namespace)) {
+            throw new InvalidArgumentException('The model namespace is not a valid PHP namespace.');
+        }
+
+        if (! $this->isIdentifier($table)) {
+            throw new InvalidArgumentException('The table name is not a valid identifier.');
+        }
+
         $className = Str::studly(Str::singular($table));
+
+        if (preg_match('/^[A-Z][A-Za-z0-9_]*$/D', $className) !== 1) {
+            throw new InvalidArgumentException('The model class name is not a valid identifier.');
+        }
+
         $file = $this->modelPath($table, $options);
 
         if (File::exists($file) && ! $force) {
             throw new RuntimeException("Model [{$className}] already exists.");
         }
 
+        $columns = $this->validColumns($columns);
         $withTimestamps = $this->hasTimestamps($columns);
 
         $replacements = [
@@ -54,6 +81,17 @@ class ModelGenerator
     }
 
     /**
+     * Names skipped in the last generate() call, for callers that want to
+     * tell the user a database column could not be represented in PHP.
+     *
+     * @return list<string>
+     */
+    public function warnings(): array
+    {
+        return $this->warnings;
+    }
+
+    /**
      * Check whether a generated model file already exists for the given table.
      *
      * @param  array{namespace?: string, path?: string, force?: bool}  $options
@@ -68,10 +106,94 @@ class ModelGenerator
      */
     protected function modelPath(string $table, array $options = []): string
     {
-        $path = $options['path'] ?? app_path('Models');
+        $path = (string) ($options['path'] ?? app_path('Models'));
         $className = Str::studly(Str::singular($table));
 
-        return $path.'/'.$className.'.php';
+        return $this->insideBasePath($path).'/'.$className.'.php';
+    }
+
+    /**
+     * Resolve a user-supplied output directory without allowing `..`, a
+     * symlink or an absolute path to write outside the application. The path
+     * may not exist yet, so the check uses the real path of its closest
+     * existing parent and keeps the remaining segments relative to it.
+     */
+    protected function insideBasePath(string $path): string
+    {
+        $base = realpath(base_path()) ?: base_path();
+        $candidate = str_replace('\\', '/', $path);
+
+        if (! str_starts_with($candidate, '/')) {
+            $candidate = str_replace('\\', '/', base_path()).'/'.$candidate;
+        }
+
+        $segments = [];
+
+        foreach (explode('/', $candidate) as $segment) {
+            if ($segment === '' || $segment === '.') {
+                continue;
+            }
+
+            if ($segment === '..') {
+                array_pop($segments);
+
+                continue;
+            }
+
+            $segments[] = $segment;
+        }
+
+        $candidate = '/'.implode('/', $segments);
+        $parent = $candidate;
+
+        while (! is_dir($parent) && dirname($parent) !== $parent) {
+            $parent = dirname($parent);
+        }
+
+        $real = realpath($parent);
+
+        if ($real === false || ! ($real === $base || str_starts_with($real, rtrim($base, '/').'/'))) {
+            throw new InvalidArgumentException('The model path must be inside the application.');
+        }
+
+        $suffix = substr($candidate, strlen($parent));
+
+        return $suffix === '' ? $real : $real.$suffix;
+    }
+
+    protected function isIdentifier(string $value): bool
+    {
+        return preg_match('/^[A-Za-z_][A-Za-z0-9_]*$/D', $value) === 1;
+    }
+
+    protected function isQualifiedIdentifier(string $value): bool
+    {
+        return preg_match('/^[A-Za-z_][A-Za-z0-9_]*(\\\\[A-Za-z_][A-Za-z0-9_]*)*$/D', $value) === 1;
+    }
+
+    /**
+     * @param  array<int, array<string, mixed>>  $columns
+     * @return array<int, array<string, mixed>>
+     */
+    protected function validColumns(array $columns): array
+    {
+        $valid = [];
+
+        foreach ($columns as $column) {
+            $name = (string) ($column['name'] ?? '');
+
+            if (! $this->isIdentifier($name)) {
+                $message = 'Skipped a database column whose name is not a valid identifier.';
+                $this->warnings[] = $message;
+                Log::warning($message, ['column' => $name]);
+
+                continue;
+            }
+
+            $valid[] = $column;
+        }
+
+        return $valid;
     }
 
     protected function buildImports(bool $withTimestamps): string
@@ -86,7 +208,7 @@ class ModelGenerator
      */
     protected function buildAttributes(string $table, array $columns, bool $withTimestamps): string
     {
-        $attributes = "#[Table('{$table}'{$this->primaryKeyArgument($columns)})]";
+        $attributes = '#[Table('.var_export($table, true).$this->primaryKeyArgument($columns).')]';
 
         if (! $withTimestamps) {
             $attributes .= "\n#[WithoutTimestamps]";
@@ -106,7 +228,7 @@ class ModelGenerator
             return '';
         }
 
-        $argument = ", key: '{$primary['name']}'";
+        $argument = ', key: '.var_export($primary['name'], true);
         $type = strtolower((string) ($primary['type'] ?? ''));
 
         if (Str::contains($type, ['char', 'text', 'uuid', 'guid', 'json'])) {
@@ -152,7 +274,7 @@ class ModelGenerator
             $name = (string) $column['name'];
 
             if (! in_array($name, self::MANAGED_COLUMNS, true)) {
-                $fillable[] = "'{$name}',";
+                $fillable[] = var_export($name, true).',';
             }
         }
 
@@ -176,7 +298,7 @@ class ModelGenerator
             $cast = $this->castForType(strtolower((string) ($column['type'] ?? '')));
 
             if ($cast !== null) {
-                $casts[] = "        '{$name}' => '{$cast}',";
+                $casts[] = '        '.var_export($name, true).' => '.var_export($cast, true).',';
             }
         }
 
