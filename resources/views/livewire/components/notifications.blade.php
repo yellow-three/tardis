@@ -3,6 +3,7 @@
 use Livewire\Attributes\Computed;
 use Livewire\Component;
 use Tardis\Notifications\PanelNotifications;
+use Tardis\Support\SafeUrl;
 
 /**
  * The bell in the header: the signed-in user's latest notifications. Checks
@@ -26,7 +27,9 @@ new class extends Component
     {
         $notification = app(PanelNotifications::class)->markRead(auth()->id(), $id);
 
-        if (! $notification?->url) {
+        if (! $notification?->url || ! SafeUrl::isAllowed($notification->url)) {
+            // The row may predate the stricter check, or have been written by
+            // another code path; never redirect through a stored bad link.
             return null;
         }
 
