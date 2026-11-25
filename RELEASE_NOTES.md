@@ -378,3 +378,7 @@ Fixes from the 2026-11-17 review (`docs/notes.md`). Each one is covered by a tes
 - **Duplicate action:** opens the create form pre-filled from a record the user may read (needs "add"); uploads, passwords and has-one/has-many are not copied.
 - **Media usage:** the media details list the records and settings that use a file, and deleting a file that is still used shows a warning.
 - **SVG cleaning:** SVG uploads, where `svg` is allowed, are stripped of scripts, event handlers, `javascript:`/`data:` links, foreign HTML, DOCTYPEs and entities before they are stored.
+
+## 1.x — Excel export and import (R46, second part)
+
+- **XLSX next to CSV:** with the optional `openspout/openspout` package installed, BREAD lists offer *Export Excel* (same columns, rows and order as the CSV; cells are text, so nothing is read as a formula) and the import accepts `.xlsx` files (first sheet), validated and authorised exactly like a CSV. Without the package, or with `tardis.bread.xlsx = false`, only CSV is offered. The export is logged with its format.

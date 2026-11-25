@@ -25,6 +25,12 @@
                     <x-tardis::icon name="arrow-down-tray" class="w-4 h-4" />
                     {{ __('tardis::bread.export_csv') }}
                 </button>
+                @if ($this->xlsxAvailable())
+                    <button type="button" wire:click="export('xlsx')" class="btn btn-ghost">
+                        <x-tardis::icon name="table-cells" class="w-4 h-4" />
+                        {{ __('tardis::bread.export_xlsx') }}
+                    </button>
+                @endif
             @endif
             <a href="{{ $this->createUrl }}" class="btn btn-primary">
                 <x-tardis::icon name="plus" class="w-4 h-4" />
@@ -293,7 +299,7 @@
 
             @if ($importReport === null)
                 <form wire:submit="import" class="flex flex-col gap-3">
-                    <input type="file" wire:model="importFile" accept=".csv,text/csv" class="file-input w-full" />
+                    <input type="file" wire:model="importFile" accept="{{ $this->xlsxAvailable() ? '.csv,text/csv,.xlsx' : '.csv,text/csv' }}" class="file-input w-full" />
                     @error('importFile') <p class="text-sm text-error" role="alert">{{ $message }}</p> @enderror
                     <div class="flex justify-end gap-2">
                         <button type="button" x-on:click="$dispatch('close-modal', 'bread-import')" class="btn btn-ghost">{{ __('tardis::bread.cancel') }}</button>

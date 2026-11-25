@@ -249,6 +249,10 @@ Larger screens (BREAD pages, BREAD builder, media browser, database explorer, se
 
 See [docs/PLUGIN_GUIDE.md](docs/PLUGIN_GUIDE.md) and [docs/EXAMPLE_BREAD.md](docs/EXAMPLE_BREAD.md).
 
+## Export and import
+
+Every BREAD list exports what it shows (columns, search, filters, sort) as CSV, and imports a CSV through the same validation and abilities as the forms. Install `openspout/openspout` (`composer require openspout/openspout`) and an *Export Excel* button appears next to it; `.xlsx` files are then accepted by the import too (first sheet, same header rules). Without the package only CSV is offered; `tardis.bread.xlsx = false` hides Excel even when it is installed.
+
 ## List views, inline editing and duplicates
 
 - **Saved views:** the *Views* menu on a BREAD list saves the current search, sort, page size, filters and deleted-records mode under a name, per user (up to 20 per list), and brings them back with one click. They are kept with the user's preferences (`tardis.state.driver`).

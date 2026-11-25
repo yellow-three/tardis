@@ -298,3 +298,7 @@ A BREAD override route is named after the new action name (`tardis.bread.create.
 
 - Every BREAD now has a `duplicate` action next to delete/restore. Remove it per slug with `Tardis::manipulateActions($slug, fn ($actions) => $actions->forget('duplicate'))`. A test that listed the stock action names needs `duplicate` first.
 - `Tardis\Bread\Action::redirectTo($record, $slug)` lets an action open a page instead of running `handle()`.
+
+## Excel export and import (R46)
+
+- Optional: `composer require openspout/openspout` adds `.xlsx` export and import to BREAD lists. Nothing changes without it.

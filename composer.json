@@ -43,6 +43,7 @@
     "require-dev": {
         "larastan/larastan": "^3.15",
         "laravel/pint": "^1.27",
+        "openspout/openspout": "^4.28",
         "orchestra/testbench": "^11.1",
         "pestphp/pest": "^4.7",
         "pestphp/pest-plugin-browser": "^4.3",
@@ -51,7 +52,8 @@
         "pestphp/pest-plugin-livewire": "^4.1"
     },
     "suggest": {
-        "bacon/bacon-qr-code": "Draws a QR code when a user turns on two-factor authentication (^3.0)."
+        "bacon/bacon-qr-code": "Draws a QR code when a user turns on two-factor authentication (^3.0).",
+        "openspout/openspout": "Adds Excel (.xlsx) export and import to BREAD lists next to CSV (^4.28)."
     },
     "minimum-stability": "stable",
     "prefer-stable": true,

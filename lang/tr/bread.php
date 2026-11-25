@@ -120,4 +120,5 @@ return [
         'saved' => '":name" görünümü kaydedildi.',
         'too_many' => 'Liste başına en fazla 20 görünüm saklanabilir.',
     ],
+    'export_xlsx' => 'Excel dışa aktar',
 ];
