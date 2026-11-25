@@ -31,7 +31,22 @@ new #[Title('tardis::permissions.permissions')] #[Layout('tardis::layouts.admin'
      */
     public function boot(): void
     {
+        $this->authorizeRoles();
+    }
+
+    /** Every public action checks for itself: component state outlives one request. */
+    protected function authorizeRoles(): void
+    {
         app(BreadAuthorization::class)->authorizeAbility(Abilities::ROLES);
+    }
+
+    /**
+     * These permissions are written by PermissionSeeder and read by the
+     * authorization plugin; deleting one would silently change who can do what.
+     */
+    protected function isCorePermission(string $slug): bool
+    {
+        return in_array($slug, [...Abilities::admin(), ...Abilities::media()], true);
     }
 
     public function mount(): void
@@ -41,11 +56,15 @@ new #[Title('tardis::permissions.permissions')] #[Layout('tardis::layouts.admin'
 
     public function loadPermissions(): void
     {
+        $this->authorizeRoles();
+
         $this->permissions = ModelResolver::permission()::all()->toArray();
     }
 
     public function createPermission(): void
     {
+        $this->authorizeRoles();
+
         $this->validate([
             'newName' => 'required|string|max:255',
             'newSlug' => 'required|string|max:255|unique:tardis_permissions,slug',
@@ -66,14 +85,23 @@ new #[Title('tardis::permissions.permissions')] #[Layout('tardis::layouts.admin'
 
     public function confirmDelete(int $id): void
     {
+        $this->authorizeRoles();
+
         $this->deleteId = $id;
         $this->showDeleteModal = true;
     }
 
     public function deletePermission(): void
     {
+        $this->authorizeRoles();
+
         if ($this->deleteId) {
             $permission = ModelResolver::permission()::findOrFail($this->deleteId);
+
+            if ($this->isCorePermission((string) $permission->slug)) {
+                abort(403);
+            }
+
             $permission->delete();
             app(ActivityLogger::class)->audit('tardis.permission', 'deleted', ['slug' => $permission->slug], $permission->getKey());
             $this->deleteId = null;

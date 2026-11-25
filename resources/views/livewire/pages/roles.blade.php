@@ -42,6 +42,20 @@ new #[Title('tardis::roles.roles')] #[Layout('tardis::layouts.admin')] class ext
         app(BreadAuthorization::class)->authorizeAbility(Abilities::ROLES);
     }
 
+    /**
+     * The super-admin role is the one role nobody below super admin may
+     * change: editing its permissions or deleting it is a way to strip every
+     * administrator of their access.
+     */
+    protected function guardSuperAdminRole(int $roleId): void
+    {
+        $guard = app(PrivilegeGuard::class);
+
+        if (in_array($roleId, $guard->superAdminRoleIds(), true) && ! $guard->isSuperAdmin(auth()->user())) {
+            abort(403);
+        }
+    }
+
     public function mount(): void
     {
         $this->loadRoles();
@@ -72,6 +86,8 @@ new #[Title('tardis::roles.roles')] #[Layout('tardis::layouts.admin')] class ext
 
     public function editRole(int $roleId): void
     {
+        $this->guardSuperAdminRole($roleId);
+
         $role = ModelResolver::role()::findOrFail($roleId);
         $this->editRoleId = $roleId;
         $this->error = null;
@@ -119,6 +135,8 @@ new #[Title('tardis::roles.roles')] #[Layout('tardis::layouts.admin')] class ext
     public function saveRolePermissions(): void
     {
         if ($this->editRoleId) {
+            $this->guardSuperAdminRole($this->editRoleId);
+
             $role = ModelResolver::role()::findOrFail($this->editRoleId);
 
             $current = $role->permissions()->pluck($role->permissions()->getRelated()->getQualifiedKeyName())->all();
@@ -144,6 +162,8 @@ new #[Title('tardis::roles.roles')] #[Layout('tardis::layouts.admin')] class ext
 
     public function confirmDelete(int $id): void
     {
+        $this->guardSuperAdminRole($id);
+
         $this->deleteId = $id;
         $this->error = null;
         $this->showDeleteModal = true;
@@ -152,6 +172,8 @@ new #[Title('tardis::roles.roles')] #[Layout('tardis::layouts.admin')] class ext
     public function deleteRole(): void
     {
         if ($this->deleteId) {
+            $this->guardSuperAdminRole($this->deleteId);
+
             $role = ModelResolver::role()::findOrFail($this->deleteId);
 
             // Deleting it would lock every administrator out at once.

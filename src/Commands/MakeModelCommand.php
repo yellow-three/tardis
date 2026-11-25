@@ -44,7 +44,7 @@ class MakeModelCommand extends Command
                 'path' => $this->option('path') ?: app_path('Models'),
                 'force' => (bool) $this->option('force'),
             ]);
-        } catch (\RuntimeException $e) {
+        } catch (\InvalidArgumentException|\RuntimeException $e) {
             $this->components->error($e->getMessage());
 
             return self::FAILURE;

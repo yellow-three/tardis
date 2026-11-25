@@ -1,5 +1,6 @@
 <?php
 
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\Computed;
@@ -106,7 +107,7 @@ new #[Title('tardis::users.users')] #[Layout('tardis::layouts.admin')] class ext
 
     public function openEdit(int|string $userId): void
     {
-        $user = $this->userModel()::query()->findOrFail($userId);
+        $user = $this->targetUser($userId);
 
         $this->editUserId = $user->getKey();
         $this->editRoleIds = DB::table('tardis_role_user')
@@ -132,7 +133,7 @@ new #[Title('tardis::users.users')] #[Layout('tardis::layouts.admin')] class ext
             return;
         }
 
-        $user = $this->userModel()::query()->findOrFail($this->editUserId);
+        $user = $this->targetUser($this->editUserId);
 
         // Only roles that exist can be granted, whatever the client sent.
         $roleIds = ModelResolver::role()::query()
@@ -185,11 +186,7 @@ new #[Title('tardis::users.users')] #[Layout('tardis::layouts.admin')] class ext
 
     public function openDetails(int|string $userId): void
     {
-        $user = $this->userModel()::query()->findOrFail($userId);
-
-        if (! app(PrivilegeGuard::class)->mayManageUser(auth()->user(), $user)) {
-            abort(403);
-        }
+        $user = $this->targetUser($userId);
 
         $this->resetErrorBag();
         $this->reset('userForm', 'error');
@@ -208,11 +205,7 @@ new #[Title('tardis::users.users')] #[Layout('tardis::layouts.admin')] class ext
     {
         $this->error = null;
         $creating = $this->formUserId === null;
-        $user = $creating ? null : $this->userModel()::query()->findOrFail($this->formUserId);
-
-        if ($user !== null && ! app(PrivilegeGuard::class)->mayManageUser(auth()->user(), $user)) {
-            abort(403);
-        }
+        $user = $creating ? null : $this->targetUser($this->formUserId);
 
         $this->validate($this->accounts()->rules($user?->getKey(), passwordRequired: $creating));
 
@@ -254,25 +247,20 @@ new #[Title('tardis::users.users')] #[Layout('tardis::layouts.admin')] class ext
     /** Sign in as the user; the banner on every page leads back. */
     public function impersonate(int|string $userId): void
     {
-        app(Impersonation::class)->start($this->userModel()::query()->findOrFail($userId));
+        app(Impersonation::class)->start($this->targetUser($userId));
 
         $this->redirect(route('tardis.dashboard'), navigate: true);
     }
 
     public function deleteUser(int|string $userId): void
     {
-        $user = $this->userModel()::query()->findOrFail($userId);
-
-        if ((string) auth()->id() === (string) $user->getKey()) {
+        if ((string) auth()->id() === (string) $userId) {
             $this->error = __('tardis::users.cannot_delete_self');
 
             return;
         }
 
-        if (! app(PrivilegeGuard::class)->mayManageUser(auth()->user(), $user)) {
-            abort(403);
-        }
-
+        $user = $this->targetUser($userId);
         $superIds = ModelResolver::role()::query()->whereIn('slug', $this->superAdminSlugs())->pluck('id')->all();
 
         if ($this->wouldRemoveLastSuperAdmin($user->getKey(), [], $superIds)) {
@@ -284,6 +272,20 @@ new #[Title('tardis::users.users')] #[Layout('tardis::layouts.admin')] class ext
         $this->accounts()->delete($user);
         app(ActivityLogger::class)->audit('tardis.users', 'user_deleted', ['user_id' => $userId], $userId);
         session()->flash('message', __('tardis::users.user_deleted'));
+    }
+
+    /**
+     * Every action that names a user goes through one check: a manager may not
+     * edit, impersonate or delete someone who holds more access than they do,
+     * nor a super administrator.
+     */
+    protected function targetUser(int|string $userId): Model
+    {
+        $user = $this->userModel()::query()->findOrFail($userId);
+
+        abort_unless(app(PrivilegeGuard::class)->mayManageUser(auth()->user(), $user), 403);
+
+        return $user;
     }
 
     protected function accounts(): UserAccounts

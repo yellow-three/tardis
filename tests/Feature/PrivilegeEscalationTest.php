@@ -74,11 +74,11 @@ test('a user manager cannot take the super administrator role away either', func
 
     $this->actingAs($this->manager);
 
+    // The editor itself is off limits now, not just the save: a manager may
+    // not even read another administrator's role assignment.
     Livewire::test('tardis::pages.users')
         ->call('openEdit', $other->id)
-        ->set('editRoleIds', [])
-        ->call('saveRoles')
-        ->assertSet('error', __('tardis::users.cannot_change_super_admin'));
+        ->assertForbidden();
 
     expect(escalationRolesOf($other))->toBe([$this->superRole->id]);
 });
