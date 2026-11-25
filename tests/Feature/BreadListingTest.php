@@ -12,6 +12,9 @@ use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Schema;
 use Livewire\Features\SupportTesting\Testable;
 use Livewire\Livewire;
+use OpenSpout\Common\Entity\Row;
+use OpenSpout\Reader\XLSX\Reader;
+use OpenSpout\Writer\XLSX\Writer;
 use Tardis\Bread\BreadDefinition;
 use Tardis\Bread\BreadQuery;
 use Tardis\Bread\Sources\JsonBreadSource;
@@ -457,4 +460,74 @@ test('an exported file reads back in unchanged', function () {
     expect($report['errors'])->toBe([])
         ->and($report['created'])->toBe(3)
         ->and(ListingArticle::orderBy('id')->skip(3)->take(3)->get(['title', 'body', 'views'])->toArray())->toBe($before);
+});
+
+/** @return list<list<mixed>> the first sheet of a workbook */
+function xlsxRows(string $contents): array
+{
+    $path = (string) tempnam(sys_get_temp_dir(), 'xlsx-test-');
+    file_put_contents($path, $contents);
+    $reader = new Reader;
+    $reader->open($path);
+    $rows = [];
+
+    foreach ($reader->getSheetIterator() as $sheet) {
+        foreach ($sheet->getRowIterator() as $row) {
+            $rows[] = $row->toArray();
+        }
+        break;
+    }
+
+    $reader->close();
+    unlink($path);
+
+    return $rows;
+}
+
+test('the list exports what it shows as Excel, with formulas kept as text', function () {
+    Carbon::setTestNow('2026-11-22 10:00:00');
+    (new JsonBreadSource($this->path))->save(listingBread());
+    ListingArticle::create(['title' => '=HYPERLINK("http://x")', 'body' => 'formula', 'views' => 3]);
+
+    $download = Livewire::test('tardis::pages.bread.index', ['slug' => 'articles'])
+        ->assertSee(__('tardis::bread.export_xlsx'))
+        ->call('export', 'xlsx')->effects['download'];
+
+    $rows = xlsxRows(base64_decode($download['content']));
+
+    expect($download['name'])->toBe('articles-2026-11-22-100000.xlsx')
+        ->and($rows[0])->toBe(['Title', 'Body', 'Views', 'Tags', 'Comments'])
+        ->and(array_column($rows, 0))->toContain('Alpha', '=HYPERLINK("http://x")')
+        ->and(json_encode($rows))->not->toContain('Secret');
+});
+
+test('an Excel file is imported through the same rules as a CSV', function () {
+    $this->artisan('migrate');
+    (new JsonBreadSource($this->path))->save(listingBread());
+
+    $path = (string) tempnam(sys_get_temp_dir(), 'xlsx-in-').'.xlsx';
+    $writer = new Writer;
+    $writer->openToFile($path);
+    $writer->addRow(Row::fromValues(['Title', 'Views']));
+    $writer->addRow(Row::fromValues(['From Excel', 9]));
+    $writer->close();
+
+    $page = Livewire::test('tardis::pages.bread.index', ['slug' => 'articles'])
+        ->set('importFile', UploadedFile::fake()->createWithContent('articles.xlsx', (string) file_get_contents($path)))
+        ->call('import');
+    unlink($path);
+
+    expect($page->get('importReport'))->toMatchArray(['created' => 1, 'errors' => []])
+        ->and(ListingArticle::query()->where('title', 'From Excel')->value('views'))->toBe(9);
+});
+
+test('with Excel switched off the list offers and writes CSV only', function () {
+    config()->set('tardis.bread.xlsx', false);
+    (new JsonBreadSource($this->path))->save(listingBread());
+
+    $download = Livewire::test('tardis::pages.bread.index', ['slug' => 'articles'])
+        ->assertDontSee(__('tardis::bread.export_xlsx'))
+        ->call('export', 'xlsx')->effects['download'];
+
+    expect($download['name'])->toEndWith('.csv');
 });

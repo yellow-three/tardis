@@ -62,6 +62,8 @@ return [
         // The CSV export button on every BREAD list (anyone who may browse
         // the BREAD may export what they see).
         'export' => true,
+        // Excel (.xlsx) next to CSV, when openspout/openspout is installed.
+        'xlsx' => true,
         // The most records a bulk action runs on with "select all matching".
         'bulk_limit' => 1000,
         // CSV import on BREAD lists, for users who may add or edit records:

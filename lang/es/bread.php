@@ -122,4 +122,5 @@ return [
         'saved' => 'Vista «:name» guardada.',
         'too_many' => 'Puede guardar como máximo 20 vistas por lista.',
     ],
+    'export_xlsx' => 'Exportar Excel',
 ];

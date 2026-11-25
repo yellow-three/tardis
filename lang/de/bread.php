@@ -122,4 +122,5 @@ return [
         'saved' => 'Ansicht „:name“ gespeichert.',
         'too_many' => 'Pro Liste sind höchstens 20 Ansichten möglich.',
     ],
+    'export_xlsx' => 'Excel exportieren',
 ];

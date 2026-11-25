@@ -122,4 +122,5 @@ return [
         'saved' => 'Vue « :name » enregistrée.',
         'too_many' => 'Vous pouvez garder au plus 20 vues par liste.',
     ],
+    'export_xlsx' => 'Exporter en Excel',
 ];

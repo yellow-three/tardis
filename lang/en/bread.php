@@ -122,4 +122,5 @@ return [
         'saved' => 'View ":name" saved.',
         'too_many' => 'You can keep at most 20 views per list.',
     ],
+    'export_xlsx' => 'Export Excel',
 ];
