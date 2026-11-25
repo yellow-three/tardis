@@ -78,6 +78,8 @@ return [
     'bulk_too_many' => ':limit kayıttan fazlası eşleşiyor; filtreleri daraltıp yeniden çalıştırın.',
     'import_csv' => 'CSV içe aktar',
     'import_help' => 'Başlık satırı sütunları alan adı ya da etiketiyle adlandırır; bu listeden dışa aktarılan dosya geri okunabilir. Var olan bir kaydın anahtarını taşıyan satır o kaydı günceller, diğer satırlar eklenir. Tek bir geçersiz satır varsa hiçbir şey yazılmaz.',
+    'import_spreadsheet' => 'CSV veya Excel içe aktar',
+    'import_help_spreadsheet' => 'Başlık satırı sütunları alan adı ya da etiketiyle adlandırır; bu listeden dışa aktarılan CSV veya Excel (.xlsx) dosyası geri okunabilir. Var olan bir kaydın anahtarını taşıyan satır o kaydı günceller, diğer satırlar eklenir. Tek bir geçersiz satır varsa hiçbir şey yazılmaz.',
     'import_run' => 'İçe aktar',
     'import_done' => ':created eklendi, :updated güncellendi.',
     'import_failed' => 'Hiçbir şey içe aktarılmadı. Bu satırları düzeltip yeniden deneyin:',

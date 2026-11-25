@@ -70,9 +70,11 @@ final class SvgSanitizer
 
     private static function cleanElement(\DOMElement $element): void
     {
+        $elementName = self::localName($element->localName);
+
         foreach (iterator_to_array($element->childNodes) as $child) {
             if ($child instanceof \DOMElement) {
-                if (in_array(strtolower($child->localName), self::FORBIDDEN_ELEMENTS, true)) {
+                if (in_array(self::localName($child->localName), self::FORBIDDEN_ELEMENTS, true)) {
                     $element->removeChild($child);
 
                     continue;
@@ -86,11 +88,19 @@ final class SvgSanitizer
 
         foreach (iterator_to_array($element->attributes) as $attribute) {
             /** @var \DOMAttr $attribute */
-            $name = strtolower($attribute->localName);
+            // An undeclared prefix stays in localName ("xlink:href"), so the
+            // part after the last colon is the name the checks must use.
+            $name = self::localName($attribute->localName);
             $value = strtolower(preg_replace('/[\s\x00-\x1f]+/', '', $attribute->value) ?? '');
 
+            // An <a> may point to the web; <use>, <image> and <feImage> fetch
+            // external resources into the document, so they only take #ids.
+            $referenceOnly = in_array($elementName, ['use', 'image', 'feimage'], true)
+                && in_array($name, ['href', 'src'], true);
+
             $unsafe = str_starts_with($name, 'on')
-                || (in_array($name, ['href', 'src', 'action', 'formaction'], true) && ! self::safeLink($value))
+                || (in_array($name, ['href', 'src', 'action', 'formaction'], true)
+                    && ! ($referenceOnly ? self::fragmentLink($value) : self::safeLink($value)))
                 || ($name === 'style' && (str_contains($value, 'javascript:') || str_contains($value, 'expression(') || preg_match('/url\((?!["\']?#)/', $value) === 1));
 
             if ($unsafe) {
@@ -103,5 +113,19 @@ final class SvgSanitizer
     private static function safeLink(string $value): bool
     {
         return $value === '' || str_starts_with($value, '#') || preg_match('#^https?://#', $value) === 1 && ! str_contains($value, '<');
+    }
+
+    /** Resource references may not leave the document. */
+    private static function fragmentLink(string $value): bool
+    {
+        return str_starts_with($value, '#') && ! str_contains($value, '<');
+    }
+
+    /** DOM keeps undeclared prefixes in localName; check the unprefixed name. */
+    private static function localName(string $name): string
+    {
+        $colon = strrpos($name, ':');
+
+        return strtolower($colon === false ? $name : substr($name, $colon + 1));
     }
 }

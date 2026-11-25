@@ -388,6 +388,14 @@ Fixes from the 2026-11-17 review (`docs/notes.md`). Each one is covered by a tes
 - The login, two-factor and password pages no longer always speak the application default before sign-in: they follow the language chosen in this session, then the one this browser last used (a `tardis_locale` cookie, also written from a signed-in user's saved choice), then the browser's `Accept-Language` when the panel has that translation (`tardis.admin.browser_locale`). They carry a language switcher too.
 - Livewire updates keep the language (the locale middleware is persistent), so a failed sign-in or a validation message no longer falls back to English. Signed-in users keep their saved choice, then the application's language, as before.
 
+
 ## 1.x — hidden fields stay out of search and sort
 
 - A field behind an ability (R48) was already left out of the pages, export and import, but the list's search box, its column search and its sort still used it, so a user without the ability could tell the hidden value by searching for it or ordering by it. The JSON API had the same gap. Search and sort now only use the fields the user may see; a legacy `search_key` that names a hidden field is not searched.
+
+## 1.x — pre-release fixes
+
+- **Upgrade migration on SQLite:** the migration that drops old `user_id` foreign keys from `tardis_role_user` and `tardis_activity_logs` now passes the column list on SQLite, which can only drop a key by rebuilding the table; other drivers still use the real key name. Rows and columns are kept, and a schema without those tables is a no-op.
+- **JSON API errors:** a request without `Accept: application/json` goes through a middleware that marks it as JSON before the configurable auth/throttle middleware, so a guest gets 401 JSON instead of a redirect to a `login` route the host may not define.
+- **Import dialog wording:** with XLSX support the dialog title, its button and the help text mention both CSV and Excel `.xlsx`; with only CSV support the earlier strings stay. All six shipped languages carry the two new keys.
+- **SVG cleaning:** attribute names are checked after the last colon, so an undeclared `xlink:href` cannot hide a `javascript:` link; `<use>`, `<image>` and `<feImage>` keep only `#fragment` references, while `<a href="https://…">` is still allowed.

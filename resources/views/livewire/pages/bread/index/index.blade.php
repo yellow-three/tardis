@@ -2,6 +2,8 @@
     // Read from the slug on every request; it is not part of the snapshot.
     $bread = $this->bread;
 @endphp
+@php($importTitle = $this->xlsxAvailable() ? __('tardis::bread.import_spreadsheet') : __('tardis::bread.import_csv'))
+@php($importHelp = $this->xlsxAvailable() ? __('tardis::bread.import_help_spreadsheet') : __('tardis::bread.import_help'))
 <div>
     <x-tardis::page-header
         :title="$bread['name_plural'] ?? ucfirst($slug)"
@@ -17,7 +19,7 @@
             @if ($this->canImport())
                 <button type="button" x-on:click="$dispatch('open-modal', 'bread-import')" class="btn btn-ghost">
                     <x-tardis::icon name="arrow-up-tray" class="w-4 h-4" />
-                    {{ __('tardis::bread.import_csv') }}
+                    {{ $importTitle }}
                 </button>
             @endif
             @if (config('tardis.bread.export', true))
@@ -294,8 +296,8 @@
     </div>
 
     @if ($this->canImport())
-        <x-tardis::modal name="bread-import" :title="__('tardis::bread.import_csv')">
-            <p class="mb-3 text-sm text-base-content/70">{{ __('tardis::bread.import_help') }}</p>
+        <x-tardis::modal name="bread-import" :title="$importTitle">
+            <p class="mb-3 text-sm text-base-content/70">{{ $importHelp }}</p>
 
             @if ($importReport === null)
                 <form wire:submit="import" class="flex flex-col gap-3">

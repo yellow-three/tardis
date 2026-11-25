@@ -36,6 +36,10 @@ All notable changes to this package. The format follows [Keep a Changelog](https
 - Security and robustness fixes of phases 9 and 10, the theme engine of phase 10b and the service provider of phase 10c; see RELEASE_NOTES.md.
 - A field hidden by its ability can no longer be searched, column-searched or sorted on, in the panel or the JSON API.
 - Livewire updates on the sign-in pages keep the chosen language.
+- The user foreign key upgrade migration drops SQLite keys by columns, keeping rows and columns intact.
+- JSON API requests without an `Accept` header stay JSON (401 instead of a redirect or a missing login route).
+- The import dialog says "Import CSV or Excel" and explains `.xlsx` when Excel support is available.
+- SVG cleaning checks unprefixed attribute names and removes external `<use>`, `<image>` and `<feImage>` references.
 
 ## [0.1.0]
 

@@ -78,6 +78,8 @@ return [
     'bulk_too_many' => 'Mehr als :limit Datensätze passen; schränken Sie die Filter ein und führen Sie es erneut aus.',
     'import_csv' => 'CSV importieren',
     'import_help' => 'Eine Kopfzeile benennt die Spalten, nach Feldname oder Bezeichnung; eine aus dieser Liste exportierte Datei kann wieder eingelesen werden. Eine Zeile mit dem Schlüssel eines vorhandenen Datensatzes aktualisiert ihn, jede andere Zeile wird hinzugefügt. Bei einer einzigen ungültigen Zeile wird nichts geschrieben.',
+    'import_spreadsheet' => 'CSV oder Excel importieren',
+    'import_help_spreadsheet' => 'Eine Kopfzeile benennt die Spalten, nach Feldname oder Bezeichnung; eine aus dieser Liste exportierte CSV- oder Excel-Datei (.xlsx) kann wieder eingelesen werden. Eine Zeile mit dem Schlüssel eines vorhandenen Datensatzes aktualisiert ihn, jede andere Zeile wird hinzugefügt. Bei einer einzigen ungültigen Zeile wird nichts geschrieben.',
     'import_run' => 'Importieren',
     'import_done' => ':created hinzugefügt, :updated aktualisiert.',
     'import_failed' => 'Es wurde nichts importiert. Korrigieren Sie diese Zeilen und versuchen Sie es erneut:',

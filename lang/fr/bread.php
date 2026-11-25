@@ -78,6 +78,8 @@ return [
     'bulk_too_many' => 'Plus de :limit enregistrements correspondent ; affinez les filtres et relancez l\'action.',
     'import_csv' => 'Importer un CSV',
     'import_help' => 'Une ligne d\'en-tête nomme les colonnes, par nom de champ ou par libellé ; un fichier exporté depuis cette liste peut être relu. Une ligne portant la clé d\'un enregistrement existant le met à jour, toute autre ligne est ajoutée. Une seule ligne invalide et rien n\'est écrit.',
+    'import_spreadsheet' => 'Importer un CSV ou un Excel',
+    'import_help_spreadsheet' => 'Une ligne d\'en-tête nomme les colonnes, par nom de champ ou par libellé ; un fichier CSV ou Excel (.xlsx) exporté depuis cette liste peut être relu. Une ligne portant la clé d\'un enregistrement existant le met à jour, toute autre ligne est ajoutée. Une seule ligne invalide et rien n\'est écrit.',
     'import_run' => 'Importer',
     'import_done' => ':created ajouté(s), :updated mis à jour.',
     'import_failed' => 'Rien n\'a été importé. Corrigez ces lignes et réessayez :',

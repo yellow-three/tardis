@@ -521,6 +521,23 @@ test('an Excel file is imported through the same rules as a CSV', function () {
         ->and(ListingArticle::query()->where('title', 'From Excel')->value('views'))->toBe(9);
 });
 
+test('the import dialog names Excel when Excel import is available', function () {
+    (new JsonBreadSource($this->path))->save(listingBread());
+
+    Livewire::test('tardis::pages.bread.index', ['slug' => 'articles'])
+        ->assertSee('Import CSV or Excel')
+        ->assertSee('Excel (.xlsx)');
+});
+
+test('the import dialog stays CSV-only when Excel is disabled', function () {
+    config()->set('tardis.bread.xlsx', false);
+    (new JsonBreadSource($this->path))->save(listingBread());
+
+    Livewire::test('tardis::pages.bread.index', ['slug' => 'articles'])
+        ->assertSee(__('tardis::bread.import_csv'))
+        ->assertDontSee('Import CSV or Excel');
+});
+
 test('with Excel switched off the list offers and writes CSV only', function () {
     config()->set('tardis.bread.xlsx', false);
     (new JsonBreadSource($this->path))->save(listingBread());

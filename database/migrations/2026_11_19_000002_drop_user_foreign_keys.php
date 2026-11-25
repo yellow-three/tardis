@@ -20,10 +20,17 @@ return new class extends Migration
                 continue;
             }
 
+            $driver = Schema::getConnection()->getDriverName();
+
             foreach (Schema::getForeignKeys($table) as $foreignKey) {
                 if ($foreignKey['columns'] === ['user_id']) {
-                    Schema::table($table, function (Blueprint $blueprint) use ($foreignKey) {
-                        $blueprint->dropForeign($foreignKey['name']);
+                    // SQLite can only drop a key by rebuilding the table from
+                    // its columns; other drivers keep using the real name
+                    // (a conventional name need not match it).
+                    $key = $driver === 'sqlite' ? $foreignKey['columns'] : $foreignKey['name'];
+
+                    Schema::table($table, function (Blueprint $blueprint) use ($key) {
+                        $blueprint->dropForeign($key);
                     });
                 }
             }
