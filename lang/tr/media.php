@@ -71,4 +71,8 @@ return [
     'previous_page' => 'Önceki sayfa',
     'next_page' => 'Sonraki sayfa',
     'page_of' => 'Sayfa :page / :last',
+    'used_in' => 'Kullanıldığı yerler',
+    'not_used' => 'Hiçbir kayıt ya da ayar kullanmıyor.',
+    'usage_setting' => 'Ayar',
+    'still_used' => 'Bu dosya hâlâ :count yerde kullanılıyor.|Bu dosya hâlâ :count yerde kullanılıyor.',
 ];

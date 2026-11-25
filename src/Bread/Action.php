@@ -73,6 +73,15 @@ abstract class Action
         return $this->bulk;
     }
 
+    /**
+     * A page to open instead of running handle() (duplicate opens the create
+     * form). Null runs the action in place.
+     */
+    public function redirectTo(Model $record, string $slug): ?string
+    {
+        return null;
+    }
+
     /** Whether it is offered for this row (e.g. restore only for deleted ones). */
     public function appliesTo(Model $record): bool
     {

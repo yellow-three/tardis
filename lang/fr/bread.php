@@ -110,4 +110,16 @@ return [
     'order_description' => 'Faites glisser les enregistrements, ou utilisez les flèches, pour définir l\'ordre dans lequel la liste les affiche.',
     'order_saved' => 'Ordre enregistré.',
     'order_limited' => 'Seuls les :count premiers enregistrements sont affichés ici.',
+    'duplicate' => 'Dupliquer',
+    'duplicate_notice' => 'Ce formulaire est une copie de l’enregistrement #:id. Rien n’est enregistré avant l’envoi.',
+    'edit_inline' => 'Modifier :field',
+    'views' => [
+        'title' => 'Vues',
+        'none' => 'Aucune vue enregistrée.',
+        'delete' => 'Supprimer la vue :name',
+        'name' => 'Nom de cette vue',
+        'save' => 'Enregistrer',
+        'saved' => 'Vue « :name » enregistrée.',
+        'too_many' => 'Vous pouvez garder au plus 20 vues par liste.',
+    ],
 ];

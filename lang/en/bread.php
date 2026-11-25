@@ -110,4 +110,16 @@ return [
     'order_description' => 'Drag the records, or use the arrows, to set the order the list shows them in.',
     'order_saved' => 'Order saved.',
     'order_limited' => 'Only the first :count records are shown here.',
+    'duplicate' => 'Duplicate',
+    'duplicate_notice' => 'This form is a copy of record #:id. Nothing is saved until you submit it.',
+    'edit_inline' => 'Edit :field',
+    'views' => [
+        'title' => 'Views',
+        'none' => 'No saved views yet.',
+        'delete' => 'Delete the view :name',
+        'name' => 'Name of this view',
+        'save' => 'Save',
+        'saved' => 'View ":name" saved.',
+        'too_many' => 'You can keep at most 20 views per list.',
+    ],
 ];

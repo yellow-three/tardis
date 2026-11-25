@@ -249,6 +249,12 @@ Larger screens (BREAD pages, BREAD builder, media browser, database explorer, se
 
 See [docs/PLUGIN_GUIDE.md](docs/PLUGIN_GUIDE.md) and [docs/EXAMPLE_BREAD.md](docs/EXAMPLE_BREAD.md).
 
+## List views, inline editing and duplicates
+
+- **Saved views:** the *Views* menu on a BREAD list saves the current search, sort, page size, filters and deleted-records mode under a name, per user (up to 20 per list), and brings them back with one click. They are kept with the user's preferences (`tardis.state.driver`).
+- **Inline editing:** a field with `"inline": true` (text, number, email or url types) is edited right in the list cell: click, change, Enter. The field's own validation and the record's edit ability apply; Esc cancels.
+- **Duplicate:** every BREAD has a *Duplicate* action (needs the add ability) that opens the create form filled with a copy of the record; files, passwords and has-one/has-many relations are left empty, and nothing is saved until the form is submitted.
+
 ## Command palette, notifications and charts
 
 - **Command palette:** Ctrl+K (⌘K) on any panel page, or the button in the header, opens a list of every sidebar page the user may open plus "New …" for each BREAD they may add to; type to filter, arrows and Enter to go. Anything else searches the records. `window.Tardis.palette()` opens it from your own script.
@@ -302,7 +308,9 @@ Three read-mostly screens, each behind its own ability (`view system`, `view log
 
 ## Media uploads
 
-Uploads on the media screen are limited to the extensions in `tardis.media.allowed_mimes` (images, pdf, office documents, zip) and to `tardis.media.max_file_size` KB. Executable or markup files such as `.php` and `.html` are rejected. Publish the config with `--tag=tardis-config` to change the list; `svg` is left out of the default list because it can carry script; add it only for trusted uploaders or when the media disk is served from another origin.
+Uploads on the media screen are limited to the extensions in `tardis.media.allowed_mimes` (images, pdf, office documents, zip) and to `tardis.media.max_file_size` KB. Executable or markup files such as `.php` and `.html` are rejected. Publish the config with `--tag=tardis-config` to change the list; `svg` is left out of the default list. When you add it, every SVG upload (media screen and file, image and media fields) is cleaned first: scripts, event handlers, `javascript:`/`data:` links, embedded HTML, DOCTYPEs and entities are removed, and a file that cannot be read safely is refused.
+
+The file details show where a file is used (BREAD records whose image, file, media or rich text fields hold its path, and settings), and deleting a file that is still used warns first.
 
 Files reach the media screen through Livewire's temporary upload, which applies its own limits first: 12 MB per file and 60 uploads a minute by default. To accept files larger than 12 MB, raise both `tardis.media.max_file_size` and Livewire's rule in `config/livewire.php`:
 

@@ -10,6 +10,7 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 use Tardis\Auth\Abilities;
 use Tardis\Auth\BreadAuthorization;
 use Tardis\Media\MediaManager;
+use Tardis\Media\MediaUsage;
 
 new #[Title('tardis::shell.titles.media')] #[Layout('tardis::layouts.admin')] class extends Component
 {
@@ -79,6 +80,9 @@ new #[Title('tardis::shell.titles.media')] #[Layout('tardis::layouts.admin')] cl
     public bool $showTagsSection = false;
 
     public ?array $infoFile = null;
+
+    /** @var list<array{source: string, label: string, url: ?string}> where the file in the info or delete dialog is used */
+    public array $fileUsage = [];
 
     public bool $showInfoModal = false;
 
@@ -296,6 +300,7 @@ new #[Title('tardis::shell.titles.media')] #[Layout('tardis::layouts.admin')] cl
         $info = $manager->getFileInfo($path);
 
         if ($info) {
+            $this->fileUsage = $this->usageOf($path);
             $this->infoFile = $info;
             $this->showInfoModal = true;
         }
@@ -367,6 +372,7 @@ new #[Title('tardis::shell.titles.media')] #[Layout('tardis::layouts.admin')] cl
 
         $this->deletePath = $path;
         $this->deleteIsDirectory = $this->isDirectory($path);
+        $this->fileUsage = $this->deleteIsDirectory ? [] : $this->usageOf($path);
         $this->deleteIsBulk = false;
         $this->showDeleteModal = true;
     }
@@ -489,6 +495,12 @@ new #[Title('tardis::shell.titles.media')] #[Layout('tardis::layouts.admin')] cl
         }
 
         return false;
+    }
+
+    /** @return list<array{source: string, label: string, url: ?string}> */
+    protected function usageOf(string $relativePath): array
+    {
+        return app(MediaUsage::class)->find(trim((string) config('tardis.media.path', 'media'), '/').'/'.ltrim($relativePath, '/'));
     }
 
     protected function deleteTarget(MediaManager $manager, string $relativePath): void
