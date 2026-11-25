@@ -50,6 +50,11 @@ First stable release (not tagged yet). Everything since 0.1.0:
 - Named filters, `belongs_to_many` writes, `has_many` child rows and relation labels in lists and exports now respect field abilities, the related BREAD's restrictions and the declared child fields.
 - The owner restriction no longer switches off for a panel user that is not an Eloquent model.
 - The media picker checks "browse media" in every action; SVG uploads lose `<style>` and `xml:base`; XLSX cells are always text; password reset links use `app.url` instead of the request's Host header; an unknown BREAD icon no longer breaks every panel page.
+- Panel pages, Livewire updates and the JSON API send `X-Frame-Options`, `Content-Security-Policy: frame-ancestors 'self'`, `X-Content-Type-Options` and `Referrer-Policy` (configurable in `tardis.security.headers`).
+- The language switch no longer redirects to another site through the `Referer` header; notification and menu links refuse `/\host` and other tricks when stored and when shown.
+- The activity log replaces passwords, tokens, secrets and recovery codes with `[redacted]`, whatever the model declares (extend the list with `tardis.activity_log.redact`).
+- Generated model files accept only PHP identifiers for table, column, namespace and class names, and `tardis:make:model --path` must stay inside the application.
+- A user manager who is not a super administrator can no longer read or change a super administrator's roles, edit the super-admin role or delete the core permissions.
 
 ## [0.1.0]
 
