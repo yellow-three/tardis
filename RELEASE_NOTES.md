@@ -387,3 +387,7 @@ Fixes from the 2026-11-17 review (`docs/notes.md`). Each one is covered by a tes
 
 - The login, two-factor and password pages no longer always speak the application default before sign-in: they follow the language chosen in this session, then the one this browser last used (a `tardis_locale` cookie, also written from a signed-in user's saved choice), then the browser's `Accept-Language` when the panel has that translation (`tardis.admin.browser_locale`). They carry a language switcher too.
 - Livewire updates keep the language (the locale middleware is persistent), so a failed sign-in or a validation message no longer falls back to English. Signed-in users keep their saved choice, then the application's language, as before.
+
+## 1.x — hidden fields stay out of search and sort
+
+- A field behind an ability (R48) was already left out of the pages, export and import, but the list's search box, its column search and its sort still used it, so a user without the ability could tell the hidden value by searching for it or ordering by it. The JSON API had the same gap. Search and sort now only use the fields the user may see; a legacy `search_key` that names a hidden field is not searched.

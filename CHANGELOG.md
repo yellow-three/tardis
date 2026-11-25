@@ -15,6 +15,17 @@ All notable changes to this package. The format follows [Keep a Changelog](https
 - `tardis:doctor` and the builder warn about fields whose column is gone.
 - Customization and Voyager migration guides.
 - PHPStan (Larastan) in CI, and test runs on MySQL and PostgreSQL.
+- CSV and, with the optional `openspout/openspout` package, Excel (.xlsx) export and import on BREAD lists; "select all matching" for bulk actions (R46).
+- Record history with undo, and a warning when someone else saved the record while it was being edited (R47).
+- Own-records-only BREADs (`owner_column`) and fields behind an ability (R48).
+- TOTP two-factor sign-in, a session list with "sign out other sessions", and signing in as another user (R49).
+- A full audit log of administrator changes with retention and `tardis:activity:prune` (R50).
+- A database state store (`TARDIS_STATE_DRIVER=database`) and `tardis:state:copy` (R51).
+- The Database screen writes migration files for its schema changes (R52).
+- A JSON API generated from the BREAD definitions (`TARDIS_API=true`) (R53).
+- A command palette (Ctrl+K), a notification centre with a `tardis` notification channel, a chart widget contract, German, French, Spanish and Arabic with right-to-left layout (R54).
+- Saved list views, inline editing, a duplicate action, media usage tracking and SVG cleaning on upload (R55).
+- The sign-in pages follow the visitor's language and carry a language switcher.
 
 ### Changed
 - Classes moved to their domain folders (`Tardis\TardisManager`, `Tardis\Menu\MenuManager`, …), generator commands renamed to `tardis:make:*`, builder routes renamed to `tardis.builder.*`; old class and command names keep working until 0.3.
@@ -23,6 +34,8 @@ All notable changes to this package. The format follows [Keep a Changelog](https
 
 ### Fixed
 - Security and robustness fixes of phases 9 and 10, the theme engine of phase 10b and the service provider of phase 10c; see RELEASE_NOTES.md.
+- A field hidden by its ability can no longer be searched, column-searched or sorted on, in the panel or the JSON API.
+- Livewire updates on the sign-in pages keep the chosen language.
 
 ## [0.1.0]
 
