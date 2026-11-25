@@ -18,7 +18,7 @@
                     class="join-item btn btn-sm"
                     :class="$store.theme.mode === '{{ $themeMode }}' ? 'btn-primary' : ''"
                     :aria-checked="$store.theme.mode === '{{ $themeMode }}'"
-                    @click="$store.theme.setMode('{{ $themeMode }}')"
+                    @click="$store.theme.setMode(@js($themeMode))"
                 >{{ __('tardis::appearance.modes.'.$themeMode) }}</button>
             @endforeach
         </div>
