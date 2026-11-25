@@ -7,6 +7,7 @@ namespace Tardis\Http\Controllers;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
+use Tardis\Http\Middleware\SetPanelLocale;
 use Tardis\Support\Locales;
 use Tardis\Support\UserPreferences;
 
@@ -25,6 +26,6 @@ class LocaleController
         $request->session()->put('tardis.locale', $validated['locale']);
         $preferences->set($request->user()?->getAuthIdentifier(), 'locale', $validated['locale']);
 
-        return back();
+        return back()->withCookie(SetPanelLocale::cookie($validated['locale']));
     }
 }

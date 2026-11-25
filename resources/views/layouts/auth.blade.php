@@ -28,6 +28,20 @@
         <p class="text-center text-sm text-base-content/50 mt-6">
             {{ __('tardis::misc.powered_by_tardis_framework') }}
         </p>
+
+        @php($authLocales = \Tardis\Support\Locales::available())
+        @if (count($authLocales) > 1)
+            <form method="POST" action="{{ route('tardis.preferences.locale') }}" class="mt-3 flex justify-center">
+                @csrf
+                <label class="sr-only" for="tardis-auth-locale">{{ __('tardis::shell.language') }}</label>
+                <select id="tardis-auth-locale" name="locale" class="select select-ghost select-sm w-auto" onchange="this.form.submit()">
+                    @foreach ($authLocales as $authLocale)
+                        <option value="{{ $authLocale }}" @selected(app()->getLocale() === $authLocale)>{{ \Tardis\Support\Locales::name($authLocale) }}</option>
+                    @endforeach
+                </select>
+                <noscript><button class="btn btn-ghost btn-sm" type="submit">{{ __('tardis::misc.ok') }}</button></noscript>
+            </form>
+        @endif
     </div>
 
     <x-tardis::scripts scope="auth" />

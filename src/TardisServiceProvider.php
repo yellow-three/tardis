@@ -283,7 +283,9 @@ class TardisServiceProvider extends ServiceProvider
         // this the panel's guard runs once, on the page load, and a page that
         // was open when the session ended (or the role was removed) keeps
         // answering.
-        Livewire::addPersistentMiddleware([AdminMiddleware::class]);
+        // The locale too: a failed sign-in or a validation message on any
+        // page is rendered by a Livewire update, not the first request.
+        Livewire::addPersistentMiddleware([SetPanelLocale::class, AdminMiddleware::class]);
     }
 
     protected function registerListeners(): void

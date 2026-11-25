@@ -14,6 +14,9 @@ return [
     */
     'admin' => [
         'prefix' => 'admin',
+        // Before anyone has chosen a language, follow the browser's
+        // Accept-Language when the panel has that translation.
+        'browser_locale' => true,
     ],
 
     /*
