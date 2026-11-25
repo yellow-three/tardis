@@ -1,6 +1,6 @@
 # Tardis Release Notes
 
-Package version: `0.1.0` (`Tardis\Tardis::version()`), the first pre-release: it is for testing, not production, and the API may change before 1.0. See [UPGRADE.md](UPGRADE.md) for every change you need to make.
+Package version: `1.0.0` (`Tardis\Tardis::version()`), the first stable release. The sections headed 0.1 were already in the 0.1.0 pre-release; the ones headed 1.x are new in 1.0. See [UPGRADE.md](UPGRADE.md) for every change you need to make.
 
 ## What the package includes
 
