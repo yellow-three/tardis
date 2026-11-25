@@ -77,7 +77,9 @@ class DatabaseStateStore implements StateStore
     {
         $row = $this->rows()[StatePaths::key($path)] ?? null;
 
-        return $row === null ? 'missing' : 'v'.$row[1];
+        // The version alone could repeat (a row deleted and written again
+        // starts over), so the content is part of the signature.
+        return $row === null ? 'missing' : 'v'.$row[1].':'.hash('xxh64', $row[0]);
     }
 
     public function read(string $path): array
