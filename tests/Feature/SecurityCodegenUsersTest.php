@@ -113,10 +113,15 @@ afterEach(function () {
 test('S2 an injected column name is skipped instead of becoming executable PHP', function () {
     $injected = "x']; public function __construct(){system('id');} protected \$dummy = ['x";
 
-    DB::statement('CREATE TABLE codegen_injected (id integer primary key autoincrement, "'.$injected.'" text)');
+    // The column list as Schema::getColumns() returns it for a table whose
+    // column was created with that name by raw SQL (any driver allows it).
+    $columns = [
+        ['name' => 'id', 'type_name' => 'integer', 'type' => 'integer', 'nullable' => false, 'default' => null, 'auto_increment' => true],
+        ['name' => $injected, 'type_name' => 'text', 'type' => 'text', 'nullable' => true, 'default' => null, 'auto_increment' => false],
+    ];
 
     $generator = app(ModelGenerator::class);
-    $file = $generator->generate('codegen_injected', Schema::getColumns('codegen_injected'));
+    $file = $generator->generate('codegen_injected', $columns);
     $content = (string) File::get($file);
 
     $calls = array_filter(
