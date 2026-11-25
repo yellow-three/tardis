@@ -14,6 +14,7 @@ use League\Flysystem\DirectoryAttributes;
 use League\Flysystem\FileAttributes;
 use League\Flysystem\StorageAttributes;
 use League\MimeTypeDetection\ExtensionMimeTypeDetector;
+use Tardis\Bread\ActivityLogger;
 use Tardis\Models\Media;
 use Tardis\Support\ModelResolver;
 
@@ -65,6 +66,8 @@ class MediaManager
         ]);
 
         $this->makeThumbnail($media);
+
+        $this->audit('uploaded', ['path' => $storedPath, 'size' => $file->getSize()], $media->getKey());
 
         return $media;
     }
@@ -187,7 +190,13 @@ class MediaManager
     {
         $this->assertValidName($name, 'createDirectory');
 
-        return Storage::disk($this->disk)->makeDirectory($this->fullPath($path).'/'.$name);
+        $created = Storage::disk($this->disk)->makeDirectory($this->fullPath($path).'/'.$name);
+
+        if ($created) {
+            $this->audit('directory_created', ['path' => $this->fullPath($path).'/'.$name]);
+        }
+
+        return $created;
     }
 
     public function deleteFile(string $path): bool
@@ -199,6 +208,8 @@ class MediaManager
         $rows = ModelResolver::media()::query()->where('path', $fullPath);
         $this->deleteThumbnails($rows);
         $rows->delete();
+
+        $this->audit('deleted', ['path' => $fullPath]);
 
         return $deleted;
     }
@@ -212,6 +223,8 @@ class MediaManager
         $rows = ModelResolver::media()::query()->whereRaw("path like ? escape '!'", [$this->likePrefix($fullPath.'/')]);
         $this->deleteThumbnails($rows);
         $rows->delete();
+
+        $this->audit('directory_deleted', ['path' => $fullPath]);
 
         return $deleted;
     }
@@ -251,7 +264,19 @@ class MediaManager
             ]);
         }
 
+        $this->audit('renamed', ['from' => $source, 'to' => $target]);
+
         return true;
+    }
+
+    /**
+     * Media changes go to the activity log next to record changes (R50).
+     *
+     * @param  array<string, mixed>  $values
+     */
+    protected function audit(string $action, array $values, int|string $id = 0): void
+    {
+        app(ActivityLogger::class)->audit('tardis.media', $action, $values, $id);
     }
 
     public function downloadZip(array $paths, string $filename = 'media-export.zip'): string

@@ -5,6 +5,7 @@ use Livewire\Attributes\Title;
 use Livewire\Component;
 use Tardis\Auth\Abilities;
 use Tardis\Auth\BreadAuthorization;
+use Tardis\Bread\ActivityLogger;
 use Tardis\Support\ModelResolver;
 
 new #[Title('tardis::permissions.permissions')] #[Layout('tardis::layouts.admin')] class extends Component
@@ -50,11 +51,13 @@ new #[Title('tardis::permissions.permissions')] #[Layout('tardis::layouts.admin'
             'newSlug' => 'required|string|max:255|unique:tardis_permissions,slug',
         ]);
 
-        ModelResolver::permission()::create([
+        $permission = ModelResolver::permission()::create([
             'name' => $this->newName,
             'slug' => $this->newSlug,
             'group' => $this->newGroup ?: null,
         ]);
+
+        app(ActivityLogger::class)->audit('tardis.permission', 'created', ['slug' => $this->newSlug], $permission->getKey());
 
         $this->reset(['newName', 'newSlug', 'newGroup']);
         $this->showAddModal = false;
@@ -70,7 +73,9 @@ new #[Title('tardis::permissions.permissions')] #[Layout('tardis::layouts.admin'
     public function deletePermission(): void
     {
         if ($this->deleteId) {
-            ModelResolver::permission()::findOrFail($this->deleteId)->delete();
+            $permission = ModelResolver::permission()::findOrFail($this->deleteId);
+            $permission->delete();
+            app(ActivityLogger::class)->audit('tardis.permission', 'deleted', ['slug' => $permission->slug], $permission->getKey());
             $this->deleteId = null;
             $this->showDeleteModal = false;
             $this->loadPermissions();

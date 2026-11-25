@@ -7,11 +7,15 @@ namespace Tardis\Settings;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
+use Tardis\Bread\ActivityLogger;
 use Tardis\Support\FileSignature;
 use Tardis\Support\JsonFile;
 
 class SettingsManager
 {
+    /** Stands in for the value of a password setting in every log. */
+    public const REDACTED = '[redacted]';
+
     protected string $path;
 
     protected ?Collection $settings = null;
@@ -71,17 +75,30 @@ class SettingsManager
      */
     public function update(array $settings): void
     {
-        $this->mutate(function (array $items) use ($settings) {
+        $old = [];
+        $new = [];
+
+        $this->mutate(function (array $items) use ($settings, &$old, &$new) {
             foreach ($items as $index => $item) {
                 $fullKey = self::fullKey($item);
 
-                if (array_key_exists($fullKey, $settings)) {
-                    $items[$index]['value'] = $settings[$fullKey];
+                if (! array_key_exists($fullKey, $settings) || ($item['value'] ?? null) === $settings[$fullKey]) {
+                    continue;
                 }
+
+                $hidden = ($item['type'] ?? null) === 'password';
+                $old[$fullKey] = $hidden ? self::REDACTED : ($item['value'] ?? null);
+                $new[$fullKey] = $hidden ? self::REDACTED : $settings[$fullKey];
+
+                $items[$index]['value'] = $settings[$fullKey];
             }
 
             return $items;
         });
+
+        if ($new !== []) {
+            app(ActivityLogger::class)->audit('tardis.setting', 'updated', $new, old: $old);
+        }
     }
 
     /**
@@ -282,9 +299,15 @@ class SettingsManager
         });
     }
 
-    protected function logAudit(string $action, string $key, ?array $oldValues, mixed $newValues): void
+    protected function logAudit(string $action, string $key, ?array $oldValues, ?array $newValues): void
     {
-        $auditPath = dirname($this->path).'/audit.json';
+        // A password setting's value never reaches a log, the file or the table.
+        $redact = fn (?array $values) => $values !== null && ($values['type'] ?? null) === 'password' && array_key_exists('value', $values)
+            ? ['value' => self::REDACTED] + $values
+            : $values;
+
+        $oldValues = $redact($oldValues);
+        $newValues = $redact($newValues);
 
         $entry = [
             'action' => $action,
@@ -295,11 +318,13 @@ class SettingsManager
             'timestamp' => now()->toIso8601String(),
         ];
 
-        JsonFile::update($auditPath, function (array $audit) use ($entry) {
+        JsonFile::update(dirname($this->path).'/audit.json', function (array $audit) use ($entry) {
             $audit[] = $entry;
 
             return array_values(array_slice($audit, -100));
         });
+
+        app(ActivityLogger::class)->audit('tardis.setting', $action, ['key' => $key] + ($newValues ?? []), old: $oldValues);
     }
 
     protected function ensureDirectoryExists(): void
