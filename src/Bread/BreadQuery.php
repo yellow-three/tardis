@@ -7,6 +7,7 @@ namespace Tardis\Bread;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\DB;
+use Tardis\Auth\BreadAuthorization;
 use Tardis\Support\Like;
 
 /**
@@ -61,12 +62,12 @@ class BreadQuery
             foreach ($layout as $key => $config) {
                 if (is_string($key) && is_array($config) && ! empty($config['searchable'])) {
                     $field = $this->bread->getField($key);
-                    if ($field && $this->hasColumn($field)) {
+                    if ($this->hasVisibleColumn($field)) {
                         $names[] = (string) $key;
                     }
                 } elseif (is_array($config) && isset($config['name']) && ! empty($config['searchable'])) {
                     $field = $this->bread->getField($config['name']);
-                    if ($field && $this->hasColumn($field)) {
+                    if ($this->hasVisibleColumn($field)) {
                         $names[] = (string) $config['name'];
                     }
                 }
@@ -75,14 +76,19 @@ class BreadQuery
 
         if ($names === []) {
             foreach ($this->bread->fields as $field) {
-                if (! empty($field['searchable']) && $this->hasColumn($field)) {
+                if (! empty($field['searchable']) && $this->hasVisibleColumn($field)) {
                     $names[] = (string) $field['name'];
                 }
             }
         }
 
-        if ($names === [] && $this->bread->searchKey) {
-            $names[] = $this->bread->searchKey;
+        $searchKey = $this->bread->searchKey;
+        if ($names === [] && $searchKey) {
+            $field = $this->bread->getField($searchKey);
+            // A legacy key need not name a field at all; then it stays usable.
+            if ($field === null || $this->fieldVisible($field)) {
+                $names[] = $searchKey;
+            }
         }
 
         return array_values(array_unique($names));
@@ -144,7 +150,7 @@ class BreadQuery
                     $orderable = $config['orderable'] ?? ($config['sortable'] ?? true);
                     if ($orderable) {
                         $field = $this->bread->getField($key);
-                        if ($field && $this->hasColumn($field)) {
+                        if ($this->hasVisibleColumn($field)) {
                             $names[] = (string) $key;
                         }
                     }
@@ -152,7 +158,7 @@ class BreadQuery
                     $orderable = $config['orderable'] ?? ($config['sortable'] ?? true);
                     if ($orderable) {
                         $field = $this->bread->getField($config['name']);
-                        if ($field && $this->hasColumn($field)) {
+                        if ($this->hasVisibleColumn($field)) {
                             $names[] = (string) $config['name'];
                         }
                     }
@@ -162,7 +168,7 @@ class BreadQuery
 
         if ($names === []) {
             foreach ($this->bread->fields as $field) {
-                if (($field['browse'] ?? true) && ($field['orderable'] ?? true) && $this->hasColumn($field)) {
+                if (($field['browse'] ?? true) && ($field['orderable'] ?? true) && $this->hasVisibleColumn($field)) {
                     $names[] = (string) $field['name'];
                 }
             }
@@ -322,8 +328,9 @@ class BreadQuery
     }
 
     /**
-     * Inline per-column search. Only columns the definition already declares as
-     * searchable are honoured, so a forged column name can never reach SQL.
+     * Inline per-column search. The allowlist comes from searchable(), so only
+     * declared, visible search columns are honoured: a forged column name and
+     * a field hidden by its ability can never reach SQL.
      *
      * @param  array<string, mixed>  $columnSearch
      */
@@ -439,6 +446,24 @@ class BreadQuery
         $field = $this->bread->getField($column);
 
         return $field !== null && $this->hasColumn($field);
+    }
+
+    /**
+     * A search or sort target must be both a real column and one this user may
+     * see: otherwise an ability-hidden value could be probed by searching or
+     * ordering, even though the field itself never renders.
+     *
+     * @param  array<string, mixed>|null  $field
+     */
+    protected function hasVisibleColumn(?array $field): bool
+    {
+        return $field !== null && $this->hasColumn($field) && $this->fieldVisible($field);
+    }
+
+    /** @param  array<string, mixed>  $field */
+    protected function fieldVisible(array $field): bool
+    {
+        return app(BreadAuthorization::class)->allowsField($field);
     }
 
     protected function hasColumn(array $field): bool
