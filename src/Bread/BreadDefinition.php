@@ -13,8 +13,12 @@ use Tardis\Support\Translation;
 
 class BreadDefinition
 {
-    /** A value no owner column can hold, used when a signed-in user has no id. */
-    private const OWNER_UNAVAILABLE = '__tardis_owner_unavailable__';
+    /**
+     * Returned by restrictedOwner() when a signed-in user has no id: they may
+     * see no row. It is never compared with the column (a string would break
+     * an integer column on PostgreSQL); query() matches nothing instead.
+     */
+    public const OWNER_UNAVAILABLE = '__tardis_owner_unavailable__';
 
     public function __construct(
         public string $slug,
@@ -220,7 +224,9 @@ class BreadDefinition
 
         $owner = $this->restrictedOwner();
 
-        if ($owner !== null) {
+        if ($owner === self::OWNER_UNAVAILABLE) {
+            $query->whereRaw('1 = 0');
+        } elseif ($owner !== null) {
             $query->where($query->getModel()->qualifyColumn((string) $this->ownerColumn), $owner);
         }
 
