@@ -275,6 +275,7 @@ Ayrıntı ve kod referansı için parantezdeki kimliğe bak.
 | R53 | **BREAD tanımından JSON API** (aynı tanım, aynı yetki) (✅ 2026-11-25: `tardis.api`, `/api/tardis/{slug}` CRUD + tanım listesi) | ❌ | ❌ | Panel + headless kullanım; tanım, doğrulama ve `scope` hazır | L |
 | R54 | **Panel deneyimi:** komut paleti (Ctrl+K), bildirim merkezi, grafik widget sözleşmesi, ek diller + RTL (✅ 2026-11-25: palet, `tardis_notifications` + `tardis` kanalı, `ChartWidget` SVG, de/fr/es/ar + RTL) | ❌ | ◐ (global arama, bildirim) | Günlük kullanım hızı; `Locales::name()` de/fr/es/ar'ı zaten tanıyor | M |
 | R55 | **Kayıtlı liste görünümleri**, satır içi düzenleme, kopyala aksiyonu, medya kullanım takibi + SVG temizleme (✅ 2026-11-25) | ❌ | ❌ | Küçük ama sık kullanılan kolaylıklar | M |
+| — | **Giriş sayfalarında dil** (✅ 2026-11-25: oturum → `tardis_locale` çerezi → tarayıcı dili; giriş/2FA sayfasında dil seçici, Livewire güncellemelerinde de) | — | — | Girişten önce sayfalar hep İngilizceydi | S |
 
 Zaten önde olduğumuz ve korunması gerekenler (Voyager'da yok ya da zayıf): ability + `scope` + policy ile BREAD yetkisi, activity log, koyu mod ve tema editörü, `tardis:doctor` ve sistem ekranları, CSP nonce ve hash'li plugin varlıkları, çeviride fallback rozetleri, 918 testlik paket. R34 bu üstünlüğün ön koşulu: açık güvenlik bulguları varken "Voyager'dan daha güvenli" iddiası yapılamaz.
 

@@ -382,3 +382,8 @@ Fixes from the 2026-11-17 review (`docs/notes.md`). Each one is covered by a tes
 ## 1.x — Excel export and import (R46, second part)
 
 - **XLSX next to CSV:** with the optional `openspout/openspout` package installed, BREAD lists offer *Export Excel* (same columns, rows and order as the CSV; cells are text, so nothing is read as a formula) and the import accepts `.xlsx` files (first sheet), validated and authorised exactly like a CSV. Without the package, or with `tardis.bread.xlsx = false`, only CSV is offered. The export is logged with its format.
+
+## 1.x — sign-in pages in the visitor's language
+
+- The login, two-factor and password pages no longer always speak the application default before sign-in: they follow the language chosen in this session, then the one this browser last used (a `tardis_locale` cookie, also written from a signed-in user's saved choice), then the browser's `Accept-Language` when the panel has that translation (`tardis.admin.browser_locale`). They carry a language switcher too.
+- Livewire updates keep the language (the locale middleware is persistent), so a failed sign-in or a validation message no longer falls back to English. Signed-in users keep their saved choice, then the application's language, as before.
