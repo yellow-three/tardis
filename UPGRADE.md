@@ -304,3 +304,13 @@ A BREAD override route is named after the new action name (`tardis.bread.create.
 ## Excel export and import (R46)
 
 - Optional: `composer require openspout/openspout` adds `.xlsx` export and import to BREAD lists. Nothing changes without it.
+
+## Security fixes before 1.0 — behaviour that changed
+
+- **The panel sends security headers.** If your application shows panel pages inside an `<iframe>` on another origin, it will stop working: change `X-Frame-Options` and `Content-Security-Policy` in `tardis.security.headers` (or set the list to `[]`). Headers your application already sets are not touched.
+- **`APP_URL` must be the public address of the panel**: password reset links are built from it, not from the request's Host header.
+- **Activity log entries hide secrets.** Fields whose name contains password, token, secret, key or recovery are stored as `[redacted]`; add more names in `tardis.activity_log.redact`.
+- **`tardis:make:model --path` must point inside the application**, and table, column and namespace names must be PHP identifiers (other columns are skipped with a warning).
+- **Media uploads replace quotes, angle brackets and backticks in file names** with `-`; renaming a file to such a name is refused.
+- **A manager who is not a super administrator gets 403** when opening a super administrator in the users screen, editing the super-admin role, or deleting a core permission.
+- **Custom authentication plugins:** the login page now signs out and finishes two-factor on the plugin's own guard (`AuthenticationPlugin::guard()`).

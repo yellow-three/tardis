@@ -412,3 +412,13 @@ A security review before the first stable release found the issues below. Each f
 - **Smaller fixes:** every media-picker action checks "browse media"; the SVG cleaner drops `<style>` and `xml:base`; XLSX cells are always written as text and neutralised like CSV; password reset links are built from `app.url`, not the request's Host header; a BREAD icon that names a missing component falls back to the default icon instead of making every page fail.
 
 If you serve the panel behind a proxy, make sure `APP_URL` is the panel's public address: reset links now use it.
+
+## 1.x — security follow-up
+
+A second pass tested the suspects the first audit could not prove. Regression tests: `tests/Feature/SecurityHeadersRedirectsLogTest.php`, `tests/Feature/SecurityCodegenUsersTest.php`.
+
+- **Security headers:** a new `SecurityHeaders` middleware sends `X-Frame-Options: SAMEORIGIN`, `Content-Security-Policy: frame-ancestors 'self'`, `X-Content-Type-Options: nosniff` and `Referrer-Policy: strict-origin-when-cross-origin` on panel and guest pages, Livewire updates and the JSON API, so the panel can no longer be framed by another site. A header your application already sets is left alone; change or switch them off with `tardis.security.headers` (`[]` turns the middleware off). The CSP only restricts framing; HSTS is left to the host.
+- **Redirects:** the language switch followed the `Referer` header and could send a visitor to another site; it now goes back only to a page on the same host. Notification and menu links go through one check (`Tardis\Support\SafeUrl`) that also refuses `/\host`, backslashes and surrounding whitespace, both when a link is saved and when it is shown, so links stored by an older version are dropped too.
+- **Activity log:** values whose key names a password, token, secret, key or recovery code are stored as `[redacted]` for every entry, including nested audit payloads; flags such as `password_changed` stay readable. Add your own field names with `tardis.activity_log.redact`.
+- **Generated models:** a column name created with raw SQL could become PHP code in a model generated from the Database screen or `tardis:make:model`. Only identifiers are accepted now (a column that is not one is skipped with a warning), values are written with `var_export()`, and `--path` must be inside the application.
+- **Users and roles:** a manager who is not a super administrator cannot open or change a super administrator's roles, edit or delete the super-admin role, or delete the permissions the package seeds (such as `access admin`). The users screen answers 403 for those actions instead of a message at save time.
