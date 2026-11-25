@@ -11,6 +11,7 @@ use Illuminate\Filesystem\Filesystem;
 use Illuminate\Support\Facades\Schema;
 use Livewire\LivewireServiceProvider;
 use Orchestra\Testbench\TestCase as OrchestraTestCase;
+use Tardis\State\StateStore;
 use Tardis\TardisServiceProvider;
 
 abstract class TestCase extends OrchestraTestCase
@@ -31,6 +32,10 @@ abstract class TestCase extends OrchestraTestCase
         // driver (CI does both); its table exists before anything is stored.
         if (getenv('TARDIS_TEST_STATE') === 'database') {
             (require __DIR__.'/../database/migrations/2026_11_25_000001_create_tardis_state_table.php')->up();
+
+            // MySQL and PostgreSQL keep tables between tests: whatever the
+            // app read while booting came from the previous test's rows.
+            $this->app->forgetInstance(StateStore::class);
         }
     }
 
