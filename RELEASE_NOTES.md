@@ -57,7 +57,7 @@ Security and correctness fixes found in the code audit:
 - With `route:cache`, a BREAD created afterwards needs the route cache rebuilt.
 - Theme manifest loading happens during service-provider registration and logs rather than surfaces failures (rebuilt in the theme phase).
 
-Open decisions and the roadmap live in [docs/notes.md](docs/notes.md) and [docs/backlog.md](docs/backlog.md).
+Open decisions and the roadmap live in [docs/notes.md](https://github.com/yellow-three/tardis/blob/master/docs/notes.md) and [docs/backlog.md](https://github.com/yellow-three/tardis/blob/master/docs/backlog.md).
 
 ## Verified quality
 
@@ -97,7 +97,7 @@ composer lint   # clean
 - **Settings screen**: `Provider\SettingsComponent` names a Livewire component the Plugins page opens in a dialog.
 - **Formfield assets**: `Formfield::assets()` is written only on pages that render the field.
 - **CSP**: inline blocks carry a nonce (`tardis.csp.nonce` or Laravel's Vite nonce).
-- **Tooling**: `tardis:plugins [list|enable|disable]`; `tardis:make-plugin --with-assets` scaffolds CSS/JS sources, a Vite build and the `Asset::file()` wiring. The JavaScript surface is documented in [docs/JS.md](docs/JS.md).
+- **Tooling**: `tardis:plugins [list|enable|disable]`; `tardis:make-plugin --with-assets` scaffolds CSS/JS sources, a Vite build and the `Asset::file()` wiring. The JavaScript surface is documented in [docs/JS.md](https://github.com/yellow-three/tardis/blob/master/docs/JS.md).
 
 ## 0.1 — menu builder, dashboard widgets, themes (Faz 6)
 
