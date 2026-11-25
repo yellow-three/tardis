@@ -97,6 +97,26 @@ Authentication and authorization plugins are **locked**: they guard the panel, s
 - **Hooks:** listen to `BreadSaved`, `BreadRecordCreated|Updated|Deleted` and `tardis.page` instead of patching core code.
 - **Authentication plugins** implement `attempt(array $credentials, bool $remember): bool`; register after the built-in plugin and yours is used.
 
+## Charts and notifications
+
+A dashboard chart is a widget with data:
+
+```php
+use Tardis\Dashboard\ChartWidget;
+
+class SignupsChart extends ChartWidget
+{
+    public function type(): string { return 'line'; }          // line, bar, doughnut
+    public function labels(): array { return ['Mon', 'Tue', 'Wed']; }
+    public function datasets(): array { return [['label' => 'Sign-ups', 'data' => [3, 7, 4]]]; }
+}
+
+// in provideWidgets():
+return [(new SignupsChart('Sign-ups'))->key('signups')->width(6)->permission('browse users')];
+```
+
+Tell users something happened with `Tardis::notify($user, 'Export ready', url: route('...'))`, or the `tardis` notification channel (`via()` → `['tardis']`, `toTardis()` → `['title' => …, 'body' => …, 'url' => …, 'level' => 'info|success|warning|error']`).
+
 ## 5. Best practices
 
 - keep plugin names stable and unique

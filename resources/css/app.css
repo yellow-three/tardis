@@ -42,7 +42,7 @@ body {
 .tardis-skip-link {
     position: fixed;
     top: 0.5rem;
-    left: 0.5rem;
+    inset-inline-start: 0.5rem;
     z-index: 100;
     transform: translateY(calc(-100% - 0.5rem));
     transition: transform 150ms ease-out;

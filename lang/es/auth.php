@@ -1,0 +1,28 @@
+<?php
+
+return [
+    'login' => 'Iniciar sesión',
+    'email_example_com' => 'email@example.com',
+    'email_address' => 'Correo electrónico',
+    'password' => 'Contraseña',
+    'remember_me' => 'Recordarme',
+    'log_in' => 'Entrar',
+    'forgot_password' => 'Olvidé mi contraseña',
+    'enter_your_email_address_and_we_112e' => 'Introduce tu correo electrónico y te enviaremos un enlace para restablecer tu contraseña.',
+    'send_reset_link' => 'Enviar enlace de restablecimiento',
+    'or' => 'O',
+    'back_to_login' => 'Volver al inicio de sesión',
+    'reset_password' => 'Restablecer contraseña',
+    'new_password' => 'Nueva contraseña',
+    'confirm_password' => 'Confirmar contraseña',
+    'too_many_attempts' => 'Demasiados intentos de inicio de sesión. Inténtalo de nuevo en :seconds segundos.',
+    'reset_link_sent' => 'Si existe una cuenta con esa dirección, le hemos enviado un enlace para restablecer la contraseña.',
+    'reset_link_invalid' => 'Este enlace de restablecimiento no es válido o ha caducado. Solicita uno nuevo.',
+    'password_reset_done' => 'Tu contraseña se ha restablecido correctamente.',
+    'two_factor_title' => 'Autenticación en dos pasos',
+    'two_factor_prompt' => 'Introduce el código de seis dígitos de tu aplicación de autenticación o uno de tus códigos de recuperación.',
+    'two_factor_code' => 'Código',
+    'two_factor_verify' => 'Verificar',
+    'two_factor_cancel' => 'Volver al inicio de sesión',
+    'two_factor_wrong' => 'Ese código no es válido.',
+];

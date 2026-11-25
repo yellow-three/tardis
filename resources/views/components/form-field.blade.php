@@ -79,7 +79,7 @@
     @elseif ($locales !== [])
         @foreach ($locales as $locale)
             <div class="mb-2" wire:key="{{ $field->name }}-locale-{{ $locale }}">
-                <span class="badge badge-ghost badge-sm uppercase mr-2">{{ $locale }}</span>
+                <span class="badge badge-ghost badge-sm uppercase me-2">{{ $locale }}</span>
                 @include($field->render(), $field->viewData($context + ['model' => 'form.'.$field->name.'.'.$locale]))
             </div>
         @endforeach

@@ -67,8 +67,8 @@
         <div class="flex flex-wrap gap-2 items-center">
             {{-- Search --}}
             <div class="relative flex-1 min-w-[200px]">
-                <x-tardis::icon name="magnifying-glass" class="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-base-content/50" />
-                <input type="text" wire:model.live.debounce.300ms="searchQuery" placeholder="{{ __('tardis::media.search_files_or_folder_by_name') }}" class="input w-full pl-10 bg-base-100" />
+                <x-tardis::icon name="magnifying-glass" class="w-5 h-5 absolute start-3 top-1/2 -translate-y-1/2 text-base-content/50" />
+                <input type="text" wire:model.live.debounce.300ms="searchQuery" placeholder="{{ __('tardis::media.search_files_or_folder_by_name') }}" class="input w-full ps-10 bg-base-100" />
             </div>
 
             {{-- Filter Dropdown --}}
@@ -155,7 +155,7 @@
         @if (!empty($selectedFiles))
             <div class="flex items-center gap-2 px-4 py-3 bg-primary/5 border border-primary/20 rounded-xl">
                 <span class="text-sm font-medium">{{ __('tardis::media.files_selected', ['count' => count($selectedFiles)]) }}</span>
-                <div class="ml-auto flex gap-2">
+                <div class="ms-auto flex gap-2">
                     <button wire:click="downloadSelected" class="btn btn-primary btn-sm gap-1">
                         <x-tardis::icon name="arrow-down-tray" class="w-4 h-4" /> {{ __('tardis::media.download') }}
                     </button>
@@ -239,7 +239,7 @@
                         @endif
 
                         {{-- Checkbox (top-right) --}}
-                        <div class="absolute top-3 right-3 z-20"
+                        <div class="absolute top-3 end-3 z-20"
                              wire:click.stop="toggleSelect('{{ $file['relative_path'] }}')">
                             <input type="checkbox"
                                    class="checkbox checkbox-sm checkbox-primary bg-white/90 border-white/90 {{ in_array($file['relative_path'], $selectedFiles) ? 'opacity-100' : 'opacity-0 group-hover:opacity-100' }} transition-opacity"
@@ -247,7 +247,7 @@
                         </div>
 
                         {{-- Filename Overlay (bottom) --}}
-                        <div class="absolute bottom-0 left-0 right-0 p-3">
+                        <div class="absolute bottom-0 start-0 end-0 p-3">
                             <p class="text-white text-sm font-medium truncate drop-shadow-lg">
                                 {{ $file['name'] }}
                             </p>
@@ -366,7 +366,7 @@
                         <div class="collapse-content px-0 text-sm space-y-3">
                             <div class="flex justify-between">
                                 <span class="text-base-content/70">{{ __('tardis::media.name') }}</span>
-                                <span class="font-medium text-right ml-4 break-all">{{ $infoFile['name'] }}</span>
+                                <span class="font-medium text-end ms-4 break-all">{{ $infoFile['name'] }}</span>
                             </div>
                             <div class="flex justify-between">
                                 <span class="text-base-content/70">{{ __('tardis::media.type') }}</span>
@@ -378,7 +378,7 @@
                             </div>
                             <div class="flex justify-between">
                                 <span class="text-base-content/70">{{ __('tardis::media.path') }}</span>
-                                <span class="font-medium font-mono text-xs text-right break-all max-w-[180px]">{{ $infoFile['relative_path'] }}</span>
+                                <span class="font-medium font-mono text-xs text-end break-all max-w-[180px]">{{ $infoFile['relative_path'] }}</span>
                             </div>
                             @if ($infoFile['last_modified'] ?? null)
                                 <div class="flex justify-between">

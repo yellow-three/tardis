@@ -14,4 +14,6 @@ return [
     'reset_layout' => 'Restore defaults',
     'confirm_reset' => 'Discard the dashboard layout?',
     'width' => 'Width',
+    'activity_chart' => 'Activity, last 14 days',
+    'chart_no_data' => 'No data to show yet.',
 ];

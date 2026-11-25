@@ -1,0 +1,28 @@
+<?php
+
+return [
+    'login' => 'Connexion',
+    'email_example_com' => 'email@example.com',
+    'email_address' => 'Adresse e-mail',
+    'password' => 'Mot de passe',
+    'remember_me' => 'Se souvenir de moi',
+    'log_in' => 'Se connecter',
+    'forgot_password' => 'Mot de passe oublié',
+    'enter_your_email_address_and_we_112e' => 'Saisissez votre adresse e-mail et nous vous enverrons un lien pour réinitialiser votre mot de passe.',
+    'send_reset_link' => 'Envoyer le lien de réinitialisation',
+    'or' => 'OU',
+    'back_to_login' => 'Retour à la connexion',
+    'reset_password' => 'Réinitialiser le mot de passe',
+    'new_password' => 'Nouveau mot de passe',
+    'confirm_password' => 'Confirmer le mot de passe',
+    'too_many_attempts' => 'Trop de tentatives de connexion. Veuillez réessayer dans :seconds secondes.',
+    'reset_link_sent' => 'Si un compte existe pour cette adresse, nous lui avons envoyé un lien de réinitialisation du mot de passe.',
+    'reset_link_invalid' => 'Ce lien de réinitialisation est invalide ou a expiré. Demandez-en un nouveau.',
+    'password_reset_done' => 'Votre mot de passe a été réinitialisé avec succès.',
+    'two_factor_title' => 'Authentification à deux facteurs',
+    'two_factor_prompt' => 'Saisissez le code à six chiffres de votre application d\'authentification, ou l\'un de vos codes de récupération.',
+    'two_factor_code' => 'Code',
+    'two_factor_verify' => 'Vérifier',
+    'two_factor_cancel' => 'Retour à la connexion',
+    'two_factor_wrong' => 'Ce code n\'est pas valide.',
+];

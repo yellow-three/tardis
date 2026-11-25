@@ -77,7 +77,7 @@
                                             </span>
                                         @endif
                                         @if (in_array($file['path'], $selected, true))
-                                            <span class="absolute top-2 right-2 bg-primary text-primary-content rounded-full p-1">
+                                            <span class="absolute top-2 end-2 bg-primary text-primary-content rounded-full p-1">
                                                 <x-tardis::icon name="check-circle" class="w-3 h-3" />
                                             </span>
                                         @endif

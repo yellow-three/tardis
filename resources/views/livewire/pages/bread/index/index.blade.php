@@ -159,7 +159,7 @@
                                     @endif
                                 </th>
                             @endforeach
-                            <th class="text-right" scope="col">{{ __('tardis::bread.actions') }}</th>
+                            <th class="text-end" scope="col">{{ __('tardis::bread.actions') }}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -203,7 +203,7 @@
                                         @endif
                                     </td>
                                 @endforeach
-                                <td class="text-right">
+                                <td class="text-end">
                                     <div class="flex justify-end gap-2">
                                         @unless (method_exists($row, 'trashed') && $row->trashed())
                                             <a href="{{ url(trim(config('tardis.admin.prefix', 'admin'), '/').'/'.$slug.'/'.$row->getKey()) }}" class="btn btn-ghost btn-xs">{{ __('tardis::bread.view') }}</a>

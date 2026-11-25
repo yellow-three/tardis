@@ -15,6 +15,7 @@ use Tardis\Dashboard\WidgetManager;
 use Tardis\Formfields\FormfieldManager;
 use Tardis\Media\MediaManager;
 use Tardis\Menu\MenuManager;
+use Tardis\Notifications\PanelNotifications;
 use Tardis\Plugins\PluginManager;
 use Tardis\Settings\SettingsManager;
 use Tardis\Theme\ThemeManager;
@@ -74,6 +75,16 @@ class TardisManager
     public function actions(): ActionManager
     {
         return app(ActionManager::class);
+    }
+
+    /**
+     * Put a message under the bell of one or more panel users.
+     *
+     * @param  mixed  $users  a user, a user id, or a list of either
+     */
+    public function notify(mixed $users, string $title, ?string $body = null, ?string $url = null, string $level = 'info'): int
+    {
+        return app(PanelNotifications::class)->send($users, $title, $body, $url, $level);
     }
 
     public function media(): MediaManager

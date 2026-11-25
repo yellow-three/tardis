@@ -188,7 +188,7 @@ new #[Title('tardis::menu_builder.title')] #[Layout('tardis::layouts.admin')] cl
                     <tr>
                         <th scope="col">{{ __('tardis::menu_builder.title_label') }}</th>
                         <th scope="col">{{ __('tardis::menu_builder.section') }}</th>
-                        <th class="text-right" scope="col">{{ __('tardis::menu_builder.actions') }}</th>
+                        <th class="text-end" scope="col">{{ __('tardis::menu_builder.actions') }}</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -200,7 +200,7 @@ new #[Title('tardis::menu_builder.title')] #[Layout('tardis::layouts.admin')] cl
                             <td>
                                 <input type="text" value="{{ $row['section'] }}" wire:change="resection(@js($row['id']), $event.target.value)" class="input input-sm w-full max-w-xs" aria-label="{{ __('tardis::menu_builder.section') }}" />
                             </td>
-                            <td class="text-right">
+                            <td class="text-end">
                                 <div class="flex justify-end gap-1">
                                     <button type="button" wire:click="move(@js($row['id']), -1)" class="btn btn-ghost btn-xs" aria-label="{{ __('tardis::menu_builder.move_up') }}">▲</button>
                                     <button type="button" wire:click="move(@js($row['id']), 1)" class="btn btn-ghost btn-xs" aria-label="{{ __('tardis::menu_builder.move_down') }}">▼</button>

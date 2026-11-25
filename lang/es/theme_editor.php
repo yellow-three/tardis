@@ -1,0 +1,28 @@
+<?php
+
+return [
+    'title' => 'Temas',
+    'description' => 'Crea temas de color personalizados. Un tema está disponible para todos los usuarios en cuanto se guarda.',
+    'existing' => 'Tus temas',
+    'none' => 'Aún no hay temas personalizados.',
+    'editor' => 'Editor de temas',
+    'name' => 'Nombre (letras, dígitos, guiones)',
+    'label' => 'Etiqueta',
+    'scheme' => 'Esquema de color',
+    'light' => 'Claro',
+    'dark' => 'Oscuro',
+    'shape' => 'Forma',
+    'shape_help' => 'Redondeo de esquinas, tamaños de campos y selectores, grosor del borde, profundidad y ruido. Una longitud (0.5rem, 1px) o un número para profundidad y ruido; si se deja vacío se usa el valor predeterminado de DaisyUI.',
+    'invalid_shape' => 'No es una longitud ni un número: :names.',
+    'colors' => 'Colores',
+    'save' => 'Guardar tema',
+    'new' => 'Nuevo tema',
+    'duplicate' => 'Duplicar',
+    'edit' => 'Editar',
+    'delete' => 'Eliminar',
+    'confirm_delete' => '¿Eliminar este tema?',
+    'invalid' => 'El tema no se guardó. Usa un nombre corto de letras, dígitos y guiones, y colores válidos al menos para primary, base-100 y base-content.',
+    'saved' => 'Tema guardado.',
+    'builtin' => 'Integrado',
+    'copy_of' => 'Copia de :label',
+];

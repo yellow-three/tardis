@@ -19,7 +19,7 @@
                     <span class="tardis-sidebar-label flex items-center gap-2 flex-1 min-w-0">
                         <span class="truncate">{{ $item->resolvedTitle() }}</span>
                         @if ($item->badgeColor)
-                            <span class="badge badge-{{ $item->badgeColor }} badge-sm ml-auto">
+                            <span class="badge badge-{{ $item->badgeColor }} badge-sm ms-auto">
                                 {{ $item->badgeValue ?? '' }}
                             </span>
                         @endif
@@ -39,7 +39,7 @@
                 <span class="tardis-sidebar-label flex items-center gap-2 flex-1 min-w-0">
                     <span class="truncate">{{ $item->resolvedTitle() }}</span>
                     @if ($item->badgeColor)
-                        <span class="badge badge-{{ $item->badgeColor }} badge-sm ml-auto">
+                        <span class="badge badge-{{ $item->badgeColor }} badge-sm ms-auto">
                             {{ $item->badgeValue ?? '' }}
                         </span>
                     @endif

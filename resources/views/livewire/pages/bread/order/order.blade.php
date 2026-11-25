@@ -43,7 +43,7 @@
                         class="flex items-center gap-3 py-2 cursor-move"
                     >
                         <x-tardis::icon name="bars-3" class="w-4 h-4 text-base-content/40" aria-hidden="true" />
-                        <span class="w-8 text-right text-sm text-base-content/50">{{ $index + 1 }}</span>
+                        <span class="w-8 text-end text-sm text-base-content/50">{{ $index + 1 }}</span>
                         <span class="flex-1">{{ $row['label'] }}</span>
                         <button type="button" wire:click="move(@js($row['id']), -1)" @disabled($index === 0) class="btn btn-ghost btn-xs" aria-label="{{ __('tardis::menu_builder.move_up') }}">▲</button>
                         <button type="button" wire:click="move(@js($row['id']), 1)" @disabled($index === count($rows) - 1) class="btn btn-ghost btn-xs" aria-label="{{ __('tardis::menu_builder.move_down') }}">▼</button>

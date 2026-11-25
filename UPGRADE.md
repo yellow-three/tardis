@@ -287,3 +287,9 @@ A BREAD override route is named after the new action name (`tardis.bread.create.
 ## JSON API (R53)
 
 - Off by default. To use it, set `TARDIS_API=true`, install `laravel/sanctum` (or change `tardis.api.middleware` to your own guard) and give API users "access admin" plus the BREAD abilities they need, as for the panel.
+
+## Panel experience (R54)
+
+- Run `php artisan migrate` for `tardis_notifications`.
+- The dashboard has a new `activity-chart` widget; a saved layout puts it at its default place (order 45). A test that listed the default widget ids needs it added.
+- Published views: the package's views now use logical utilities (`ms-`/`me-`, `ps-`/`pe-`, `start-`/`end-`, `text-start`/`text-end`) instead of left/right ones, so they mirror in RTL. Re-publish or apply the same change to your copies if you want right-to-left support.

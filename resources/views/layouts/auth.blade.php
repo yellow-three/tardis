@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 @php($tardisTheme = app(\Tardis\Theme\ThemePreference::class)->resolve(auth()->id()))
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" data-theme="{{ $tardisTheme['mode'] === 'light' ? $tardisTheme['light'] : $tardisTheme['dark'] }}">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" dir="{{ \Tardis\Support\Locales::direction() }}" data-theme="{{ $tardisTheme['mode'] === 'light' ? $tardisTheme['light'] : $tardisTheme['dark'] }}">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">

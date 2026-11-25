@@ -159,7 +159,7 @@ new #[Title('tardis::search.search')] #[Layout('tardis::layouts.admin')] class e
                                     <a wire:key="result-item-{{ $item['url'] }}" href="{{ $item['url'] }}" class="flex items-center gap-3 py-3 hover:bg-base-200 px-2 rounded transition-colors">
                                         <x-tardis::icon name="database" class="w-4 h-4 text-primary" />
                                         <span class="font-medium">{{ $item['title'] }}</span>
-                                        <span class="text-xs text-base-content/40 ml-auto">#{{ $item['id'] }}</span>
+                                        <span class="text-xs text-base-content/40 ms-auto">#{{ $item['id'] }}</span>
                                     </a>
                                 @endforeach
                             </div>

@@ -20,7 +20,7 @@ function dashboardWidgets(bool $withHidden = false): Collection
 }
 
 test('the default dashboard has the stock widgets in order', function () {
-    expect(dashboardWidgets()->map->id()->all())->toBe(['users', 'breads', 'media', 'activities', 'recent-activity']);
+    expect(dashboardWidgets()->map->id()->all())->toBe(['users', 'breads', 'media', 'activities', 'activity-chart', 'recent-activity']);
 });
 
 test('a hidden widget leaves the dashboard but can still be listed for editing', function () {
@@ -86,7 +86,7 @@ test('edit mode hides, moves and resizes widgets and restores the defaults', fun
         ->call('resize', 'users', 6)
         ->call('move', 'breads', -1);
 
-    expect(dashboardWidgets()->map->id()->all())->toBe(['breads', 'users', 'activities', 'recent-activity'])
+    expect(dashboardWidgets()->map->id()->all())->toBe(['breads', 'users', 'activities', 'activity-chart', 'recent-activity'])
         ->and(dashboardWidgets()->firstWhere(fn (Widget $w) => $w->id() === 'users')->width)->toBe(6);
 
     $page->call('resetLayout');

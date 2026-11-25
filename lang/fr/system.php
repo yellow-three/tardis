@@ -1,0 +1,58 @@
+<?php
+
+return [
+    'system' => 'Système',
+    'system_tools' => 'Outils système',
+    'overview' => 'Vue d\'ensemble',
+    'logs' => 'Journaux',
+    'commands' => 'Commandes',
+
+    // Doctor
+    'title' => 'Système',
+    'diagnostics' => 'Diagnostics',
+    'run_checks' => 'Relancer les vérifications',
+    'status' => 'Statut',
+    'check' => 'Vérification',
+    'details' => 'Détails',
+    'passed' => 'Réussies',
+    'warnings' => 'Avertissements',
+    'failed' => 'Échouées',
+    'ok' => 'OK',
+    'warn' => 'Avertissement',
+    'error' => 'Échec',
+    'all_checks_passed' => 'Toutes les vérifications ont réussi. Rien à corriger.',
+    'checks_with_warnings' => ':count vérification(s) demandent votre attention.',
+    'checks_failed' => ':count vérification(s) ont échoué.',
+    'no_issues' => 'Aucun problème détecté.',
+    'read_only_notice' => 'Ces vérifications ne font que lire l\'état. Elles ne modifient jamais rien.',
+
+    // Logs
+    'log_viewer' => 'Visionneuse de journaux',
+    'log_file' => 'Fichier de journal',
+    'select_log' => 'Sélectionnez un fichier de journal',
+    'no_log_files' => 'Aucun fichier de journal trouvé.',
+    'unavailable' => 'Ce fichier de journal n\'est plus disponible.',
+    'lines' => 'Lignes',
+    'tail' => 'Fin du fichier',
+    'refresh' => 'Actualiser',
+    'empty_log' => 'Ce fichier de journal est vide.',
+    'truncated_notice' => 'Seule la fin de ce fichier est affichée.',
+
+    // Commands
+    'command_runner' => 'Exécuteur de commandes',
+    'command' => 'Commande',
+    'select_command' => 'Sélectionnez une commande',
+    'no_allowed_commands' => 'Aucune commande n\'est autorisée dans cet environnement.',
+    'arguments' => 'Arguments',
+    'allowed_options' => 'Options autorisées',
+    'no_arguments' => 'Cette commande n\'accepte aucune option autorisée.',
+    'run' => 'Exécuter',
+    'running' => 'Exécution…',
+    'output' => 'Sortie',
+    'no_output' => 'Aucune sortie.',
+    'exit_code' => 'Code de sortie',
+    'runner_disabled' => 'L\'exécuteur de commandes est désactivé.',
+    'runner_disabled_hint' => 'Activez-le et autorisez des commandes dans la configuration.',
+    'not_allowed' => 'Cette commande n\'est pas autorisée.',
+    'confirm_run' => 'Exécuter cette commande ?',
+];

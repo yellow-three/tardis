@@ -1,0 +1,26 @@
+<?php
+
+return [
+    'activity_log' => 'سجل النشاط',
+    'track_all_system_activities' => 'تتبّع جميع أنشطة النظام',
+    'search' => 'بحث...',
+    'all_actions' => 'جميع الإجراءات',
+    'created' => 'أُنشئ',
+    'updated' => 'عُدّل',
+    'deleted' => 'حُذف',
+    'restored' => 'استُعيد',
+    'force_deleted' => 'حُذف نهائيًا',
+    'action' => 'الإجراء',
+    'model' => 'النموذج',
+    'user' => 'المستخدم',
+    'time' => 'الوقت',
+    'no_activities_found' => 'لا توجد أنشطة',
+    'showing' => 'عرض :from-:to من :total',
+    'kind' => 'النوع',
+    'all_kinds' => 'جميع الأنواع',
+    'details' => 'التفاصيل',
+    'show_changes' => 'عرض التغييرات',
+    'before' => 'قبل',
+    'after' => 'بعد',
+    'system' => 'النظام',
+];

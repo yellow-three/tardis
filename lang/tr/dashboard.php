@@ -14,4 +14,6 @@ return [
     'reset_layout' => 'Varsayılanlara dön',
     'confirm_reset' => 'Pano düzeni silinsin mi?',
     'width' => 'Genişlik',
+    'activity_chart' => 'Etkinlik, son 14 gün',
+    'chart_no_data' => 'Henüz gösterilecek veri yok.',
 ];

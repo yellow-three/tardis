@@ -10,7 +10,7 @@
         x-show="open"
         x-cloak
         x-transition
-        class="fixed inset-y-0 right-0 z-50 flex w-full max-w-md flex-col border-l border-base-300 bg-base-100 shadow-xl"
+        class="fixed inset-y-0 end-0 z-50 flex w-full max-w-md flex-col border-s border-base-300 bg-base-100 shadow-xl"
         role="dialog"
         aria-modal="true"
         @if ($title) aria-label="{{ $title }}" @endif

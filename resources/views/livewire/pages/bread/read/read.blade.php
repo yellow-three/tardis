@@ -90,7 +90,7 @@
                         <span class="font-medium">{{ $entry['user'] }}</span>
                         <span class="text-base-content/50">{{ $entry['at'] }}</span>
                         @if ($entry['revertible'] && $mayRevert)
-                            <button type="button" wire:click="revert({{ $entry['id'] }})" wire:confirm="{{ __('tardis::bread.history_revert_confirm') }}" class="btn btn-ghost btn-xs ml-auto">{{ __('tardis::bread.history_revert') }}</button>
+                            <button type="button" wire:click="revert({{ $entry['id'] }})" wire:confirm="{{ __('tardis::bread.history_revert_confirm') }}" class="btn btn-ghost btn-xs ms-auto">{{ __('tardis::bread.history_revert') }}</button>
                         @endif
                     </div>
                     @if ($entry['changes'] !== [])

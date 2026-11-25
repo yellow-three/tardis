@@ -1,0 +1,28 @@
+<?php
+
+return [
+    'title' => 'Thèmes',
+    'description' => 'Créez des thèmes de couleurs personnalisés. Un thème est disponible pour tous les utilisateurs dès qu\'il est enregistré.',
+    'existing' => 'Vos thèmes',
+    'none' => 'Aucun thème personnalisé pour le moment.',
+    'editor' => 'Éditeur de thème',
+    'name' => 'Nom (lettres, chiffres, tirets)',
+    'label' => 'Libellé',
+    'scheme' => 'Schéma de couleurs',
+    'light' => 'Clair',
+    'dark' => 'Sombre',
+    'shape' => 'Forme',
+    'shape_help' => 'Arrondi des angles, tailles des champs et des sélecteurs, épaisseur des bordures, profondeur et grain. Une longueur (0.5rem, 1px) ou un nombre pour la profondeur et le grain ; vide conserve la valeur par défaut de DaisyUI.',
+    'invalid_shape' => 'Ni une longueur ni un nombre : :names.',
+    'colors' => 'Couleurs',
+    'save' => 'Enregistrer le thème',
+    'new' => 'Nouveau thème',
+    'duplicate' => 'Dupliquer',
+    'edit' => 'Modifier',
+    'delete' => 'Supprimer',
+    'confirm_delete' => 'Supprimer ce thème ?',
+    'invalid' => 'Le thème n\'a pas été enregistré. Utilisez un nom court composé de lettres, de chiffres et de tirets, et des couleurs valides pour au moins primary, base-100 et base-content.',
+    'saved' => 'Thème enregistré.',
+    'builtin' => 'Intégré',
+    'copy_of' => 'Copie de :label',
+];

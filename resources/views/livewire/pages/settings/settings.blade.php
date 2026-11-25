@@ -21,7 +21,7 @@
 " @set-group.window="$wire.setActiveGroup($event.detail); window.location.hash = $event.detail">
     <!-- Notification Toast -->
     <template x-if="notification">
-        <div class="fixed top-4 right-4 z-50" x-transition>
+        <div class="fixed top-4 end-4 z-50" x-transition>
             <div class="alert" :class="{
                 'alert-success': notification.type === 'success',
                 'alert-error': notification.type === 'error',
@@ -41,8 +41,8 @@
 
         <div class="flex gap-2">
             <div class="relative">
-                <x-tardis::icon name="magnifying-glass" class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-base-content/50" />
-                <input type="text" wire:model.live.debounce.300ms="search" class="input input-sm pl-10 w-64" placeholder="{{ __('tardis::settings.search_settings') }}" />
+                <x-tardis::icon name="magnifying-glass" class="w-4 h-4 absolute start-3 top-1/2 -translate-y-1/2 text-base-content/50" />
+                <input type="text" wire:model.live.debounce.300ms="search" class="input input-sm ps-10 w-64" placeholder="{{ __('tardis::settings.search_settings') }}" />
             </div>
             <button wire:click="$set('showAddGroupModal', true)" class="btn btn-outline btn-sm gap-2">
                 <x-tardis::icon name="plus" class="w-4 h-4" />

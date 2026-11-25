@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace Tardis;
 
+use Illuminate\Notifications\ChannelManager;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\ServiceProvider;
 use Livewire\Livewire;
 use Tardis\Assets\AssetManager;
@@ -45,11 +47,14 @@ use Tardis\Listeners\ProvisionBreadPermissions;
 use Tardis\Media\MediaManager;
 use Tardis\Menu\MenuManager;
 use Tardis\Menu\MenuOverlay;
+use Tardis\Notifications\PanelNotifications;
+use Tardis\Notifications\TardisChannel;
 use Tardis\Plugins\PluginManager;
 use Tardis\Settings\SettingsManager;
 use Tardis\State\DatabaseStateStore;
 use Tardis\State\FileStateStore;
 use Tardis\State\StateStore;
+use Tardis\Support\CommandPalette;
 use Tardis\Support\LegacyNames;
 use Tardis\Support\UserPreferences;
 use Tardis\Theme\ThemeManager;
@@ -78,6 +83,8 @@ class TardisServiceProvider extends ServiceProvider
         // invisible to the other.
         $this->app->singleton(MenuOverlay::class);
         $this->app->singleton(MenuManager::class);
+        $this->app->scoped(PanelNotifications::class);
+        $this->app->scoped(CommandPalette::class);
         $this->app->singleton(DashboardLayout::class);
         $this->app->singleton(WidgetManager::class);
         $this->app->singleton(SettingsManager::class);
@@ -281,6 +288,9 @@ class TardisServiceProvider extends ServiceProvider
 
     protected function registerListeners(): void
     {
+        // $notifiable->notify(new X) with via() => ['tardis'] reaches the bell.
+        Notification::resolved(fn (ChannelManager $channels) => $channels->extend('tardis', fn ($app) => $app->make(TardisChannel::class)));
+
         Event::listen(BreadSaved::class, ProvisionBreadPermissions::class);
         Event::listen([BreadSaved::class, BreadRemoved::class], LogBreadDefinitionChange::class);
 

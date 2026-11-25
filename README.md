@@ -249,6 +249,16 @@ Larger screens (BREAD pages, BREAD builder, media browser, database explorer, se
 
 See [docs/PLUGIN_GUIDE.md](docs/PLUGIN_GUIDE.md) and [docs/EXAMPLE_BREAD.md](docs/EXAMPLE_BREAD.md).
 
+## Command palette, notifications and charts
+
+- **Command palette:** Ctrl+K (⌘K) on any panel page, or the button in the header, opens a list of every sidebar page the user may open plus "New …" for each BREAD they may add to; type to filter, arrows and Enter to go. Anything else searches the records. `window.Tardis.palette()` opens it from your own script.
+- **Notifications:** the bell shows the signed-in user's latest messages, with an unread count, and checks again every minute. Send one with `Tardis::notify($user, 'Import finished', 'Body', url: '/admin/posts', level: 'success')` (a user, an id, or a list), or from a Laravel notification whose `via()` returns `['tardis']` and that has `toTardis($notifiable)` returning `title`, `body`, `url`, `level`. Messages live in `tardis_notifications`.
+- **Chart widgets:** extend `Tardis\Dashboard\ChartWidget`, return `type()` (`line`, `bar`, `doughnut`), `labels()` and `datasets()` (`[['label' => …, 'data' => [...]]]`), and add it like any widget from a plugin's `provideWidgets()`. It is drawn as an accessible SVG in the theme's colours, with no JavaScript chart library. The dashboard ships an "Activity, last 14 days" chart.
+
+## Languages
+
+The panel speaks English, Turkish, German, French, Spanish and Arabic. Arabic (and any `fa`, `he`, `ur` translation you add under `lang/vendor/tardis`) is written right to left: the layouts set `dir="rtl"` and the views use logical spacing (`ms-`, `pe-`, `text-start`).
+
 ## Extra CSS and JavaScript
 
 `tardis.assets.css` and `tardis.assets.js` take lists of URLs (`https://…` or root-relative `/…`) that load on every admin page after the package assets. Plugins can add inline CSS/JS through the `CSS` / `JS` provider contracts.

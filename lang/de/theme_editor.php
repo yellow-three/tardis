@@ -1,0 +1,28 @@
+<?php
+
+return [
+    'title' => 'Designs',
+    'description' => 'Erstellen Sie eigene Farbdesigns. Ein Design steht allen Benutzern zur Verfügung, sobald es gespeichert ist.',
+    'existing' => 'Ihre Designs',
+    'none' => 'Noch keine eigenen Designs.',
+    'editor' => 'Design-Editor',
+    'name' => 'Name (Buchstaben, Ziffern, Bindestriche)',
+    'label' => 'Bezeichnung',
+    'scheme' => 'Farbschema',
+    'light' => 'Hell',
+    'dark' => 'Dunkel',
+    'shape' => 'Form',
+    'shape_help' => 'Eckenrundung, Größen von Feldern und Auswahlelementen, Rahmenbreite, Tiefe und Rauschen. Eine Länge (0.5rem, 1px) bzw. eine Zahl für Tiefe und Rauschen; leer übernimmt den Standard von DaisyUI.',
+    'invalid_shape' => 'Keine Länge oder Zahl: :names.',
+    'colors' => 'Farben',
+    'save' => 'Design speichern',
+    'new' => 'Neues Design',
+    'duplicate' => 'Duplizieren',
+    'edit' => 'Bearbeiten',
+    'delete' => 'Löschen',
+    'confirm_delete' => 'Dieses Design löschen?',
+    'invalid' => 'Das Design wurde nicht gespeichert. Verwenden Sie einen kurzen Namen aus Buchstaben, Ziffern und Bindestrichen sowie gültige Farben für mindestens primary, base-100 und base-content.',
+    'saved' => 'Design gespeichert.',
+    'builtin' => 'Integriert',
+    'copy_of' => 'Kopie von :label',
+];

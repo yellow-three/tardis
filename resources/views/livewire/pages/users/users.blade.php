@@ -43,7 +43,7 @@
                     <tr>
                         <th scope="col">{{ __('tardis::users.user') }}</th>
                         <th scope="col">{{ __('tardis::users.roles') }}</th>
-                        <th class="text-right" scope="col">{{ __('tardis::users.actions') }}</th>
+                        <th class="text-end" scope="col">{{ __('tardis::users.actions') }}</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -62,7 +62,7 @@
                                     <span class="text-sm text-base-content/50">{{ __('tardis::users.no_role') }}</span>
                                 @endforelse
                             </td>
-                            <td class="text-right">
+                            <td class="text-end">
                                 <div class="flex justify-end gap-1">
                                     @if ($user['manageable'])
                                         <button type="button" wire:click="openDetails(@js($user['id']))" class="btn btn-ghost btn-sm">

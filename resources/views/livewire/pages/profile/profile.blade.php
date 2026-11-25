@@ -87,7 +87,7 @@
                 @php
                     $tfQr = $this->qrCode($tfPending);
                 @endphp
-                <ol class="mb-3 list-decimal space-y-2 pl-5 text-sm">
+                <ol class="mb-3 list-decimal space-y-2 ps-5 text-sm">
                     <li>{{ __('tardis::profile.two_factor_scan') }}</li>
                 </ol>
                 @if ($tfQr)
@@ -120,7 +120,7 @@
                     <li wire:key="session-{{ md5($openSession['id']) }}" class="flex flex-wrap items-center gap-2 py-2 text-sm">
                         <span class="font-medium">{{ $openSession['agent'] }}</span>
                         <span class="text-base-content/60">{{ $openSession['ip'] }}</span>
-                        <span class="ml-auto text-base-content/60">
+                        <span class="ms-auto text-base-content/60">
                             @if ($openSession['current'])
                                 <span class="badge badge-success badge-sm">{{ __('tardis::profile.this_session') }}</span>
                             @else
