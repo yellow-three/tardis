@@ -117,6 +117,19 @@ test('a guest gets 401 and a user without access admin 403, in JSON', function (
     $this->actingAs($this->ada)->getJson('/api/tardis/tickets')->assertForbidden();
 });
 
+test('a guest without an Accept header gets a JSON 401, not a redirect to login', function () {
+    // Testbench has no Sanctum guard; a host that installs it does, and that
+    // is the setup where the missing Accept header previously caused a 500.
+    config()->set('auth.guards.sanctum', ['driver' => 'session', 'provider' => 'users']);
+    config()->set('tardis.api.middleware', ['api', 'auth:sanctum', 'throttle:60,1']);
+    loadApiRoutes();
+
+    $this->get('/api/tardis/tickets')
+        ->assertUnauthorized()
+        ->assertHeader('Content-Type', 'application/json')
+        ->assertJsonStructure(['message']);
+});
+
 test('the list shows only the user\'s own records, without hidden fields and attributes', function () use ($crud) {
     apiAllow($crud);
 

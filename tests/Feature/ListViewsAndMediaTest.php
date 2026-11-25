@@ -161,6 +161,31 @@ test('scripts, handlers and outside links are removed from an SVG', function () 
         ->and(SvgSanitizer::clean('<html><body/></html>'))->toBeNull();
 });
 
+test('an undeclared xlink prefix cannot smuggle a javascript link into an SVG', function () {
+    $clean = SvgSanitizer::clean('<svg xmlns="http://www.w3.org/2000/svg"><a xlink:href="javascript:alert(1)"><rect width="1" height="1"/></a></svg>');
+
+    expect($clean)->not->toContain('xlink:href')
+        ->not->toContain('javascript:')
+        ->toContain('<a');
+});
+
+test('external references in use, image and feImage lose their href but fragments stay', function () {
+    $dirty = '<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">'
+        .'<use href="https://evil.test/x.svg#a"/>'
+        .'<use xlink:href="https://evil.test/y.svg#b"/>'
+        .'<image href="https://evil.test/i.png"/>'
+        .'<feImage href="https://evil.test/i.png"/>'
+        .'<use href="#a"/>'
+        .'<a href="https://example.com"><rect width="1" height="1"/></a>'
+        .'</svg>';
+
+    $clean = SvgSanitizer::clean($dirty);
+
+    expect($clean)->not->toContain('evil.test')
+        ->toContain('href="#a"')
+        ->toContain('href="https://example.com"');
+});
+
 test('an SVG uploaded to the media library is stored cleaned', function () {
     $this->artisan('migrate');
     Storage::fake('public');

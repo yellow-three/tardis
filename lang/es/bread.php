@@ -78,6 +78,8 @@ return [
     'bulk_too_many' => 'Coinciden más de :limit registros; acota los filtros y vuelve a ejecutarlo.',
     'import_csv' => 'Importar CSV',
     'import_help' => 'Una fila de encabezado nombra las columnas, por nombre de campo o etiqueta; se puede volver a leer un archivo exportado desde esta lista. Una fila con la clave de un registro existente lo actualiza; cualquier otra fila se añade. Si una sola fila no es válida, no se escribe nada.',
+    'import_spreadsheet' => 'Importar CSV o Excel',
+    'import_help_spreadsheet' => 'Una fila de encabezado nombra las columnas, por nombre de campo o etiqueta; se puede volver a leer un archivo CSV o Excel (.xlsx) exportado desde esta lista. Una fila con la clave de un registro existente lo actualiza; cualquier otra fila se añade. Si una sola fila no es válida, no se escribe nada.',
     'import_run' => 'Importar',
     'import_done' => ':created añadidos, :updated actualizados.',
     'import_failed' => 'No se importó nada. Corrige estas filas e inténtalo de nuevo:',

@@ -78,6 +78,8 @@ return [
     'bulk_too_many' => 'More than :limit records match; narrow the filters and run it again.',
     'import_csv' => 'Import CSV',
     'import_help' => 'A header row names the columns, by field name or label; a file exported from this list can be read back. A row with the key of an existing record updates it, any other row is added. One invalid row and nothing is written.',
+    'import_spreadsheet' => 'Import CSV or Excel',
+    'import_help_spreadsheet' => 'A header row names the columns, by field name or label; a CSV or Excel (.xlsx) file exported from this list can be read back. A row with the key of an existing record updates it, any other row is added. One invalid row and nothing is written.',
     'import_run' => 'Import',
     'import_done' => ':created added, :updated updated.',
     'import_failed' => 'Nothing was imported. Fix these rows and try again:',
